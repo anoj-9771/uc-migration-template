@@ -324,70 +324,70 @@ verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC --View to get property history for Billed Water Consumption.
-# MAGIC CREATE OR REPLACE TABLE curated.viewBilledWaterConsumption 
-# MAGIC LOCATION 'dbfs:/mnt/datalake-curated/viewbilledwaterconsumption'
-# MAGIC as with prophist as (
-# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
-# MAGIC           union  
-# MAGIC           select accPropHist.propertyNumber,accPropHist.inferiorPropertyTypeCode,coalesce(infsap.inferiorPropertyType, accPropHist.inferiorPropertyType) as inferiorPropertyType,accPropHist.superiorPropertyTypeCode,coalesce(supsap.superiorPropertyType, accPropHist.superiorPropertyType) as superiorPropertyType,validFromDate,validToDate 
-# MAGIC from stage.access_property_hist accPropHist 
-# MAGIC left outer join cleansed.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = accPropHist.inferiorPropertyTypeCode and infsap._RecordCurrent = 1
-# MAGIC left outer join cleansed.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = accPropHist.superiorPropertyTypeCode and supsap._RecordCurrent = 1
-# MAGIC         )
-# MAGIC select propertyNumber,
-# MAGIC inferiorPropertyTypeCode,
-# MAGIC inferiorPropertyType,
-# MAGIC superiorPropertyTypeCode,
-# MAGIC superiorPropertyType,
-# MAGIC propertyTypeValidFromDate,
-# MAGIC propertyTypeValidToDate,
-# MAGIC sourceSystemCode,
-# MAGIC meterConsumptionBillingDocumentSK,
-# MAGIC meterConsumptionBillingLineItemSK,
-# MAGIC propertySK,
-# MAGIC meterSK,
-# MAGIC locationSK,
-# MAGIC businessPartnerGroupSK,
-# MAGIC contractSK,
-# MAGIC billingPeriodStartDate,
-# MAGIC billingPeriodEndDate,
-# MAGIC meteredWaterConsumption from (
-# MAGIC select *,row_number() OVER (PARTITION BY meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
-# MAGIC (select prop.propertyNumber,
-# MAGIC prophist.inferiorPropertyTypeCode,
-# MAGIC prophist.inferiorPropertyType,
-# MAGIC prophist.superiorPropertyTypeCode,
-# MAGIC prophist.superiorPropertyType,
-# MAGIC prophist.validFromDate as propertyTypeValidFromDate,
-# MAGIC prophist.validToDate as propertyTypeValidToDate,
-# MAGIC fact.sourceSystemCode,
-# MAGIC fact.meterConsumptionBillingDocumentSK,
-# MAGIC fact.meterConsumptionBillingLineItemSK,
-# MAGIC fact.propertySK,
-# MAGIC fact.meterSK,
-# MAGIC fact.locationSK,
-# MAGIC fact.businessPartnerGroupSK,
-# MAGIC fact.contractSK,
-# MAGIC fact.billingPeriodStartDate,
-# MAGIC fact.billingPeriodEndDate,
-# MAGIC fact.meteredWaterConsumption
-# MAGIC from curated.factbilledwaterconsumption fact
-# MAGIC left outer join curated.dimproperty prop
-# MAGIC on fact.propertySK = prop.propertySK
-# MAGIC left outer join prophist
-# MAGIC on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.billingPeriodStartDate and prophist.validToDate >= fact.billingPeriodStartDate)
-# MAGIC )
-# MAGIC )
-# MAGIC where flag = 1
+# %sql
+# --View to get property history for Billed Water Consumption.
+# CREATE OR REPLACE TABLE curated.viewBilledWaterConsumption 
+# LOCATION 'dbfs:/mnt/datalake-curated/viewbilledwaterconsumption'
+# as with prophist as (
+#           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
+#           union  
+#           select accPropHist.propertyNumber,accPropHist.inferiorPropertyTypeCode,coalesce(infsap.inferiorPropertyType, accPropHist.inferiorPropertyType) as inferiorPropertyType,accPropHist.superiorPropertyTypeCode,coalesce(supsap.superiorPropertyType, accPropHist.superiorPropertyType) as superiorPropertyType,validFromDate,validToDate 
+# from stage.access_property_hist accPropHist 
+# left outer join cleansed.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = accPropHist.inferiorPropertyTypeCode and infsap._RecordCurrent = 1
+# left outer join cleansed.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = accPropHist.superiorPropertyTypeCode and supsap._RecordCurrent = 1
+#         )
+# select propertyNumber,
+# inferiorPropertyTypeCode,
+# inferiorPropertyType,
+# superiorPropertyTypeCode,
+# superiorPropertyType,
+# propertyTypeValidFromDate,
+# propertyTypeValidToDate,
+# sourceSystemCode,
+# meterConsumptionBillingDocumentSK,
+# meterConsumptionBillingLineItemSK,
+# propertySK,
+# meterSK,
+# locationSK,
+# businessPartnerGroupSK,
+# contractSK,
+# billingPeriodStartDate,
+# billingPeriodEndDate,
+# meteredWaterConsumption from (
+# select *,row_number() OVER (PARTITION BY meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# (select prop.propertyNumber,
+# prophist.inferiorPropertyTypeCode,
+# prophist.inferiorPropertyType,
+# prophist.superiorPropertyTypeCode,
+# prophist.superiorPropertyType,
+# prophist.validFromDate as propertyTypeValidFromDate,
+# prophist.validToDate as propertyTypeValidToDate,
+# fact.sourceSystemCode,
+# fact.meterConsumptionBillingDocumentSK,
+# fact.meterConsumptionBillingLineItemSK,
+# fact.propertySK,
+# fact.meterSK,
+# fact.locationSK,
+# fact.businessPartnerGroupSK,
+# fact.contractSK,
+# fact.billingPeriodStartDate,
+# fact.billingPeriodEndDate,
+# fact.meteredWaterConsumption
+# from curated.factbilledwaterconsumption fact
+# left outer join curated.dimproperty prop
+# on fact.propertySK = prop.propertySK
+# left outer join prophist
+# on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.billingPeriodStartDate and prophist.validToDate >= fact.billingPeriodStartDate)
+# )
+# )
+# where flag = 1
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
-# MAGIC VACUUM curated.viewBilledWaterConsumption RETAIN 0 HOURS;
-# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
+# %sql
+# set spark.databricks.delta.retentionDurationCheck.enabled=false;
+# VACUUM curated.viewBilledWaterConsumption RETAIN 0 HOURS;
+# set spark.databricks.delta.retentionDurationCheck.enabled=true;
 
 # COMMAND ----------
 

@@ -179,7 +179,7 @@ df = spark.sql(f"""
                     PARTITION BY BELNR 
                     ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC
                 ) AS _RecordVersion 
-            FROM {delta_raw_tbl_name} 
+            FROM raw.isu_ERCH
             WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' 
         )
         WHERE _RecordVersion = 1
@@ -288,7 +288,7 @@ df = spark.sql(f"""
             INSTROLE                                                            as installGroupRoleCode,  
             cast('1900-01-01' as TimeStamp)                                     as _RecordStart, 
             cast('9999-12-31' as TimeStamp)                                     as _RecordEnd, 
-            (CASE WHEN LOEVM IS NULL OR TRIM(LOEVM) = '' THEN '0' ELSE '1' END) as _RecordDeleted, 
+            '0'                                                                 as _RecordDeleted, 
             '1'                                                                 as _RecordCurrent, 
             cast('{CurrentTimeStamp}' as TimeStamp)                             as _DLCleansedZoneTimeStamp 
         FROM stage stg 

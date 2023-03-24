@@ -263,10 +263,9 @@ df = spark.sql(f"""
                cast('1900-01-01' as TimeStamp)                         as _RecordStart, 
                cast('9999-12-31' as TimeStamp)                         as _RecordEnd, 
                CASE 
-                   WHEN stg.LOEVM IS NULL 
-                   OR TRIM(stg.LOEVM) = '' 
-                   THEN '0' 
-                   ELSE '1' 
+                   WHEN stg.DI_OPERATION_TYPE in ('X','D')
+                   THEN '1' 
+                   ELSE '0' 
                END                                                     as _RecordDeleted, 
                '1'                                                     as _RecordCurrent, 
                cast('{CurrentTimeStamp}' as TimeStamp)                 as _DLCleansedZoneTimeStamp 

@@ -279,8 +279,10 @@ def getProperty():
 #                     select * 
 #                     from   ISU""")
     df = sapisuDf
-    dummyDimRecDf = spark.sql(f"""select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_drinkingWater' as dimension from {ADS_DATABASE_CURATED_V2}.dimWaterNetwork where pressureArea='Unknown' and isPotableWaterNetwork='Y' 
-                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_recycledWater' as dimension from {ADS_DATABASE_CURATED_V2}.dimWaterNetwork where supplyZone='Unknown' and isRecycledWaterNetwork='Y' 
+    dummyDimRecDf = spark.sql(f"""select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_drinkingWater' as dimension from {ADS_DATABASE_CURATED_V2}.dimWaterNetwork 
+                          where supplyZone='Unknown' and  pressureArea='Unknown' 
+                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_recycledWater' as dimension from {ADS_DATABASE_CURATED_V2}.dimWaterNetwork 
+                          where pressureArea='Unknown' and supplyZone='Unknown'  
                           union select sewerNetworkSK as dummyDimSK, 'dimSewerNetwork' as dimension from {ADS_DATABASE_CURATED_V2}.dimSewerNetwork where SCAMP='Unknown' 
                           union select stormWaterNetworkSK as dummyDimSK, 'dimStormWaterNetwork' as dimension from {ADS_DATABASE_CURATED_V2}.dimStormWaterNetwork where stormWaterCatchment='Unknown' 
                           """)
@@ -293,16 +295,14 @@ def getProperty():
     df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimStormWaterNetwork'), how="left") \
                   .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyStormWaterNetworkSK'))
     
-    dummyDimDf = spark.sql(f"""select '-1' as propertyNumber, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK , 
+    dummyDimDf = spark.sql(f"""select '-1' as propertyNumber, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wn.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK , 
                                   -1 as hydraCalculatedArea, 'Unknown' as hydraAreaUnit, '-1' as premise  
                             from {ADS_DATABASE_CURATED_V2}.dimWaterNetwork wn, 
-                                 {ADS_DATABASE_CURATED_V2}.dimWaterNetwork wnr, 
                                  {ADS_DATABASE_CURATED_V2}.dimSewerNetwork snw, 
                                  {ADS_DATABASE_CURATED_V2}.dimStormWaterNetwork sw 
                             where wn.pressureArea = 'Unknown' 
-                            and   wn._RecordCurrent = 1 and wn.isPotableWaterNetwork='Y' 
-                            and   wnr.supplyZone = 'Unknown' 
-                            and   wnr._RecordCurrent = 1 and wnr.isRecycledWaterNetwork='Y' 
+                            and   wn.supplyZone = 'Unknown' 
+                            and   wn._RecordCurrent = 1 
                             and   snw.SCAMP = 'Unknown' 
                             and   snw._RecordCurrent = 1 
                             and   sw.stormWaterCatchment = 'Unknown' 

@@ -158,7 +158,7 @@ LEFT OUTER JOIN curated_v2.dimRegisterInstallationHistory dimregisterinstallatio
       AND dimregisterinstallationhistory._recordDeleted = 0
 LEFT OUTER JOIN cleansed.isu_0UCINSTALLA_ATTR_2 installAttr
     ON installAttr.installationNumber = dimdeviceinstallationhistory.installationNumber
-    AND installAttr._recordDeleted = 0
+    AND installAttr._recordDeleted = 0 
 )
 ORDER BY _effectiveFrom
 
