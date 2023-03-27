@@ -80,7 +80,7 @@
                         "type": "Expression"
                     },
                     "isSequential": false,
-                    "batchCount": 3,
+                    "batchCount": 1,
                     "activities": [
                         {
                             "name": "if-in-allowable-run-time-exec-AI-pipeline",
