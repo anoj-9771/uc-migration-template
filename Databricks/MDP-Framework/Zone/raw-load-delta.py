@@ -66,6 +66,6 @@ else:
 df = df.withColumn("_DLRawZoneTimeStamp",current_timestamp())
 df = df.toDF(*(RemoveBadCharacters(c) for c in df.columns))
 
-tableFqn = f"raw.{schemaName}_{tableName}"
+tableFqn = get_table_name('raw', schemaName, tableName).lower()
 dataLakePath = "/".join(rawPath.split("/")[0:5])+"/delta"
 AppendDeltaTable(df, tableFqn, dataLakePath)

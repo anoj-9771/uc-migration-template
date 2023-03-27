@@ -250,7 +250,7 @@ def SystemDefaultTransform(sourceDataFrame, transformTags, columnName):
 # COMMAND ----------
 
 from pyspark.sql.functions import expr, col
-def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False):
+def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False, source_table_name_nonuc=None):
     tableFqn = tableFqn.lower()
     dataFrame = spark.table(tableFqn) if dataFrame is None else dataFrame
     systemCode = systemCode.lower()
@@ -279,6 +279,7 @@ def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False):
     PopulateLookupTags()
     
     # 2. LOOKUP TRANSFORM
+    tableFqn = tableFqn if source_table_name_nonuc is None else source_table_name_nonuc
     transforms = allTransforms.where(f"RawTable = '{tableFqn}'")
     display(transforms) if showTransform else None
 

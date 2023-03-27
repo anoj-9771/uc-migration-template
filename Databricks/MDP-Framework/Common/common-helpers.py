@@ -52,3 +52,13 @@ def DataFrameFromFilePath(path):
     list = dbutils.fs.ls(path)
     df = spark.createDataFrame(list, fsSchema).withColumn("modificationTime", expr("from_unixtime(modificationTime / 1000)"))
     return df
+
+# COMMAND ----------
+
+def get_table_name(layer:str, j_schema: str, j_table: str) -> str:
+    """gets correct table namespace based on the UC migration/databricks-env secret being available in keyvault."""
+    try:
+        env = dbutils.secrets.get('ADS', 'databricks-env')
+        return f"{env}{layer}.{j_schema}.{j_table}"
+    except Exception as e:
+        return f"{layer}.{j_schema}_{j_table}"

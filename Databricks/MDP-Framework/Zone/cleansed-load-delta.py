@@ -26,10 +26,11 @@ if extendedProperties:
     extendedProperties = json.loads(extendedProperties)
     rawTableNameMatchSource = extendedProperties.get("RawTableNameMatchSource")
 if rawTableNameMatchSource:
-    sourceTableName = f"raw.{destinationSchema}_{sourceTable}".lower()
+    sourceTableName = get_table_name('raw', j['DestinationSchema'], j['SourceTableName']).lower()
 else:
-    sourceTableName = f"raw.{destinationSchema}_{destinationTableName}".lower()
-cleansedTableName = f"cleansed.{destinationSchema}_{destinationTableName}"
+    sourceTableName = get_table_name('raw', j['DestinationSchema'], j['DestinationTableName']).lower()
+cleansedTableName = get_table_name('cleansed', j['DestinationSchema'], j['DestinationTableName']).lower()
+source_table_name_nonuc = f'raw.{destinationSchema}_{sourceTableName}'
 
 # COMMAND ----------
 
@@ -71,8 +72,7 @@ if(extendedProperties):
         cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
         cleanseDataFrame = spark.sql(f"select * from (select vwCleanseDataFrame.*, row_number() OVER (Partition By {businessKey} order by {groupOrderBy}) row_num from vwCleanseDataFrame) where row_num = 1 ").drop("row_num")   
 
-tableName = f"{destinationSchema}_{destinationTableName}"
-CreateDeltaTable(cleanseDataFrame, f"cleansed.{tableName}", dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, f"cleansed.{tableName}", dataLakePath, j.get("BusinessKeyColumn"))
+CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
 
 # COMMAND ----------
 
