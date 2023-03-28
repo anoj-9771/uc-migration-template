@@ -123,12 +123,13 @@ df = df.groupBy("sourceSystemCode", "billingDocumentNumber", "businessPartnerGro
                 .agg(min("meterActiveStartDate").alias("meterActiveStartDate"), \
                      max("meterActiveEndDate").alias("meterActiveEndDate"), \
                      sum("meteredWaterConsumption").alias("meteredWaterConsumption"))
-df = df.groupBy("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", "contractId", "billingperiodStartDate", "billingPeriodEndDate") \
-                .agg(sum("meteredWaterConsumption").alias("totalMeteredWaterConsumption"))
 df = df.selectExpr("sourceSystemCode", "billingDocumentNumber", \
                                   "businessPartnerGroupNumber", "equipmentNumber", "contractId", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
-                                  "totalMeteredWaterConsumption")
+                                  "meterActiveStartDate", "meterActiveEndDate", \
+                                  "meteredWaterConsumption")
+partition = Window.partitionBy("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", "contractId", "billingperiodStartDate", "billingPeriodEndDate")
+df = df.withColumn("totalMeteredWaterConsumption", sum("meteredWaterConsumption").over(partition))
 df.createOrReplaceTempView("billedConsDf")
 
 # COMMAND ----------
@@ -351,26 +352,27 @@ def getBilledWaterConsumptionMonthly():
         ) 
         .select(billedConsDf['*'], dimBusinessPartnerGroupDf['businessPartnerGroupSK'])
     )
-
+    
     # --- dimDate --- #
     billedConsDf = (
         billedConsDf
         .join(
             dimDateDf,
             (   # join conditions
-                (billedConsDf.billingPeriodEndDate >= dimDateDf.monthStartDate)
-                & (dimDateDf.monthEndDate >= billedConsDf.billingPeriodStartDate)
+                (billedConsDf.meterActiveEndDate >= dimDateDf.monthStartDate)
+                & (dimDateDf.monthEndDate >= billedConsDf.meterActiveStartDate)
             ),
             how="left"
         ) 
         .select(billedConsDf['*'], dimDateDf['calendarYear'].alias('consumptionYear').cast("int"), dimDateDf['monthOfYear'].alias('consumptionMonth').cast("int"), dimDateDf['monthStartDate'].alias('firstDayOfMeterActiveMonth'), dimDateDf['monthEndDate'].alias('lastDayOfMeterActiveMonth'))
     )
 
-    billedConsDf = billedConsDf.withColumn("meterActiveMonthStartDate", when((col("billingPeriodStartDate") >= col("firstDayOfMeterActiveMonth")) & (col("billingPeriodStartDate") <= col("lastDayOfMeterActiveMonth")), col("billingPeriodStartDate")).otherwise(col("firstDayOfMeterActiveMonth"))) \
-                    .withColumn("meterActiveMonthEndDate", when((col("billingPeriodEndDate") >= col("firstDayOfMeterActiveMonth")) & (col("billingPeriodEndDate") <= col("lastDayOfMeterActiveMonth")), col("billingPeriodEndDate")).otherwise(col("lastDayOfMeterActiveMonth"))) \
-                    .withColumn("meterActiveDaysPerMonth", (datediff("meterActiveMonthEndDate", "meterActiveMonthStartDate") + 1).cast("int"))
+
+    billedConsDf = billedConsDf.withColumn("meterActiveMonthStartDate", when((col("meterActiveStartDate") >= col("firstDayOfMeterActiveMonth")) & (col("meterActiveStartDate") <= col("lastDayOfMeterActiveMonth")), col("meterActiveStartDate")).otherwise(col("firstDayOfMeterActiveMonth"))) \
+                    .withColumn("meterActiveMonthEndDate", when((col("meterActiveEndDate") >= col("firstDayOfMeterActiveMonth")) & (col("meterActiveEndDate") <= col("lastDayOfMeterActiveMonth")), col("meterActiveEndDate")).otherwise(col("lastDayOfMeterActiveMonth"))) \
+                    .withColumn("meterActiveDaysPerMonth", (datediff("meterActiveMonthEndDate", "meterActiveMonthStartDate") + 1).cast("int")) \
     
-    billedConsDf = billedConsDf.groupBy("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", "contractId", "billingPeriodStartDate", "billingPeriodEndDate", "consumptionYear", "consumptionMonth", "firstDayOfMeterActiveMonth", "lastDayOfMeterActiveMonth", "totalMeteredWaterConsumption", "meterConsumptionBillingDocumentSK", "propertySK", "deviceSK", "locationSK", "businessPartnerGroupSK", "contractSK") \
+    billedConsDf = billedConsDf.groupBy("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", "contractId", "billingperiodStartDate", "billingPeriodEndDate", "consumptionYear", "consumptionMonth", "firstDayOfMeterActiveMonth", "lastDayOfMeterActiveMonth", "totalMeteredWaterConsumption", "meterConsumptionBillingDocumentSK", "propertySK", "deviceSK", "locationSK", "businessPartnerGroupSK", "contractSK") \
                                 .agg(min("meterActiveMonthStartDate").alias("meterActiveMonthStartDate"), \
                                      max("meterActiveMonthEndDate").alias("meterActiveMonthEndDate"), \
                                      sum("meterActiveDaysPerMonth").alias("totalMeterActiveDaysPerMonth"))
