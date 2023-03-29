@@ -59,7 +59,8 @@
 											"DatabricksVersion": {
 												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
 												"type": "Expression"
-											}
+											},
+											"newClusterNumOfWorker": "1:4"
 										}
 									}
 								},

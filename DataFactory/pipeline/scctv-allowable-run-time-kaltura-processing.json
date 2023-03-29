@@ -1,75 +1,76 @@
 {
-    "name": "scctv-allowable-run-time-kaltura-processing",
-    "properties": {
-        "activities": [
-            {
-                "name": "if-in-allowed-run-time",
-                "type": "IfCondition",
-                "dependsOn": [],
-                "userProperties": [],
-                "typeProperties": {
-                    "expression": {
-                        "value": "@and(\n    greaterOrEquals(int(utcNow('HH')), pipeline().parameters.processStartTime), \n    lessOrEquals(int(utcNow('HH')), pipeline().parameters.processEndTime)\n)",
-                        "type": "Expression"
-                    },
-                    "ifTrueActivities": [
-                        {
-                            "name": "ingest-kaltura-metadata",
-                            "type": "DatabricksNotebook",
-                            "dependsOn": [],
-                            "policy": {
-                                "timeout": "0.12:00:00",
-                                "retry": 2,
-                                "retryIntervalInSeconds": 30,
-                                "secureOutput": false,
-                                "secureInput": false
-                            },
-                            "userProperties": [],
-                            "typeProperties": {
-                                "notebookPath": "/AI-ML/Sewer CCTV/ingest_kaltura_metadata",
-                                "baseParameters": {
-                                    "json_file_name": {
-                                        "value": "@pipeline().parameters.fileName",
-                                        "type": "Expression"
-                                    }
-                                }
-                            },
-                            "linkedServiceName": {
-                                "referenceName": "LS_AzureDatabricks_InstancePool",
-                                "type": "LinkedServiceReference",
-                                "parameters": {
-                                    "kvSecret": "databricks-token",
-                                    "PoolId": {
-                                        "value": "@pipeline().parameters.JobPoolId",
-                                        "type": "Expression"
-                                    },
-                                    "DatabricksVersion": "10.4.x-cpu-ml-scala2.12"
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        ],
-        "parameters": {
-            "processStartTime": {
-                "type": "int",
-                "defaultValue": 8
-            },
-            "processEndTime": {
-                "type": "int",
-                "defaultValue": 19
-            },
-            "JobPoolId": {
-                "type": "string"
-            },
-            "fileName": {
-                "type": "string"
-            }
-        },
-        "folder": {
-            "name": "AI-ML/Sewer CCTV"
-        },
-        "annotations": []
-    }
+	"name": "scctv-allowable-run-time-kaltura-processing",
+	"properties": {
+		"activities": [
+			{
+				"name": "if-in-allowed-run-time",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(\n    greaterOrEquals(int(utcNow('HH')), pipeline().parameters.processStartTime), \n    lessOrEquals(int(utcNow('HH')), pipeline().parameters.processEndTime)\n)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "ingest-kaltura-metadata",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/AI-ML/Sewer CCTV/ingest_kaltura_metadata",
+								"baseParameters": {
+									"json_file_name": {
+										"value": "@pipeline().parameters.fileName",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_AzureDatabricks_InstancePool",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "databricks-token",
+									"PoolId": {
+										"value": "@pipeline().parameters.JobPoolId",
+										"type": "Expression"
+									},
+									"DatabricksVersion": "10.4.x-cpu-ml-scala2.12",
+									"newClusterNumOfWorker": "1:4"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"processStartTime": {
+				"type": "int",
+				"defaultValue": 8
+			},
+			"processEndTime": {
+				"type": "int",
+				"defaultValue": 19
+			},
+			"JobPoolId": {
+				"type": "string"
+			},
+			"fileName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "AI-ML/Sewer CCTV"
+		},
+		"annotations": []
+	}
 }

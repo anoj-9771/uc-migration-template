@@ -301,7 +301,8 @@
 										"value": "@variables('InstancePoolId')",
 										"type": "Expression"
 									},
-									"DatabricksVersion": "9.1.x-scala2.12"
+									"DatabricksVersion": "9.1.x-scala2.12",
+									"newClusterNumOfWorker": "1:4"
 								}
 							}
 						},

@@ -13,6 +13,10 @@
 			"DatabricksVersion": {
 				"type": "string",
 				"defaultValue": "9.1.x-scala2.12"
+			},
+			"newClusterNumOfWorker": {
+				"type": "string",
+				"defaultValue": "1:8"
 			}
 		},
 		"annotations": [],
@@ -31,7 +35,7 @@
 				}
 			},
 			"instancePoolId": "@linkedService().PoolId",
-			"newClusterNumOfWorker": "1:8",
+			"newClusterNumOfWorker": "@linkedService().newClusterNumOfWorker",
 			"newClusterSparkConf": {
 				" spark.sql.session.timeZone": "Australia/Sydney"
 			},
@@ -40,7 +44,7 @@
 			},
 			"newClusterVersion": "@linkedService().DatabricksVersion",
 			"newClusterInitScripts": [],
-			"clusterOption": "Fixed"
+			"clusterOption": "Autoscaling"
 		},
 		"connectVia": {
 			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",

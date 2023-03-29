@@ -63,7 +63,8 @@
 												"value": "@activity('get-default-pool-id').output.value",
 												"type": "Expression"
 											},
-											"DatabricksVersion": "9.1.x-scala2.12"
+											"DatabricksVersion": "9.1.x-scala2.12",
+											"newClusterNumOfWorker": "1:4"
 										}
 									}
 								},
