@@ -368,7 +368,7 @@ raw.crm_crmc_erms_cat_hi,cleansed.crm_crmc_erms_cat_hi,PARE_GUID,parentGUID,Stri
 raw.crm_crmc_proc_type,cleansed.crm_crmc_proc_type,PART_DETERM_PROC,partnersDeterminationProcedure,String,,,
 raw.crm_crmd_partner,cleansed.crm_crmd_partner,PARTNER_DUMMY,partnerDummyFunction,String,,,
 raw.crm_crmd_partner,cleansed.crm_crmd_partner,PARTNER_FCT,partnerFunctionCode,String,,,
-raw.crm_crmd_partner,cleansed.crm_crmd_partner,PARTNER_FCT,partnerFunctionDescription,String,,,lookup-partner-function-text
+raw.crm_crmd_partner,cleansed.crm_crmd_partner,PARTNER_FCT,partnerFunctionDescription,String,,,lookup-crm-partner-function-text
 raw.crm_crmc_partner_ft,cleansed.crm_crmc_partner_ft,PARTNER_FCT,partnerFunctionCode,String,trimcoalesce,,
 raw.crm_crmd_partner,cleansed.crm_crmd_partner,PARTNER_GUID,partnerGUID,String,trimcoalesce,,
 raw.crm_crmd_partner,cleansed.crm_crmd_partner,PARTNER_NO,partnerNumber,String,,,
@@ -636,7 +636,7 @@ raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZ_X_SECONDARY_ANAL
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000026,source,String,,cast( ZZAFLD000026 as bigint),lookup-crm-source
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000026,sourceCode,String,,,
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000027,projectID,String,,,
-raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000028,issueResponsibility,String,,"concat('ZZ_ISSUE_RESP',cast(ZZAFLD000028 as bigint))",lookup-crm-domain-text
+raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000028,issueResponsibility,String,,"concat('ZZ_ISSUE_RESP','||',cast(ZZAFLD000028 as INT))",lookup-crm-domain-text
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000028,issueResponsibilityCode,String,,,
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAGREEMENT_N,agreementNumber,String,,,
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZREPORTED_BY,reportedByPersonNumber,String,,,
