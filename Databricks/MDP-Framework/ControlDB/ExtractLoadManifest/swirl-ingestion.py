@@ -212,11 +212,6 @@ swirldata_tables =['BMS_0002185_849',
 'BMS_9999999_115_T9999999_130',
 'BMS_9999999_115_T9999999_131',
 'BMS_9999999_138_T9999999_119',
-'BMS_9999999_184',
-'BMS_9999999_189',
-'BMS_9999999_194',
-'BMS_9999999_222',
-'BMS_9999999_233',
 'BMS_9999999_158_T9999999_101',
 'BMS_9999999_158_T9999999_104',
 'BMS_9999999_158_T9999999_106',
@@ -227,9 +222,6 @@ swirldata_tables =['BMS_0002185_849',
 'BMS_9999999_190_T9999999_104',
 'BMS_9999999_190_T9999999_106',
 'BMS_9999999_190_T9999999_108',
-'BMS_9999999_845',
-'BMS_9999999_847',
-'BMS_9999999_848',
 'BMS_9999999_750_T9999999_101',
 'BMS_9999999_750_T9999999_102',
 'BMS_9999999_750_T9999999_103']
@@ -466,3 +458,14 @@ ExecuteStatement("""
                             END
     WHERE SystemCode in ('swirldata','swirlref')
     """)
+
+# COMMAND ----------
+
+ExecuteStatement("""
+    UPDATE controldb.dbo.extractloadmanifest
+    SET SourceSchema = 'cintel_stg',
+        CleansedHandler=NULL 
+    WHERE (SystemCode in ('swirldata','swirlref')
+           AND EXISTS (SELECT * FROM dbo.config WHERE KeyGroup = 'System' AND [Key] = 'Environment' AND Value = 'PREPROD')
+          )""")
+
