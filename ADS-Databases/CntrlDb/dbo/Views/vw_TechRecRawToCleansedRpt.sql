@@ -36,11 +36,14 @@ SELECT * FROM
 	    log.systemcode SourceGroup, config.SourceTableName SourceLocation, 
 		format(RawStartDTS,'yyyyMMddhhmmss') SourceFileDateStamp,config.DestinationTableName TargetName, id ManifestID, 
 		log.CleansedSourceCount ManifestTotalNoRecords, log.CleansedSinkCount TagetTableRowCount,  
-		CASE WHEN log.CleansedSourceCount = log.CleansedSinkCount THEN 'Passed' ELSE 'Failed' END AS RawToCleansedMatchStatus,
-		log.RawStartDTS as StartDateTime,
-		TRY_CONVERT(DATE,log.RawStartDTS) as StartDate,
-		log.RawEndDTS as EndDateTime,
-		TRY_CONVERT(DATE, log.RawEndDTS) as EndDate,
+		CASE WHEN log.CleansedSourceCount = log.CleansedSinkCount THEN 'Passed' 
+			 WHEN log.CleansedSinkCount IS NULL and log.CleansedStatus in ('Success', 'Fail') THEN 'NotRecorded'
+			 WHEN log.CleansedSinkCount IS NULL and log.CleansedStatus IS NULL THEN 'Running'
+		ELSE 'Failed' END AS RawToCleansedMatchStatus,
+		log.CleansedStartDTS as StartDateTime,
+		TRY_CONVERT(DATE,log.CleansedStartDTS) as StartDate,
+		log.CleansedEndDTS as EndDateTime,
+		TRY_CONVERT(DATE, log.CleansedEndDTS) as EndDate,
 		CleansedStatus BatchExecutionStatus,
 		CleansedStatus TaskExecutionStatus,
 		ID TaskExecutionLogId,
@@ -49,8 +52,6 @@ SELECT * FROM
    where config.sourceid = log.SourceID
 	 and CHARINDEX(config.systemCode, log.RawPath) > 0
 ) srcMDP  WHERE srcMDP.CurrentRecord = 1
-
-
 GO
 
 

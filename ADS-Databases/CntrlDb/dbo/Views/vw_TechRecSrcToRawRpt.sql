@@ -35,7 +35,10 @@ SELECT * FROM
 	    log.systemcode SourceGroup, config.SourceTableName, 
 		format(RawStartDTS,'yyyyMMddhhmmss') SourceFileDateStamp,
 		log.SourceRowCount ManifestDeltaRecordCount, log.SourceRowCount, log.SinkRowCount,  
-		CASE WHEN log.SourceRowCount = log.SinkRowCount THEN 'Passed' ELSE 'Failed' END AS SrcToRawMatchStatus,
+		CASE WHEN log.SourceRowCount = log.SinkRowCount THEN 'Passed' 
+			 WHEN log.SinkRowCount IS NULL and log.RawStatus in ('Success', 'Fail') THEN 'NotRecorded'
+			 WHEN log.SinkRowCount IS NULL and log.RawStatus IS NULL THEN 'Running'
+		ELSE 'Failed' END AS SrcToRawMatchStatus,
 		log.RawStartDTS as StartDateTime,
 		TRY_CONVERT(DATE,log.RawStartDTS) as StartDate,
 		log.RawEndDTS as EndDateTime,
