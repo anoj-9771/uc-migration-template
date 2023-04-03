@@ -254,7 +254,6 @@ if environment == 'preprod':
     source_schema = "cintel_stg"
 else:
     source_schema = "cintel"
-print(f"source_schema is: {source_schema}")
 
 # COMMAND ----------
 
@@ -273,10 +272,6 @@ for code in group_names:
 
     df = spark.sql(f"""{base_query} {select_statement}""")
     SYSTEM_CODE = code
-
-    if environment == 'preprod':
-        print("running CleanConfig()")
-        CleanConfig()
         
     AddIngestion(df)
 
@@ -470,14 +465,3 @@ ExecuteStatement("""
                             END
     WHERE SystemCode in ('swirldata','swirlref')
     """)
-
-# COMMAND ----------
-
-ExecuteStatement("""
-    UPDATE controldb.dbo.extractloadmanifest
-    SET SourceSchema = 'cintel_stg',
-        CleansedHandler=NULL 
-    WHERE (SystemCode in ('swirldata','swirlref')
-           AND EXISTS (SELECT * FROM dbo.config WHERE KeyGroup = 'System' AND [Key] = 'Environment' AND Value = 'PREPROD')
-          )""")
-
