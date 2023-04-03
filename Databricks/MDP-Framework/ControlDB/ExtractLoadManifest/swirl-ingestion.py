@@ -250,7 +250,7 @@ extended_properties = '{"RawTableNameMatchSource" : "True"}'
 
 # COMMAND ----------
 
-if environment == 'preprod':
+if environment == 'PREPROD':
     source_schema = "cintel_stg"
 else:
     source_schema = "cintel"
