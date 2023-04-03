@@ -3,6 +3,15 @@
 
 # COMMAND ----------
 
+import json
+
+# COMMAND ----------
+
+j = json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags"))
+environment = [x['value'] for x in j if x['key'] == 'Environment'][0]
+
+# COMMAND ----------
+
 swirldata_tables =['BMS_0002185_849',
 'BMS_0002185_850',
 'BMS_0002185_851',
@@ -233,12 +242,19 @@ swirlref_tables = ['BMS_LOOKUP_ITEMS']
 group_names = {"swirldata":swirldata_tables
               ,"swirlref":swirlref_tables
               } 
-source_schema = "cintel"
 source_key_vault_secret = "daf-oracle-swirl-connectionstring"
 source_handler = 'oracle-load'
 raw_handler = 'raw-load-delta'
 cleansed_handler = 'cleansed-load-delta'
 extended_properties = '{"RawTableNameMatchSource" : "True"}'
+
+# COMMAND ----------
+
+if environment == 'preprod':
+    source_schema = "cintel_stg"
+else:
+    source_schema = "cintel"
+print(f"source_schema is: {source_schema}")
 
 # COMMAND ----------
 
@@ -258,6 +274,10 @@ for code in group_names:
     df = spark.sql(f"""{base_query} {select_statement}""")
     SYSTEM_CODE = code
 
+    if environment == 'preprod':
+        print("running CleanConfig()")
+        CleanConfig()
+        
     AddIngestion(df)
 
 # COMMAND ----------
@@ -389,14 +409,6 @@ for code in group_names:
  WHEN 'BMS_9999999_175' THEN 'risk_review'
  WHEN 'BMS_9999999_841' THEN 'role_term'
  WHEN 'BMS_9999999_840' THEN 'role_type'
- WHEN 'BMS_9999999_184' THEN 'rollup'
- WHEN 'BMS_9999999_189' THEN 'rollup'
- WHEN 'BMS_9999999_194' THEN 'rollup'
- WHEN 'BMS_9999999_222' THEN 'rollup'
- WHEN 'BMS_9999999_233' THEN 'rollup'
- WHEN 'BMS_9999999_845' THEN 'rollup'
- WHEN 'BMS_9999999_847' THEN 'rollup'
- WHEN 'BMS_9999999_848' THEN 'rollup'
  WHEN 'BMS_9999999_822' THEN 'root_cause_analysis'
  WHEN 'BMS_9999999_241' THEN 'safety_meeting'
  WHEN 'BMS_9999999_112' THEN 'safety_meeting_type'
