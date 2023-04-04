@@ -109,7 +109,7 @@ aa=spark.sql("select * from curated_v2.dimDevice ")
 
 # COMMAND ----------
 
-states2=aa.rdd.map(lambda x: x.inspectionRelevanceIndicator).collect()
+states2=list(aa.select(aa.inspectionRelevanceIndicator).toPandas()['inspectionRelevanceIndicator'])
 
 
 # COMMAND ----------

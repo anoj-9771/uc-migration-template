@@ -134,7 +134,7 @@ def PopulateLookupTags():
     global lookupTags
     lookupTags = {}
     
-    for i in df.rdd.collect():
+    for i in df.collect():
         whereClause = TryGetJsonProperty(i.ExtendedProperties, "filter")
         lookupTags[i.Parent] = [i.Group, i.Key, i.Value, "", whereClause]
 PopulateLookupTags()
@@ -154,11 +154,11 @@ def StaticReplacement(sourceDataFrame, lookupTag, columnName):
         return sourceDataFrame
     
     # SET DEFAULT VALUE
-    defaultDf = df.select("Key", "Value").where("Key = 'DEFAULT_NULL'").rdd.collect()
+    defaultDf = df.select("Key", "Value").where("Key = 'DEFAULT_NULL'").collect()
     defaultValue = "NULL" if len(defaultDf) == 0 else f"'{defaultDf[0].Value}'"
     
     # CONSTRUCT CASE STATEMENT
-    caseStatement = "".join([f"WHEN $c$ = '{i.Key}' THEN '{i.Value}' " for i in df.select("Key", "Value").where("Key != 'DEFAULT_NULL'").rdd.collect()])
+    caseStatement = "".join([f"WHEN $c$ = '{i.Key}' THEN '{i.Value}' " for i in df.select("Key", "Value").where("Key != 'DEFAULT_NULL'").collect()])
     caseStatement = "CASE " + caseStatement + f" ELSE {defaultValue} END "
     caseStatement = caseStatement.replace("$c$", columnName)
     
@@ -291,7 +291,7 @@ def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False, sour
     try:
         # 3. APPLY CUSTOM IN-LINE TRANSFORMS, THEN TAGS
         transformedDataFrame = transformedDataFrame.selectExpr(
-            [TransformRow(i.RawColumnName, i.TransformTag, i.CustomTransform, i.CleansedColumnName) for i in transforms.rdd.collect()]
+            [TransformRow(i.RawColumnName, i.TransformTag, i.CustomTransform, i.CleansedColumnName) for i in transforms.collect()]
         )
     except Exception as e:
         print(f"Custom Transform failed, exception: {e}")
@@ -299,7 +299,7 @@ def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False, sour
 
     try:
         # 4. LOOKUPS
-        for l in transforms.where("Lookup IS NOT NULL").dropDuplicates().rdd.collect():
+        for l in transforms.where("Lookup IS NOT NULL").dropDuplicates().collect():
             transformedDataFrame = LookupValue(transformedDataFrame, l.Lookup.lower(), l.CleansedColumnName)
     except Exception as e:
         print(f"Lookup failed, exception: {e}")
@@ -308,7 +308,7 @@ def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False, sour
     try:
         # 5. APPLY DATA TYPE CONVERSION
         transformedDataFrame = transformedDataFrame.selectExpr(
-            [DataTypeConvertRow(i.CleansedColumnName, i.DataType.lower()) for i in transforms.rdd.collect()]
+            [DataTypeConvertRow(i.CleansedColumnName, i.DataType.lower()) for i in transforms.collect()]
         )
     except Exception as e:
         print(f"DataType failed, exception: {e}")
@@ -402,7 +402,7 @@ def CleansedTransformByRules(dataFrame, tableFqn, systemCode, showTransform=Fals
     try:
         # 3. APPLY CUSTOM IN-LINE TRANSFORMS, THEN TAGS
         transformedDataFrame = dataFrame.selectExpr(
-            [TransformRow(i.RawColumnName, i.TransformTag, i.CustomTransform, i.CleansedColumnName) for i in transforms.rdd.collect()]
+            [TransformRow(i.RawColumnName, i.TransformTag, i.CustomTransform, i.CleansedColumnName) for i in transforms.collect()]
         )
     except Exception as e:
         print(f"Custom Transform failed, exception: {e}")
@@ -410,7 +410,7 @@ def CleansedTransformByRules(dataFrame, tableFqn, systemCode, showTransform=Fals
 
     try:
         # 4. LOOKUPS
-        for l in transforms.where("Lookup IS NOT NULL").dropDuplicates().rdd.collect():
+        for l in transforms.where("Lookup IS NOT NULL").dropDuplicates().collect():
             transformedDataFrame = LookupValue(transformedDataFrame, l.Lookup.lower(), l.CleansedColumnName)
     except Exception as e:
         print(f"Lookup failed, exception: {e}")
@@ -420,7 +420,7 @@ def CleansedTransformByRules(dataFrame, tableFqn, systemCode, showTransform=Fals
         # 5. APPLY DATA TYPE CONVERSION
         transformedDataFrame = transformedDataFrame.selectExpr(
             [f"{i.CleansedColumnName}" if i.DataType.lower() == 'nochange' else DataTypeConvertRow(i.CleansedColumnName, i.DataType.lower()) 
-             for i in transforms.rdd.collect()]
+             for i in transforms.collect()]
         )
     except Exception as e:
         print(f"DataType failed, exception: {e}")

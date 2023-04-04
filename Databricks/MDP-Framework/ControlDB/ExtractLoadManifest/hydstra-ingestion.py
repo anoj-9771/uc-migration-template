@@ -33,7 +33,7 @@ sqlBase = """
     """
 sqlLines = ""
 
-for i in df.rdd.collect():
+for i in df.collect():
     fileName = i.name.replace("/","")
     folderPath = i.path.split("dbfs:")[1]
     sqlLines += f"UNION ALL select '{folderPath}' SourceQuery, '{fileName}' SourceTableName, * from _Base "

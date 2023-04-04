@@ -22,7 +22,7 @@ def DeleteDirectoryRecursive(dirname):
 
 def CleanTable(tableNameFqn):
     try:
-        detail = spark.sql(f"DESCRIBE DETAIL {tableNameFqn}").rdd.collect()[0]
+        detail = spark.sql(f"DESCRIBE DETAIL {tableNameFqn}").collect()[0]
         DeleteDirectoryRecursive(detail.location)
     except:    
         pass
@@ -44,7 +44,7 @@ display(manifest_df)
 
 # COMMAND ----------
 
-for j in manifest_df.rdd.collect():
+for j in manifest_df.collect():
     systemCode = j.SystemCode
     destinationSchema = j.DestinationSchema
     destinationTableName = j.DestinationTableName

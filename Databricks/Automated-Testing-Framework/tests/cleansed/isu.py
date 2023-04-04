@@ -23,7 +23,7 @@ SHEET_NAME = 'SAPISU_Cleansed'
 # COMMAND ----------
 
 #loop through df and run tests for each table printing out results
-for i in df.rdd.collect():
+for i in df.collect():
     TABLE_FQN = f"cleansed.{i.DestinationSchema}_{i.DestinationTableName}"
     print(f"Running tests for table: {TABLE_FQN}...")
     RunTests()

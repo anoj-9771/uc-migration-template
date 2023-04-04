@@ -378,7 +378,7 @@ def DeltaUpdateSurrogateKey(target_database, target_table, business_key):
   LogEtl(f"Updating SK values")
   dlTargetTableFqn = f"{target_database}.{target_table}"
   skColumn = deriveSurrogateKey(target_table)
-  max = spark.sql(f"SELECT MAX({skColumn}) AS MAX FROM {dlTargetTableFqn}").rdd.collect()[0][0]
+  max = spark.sql(f"SELECT MAX({skColumn}) AS MAX FROM {dlTargetTableFqn}").collect()[0][0]
   max = 0 if max is None else max
 
   cols = business_key.split(",")

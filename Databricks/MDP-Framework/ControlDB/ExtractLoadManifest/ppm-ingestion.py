@@ -152,7 +152,7 @@ display(df_c.where("SystemCode in ('ppmref','ppmdata')"))
 
 # for z in ["raw", "cleansed"]:
 for z in ["cleansed"]:
-    for t in df_c.where("SystemCode in ('ppmref','ppmdata')").rdd.collect():
+    for t in df_c.where("SystemCode in ('ppmref','ppmdata')").collect():
         tableFqn = f"{z}.{t.DestinationSchema}_{t.SourceTableName}"
         print(tableFqn)
 #         CleanTable(tableFqn)

@@ -50,12 +50,12 @@ sqlBase = f"""
     """
 sqlLines = ""
 
-for i in dfContainer1.rdd.collect():
+for i in dfContainer1.collect():
     fileName = i.name.replace("/","")
     folderPath = i.path.split("dbfs:")[1]
     sqlLines += f"UNION ALL select '{folderPath}' SourceQuery, '{fileName}' SourceTableName, * from _Base "
 
-for i in dfContainer2.rdd.collect():
+for i in dfContainer2.collect():
     fileName = i.name.replace("/","")
     folderPath = i.path.split("dbfs:")[1]
     sqlLines += f"UNION ALL select '{folderPath}' SourceQuery, '{fileName}' SourceTableName, * from _Base "    

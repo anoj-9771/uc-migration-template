@@ -17,7 +17,7 @@ def ListGroups():
 # COMMAND ----------
 
 def WriteGroups():
-    firstRow = spark.sql("SELECT DATE_FORMAT(CURRENT_TIMESTAMP(), 'yyyy/MM/dd') Path, DATE_FORMAT(CURRENT_TIMESTAMP(), 'yyMMddHHmm') BatchId").rdd.collect()[0]["Path"]
+    firstRow = spark.sql("SELECT DATE_FORMAT(CURRENT_TIMESTAMP(), 'yyyy/MM/dd') Path, DATE_FORMAT(CURRENT_TIMESTAMP(), 'yyMMddHHmm') BatchId").collect()[0]["Path"]
     resultsPath = f"/mnt/datalake-raw/edp/groups/{firstRow}/groups.json"
     print(resultsPath)
     dbutils.fs.put(resultsPath, json.dumps(groups), True)

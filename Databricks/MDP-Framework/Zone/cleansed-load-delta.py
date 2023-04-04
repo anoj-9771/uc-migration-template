@@ -26,11 +26,13 @@ if extendedProperties:
     extendedProperties = json.loads(extendedProperties)
     rawTableNameMatchSource = extendedProperties.get("RawTableNameMatchSource")
 if rawTableNameMatchSource:
-    sourceTableName = get_table_name('raw', j['DestinationSchema'], j['SourceTableName']).lower()
+    sourceTableName = get_table_name('raw', destinationSchema, sourceTable).lower()
+    source_table_name_nonuc = f'raw.{destinationSchema}_{sourceTable}'.lower()
 else:
-    sourceTableName = get_table_name('raw', j['DestinationSchema'], j['DestinationTableName']).lower()
-cleansedTableName = get_table_name('cleansed', j['DestinationSchema'], j['DestinationTableName']).lower()
-source_table_name_nonuc = f'raw.{destinationSchema}_{sourceTableName}'
+    sourceTableName = get_table_name('raw', destinationSchema, destinationTableName).lower()
+    source_table_name_nonuc = f'raw.{destinationSchema}_{destinationTableName}'.lower()
+cleansedTableName = get_table_name('cleansed', destinationSchema, destinationTableName).lower()
+
 
 # COMMAND ----------
 

@@ -238,7 +238,7 @@ def CreateSewerCCTVViews():
 """
     df = spark.read.option("driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver").jdbc(url=jdbc, table=f"({sql}) T")
 
-    for i in df.rdd.collect():
+    for i in df.collect():
         schema = i.SchemaName
         table = i.TableName
 

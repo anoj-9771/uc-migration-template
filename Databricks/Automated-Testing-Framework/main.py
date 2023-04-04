@@ -8,7 +8,7 @@
 # COMMAND ----------
 
 def RunTests():
-    firstRow = spark.sql("SELECT DATE_FORMAT(CURRENT_TIMESTAMP(), 'yyyy/MM/dd') Path, DATE_FORMAT(CURRENT_TIMESTAMP(), 'yyMMddHHmm') BatchId").rdd.collect()[0]
+    firstRow = spark.sql("SELECT DATE_FORMAT(CURRENT_TIMESTAMP(), 'yyyy/MM/dd') Path, DATE_FORMAT(CURRENT_TIMESTAMP(), 'yyMMddHHmm') BatchId").collect()[0]
     rawPath = firstRow.Path
     batchId = firstRow.BatchId
 
@@ -16,7 +16,7 @@ def RunTests():
         df = ListWorkspaces(CurrentNotebookPath() + p)
         df = df.selectExpr(f"explode({df.columns[0]}) o").where("o.object_type != 'DIRECTORY'")
 
-        for i in df.rdd.collect():
+        for i in df.collect():
             path = i.o.path
             r = dbutils.notebook.run(path, 0, { "DEFAULT_BATCH_ID" : batchId })
             j = json.loads(r)

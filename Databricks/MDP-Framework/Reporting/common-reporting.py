@@ -9,14 +9,14 @@ def DatabaseAllRowCounts():
     databases = spark.sql("SHOW DATABASES").where("databaseName IN ('raw', 'cleansed', 'curated')")
     allRowCounts = None
     
-    for db in databases.rdd.collect():
+    for db in databases.collect():
         database = db.databaseName
         databaseTables = (spark.sql(f"SHOW TABLES FROM {database}").alias("t")
                           .join(spark.sql(f"SHOW VIEWS FROM {database}").alias("v"), expr("t.tableName == v.viewName"), "left")
                           .selectExpr("t.*"
                               ,"IF(viewName IS NULL, 0, 1) IsView")).withColumn("RowCount", expr("0"))
 
-        for t in databaseTables.rdd.collect():
+        for t in databaseTables.collect():
             table = t.tableName
             try:
                 count = 0

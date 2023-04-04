@@ -621,7 +621,7 @@ def GetFirstAclEnabledCluster():
 def RevokePermissionsForGroup(groupName, database):
     df = spark.sql(f"SHOW TABLES FROM {database}")
     clusterId = GetFirstAclEnabledCluster()["cluster_id"]
-    sql = "\n".join([f"REVOKE ALL PRIVILEGES ON TABLE {i.database}.{i.tableName} FROM `{groupName}`;" for i in df.rdd.collect()])
+    sql = "\n".join([f"REVOKE ALL PRIVILEGES ON TABLE {i.database}.{i.tableName} FROM `{groupName}`;" for i in df.collect()])
     ExecuteCommand(sql, clusterId)
 
 # COMMAND ----------

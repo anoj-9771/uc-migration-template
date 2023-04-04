@@ -43,7 +43,7 @@ def DeleteDirectoryRecursive(dirname):
 
 def CleanTable(tableNameFqn):
     try:
-        detail = spark.sql(f"DESCRIBE DETAIL {tableNameFqn}").rdd.collect()[0]
+        detail = spark.sql(f"DESCRIBE DETAIL {tableNameFqn}").collect()[0]
         DeleteDirectoryRecursive(detail.location)
     except:    
         pass
@@ -56,7 +56,7 @@ def CleanTable(tableNameFqn):
 # COMMAND ----------
 
 # DBTITLE 1,Running this block will end the job run when there is 1 failure
-# for j in manifest_df.rdd.collect():
+# for j in manifest_df.collect():
 #     systemCode = j.SystemCode
 #     destinationSchema = j.DestinationSchema
 #     destinationTableName = j.DestinationTableName
@@ -128,7 +128,7 @@ def CleanTable(tableNameFqn):
 # COMMAND ----------
 
 # DBTITLE 1,Running this block will continue the job run even if there is table load failure
-for j in manifest_df.rdd.collect():
+for j in manifest_df.collect():
     try:
         systemCode = j.SystemCode
         destinationSchema = j.DestinationSchema

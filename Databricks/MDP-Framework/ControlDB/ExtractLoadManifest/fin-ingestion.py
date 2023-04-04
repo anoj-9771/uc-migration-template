@@ -138,7 +138,7 @@ display(df_c.where("SystemCode in ('finref','findata')"))
 
 # for z in ["raw", "cleansed"]:
 for z in ["cleansed"]:
-    for t in df_c.where("SystemCode in ('finref','findata')").rdd.collect():
+    for t in df_c.where("SystemCode in ('finref','findata')").collect():
         tableFqn = f"{z}.{t.DestinationSchema}_{t.SourceTableName}"
         print(tableFqn)
 #         CleanTable(tableFqn)

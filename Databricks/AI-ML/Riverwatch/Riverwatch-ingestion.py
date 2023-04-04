@@ -72,7 +72,7 @@ def ExecuteStatement(sql):
 ##DO NON IICATS
 dfNonIicats = df.where("systemCode <> 'iicats_rw'")
 
-for i in dfNonIicats.rdd.collect():
+for i in dfNonIicats.collect():
     ExecuteStatement(f"""
     DECLARE @RC int
     DECLARE @SystemCode varchar(max) = '{i.SystemCode}'
@@ -105,7 +105,7 @@ for i in dfNonIicats.rdd.collect():
 ##DO IICATS
 dfIicats = df.where("systemCode = 'iicats_rw'")
 
-for i in dfIicats.rdd.collect():
+for i in dfIicats.collect():
     ExecuteStatement(f"""
     DECLARE @RC int
     DECLARE @SystemCode varchar(max) = '{i.SystemCode}'

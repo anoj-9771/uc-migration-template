@@ -32,7 +32,7 @@ exportConfigFilterList = ['site_hierarchy','scx_facility','scx_point']
 dedupQuery = 'dedupe = 1'
 filterQuery = 'sourceRecordSystemId in(89,90)'
 
-for i in df.rdd.collect():
+for i in df.collect():
     partitionKey = i.BusinessKeyColumn.replace(f",{i.WatermarkColumnMapped}","")
     # if in dedup list create a view containing dedupe logic
     # if also in filter list add sys filter

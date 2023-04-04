@@ -34,7 +34,7 @@ def SqlTableExists(tableName, schema):
   ) T".format(schema=schema,table=tableName)
   jdbcUrl = AzSqlGetDBConnectionURL()
   df = spark.read.jdbc(url=jdbcUrl, table=query)
-  return True if df.rdd.collect()[0].table_count == 1 else False
+  return True if df.collect()[0].table_count == 1 else False
 
 # COMMAND ----------
 
@@ -287,7 +287,7 @@ def _GenerateCreateSqlTableQuery(dataFrame : object, sqlTargetFqn : str):
     col = c[0]
     lookup = convert.get(c[1])
     type = c[1] if not lookup else lookup
-    size = "" if lookup != "nvarchar" else "({})".format(math.ceil(df.select(expr(f"COALESCE(MAX(LENGTH({col})) * {GROWTH}, {DEFAULT_SIZE}) C")).dropna().rdd.max()[0]))
+    size = "" if lookup != "nvarchar" else "({})".format(math.ceil(df.select(expr(f"COALESCE(MAX(LENGTH({col})) * {GROWTH}, {DEFAULT_SIZE}) C")).dropna().first()[0]))
     columns.append(f"[{col}] {type}{size} NULL")
   cols = ", ".join(columns)
   sql = f"CREATE TABLE {sqlTargetFqn} ({cols})"
@@ -352,10 +352,10 @@ def _SeedSurrogateKeyColumn(surrogateKeyColumn : str, dlTargetTableFqn : str, bu
   #GET LAST VALUE
   max = 0
   try:
-    max = spark.table(dlTargetTableFqn).where(expr("{} IS NOT NULL".format(surrogateKeyColumn))).select(surrogateKeyColumn).rdd.max()[0]
+    max = spark.table(dlTargetTableFqn).where(expr("{} IS NOT NULL".format(surrogateKeyColumn))).select(max(surrogateKeyColumn)).first()[0]
   except: 
     i=0
-
+  
   max = 0 if max is None else max
   
   cols = businessKeys.split(",")
@@ -414,7 +414,7 @@ def _MergeScdSqlServer(dataFrame : object, businessKey : str, dlTargetTableFqn :
     query = "(SELECT MAX({col}) MaxStart FROM {sqlTargetFqn}) T".format(sqlTargetFqn=sqlTargetFqn, col=skColumn)
     jdbcUrl = AzSqlGetDBConnectionURL()
     df = spark.read.jdbc(url=jdbcUrl, table=query)
-    max = df.rdd.collect()[0].MaxStart
+    max = df.collect()[0].MaxStart
     max = 0 if max is None else max
   except:
     e=False
@@ -561,7 +561,7 @@ def _AppendScdSqlServer(dataFrame : object, businessKey : str, dlTargetTableFqn 
     query = f"(SELECT MAX({skColumn}) MaxStart FROM {sqlTargetFqn}) T"
     jdbcUrl = AzSqlGetDBConnectionURL()
     df = spark.read.jdbc(url=jdbcUrl, table=query)
-    max = df.rdd.collect()[0].MaxStart
+    max = df.collect()[0].MaxStart
     max = 0 if max is None else max
     #print(f"{query} : {max}")
   except:
@@ -664,7 +664,7 @@ def CleanTargetTables(deltaTableFqn, sqlTableFqn):
   deltaMode = CLEAN_MODE[0:1]
   sqlMode = CLEAN_MODE[-1]
   delta = f"DROP TABLE {deltaTableFqn}" if deltaMode == "2" else f"DELETE FROM {deltaTableFqn}"
-  path = spark.sql(f"DESCRIBE DETAIL {deltaTableFqn}").select(expr("location")).rdd.collect()[0][0]
+  path = spark.sql(f"DESCRIBE DETAIL {deltaTableFqn}").select(expr("location")).collect()[0][0]
   sql = f"DROP TABLE {sqlTableFqn}" if sqlMode == "2" else f"TRUNCATE TABLE {sqlTableFqn}"
   LogEtl(f"{delta} | {path} | {sql}")
   
@@ -847,4 +847,5 @@ def _AppendDeltaAndSql(dataFrame : object, businessKey : str, dlStageTableFqn : 
   LogEtl("Append Done!")
 
 # COMMAND ----------
+
 

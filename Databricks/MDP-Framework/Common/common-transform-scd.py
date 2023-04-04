@@ -105,7 +105,7 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
     
     targetTable_BK_List = "','".join([\
                          str(c[f"{_.BK}"]) for c in \
-                         targetTable.select(f"{_.BK}").rdd.collect()\
+                         targetTable.select(f"{_.BK}").collect()\
                         ])
 
     # For new records(new BK), insert into Target table

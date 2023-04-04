@@ -7,7 +7,7 @@ def RunAllConfigs():
     df = ListWorkspaces(CurrentNotebookPath() + "/ExtractLoadManifest")
     df = df.selectExpr(f"explode({df.columns[0]}) o").where("o.object_type != 'DIRECTORY'")
     
-    for i in df.rdd.collect():
+    for i in df.collect():
         path = i.o.path
         try:
             r = dbutils.notebook.run(path, 0, {})

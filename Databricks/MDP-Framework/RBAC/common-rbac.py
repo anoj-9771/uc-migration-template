@@ -133,7 +133,7 @@ def GrantPermissions():
         
         for s in g["Systems"]:
             df = spark.sql(f"SHOW TABLES FROM cleansed LIKE '{s}*'")
-            list.extend([f"GRANT READ_METADATA, SELECT ON TABLE {i.database}.{i.tableName} TO `{groupName}`;" for i in df.rdd.collect()])
+            list.extend([f"GRANT READ_METADATA, SELECT ON TABLE {i.database}.{i.tableName} TO `{groupName}`;" for i in df.collect()])
     sql = "\n".join(list)
 
     clusterId = GetFirstAclEnabledCluster()["cluster_id"]
@@ -167,7 +167,7 @@ def CreateCustomGroups():
         for t in g["TableFilter"]:
             schema, table = t.split(".", 1)
             df = spark.sql(f"SHOW TABLES FROM {schema} LIKE '{table}'")
-            ExecuteCommand("".join([f"GRANT READ_METADATA, SELECT ON TABLE {i.database}.{i.tableName} TO `{groupName}`;" for i in df.rdd.collect()]), clusterId)
+            ExecuteCommand("".join([f"GRANT READ_METADATA, SELECT ON TABLE {i.database}.{i.tableName} TO `{groupName}`;" for i in df.collect()]), clusterId)
 
 # COMMAND ----------
 
@@ -192,7 +192,7 @@ def AADGroupAssignment():
         for t in adg["TableFilter"]:
             schema, table = t.split(".", 1)
             df = spark.sql(f"SHOW TABLES FROM {schema} LIKE '{table}'")
-            ExecuteCommand("".join([f"GRANT READ_METADATA, SELECT ON TABLE {i.database}.{i.tableName} TO `{groupName}`;" for i in df.rdd.collect()]), clusterId)
+            ExecuteCommand("".join([f"GRANT READ_METADATA, SELECT ON TABLE {i.database}.{i.tableName} TO `{groupName}`;" for i in df.collect()]), clusterId)
 
 # COMMAND ----------
 
@@ -202,7 +202,7 @@ def LegacyCleansedDataAnalystAdvUsrAssignment():
     for db in ["raw", "cleansed"]:
         for s in ["access", "isu", "crm", "hydra"]:
             df = spark.sql(f"SHOW TABLES FROM cleansed LIKE '{s}*'")
-            sql = [f"GRANT READ_METADATA, SELECT ON TABLE {i.database}.{i.tableName} TO `{groupName}`;" for i in df.rdd.collect()]
+            sql = [f"GRANT READ_METADATA, SELECT ON TABLE {i.database}.{i.tableName} TO `{groupName}`;" for i in df.collect()]
             #print("\n".join(sql))
             ExecuteCommand("".join([f"GRANT READ_METADATA, SELECT ON TABLE {i.database}.{i.tableName} TO `{groupName}`;" for i in df.collect()]), clusterId)
 

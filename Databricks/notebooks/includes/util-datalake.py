@@ -75,7 +75,7 @@ def DataLakeFileExists(path):
 def DataLakeFileHash(path):
   #HASH FILE
   df = spark.read.format("binaryFile").load(path)
-  content = base64.b64encode(df.rdd.collect()[0].content)
+  content = base64.b64encode(df.collect()[0].content)
   h = hashlib.sha256()
   h.update(content)
   return h.hexdigest()

@@ -6,7 +6,7 @@ def TableExists(tableFqn):
 
 def GetDeltaTablePath(tableFqn):
   df = spark.sql(f"DESCRIBE TABLE EXTENDED {tableFqn}").where("col_name = 'Location'")
-  return df.rdd.collect()[0].data_type
+  return df.collect()[0].data_type
 
 # COMMAND ----------
 
@@ -108,7 +108,7 @@ def DeleteDirectoryRecursive(dirname):
 
 def CleanTable(tableNameFqn):
     try:
-        detail = spark.sql(f"DESCRIBE DETAIL {tableNameFqn}").rdd.collect()[0]
+        detail = spark.sql(f"DESCRIBE DETAIL {tableNameFqn}").collect()[0]
         DeleteDirectoryRecursive(detail.location)
     except:    
         pass

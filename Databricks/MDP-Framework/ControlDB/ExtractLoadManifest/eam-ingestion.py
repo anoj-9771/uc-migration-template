@@ -91,7 +91,7 @@ display(df_c.where("SystemCode in ('eamref','eamdata')"))
 
 # for z in ["raw", "cleansed"]:
 for z in ["cleansed"]:
-    for t in df_c.where("SystemCode in ('eamref','eamdata')").rdd.collect():
+    for t in df_c.where("SystemCode in ('eamref','eamdata')").collect():
         tableFqn = f"{z}.{t.DestinationSchema}_{t.SourceTableName}"
         print(tableFqn)
 #         CleanTable(tableFqn)

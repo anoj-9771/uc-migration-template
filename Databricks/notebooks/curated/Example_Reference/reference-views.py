@@ -77,7 +77,7 @@ def CreateViews(sql, entity):
 def CreateReferenceViews():
   tableList = spark.sql("SHOW TABLES FROM trusted LIKE 'reference_*'")
   
-  for t in tableList.rdd.collect():
+  for t in tableList.collect():
     #if(t.tableName != "reference_master_reference_data"): continue
     table = t.tableName
     entity = table[10:]
@@ -118,7 +118,7 @@ def CreateMDSViews():
   spark.sql(f"REFRESH TABLE {viewList}")
   tableList = spark.table(f"{viewList}")
   
-  for row in tableList.rdd.collect():
+  for row in tableList.collect():
     #if(row.friendly_name != "IndigenousStatus"): continue
     columns = columnTemplate.format(lowValue=row.low_value)
     columns += ", V.Ref_13 {abbreviation}".format(abbreviation=row.abbreviation) if row.abbreviation else ""

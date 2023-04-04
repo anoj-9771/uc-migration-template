@@ -53,7 +53,8 @@ from  cleansed.access_z309_tprevproperty--propList
 -- COMMAND ----------
 
 -- MAGIC %python
--- MAGIC propList = spark.sql('select * from vPreviousProperty').rdd.map(lambda row: row.asDict()).collect()
+-- MAGIC prop_df = spark.sql('select * from vPreviousProperty')
+-- MAGIC propList = [row.asDict() for row in prop_df.collect()]
 
 -- COMMAND ----------
 

@@ -7,7 +7,7 @@ dftbl = sqlContext.sql("show tables from cleansed")
 dftbl2 = dftbl.where(col('tableName').like('%z309%'))
 
 tmplist = []
-for row in dftbl2.rdd.collect():
+for row in dftbl2.collect():
     try:
         tmp = 'select count(*) myrowcnt from ' + row['database'] + '.' + row['tableName']
         tmpdf = sqlContext.sql(tmp)

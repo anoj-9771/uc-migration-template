@@ -35,7 +35,7 @@ def AddIngestion(df, clean = False):
     if clean:
         CleanConfig()
         
-    for i in df.rdd.collect():
+    for i in df.collect():
         ExecuteStatement(f"""    
         DECLARE @RC int
         DECLARE @SystemCode varchar(max) = NULLIF('{i.SystemCode}','')
@@ -76,7 +76,7 @@ def ShowConfig():
 # COMMAND ----------
 
 def ViewStoredProcedureDefinition(storedProcedureName):
-    print(RunQuery(f"SELECT OBJECT_DEFINITION (OBJECT_ID(N'{storedProcedureName}')) Definition ").rdd.collect()[0][0])
+    print(RunQuery(f"SELECT OBJECT_DEFINITION (OBJECT_ID(N'{storedProcedureName}')) Definition ").collect()[0][0])
 
 # COMMAND ----------
 

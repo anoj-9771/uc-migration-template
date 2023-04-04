@@ -37,7 +37,7 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource, BK, SK):
     _exclude = {SK, BK, '_recordStart', '_recordEnd', '_recordCurrent', '_DLCuratedZoneTimeStamp'}
     # changeColumns = " OR ".join([f"s.{c} <=> t.{c}" for c in targetTable.columns if c not in _exclude])
     changeColumns = "!(" + " AND ".join([f"s.{c} <=> t.{c}" for c in targetTable.columns if c not in _exclude]) + ")"
-    # bkList = "','".join([str(c[f"{_.BK}"]) for c in spark.table(targetTableFqn).select(f"{_.BK}").rdd.collect()])
+    # bkList = "','".join([str(c[f"{_.BK}"]) for c in spark.table(targetTableFqn).select(f"{_.BK}").collect()])
     # newRecords = sourceDataFrame.where(f"{_.Name}_BK NOT IN ('{bkList}')")
     #Question - should we use recordCurrent or high date?
     # newRecords = sourceDataFrame.join(targetTable.where('_recordCurrent = 1'), [f"{_.BK}"], 'leftanti')

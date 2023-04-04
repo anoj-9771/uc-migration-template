@@ -34,9 +34,9 @@ df = (sc.textFile(rawPath)
      )
 firstColumnName = df.columns[0]
 df = df.drop(df.columns[0])
-header = df.rdd.collect()[0]
+header = df.collect()[0]
 
-filteredData = df.where(f"_{startAtColumn} != '{df.rdd.collect()[0][0]}'").drop(firstColumnName)
+filteredData = df.where(f"_{startAtColumn} != '{df.collect()[0][0]}'").drop(firstColumnName)
 
 df = spark.createDataFrame(filteredData.rdd, schema=StructType([StructField(RemoveBadCharacters(h, "_"), StringType(), True) for h in header]))
 #display(df)

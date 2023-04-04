@@ -69,7 +69,7 @@ def ImportCleansedMapping(systemCode):
     Validating Data Types...
     -------------------------
     """)
-    for t in df.rdd.collect():
+    for t in df.collect():
         dataType = defaultDataTypes.get(t.DataType.lower())
         dataType = t.DataType if dataType is None else dataType
         
@@ -88,7 +88,7 @@ def ImportCleansedMapping(systemCode):
     """)
     df = transforms.selectExpr("TRIM(LOWER(TransformTag)) TransformTag").dropDuplicates().na.drop()
     #display(df)
-    for t in df.rdd.collect():
+    for t in df.collect():
         tag = t.TransformTag
         try:
             o = defaultTransformTags[tag]
@@ -102,7 +102,7 @@ def ImportCleansedMapping(systemCode):
     -------------------------
     """)
     df = transforms.where("CustomTransform IS NOT NULL")
-    for t in df.rdd.collect():
+    for t in df.collect():
         try:
             spark.table(t.RawTable).selectExpr(f"{t.CustomTransform}").count()
         except Exception as e:
@@ -145,7 +145,7 @@ def ImportCleansedMappingByRules(systemCode):
     Validating Data Types...
     -------------------------
     """)
-    for t in df.rdd.collect():
+    for t in df.collect():
         if t.DataType.lower() == 'nochange':
             continue
         
@@ -167,7 +167,7 @@ def ImportCleansedMappingByRules(systemCode):
     """)
     df = transforms.selectExpr("TRIM(LOWER(TransformTag)) TransformTag").dropDuplicates().na.drop()
     #display(df)
-    for t in df.rdd.collect():
+    for t in df.collect():
         tag = t.TransformTag
         try:
             o = defaultTransformTags[tag]
@@ -181,7 +181,7 @@ def ImportCleansedMappingByRules(systemCode):
     -------------------------
     """)
     df = transforms.where("CustomTransform IS NOT NULL")
-    for t in df.rdd.collect():
+    for t in df.collect():
         try:
             spark.table(t.RawTable).selectExpr(f"{t.CustomTransform}").count()
         except Exception as e:
@@ -218,7 +218,7 @@ def ImportCleansedReference():
     """)
     df = referenceFile.where("Parent like '%lookup%'").dropDuplicates().where("ExtendedProperties IS NOT NULL")
 
-    for t in df.rdd.collect():
+    for t in df.collect():
         whereClause = TryGetJsonProperty(t.ExtendedProperties, "filter")
         try:
             whereClause = "1=1" if whereClause == "" else whereClause
@@ -243,7 +243,7 @@ def WriteRawToCleansedTable(rawTableName):
     zone, tableName = rawTableName.split(".")
     
     # GET CONFIG
-    control = spark.table("controldb.dbo_extractloadmanifest").where(f"LOWER(DestinationSchema || '_' || DestinationTableName) = '{tableName}'").rdd.collect()
+    control = spark.table("controldb.dbo_extractloadmanifest").where(f"LOWER(DestinationSchema || '_' || DestinationTableName) = '{tableName}'").collect()
     
     if len(control) == 0:
         raise Exception(f"Table not found {tableName}!")
