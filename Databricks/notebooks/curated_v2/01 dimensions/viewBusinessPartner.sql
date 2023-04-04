@@ -5,7 +5,7 @@
 -- COMMAND ----------
 
 CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS 
-
+ 
 With dimBusinessPartnerRanges AS
 (
                 SELECT
@@ -15,33 +15,32 @@ With dimBusinessPartnerRanges AS
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY businessPartnerNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
                 FROM curated_v2.dimBusinessPartner
-                --WHERE _recordDeleted = 0
+                where businessPartnerCategoryCode in ('1','2')
 ),
-
 dimBusinessPartnerAddressRanges AS
 (
                 SELECT
-                businessPartnerNumber, 
-                _recordStart, 
-                _recordEnd,
-                COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY businessPartnerNumber ORDER BY _recordStart ), 
-                  CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated_v2.dimBusinessPartnerAddress
-                --WHERE _recordDeleted = 0
+                ba.businessPartnerNumber, 
+                ba._recordStart, 
+                ba._recordEnd,
+                COALESCE( LEAD( ba._recordStart, 1 ) OVER( PARTITION BY ba.businessPartnerNumber ORDER BY ba._recordStart ), 
+                  CASE WHEN ba._recordEnd < cast('9999-12-31T23:59:59' as timestamp) then ba._recordEnd + INTERVAL 1 SECOND else ba._recordEnd end) AS _newRecordEnd
+                FROM curated_v2.dimBusinessPartnerAddress ba
+                inner join curated_v2.dimbusinesspartner bp on bp.businesspartnernumber = ba.businesspartnernumber
+                where bp.businessPartnerCategoryCode in ('1','2')
 ),
-
 dimBusinessPartnerRelationRanges AS
 (
                 SELECT
-                businessPartnerNumber, 
+                br.businessPartnerNumber, 
                 _recordStart, 
                 _recordEnd,
-                COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY businessPartnerNumber ORDER BY _recordStart ), 
+                COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY br.businessPartnerNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated_v2.dimBusinessPartnerRelation
+                FROM curated_v2.dimBusinessPartnerRelation br
+                inner join (select businesspartnernumber from curated_v2.dimbusinesspartner bp where businessPartnerCategoryCode in ('1','2')) bp on bp.businesspartnernumber = br.businesspartnernumber
                 WHERE _recordDeleted = 0
 ),
-
 dateDriver AS
 (
                 SELECT businessPartnerNumber, _recordStart from dimBusinessPartnerRanges
@@ -56,7 +55,6 @@ dateDriver AS
                 UNION
                 SELECT businessPartnerNumber, _newRecordEnd as _recordStart from dimBusinessPartnerRelationRanges
 ),
-
 effectiveDateRanges AS
 (
                 SELECT 
@@ -65,7 +63,7 @@ effectiveDateRanges AS
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY businessPartnerNumber ORDER BY _recordStart ) - INTERVAL 1 SECOND, 
                   cast( '9999-12-31T23:59:59' as timestamp ) ) AS _effectiveTo                           
                 FROM dateDriver where _recordStart < cast('9999-12-31T23:59:59' as timestamp)                            
-)              
+)
 
  /*============================
     viewBusinessPartner
@@ -76,8 +74,8 @@ SELECT
     /* Business Partner Columns */
     BP.businessPartnerSK,
     BR.businessPartnerGroupSK,
-    coalesce(BR.sourceSystemCode, BP.sourceSystemCode, ADDR.sourceSystemCode) as sourceSystemCode,
-    coalesce(BP.businessPartnerNumber, ADDR.businessPartnerNumber, '-1') as businessPartnerNumber,
+    coalesce(BP.sourceSystemCode, ADDR.sourceSystemCode,BR.sourceSystemCode) as sourceSystemCode,
+    coalesce(DR.businessPartnerNumber,BP.businessPartnerNumber, ADDR.businessPartnerNumber, '-1') as businessPartnerNumber,
     BR.businessPartnerGroupNumber,
     BR.relationshipNumber,
     BR.relationshipTypeCode,
@@ -168,36 +166,23 @@ SELECT
     ADDR.communicationAddressNumber,
     DR._effectiveFrom, 
     DR._effectiveTo,
-    CASE
-      WHEN CURRENT_TIMESTAMP() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
-      ELSE 'N'
-    END AS currentFlag,
+    CASE WHEN coalesce(BR.validToDate, '1900-01-01') = '9999-12-31' and _effectiveto = '9999-12-31 23:59:59.000'  then 'Y' ELSE 'N' END AS currentFlag,
     if(BP._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
 FROM effectiveDateRanges DR
-INNER JOIN curated_v2.dimbusinesspartner BP ON 
+LEFT JOIN  curated_v2.dimbusinesspartner BP ON 
     DR.businessPartnerNumber = BP.businessPartnerNumber AND
-    BP.businessPartnerCategoryCode in ('1','2') AND
     DR._effectiveFrom <= BP._RecordEnd AND
     DR._effectiveTo >= BP._RecordStart  
-    --AND BP._recordDeleted = 0
-    INNER JOIN curated_v2.dimbusinesspartnerrelation BR ON 
+LEFT JOIN  curated_v2.dimbusinesspartnerrelation BR ON 
     DR.businessPartnerNumber = BR.businessPartnerNumber AND
-    BP.businessPartnerCategoryCode in ('1','2') AND
     DR._effectiveFrom <= BR._RecordEnd AND
     DR._effectiveTo >= BR._RecordStart AND
     BR._recordDeleted = 0
-    --INNER JOIN curated_v2.dimbusinesspartnergroup BP2 ON 
-    --BR.businessPartnerGroupSK = BP2.businessPartnerGroupSK AND
-    --BP2.businessPartnerCategoryCode ='3' AND
-    --DR._effectiveFrom <= BP2._RecordEnd AND
-    --DR._effectiveTo >= BP2._RecordStart AND
-    --BP2._recordDeleted = 0
 LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON 
     DR.businessPartnerNumber = ADDR.businessPartnerNumber AND
     DR._effectiveFrom <= ADDR._RecordEnd AND
     DR._effectiveTo >= ADDR._RecordStart 
-    --AND ADDR._recordDeleted = 0
-WHERE BP.businessPartnerSK IS NOT NULL)
+)
 
 -- COMMAND ----------
 

@@ -47,19 +47,20 @@ effectiveDateRanges AS
                   cast( '9999-12-31T23:59:59' as timestamp ) ) AS _effectiveTo                           
                 FROM dateDriver where _recordStart < cast('9999-12-31T23:59:59' as timestamp)                            
 )            
-
-
+ 
+ 
 SELECT * FROM 
 (
 SELECT
      dimdevice.deviceSK
     ,dimdevicehistory.deviceHistorySK
     ,dimdevice.sourceSystemCode
-    ,coalesce(dimdevice.deviceNumber, dimdevicehistory.deviceNumber, -1) as deviceNumber
+   ,coalesce(dimdevice.deviceNumber, dimdevicehistory.deviceNumber, -1) as deviceNumber
     ,dimdevice.materialNumber
     ,dimdevice.deviceID
     ,dimdevice.inspectionRelevanceIndicator
     ,dimdevice.deviceSize
+    ,dimdevice.deviceSizeUnit
     ,dimdevice.assetManufacturerName
     ,dimdevice.manufacturerSerialNumber
     ,dimdevice.manufacturerModelNumber
@@ -110,7 +111,7 @@ SELECT
     ,dimregisterhistory.reactiveApparentOrActiveRegisterCode
     ,dimregisterhistory.reactiveApparentOrActiveRegister
     ,dimregisterhistory.unitOfMeasurementMeterReading
-    ,dimregisterhistory.doNotReadFlag	
+    ,dimregisterhistory.doNotReadFlag 
     ,dimregisterinstallationhistory.registerInstallationHistorySK
     ,dimregisterinstallationhistory.validToDate AS registerInstallationHistoryValidToDate
     ,dimregisterinstallationhistory.validFromDate AS registerInstallationHistoryValidFromDate
@@ -118,7 +119,10 @@ SELECT
     ,dimregisterinstallationhistory.operationDescription
     ,dimregisterinstallationhistory.rateTypeCode AS registerInstallationHistoryRateTypeCode
     ,dimregisterinstallationhistory.rateType AS registerInstallationHistoryRateType
-    ,dimregisterinstallationhistory.registerNotRelevantToBilling
+    ,CASE 
+    WHEN (dimregisterinstallationhistory.registerNotRelevantToBilling = 'N' or dimregisterinstallationhistory.registerNotRelevantToBilling is null) Then 'Y' 
+    Else 'N' 
+    End AS registerRelevantToBilling  
     ,dimregisterinstallationhistory.rateFactGroupCode
     ,installAttr.divisionCode
     ,installAttr.division
@@ -143,7 +147,7 @@ LEFT OUTER JOIN curated_v2.dimDeviceHistory dimdevicehistory
 LEFT OUTER JOIN curated_v2.dimDeviceInstallationHistory dimdeviceinstallationhistory
     ON dimdeviceinstallationhistory.logicalDeviceNumber = dimdevicehistory.logicalDeviceNumber
         AND dimdevicehistory._recordStart >= dimdeviceinstallationhistory._recordStart
-        AND dimdevicehistory._recordStart <= dimdeviceinstallationhistory._recordEnd
+        AND dimdevicehistory._recordEnd <= dimdeviceinstallationhistory._recordEnd
         AND dimdeviceinstallationhistory._recordDeleted = 0
 LEFT OUTER JOIN curated_v2.dimRegisterHistory dimregisterhistory
     ON dimregisterhistory.deviceNumber = dimdevice.deviceNumber
@@ -154,11 +158,13 @@ LEFT OUTER JOIN curated_v2.dimRegisterInstallationHistory dimregisterinstallatio
     ON dimregisterinstallationhistory.installationNumber = dimdeviceinstallationhistory.installationNumber
       AND dimregisterhistory.logicalRegisterNumber = dimregisterinstallationhistory.logicalRegisterNumber
       AND dimDeviceHistory._recordStart >= dimregisterinstallationhistory._recordStart
-      AND dimDeviceHistory._recordStart <= dimregisterhistory._recordEnd
+      AND dimDeviceHistory._recordStart <= dimregisterinstallationhistory._recordEnd
       AND dimregisterinstallationhistory._recordDeleted = 0
 LEFT OUTER JOIN cleansed.isu_0UCINSTALLA_ATTR_2 installAttr
     ON installAttr.installationNumber = dimdeviceinstallationhistory.installationNumber
-    AND installAttr._recordDeleted = 0 
+    AND installAttr._recordDeleted = 0
+WHERE dimregisterinstallationhistory.registerNotRelevantToBilling = 'N' or dimdevicehistory.logicalDeviceNumber = 0 or dimdevicehistory.logicalDeviceNumber is null or dimregisterinstallationhistory.registerNotRelevantToBilling is null 
+
 )
 ORDER BY _effectiveFrom
 
