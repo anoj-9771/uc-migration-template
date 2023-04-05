@@ -8,7 +8,7 @@ from delta.tables import *
 # COMMAND ----------
 
 def PrefixColumn(columns, prefix=None):
-  return ",".join([f"{prefix}.{k}" for k in columns.split(',')]) if(',' in columns) else f"{prefix}.{columns}"
+    return ",'|',".join([f"{prefix}.{k}" for k in columns.split(',')]) if(',' in columns) else f"{prefix}.{columns}"
 
 # COMMAND ----------
 
