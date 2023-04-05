@@ -18,10 +18,14 @@
         "type": "ScheduleTrigger",
         "typeProperties": {
             "recurrence": {
-                "frequency": "Hour",
-                "interval": 6,
+                "frequency": "Day",
+                "interval": 1,
                 "startTime": "2022-11-19T07:40:00",
-                "timeZone": "AUS Eastern Standard Time"
+                "timeZone": "AUS Eastern Standard Time",
+                "schedule": {                    
+                    "hours": [1,7,13,19],
+                    "minutes": [40]
+                }
             }
         }
     }
