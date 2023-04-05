@@ -22,11 +22,9 @@ def DataFrameFromFilePath(path):
     df = spark.createDataFrame(list, fsSchema).withColumn("modificationTime", expr("from_unixtime(modificationTime / 1000)"))
     return df
 
-dfContainer1 = DataFrameFromFilePath("/mnt/blob-iotsewertelemetrydata")
-dfContainer1.display()
+dfContainer1 = DataFrameFromFilePath("/mnt/blob-iotsewertelemetrydata").where("path not like '%.%'")
 
-dfContainer2 = DataFrameFromFilePath("/mnt/blob-iotswtelemetryalarmdata")
-dfContainer2.display()
+dfContainer2 = DataFrameFromFilePath("/mnt/blob-iotswtelemetryalarmdata").where("path not like '%.%'")
 
 # COMMAND ----------
 
