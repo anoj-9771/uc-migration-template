@@ -57,6 +57,7 @@ df = (
         .load(landingPath)
      )
 
+df = df.toDF(*(RemoveBadCharacters(c) for c in df.columns))
 df = df.withColumn('_DLRawZoneTimeStamp', F.current_timestamp()).withColumn('_InputFileName', F.input_file_name())
 
 query = AppendDeltaTableStream(df, tableFqn, dataLakePath)

@@ -132,5 +132,5 @@ def GetTableRowCount(tableFqn):
 # COMMAND ----------
 
 def RemoveBadCharacters(text, replacement=""):
-    [text := text.replace(c, replacement) for c in "/%� ,;{}()\n\t=-"]
+    [text := text.replace(c, replacement) for c in "/%� ,;{}()?\n\t=-"]
     return text
