@@ -16,7 +16,13 @@ from pyspark.sql import types as t
 from pyspark.sql import Window as W
 
 
-df_cleansed_ocr = spark.table("stage.cctv_ocr_extract_cleansed").where(psf.col("video_id") == _VIDEO_ID).orderBy("timestamp").drop("_DLCleansedZoneTimeStamp")
+df_cleansed_ocr = (spark.table("stage.cctv_ocr_extract_cleansed")
+                   .where(psf.col("video_id") == _VIDEO_ID)
+                   .dropDuplicates(subset=['video_id', 'timestamp'])
+                   .orderBy("timestamp")
+                   .drop("_DLCleansedZoneTimeStamp")
+                  )
+
 w = W.partitionBy("video_id").orderBy("timestamp")
   
 #find the start and end point of the contract annotations over the length of the video

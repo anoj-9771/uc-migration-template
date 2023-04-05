@@ -40,6 +40,7 @@ import dateutil.parser
 
 df_raw_images_org = (spark.table("stage.cctv_video_frames")
                      .where(psf.col("video_id") == _VIDEO_ID)
+                     .dropDuplicates(subset=['video_id', 'timestamp'])
                     )
 df_raw_images = df_raw_images_org.drop("_DLRawZoneTimeStamp")
 

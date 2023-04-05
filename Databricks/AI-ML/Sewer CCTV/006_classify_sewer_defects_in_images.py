@@ -26,9 +26,9 @@ applyReturnSchema = t.StructType([
 #define raw images dataframe for selected CCTV video
 df_raw_images = (spark.table("stage.cctv_video_frames")
                  .where(psf.col("video_id") == _VIDEO_ID)
+                 .dropDuplicates(subset=['video_id', 'timestamp'])
                  .orderBy("timestamp")
                  .drop("_DLRawZoneTimeStamp")
-                 .distinct()
                 )
 
 #define window for calculating timestamp difference between defects

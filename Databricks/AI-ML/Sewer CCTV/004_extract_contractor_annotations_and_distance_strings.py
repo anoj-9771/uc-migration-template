@@ -19,6 +19,7 @@ w = W.partitionBy("video_id").orderBy("timestamp")
 #define raw ocr dataframe for the specified video id
 df_raw_ocr = (spark.table("stage.cctv_ocr_extract")
               .where(psf.col("video_id") == _VIDEO_ID)
+              .dropDuplicates(subset=['video_id', 'timestamp'])
              )
 
 df_raw_ocr = df_raw_ocr.drop("_DLRawZoneTimeStamp")
@@ -80,6 +81,7 @@ df_cleansed_ocr = checkDistanceText(df_cleansed_ocr, "distance_m")
 df_cleansed_ocr = (spark.table("stage.cctv_video_frames")         
                    .select("video_id", "timestamp")
                    .where(psf.col("video_id") == _VIDEO_ID)
+                   .dropDuplicates(subset=['video_id', 'timestamp'])
                    .join(df_cleansed_ocr, 
                          ['video_id', 'timestamp'], 
                          how='left'
