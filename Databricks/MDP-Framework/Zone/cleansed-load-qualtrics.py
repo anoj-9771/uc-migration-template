@@ -262,6 +262,33 @@ if destinationTableName.endswith('Responses'):
 # MASK TABLE
 if maskColumns:
     sourceDataFrame = MaskTable(sourceDataFrame)
+    
+    
+####Add SurveyID and Survery name for question and Answers
+
+SurveyMap = spark.sql(f"""
+                        SELECT regexp_extract(aa.id  as ID, aa.name as NAME
+                          FROM (SELECT r.* FROM ( SELECT explode(result.elements) r FROM raw.qualtrics_surveys )) aa
+                               ,controldb.dbo_extractLoadManifest bb 
+                         WHERE SystemCode in ('Qualtricsref','Qualtricsdata') 
+                           AND  aa.id = concat('SV_', regexp_extract(bb.SourceQuery, "/SV_(.*?)/", 1)) 
+                           AND  DestinationTableName = "{destinationTableName}" 
+                     """)
+
+first_row = SurveyMap.first()
+
+surveyID = None
+surveyName = None
+
+if first_row:
+    surveyID   = first_row["ID"]
+    surveyName = first_row["NAME"]
+
+sourceDataFrame = sourceDataFrame.withColumn("surveyID", lit(surveyID)).withColumn("surveyName", lit(surveyName))
+
+################################      
+    
+    
 
 tableName = f"{destinationSchema}_{destinationTableName}"
 CreateDeltaTable(sourceDataFrame, f"cleansed.{tableName}", dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, f"cleansed.{tableName}", dataLakePath, j.get("BusinessKeyColumn"))
