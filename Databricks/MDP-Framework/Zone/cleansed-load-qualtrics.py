@@ -267,7 +267,7 @@ if maskColumns:
 ####Add SurveyID and Survery name for question and Answers
 
 SurveyMap = spark.sql(f"""
-                        SELECT regexp_extract(aa.id  as ID, aa.name as NAME
+                        SELECT aa.id  as ID, aa.name as NAME
                           FROM (SELECT r.* FROM ( SELECT explode(result.elements) r FROM raw.qualtrics_surveys )) aa
                                ,controldb.dbo_extractLoadManifest bb 
                          WHERE SystemCode in ('Qualtricsref','Qualtricsdata') 
