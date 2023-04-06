@@ -1,0 +1,17 @@
+{
+	"name": "BATCH_DAILY_ART",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2023-04-06T07:00:00",
+				"timeZone": "AUS Eastern Standard Time"
+			}
+		}
+	}
+}
