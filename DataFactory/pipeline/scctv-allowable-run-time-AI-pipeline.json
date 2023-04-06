@@ -9,7 +9,7 @@
                 "userProperties": [],
                 "typeProperties": {
                     "expression": {
-                        "value": "@and(\n    greaterOrEquals(int(utcNow('HH')), pipeline().parameters.processStartTime),\n    lessOrEquals(int(utcNow('HH')), pipeline().parameters.processEndTime)\n    )",
+                        "value": "@not(equals(int(convertFromUtc(utcNow(), 'AUS Eastern Standard Time', 'HH')),pipeline().parameters.processEndTime))",
                         "type": "Expression"
                     },
                     "ifTrueActivities": [
