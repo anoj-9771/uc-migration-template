@@ -1,5 +1,55 @@
 # Databricks notebook source
+# MAGIC %run ./rbac-maximo
+
+# COMMAND ----------
+
 CUSTOM_GROUPS = [
+    {
+        "Name" : "L1-Official"
+        ,"Level" : 1
+        ,"OtherCommands" : [
+            "DENY ALL PRIVILEGES ON TABLE `cleansed`.`iicats_rw_hierarchy_cnfgn` TO `L1-Official`"
+            ,"DENY ALL PRIVILEGES ON TABLE `cleansed`.`iicats_rw_tsv` TO `L1-Official`"
+            ,"DENY ALL PRIVILEGES ON TABLE `cleansed`.`iicats_rw_tsv_point_cnfgn` TO `L1-Official`"
+        ]
+        ,"TableFilter" : [
+            "cleansed.*"
+        ]
+        ,"Users" : []
+        ,"AADGroups" : [ "cleansed-official" ]
+    },
+    {
+        "Name" : "L2-Sensitive"
+        ,"Level" : 2
+        ,"ParentGroup" : "L1-Official"
+        ,"TableFilter" : [
+            "cleansed.art_*"
+            ,"cleansed.hydra_*"
+            ,"cleansed.labware_*"
+            ,"cleansed.eppm_*"
+            ,"cleansed.Hydstra_TSV_Proviosional"
+            ,"cleansed.Hydstra_GaugeDetails"
+            ,"cleansed.iicats_site_hierarchy"
+            ,"cleansed.iicats_scxuser"
+            ,"cleansed.iicats_work_orders"
+            ,"cleansed.iicats_hierarchy_cnfgn"
+            ,"cleansed.iicats_event"
+            ,*L2_Maximo
+        ]
+        ,"Users" : []
+        ,"AADGroups" : [ "cleansed-sensitive" ]
+    },
+    {
+        "Name" : "L3-Sensitive-Other"
+        ,"Level" : 3
+        ,"ParentGroup" : "L2-Sensitive"
+        ,"TableFilter" : [
+            "cleansed.maximo_servrectrans"
+            ,"cleansed.swirl_*"
+        ]
+        ,"Users" : []
+        ,"AADGroups" : [ "sensitive-others" ]
+    },
     {
         "Name" : "AI-ML"
         ,"TableFilter" : [
