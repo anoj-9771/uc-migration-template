@@ -3,14 +3,25 @@
 	"properties": {
 		"annotations": [],
 		"runtimeState": "Stopped",
-		"pipelines": [],
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Main",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"SystemCodes": "ART",
+					"RunParallel": "Y"
+				}
+			}
+		],
 		"type": "ScheduleTrigger",
 		"typeProperties": {
 			"recurrence": {
 				"frequency": "Day",
 				"interval": 1,
-				"startTime": "2023-04-06T07:00:00",
-				"timeZone": "AUS Eastern Standard Time"
+				"startTime": "2023-04-11T07:00:00Z",
+				"timeZone": "UTC"
 			}
 		}
 	}
