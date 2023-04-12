@@ -39,7 +39,7 @@ else:
 
 # COMMAND ----------
 
-tableFqn = f"raw.{schemaName}_{tableName}"
+tableFqn = get_table_name('raw', schemaName, tableName)
 sql = f"DROP TABLE IF EXISTS {tableFqn};"
 spark.sql(sql)
 sql = f"CREATE TABLE {tableFqn} USING {fileFormat} OPTIONS (path \"{rawFolderPath}\" {fileOptions});"

@@ -15,7 +15,8 @@ businessKey = j.get("BusinessKeyColumn")
 destinationKeyVaultSecret = j.get("DestinationKeyVaultSecret")
 extendedProperties = j.get("ExtendedProperties")
 dataLakePath = cleansedPath.replace("/cleansed", "/mnt/datalake-cleansed")
-sourceTableName = f"raw.{destinationSchema}_{destinationTableName}"
+sourceTableName = get_table_name('raw', destinationSchema, destinationTableName)
+cleansedTableName = get_table_name('cleansed', destinationSchema, destinationTableName)
 loadType = ""
 
 # COMMAND ----------
@@ -39,9 +40,8 @@ sourceDataFrame = sourceDataFrame.toDF(*(RemoveBadCharacters(c) for c in sourceD
 # APPLY CLEANSED FRAMEWORK
 sourceDataFrame = CleansedTransform(sourceDataFrame, sourceTableName, systemCode)
  
-tableName = f"{destinationSchema}_{destinationTableName}"
 
 if loadType == "Append":
-     AppendDeltaTable(sourceDataFrame, f"cleansed.{tableName}", dataLakePath)
+     AppendDeltaTable(sourceDataFrame, cleansedTableName, dataLakePath)
 else:
-    CreateDeltaTable(sourceDataFrame, f"cleansed.{tableName}", dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, f"cleansed.{tableName}", dataLakePath, j.get("BusinessKeyColumn"))
+    CreateDeltaTable(sourceDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))

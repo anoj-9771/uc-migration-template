@@ -20,8 +20,8 @@ businessKey = j.get("BusinessKeyColumn")
 destinationKeyVaultSecret = j.get("DestinationKeyVaultSecret")
 extendedProperties = j.get("ExtendedProperties")
 dataLakePath = cleansedPath.replace("/cleansed", "/mnt/datalake-cleansed")
-sourceTableName = f"raw.{destinationSchema}_{destinationTableName}"
-cleansedTableName = f"cleansed.{destinationSchema}_{destinationTableName}"
+sourceTableName = get_table_name('raw', destinationSchema, destinationTableName)
+cleansedTableName = get_table_name('cleansed', destinationSchema, destinationTableName)
 
 # COMMAND ----------
 
@@ -55,8 +55,7 @@ cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",curren
                                    .withColumn("_RecordStart",current_timestamp()) \
                                    .withColumn("_RecordEnd",to_timestamp(lit("9999-12-31"), "yyyy-MM-dd"))
 
-tableName = f"{destinationSchema}_{destinationTableName}"
-CreateDeltaTable(cleanseDataFrame, f"cleansed.{tableName}", dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, f"cleansed.{tableName}", dataLakePath, j.get("BusinessKeyColumn"))
+CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
 
 # COMMAND ----------
 

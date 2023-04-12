@@ -10,7 +10,7 @@ display(files)
 
 schemaName = "datagov"
 tableName = "AustraliaPublicHolidays"
-tableFqn = f"raw.{schemaName}_{tableName}"
+tableFqn = get_table_name('raw', schemaName, tableName)
 
 systemCode = "datagov"
 dataLakePath = "/mnt/datalake-raw/datagov/datagov_AustraliaPublicHolidays/delta"

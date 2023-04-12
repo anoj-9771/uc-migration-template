@@ -66,8 +66,8 @@ def CleanTable(tableNameFqn):
 #     extendedProperties = j.ExtendedProperties
 #     watermarkColumn = j.WatermarkColumn
 #     dataLakePath = cleansedPath.replace("/cleansed", "/mnt/datalake-cleansed")
-#     sourceTableName = f"raw.{destinationSchema}_{destinationTableName}"
-#     cleansedTableName = f"cleansed.{destinationSchema}_{destinationTableName}"
+#     sourceTableName = get_table_name('raw', destinationSchema, destinationTableName)
+#     cleansedTableName = get_table_name('cleansed', destinationSchema, destinationTableName)
 
 #     #print(f" Cleaning up table: {cleansedTableName}")
 #     try:
@@ -131,6 +131,7 @@ def CleanTable(tableNameFqn):
 for j in manifest_df.collect():
     try:
         systemCode = j.SystemCode
+        sourceTable = j.SourceTableName
         destinationSchema = j.DestinationSchema
         destinationTableName = j.DestinationTableName
         cleansedPath = j.CleansedPath
@@ -145,10 +146,10 @@ for j in manifest_df.collect():
             rawTableNameMatchSource = extendedProperties.get("RawTableNameMatchSource")
 
         if rawTableNameMatchSource:
-            sourceTableName = f"raw.{destinationSchema}_{sourceTable}".lower()
+            sourceTableName = get_table_name('raw',destinationSchema, sourceTable).lower()
         else:
-            sourceTableName = f"raw.{destinationSchema}_{destinationTableName}".lower()
-        cleansedTableName = f"cleansed.{destinationSchema}_{destinationTableName}"
+            sourceTableName = get_table_name('raw', destinationSchema, destinationTableName).lower()
+        cleansedTableName = get_table_name('cleansed', destinationSchema, destinationTableName).lower()
         
         #print(f" Cleaning up table: {cleansedTableName}")
         try:
@@ -192,8 +193,7 @@ for j in manifest_df.collect():
                 cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
                 cleanseDataFrame = spark.sql(f"select * from (select vwCleanseDataFrame.*, row_number() OVER (Partition By {businessKey} order by {groupOrderBy}) row_num from vwCleanseDataFrame) where row_num = 1 ").drop("row_num")   
 
-        tableName = f"{destinationSchema}_{destinationTableName}"
-        CreateDeltaTable(cleanseDataFrame, f"cleansed.{tableName}", dataLakePath) if j.BusinessKeyColumn is None else CreateOrMerge(cleanseDataFrame, f"cleansed.{tableName}", dataLakePath, j.BusinessKeyColumn)
+        CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if j.BusinessKeyColumn is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, j.BusinessKeyColumn)
         
         CleansedSinkCount = spark.table(cleansedTableName).count()
         print(f"!!**SUCCESS**!! CleansedTable: {cleansedTableName} CleanseTableCount: {CleansedSinkCount}")

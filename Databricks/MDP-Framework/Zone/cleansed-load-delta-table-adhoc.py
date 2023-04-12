@@ -54,8 +54,8 @@ for j in manifest_df.collect():
     extendedProperties = j.ExtendedProperties
     watermarkColumn = j.WatermarkColumn
     dataLakePath = CleansedPath.replace("/cleansed", "/mnt/datalake-cleansed")
-    sourceTableName = f"raw.{destinationSchema}_{destinationTableName}"
-    cleansedTableName = f"cleansed.{destinationSchema}_{destinationTableName}"
+    sourceTableName = get_table_name('raw', destinationSchema, destinationTableName)
+    cleansedTableName = get_table_name('cleansed', destinationSchema, destinationTableName)
 
 # COMMAND ----------
 
@@ -98,8 +98,7 @@ if(extendedProperties):
         cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
         cleanseDataFrame = spark.sql(f"select * from (select vwCleanseDataFrame.*, row_number() OVER (Partition By {businessKey} order by {groupOrderBy}) row_num from vwCleanseDataFrame) where row_num = 1 ").drop("row_num")     
 
-tableName = f"{destinationSchema}_{destinationTableName}"
-CreateDeltaTable(cleanseDataFrame, f"cleansed.{tableName}", dataLakePath) if businessKey is None else CreateOrMerge(cleanseDataFrame, f"cleansed.{tableName}", dataLakePath, businessKey)
+CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if businessKey is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, businessKey)
 
 # COMMAND ----------
 

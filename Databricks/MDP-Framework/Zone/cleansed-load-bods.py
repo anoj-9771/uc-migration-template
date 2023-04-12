@@ -23,8 +23,8 @@ extendedProperties = j.get("ExtendedProperties")
 sourceQuery = j.get("SourceQuery")
 watermarkColumn = j.get("WatermarkColumn")
 dataLakePath = CleansedPath.replace("/cleansed", "/mnt/datalake-cleansed")
-sourceTableName = f"raw.{destinationSchema}_{destinationTableName}"
-cleansedTableName = f"cleansed.{destinationSchema}_{destinationTableName}"
+sourceTableName = get_table_name('raw', destinationSchema, destinationTableName)
+cleansedTableName = get_table_name('cleansed', destinationSchema, destinationTableName)
 
 # COMMAND ----------
 
@@ -97,7 +97,7 @@ dbutils.notebook.exit({"CleansedSinkCount": CleansedSinkCount})
 # sourceQuery = j.get("SourceQuery")
 # watermarkColumn = j.get("WatermarkColumn")
 # dataLakePath = CleansedPath.replace("/cleansed", "/mnt/datalake-cleansed")
-# sourceTableName = f"raw.{destinationSchema}_{destinationTableName}"
+# sourceTableName = get_table_name('raw', destinationSchema, destinationTableName)
 # stgTableName = f"raw.stg_{destinationSchema}_{destinationTableName}"
 
 # COMMAND ----------

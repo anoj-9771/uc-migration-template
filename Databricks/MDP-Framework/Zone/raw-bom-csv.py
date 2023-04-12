@@ -11,7 +11,7 @@ j = json.loads(task)
 rawPath = j.get("RawPath").replace("/raw", "/mnt/datalake-raw")
 schemaName = j.get("DestinationSchema")
 tableName = j.get("DestinationTableName")
-tableFqn = f"raw.{schemaName}_{tableName}"
+tableFqn = get_table_name('raw', schemaName, tableName)
 
 # COMMAND ----------
 

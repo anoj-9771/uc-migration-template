@@ -72,7 +72,7 @@ if current_record_count == 0 or len(df.columns) <= 1:
 
 # DBTITLE 1,Append/Overwrite Delta Table
 df=df.withColumn("_DLRawZoneTimeStamp",current_timestamp())
-tableFqn = f"raw.{schemaName}_{tableName}"
+tableFqn = get_table_name('raw', schemaName, tableName)
 dataLakePath = "/".join(rawPath.split("/")[0:5])+"/delta"
 if watermarkColumn:
     AppendDeltaTable(df, tableFqn, dataLakePath)

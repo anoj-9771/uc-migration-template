@@ -16,7 +16,8 @@ businessKey = j.get("BusinessKeyColumn")
 destinationKeyVaultSecret = j.get("DestinationKeyVaultSecret")
 extendedProperties = j.get("ExtendedProperties")
 dataLakePath = cleansedPath.replace("/cleansed", "/mnt/datalake-cleansed")
-sourceTableName = f"raw.{destinationSchema}_{destinationTableName}"
+sourceTableName = get_table_name('raw', destinationSchema, destinationTableName)
+cleansedTableName = get_table_name('cleansed', destinationSchema, destinationTableName)
 
 # COMMAND ----------
 
@@ -290,5 +291,4 @@ sourceDataFrame = sourceDataFrame.withColumn("surveyID", lit(surveyID)).withColu
     
     
 
-tableName = f"{destinationSchema}_{destinationTableName}"
-CreateDeltaTable(sourceDataFrame, f"cleansed.{tableName}", dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, f"cleansed.{tableName}", dataLakePath, j.get("BusinessKeyColumn"))
+CreateDeltaTable(sourceDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
