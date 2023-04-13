@@ -95,6 +95,7 @@ df_cleansed_ocr = (spark.table("stage.cctv_video_frames")
                    .select("video_id", "timestamp", "distance_m", "contractor_annotation")
                    #----- Add any additional columns required for the specific layer here ------
                    .withColumn("_DLCleansedZoneTimestamp",psf.current_timestamp())
+                   .repartition(numPartitions=(sc.defaultParallelism*2))
                   )
 
 df_cleansed_ocr.write.mode("append").insertInto('stage.cctv_ocr_extract_cleansed')

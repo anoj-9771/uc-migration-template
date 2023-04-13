@@ -37,6 +37,7 @@ w_video = W.partitionBy("video_id", "defect").orderBy("timestamp")
 df_image_classifications = (df_raw_images
                             .withColumn("path", psf.regexp_replace(psf.col("image.origin"), "dbfs:", "/dbfs"))
                             .drop("image")
+                            .repartition(numPartitions=(sc.defaultParallelism*2))
                             .mapInPandas(predictImagesUDF, schema=applyReturnSchema)
                             .withColumn("_DLRawZoneTimeStamp", psf.current_timestamp())
                             .orderBy("timestamp")
@@ -46,7 +47,3 @@ df_image_classifications = (df_raw_images
 
 
 df_image_classifications.write.mode("append").insertInto('stage.cctv_ai_image_classifications')
-
-# COMMAND ----------
-
-

@@ -41,11 +41,13 @@ df_image_download_output = (df_cctv_metadata
                                          psf.explode(getFrameTimestampsUDF(psf.col("total_msecs"), psf.lit(500)))
                                         ) #call getFrameTimestamps()
                              .withColumn("blob_image_mnt_pt", psf.lit(_BLOB_SEWERCCTVIMAGES_MNT_PNT))
+                             .repartition(numPartitions=(sc.defaultParallelism*2))
                              .mapInPandas(getImageFilesUDF, schema=applyReturnSchema)
                             )
 
 df_image_download_output.collect() #execute saving of images to blob storage
 
+# COMMAND ----------
 
 #3. ----- Define dataframe to load extracted images -----           
 df_raw_images = (spark.read.format("image").option("dropInvalid", True).load(_BLOB_SEWERCCTVIMAGES_MNT_PNT)
@@ -69,7 +71,3 @@ df_raw_images = (spark.read.format("image").option("dropInvalid", True).load(_BL
 
 #4. ----- Data inserted to the cctv video frames table -----
 df_raw_images.write.format("delta").insertInto('stage.cctv_video_frames')
-
-# COMMAND ----------
-
-

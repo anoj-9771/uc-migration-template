@@ -102,6 +102,7 @@ df_grouped_defects = (df_image_classifications
                               "start_ts", "end_ts", "duration", "score")
                       .orderBy("start_ts")
                       .alias("df_grouped_defects")
+                      .repartition(numPartitions=(sc.defaultParallelism*2))
                       .cache()
                      )
 
@@ -172,6 +173,7 @@ df_cctv_defect_series = (df_ai
                                 )
                          #----- Add any additional columns required for the specific layer here ------
                          .withColumn("_DLCleansedZoneTimeStamp", psf.current_timestamp())
+                         .repartition(numPartitions=(sc.defaultParallelism*2))
                         )
 
 df_cctv_defect_series.write.insertInto("stage.cctv_group_ai_identified_defects")

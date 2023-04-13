@@ -14,7 +14,16 @@ torch_model = torch.load(f=_MODEL_WEIGTHS_LOCATION)
 # COMMAND ----------
 
 data = [
-    ["0_ryy1flvs", 0, "/dbfs/mnt/blob-sewercctvmodel/test_image_0_ryy1flvs-0.png"]
+    ["0_ryy1flvs", 0, "/dbfs/mnt/blob-sewercctvmodel/0_ryy1flvs.mp4"],
+    ["0_ryy1flvs", 500, "/dbfs/mnt/blob-sewercctvmodel/0_ryy1flvs.mp4"],
+    ["0_ryy1flvs", 1000, "/dbfs/mnt/blob-sewercctvmodel/0_ryy1flvs.mp4"],
+    ["0_ryy1flvs", 1500, "/dbfs/mnt/blob-sewercctvmodel/0_ryy1flvs.mp4"],
+    ["0_ryy1flvs", 2000, "/dbfs/mnt/blob-sewercctvmodel/0_ryy1flvs.mp4"],
+    ["0_ryy1flvs", 2500, "/dbfs/mnt/blob-sewercctvmodel/0_ryy1flvs.mp4"],
+    ["0_ryy1flvs", 3000, "/dbfs/mnt/blob-sewercctvmodel/0_ryy1flvs.mp4"],
+    ["0_ryy1flvs", 3500, "/dbfs/mnt/blob-sewercctvmodel/0_ryy1flvs.mp4"],
+    ["0_ryy1flvs", 4000, "/dbfs/mnt/blob-sewercctvmodel/0_ryy1flvs.mp4"],
+    ["0_ryy1flvs", 45000000, "/dbfs/mnt/blob-sewercctvmodel/0_ryy1flvs.mp4"]
 ]
 
 df = (spark.createDataFrame(data, ["video_id", "timestamp", "path"]))
@@ -23,18 +32,33 @@ display(df)
 # COMMAND ----------
 
 from torchvision.datasets.folder import default_loader  # private API
+import cv2
+from PIL import Image 
 
 class ImageDataset(torch.utils.data.Dataset):
-        def __init__(self, paths, transform=None):
-            self.paths = paths
+        def __init__(self, path, frames, transform=None):
+            self.path = path
+            self.frames = frames
             self.transform = transform
         def __len__(self):
-            return len(self.paths)
+            return len(self.frames)
         def __getitem__(self, index):
-            image = default_loader(self.paths.loc[index])
-            if self.transform is not None:
-                image = self.transform(image)
-            return image
+            vcap = cv2.VideoCapture(self.path.loc[index])
+            vcap.set(cv2.CAP_PROP_POS_MSEC,(self.frames.loc[index]))
+            success,image = vcap.read()
+
+            if success is not True:
+                image = Image.new("RGB", (224, 224), (123, 456, 789))
+                if self.transform is not None:
+                    image = self.transform(image)
+                return image
+            else:
+                img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                image = Image.fromarray(img)
+
+                if self.transform is not None:
+                    image = self.transform(image)
+                return image
 
 # COMMAND ----------
 
@@ -93,8 +117,8 @@ class PytorchWrapper(mlflow.pyfunc.PythonModel):
                    ['No Defect', 0]
                   ]
             
-        images = ImageDataset(model_input['path'], transform=self.transform)
-        loader = torch.utils.data.DataLoader(images, batch_size=8, num_workers=2)
+        images = ImageDataset(model_input['path'], model_input['timestamp'], transform=self.transform)
+        loader = torch.utils.data.DataLoader(images, batch_size=round(112/3), num_workers=7)
         
         all_predictions = []
         
@@ -185,7 +209,7 @@ else:
     
     
 with mlflow.start_run(run_name="sewer-cctv-image-classifier", experiment_id=experiment_id, description=_MODEL_DESCRIPTION):
-    mlflow.set_tag("Release Version", "1.0")
+    mlflow.set_tag("Release Version", "1.0.1")
     mlflow.set_tag("Application", "Sewer CCTV Application")
     model_details = mlflow.pyfunc.log_model(_MODEL_NAME, 
                                             python_model=wrappedModel,  
@@ -233,7 +257,3 @@ client.transition_model_version_stage(
     version=model_details[0].version,
     stage='Production'
 )
-
-# COMMAND ----------
-
-
