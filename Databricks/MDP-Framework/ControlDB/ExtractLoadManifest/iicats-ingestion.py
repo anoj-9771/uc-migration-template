@@ -73,6 +73,7 @@ tables15Mins = ['event','iicats_work_orders','tsv','qlty_config','wfp_daily_dema
 df = (
     df.withColumn('SystemCode', when(lower(df.SourceTableName).isin(tables15Mins),lit('iicats|15min')) 
                                         .otherwise(expr('SystemCode')))
+      .withColumn('ExtendedProperties', lit('{"OverrideClusterName" : "interactive"}'))                          
 )
 display(df)
 
@@ -179,29 +180,29 @@ values(
 # COMMAND ----------
 
 #ADD RECORD INTO CONFIG TABLE FOR 15 MIN TRIGGER IN ADF
-ExecuteStatement("""
-merge into dbo.config as target using(
-    select
-        keyGroup = 'TriggerInterval'
-        ,[key] = '15min'
-) as source on
-    target.keyGroup = source.keyGroup
-    and target.[key] = source.[key]
-when not matched then insert(
-    keyGroup
-    ,[key]
-    ,value
-    ,createdDTS
-)
-values(
-    source.keyGroup
-    ,source.[key]
-    ,'iicats|15min'
-    ,getutcdate()
-)
-when matched then update set
-    target.[keyGroup] = source.[keyGroup]
-    ,target.[key] = source.[key]
-    ,target.[value] = iif(charindex('iicats|15min', target.[value]) > 0, target.[value], target.[value] + ',' + 'iicats|15min')
-;
-""")
+# ExecuteStatement("""
+# merge into dbo.config as target using(
+#     select
+#         keyGroup = 'TriggerInterval'
+#         ,[key] = '15min'
+# ) as source on
+#     target.keyGroup = source.keyGroup
+#     and target.[key] = source.[key]
+# when not matched then insert(
+#     keyGroup
+#     ,[key]
+#     ,value
+#     ,createdDTS
+# )
+# values(
+#     source.keyGroup
+#     ,source.[key]
+#     ,'iicats|15min'
+#     ,getutcdate()
+# )
+# when matched then update set
+#     target.[keyGroup] = source.[keyGroup]
+#     ,target.[key] = source.[key]
+#     ,target.[value] = iif(charindex('iicats|15min', target.[value]) > 0, target.[value], target.[value] + ',' + 'iicats|15min')
+# ;
+# """)

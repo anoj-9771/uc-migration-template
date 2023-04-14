@@ -124,7 +124,7 @@
 							"type": "Lookup",
 							"dependsOn": [
 								{
-									"activity": "set-watermark-column",
+									"activity": "set-override-high-watermark-column",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -142,7 +142,7 @@
 								"source": {
 									"type": "OracleSource",
 									"oracleReaderQuery": {
-										"value": "@replace(replace(replace(\n'SELECT $PLW$ LowWatermark,  ''''||MAX($WC$)||'''' HighWatermark FROM $Q$ T'\n,'$PLW$', if(empty(pipeline().parameters.task.LowWatermark), 'NULL', concat('''', pipeline().parameters.task.LowWatermark, '''')))\n,'$WC$', variables('WatermarkColumn'))\n,'$Q$', concat('(',variables('BaseQuery'),')'))",
+										"value": "@replace(replace(replace(\n'SELECT $PLW$ LowWatermark,  ''''||$HWM$||'''' HighWatermark FROM $Q$ T'\n,'$PLW$', if(empty(pipeline().parameters.task.LowWatermark), 'NULL', concat('''', pipeline().parameters.task.LowWatermark, '''')))\n,'$HWM$', if(less(indexOf(variables('OverrideHighWatermark'), 'MAX('), 0), concat('MAX(',variables('OverrideHighWatermark'),')'), variables('OverrideHighWatermark')))\n,'$Q$', concat('(',variables('BaseQuery'),')'))",
 										"type": "Expression"
 									},
 									"partitionOption": "None",
@@ -335,6 +335,69 @@
 								"variableName": "HighWatermark",
 								"value": {
 									"value": "@if(\n    equals(\n        activity('check-watermarks').output.resultSets[0].rows[0].highWatermarkIsNumeric,\n        1\n    ),\n    string(activity('low-high-watermark').output.firstRow.HighWatermark),\n    concat('''',activity('low-high-watermark').output.firstRow.HighWatermark,'''')\n)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "override-high-watermark",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "set-watermark-column",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "@replace(\n'select regexp_replace(q''[$WC$]'', ''(TO_CHAR\\()([^,]*)'', ''\\1MAX(\\2)'', 1, 0, ''i'') OverrideHighWatermark from dual'\n,'$WC$', variables('WatermarkColumn'))",
+										"type": "Expression"
+									},
+									"partitionOption": "None",
+									"convertDecimalToInteger": false,
+									"queryTimeout": "02:00:00"
+								},
+								"dataset": {
+									"referenceName": "Oracle_Server",
+									"type": "DatasetReference",
+									"parameters": {
+										"kvSecret": {
+											"value": "@pipeline().parameters.task.SourceKeyVaultSecret",
+											"type": "Expression"
+										}
+									}
+								},
+								"firstRowOnly": true
+							}
+						},
+						{
+							"name": "set-override-high-watermark-column",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "override-high-watermark",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "OverrideHighWatermark",
+								"value": {
+									"value": "@activity('override-high-watermark').output.firstRow.OverrideHighWatermark",
 									"type": "Expression"
 								}
 							}
@@ -713,6 +776,9 @@
 				"type": "String"
 			},
 			"LowWatermark": {
+				"type": "String"
+			},
+			"OverrideHighWatermark": {
 				"type": "String"
 			}
 		},
