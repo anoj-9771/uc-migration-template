@@ -45,6 +45,7 @@ BMS_9999999_109,BMS_FK_9999999_686_ID,,,Y,STRING,,raw.swirl_bms_9999999_109,clea
 BMS_9999999_109,BMS_0002185_8824,,,,STRING,,raw.swirl_bms_9999999_109,cleansed.swirl_action,BMS_0002185_8824,parentId,,,
 BMS_9999999_109,BMS_0002185_8823,,,,STRING,,raw.swirl_bms_9999999_109,cleansed.swirl_action,BMS_0002185_8823,parentLink,,,
 BMS_9999999_109,PARENTPROCESSUNIQUEID,,,,STRING,,raw.swirl_bms_9999999_109,cleansed.swirl_action,PARENTPROCESSUNIQUEID,parentProcessUniqueId,,,
+,,,,,STRING,,raw.swirl_bms_9999999_109,cleansed.swirl_action,,priority,,"concat(BMS_9999999_1132,'||','0000001_120')",lookup-swirl
 BMS_9999999_109,BMS_9999999_1132,,,,STRING,,raw.swirl_bms_9999999_109,cleansed.swirl_action,BMS_9999999_1132,priorityCode,,,
 BMS_9999999_109,BMS_FK_0002185_8221_ID,,,Y,STRING,,raw.swirl_bms_9999999_109,cleansed.swirl_action,BMS_FK_0002185_8221_ID,raisedBy_FK,,,
 ,,,,,STRING,,raw.swirl_bms_9999999_109,cleansed.swirl_action,,relatedConsequenceCategory,,"concat(BMS_0002185_8803,'||','9999999_8027')",lookup-swirl
@@ -2241,6 +2242,7 @@ BMS_9999999_104,BMS_0002185_8857,,,,STRING,,raw.swirl_bms_9999999_104,cleansed.s
 BMS_9999999_104,BMS_9999999_8158,,,,STRING,,raw.swirl_bms_9999999_104,cleansed.swirl_incident,BMS_9999999_8158,isAnInvestigationRequiredCode,,,
 BMS_9999999_104,BMS_FK_9999999_105_ID,,,Y,STRING,,raw.swirl_bms_9999999_104,cleansed.swirl_incident,BMS_FK_9999999_105_ID,zzNotUsedSydneyWaterSiteManned_FK,,,
 BMS_9999999_104,BMS_FK_9999999_8091_ID,,,Y,STRING,,raw.swirl_bms_9999999_104,cleansed.swirl_incident,BMS_FK_9999999_8091_ID,zzNotUsedSydneyWaterSiteUnmanned_FK,,,
+,,,,,STRING,,raw.swirl_bms_9999999_104,cleansed.swirl_incident,,incidentStatus,,"concat(BMS_9999999_8153,'||','9999999_8021')",lookup-swirl
 BMS_9999999_104,BMS_9999999_8153,,,,STRING,,raw.swirl_bms_9999999_104,cleansed.swirl_incident,BMS_9999999_8153,incidentStatusCode,,,
 BMS_9999999_104,BMS_9999999_8154,,,,STRING,,raw.swirl_bms_9999999_104,cleansed.swirl_incident,BMS_9999999_8154,reasonForRecycledCancelledStatus,,,
 BMS_9999999_830,BMS_9999999_8303,,,,STRING,,raw.swirl_bms_9999999_830,cleansed.swirl_incident_bypass_and_partial_treatment,BMS_9999999_8303,actionTaken,,,
