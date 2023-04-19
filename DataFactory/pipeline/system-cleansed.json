@@ -335,8 +335,7 @@
 									"PoolId": {
 										"value": "@variables('PoolId')",
 										"type": "Expression"
-									},
-									"DatabricksVersion": "10.4.x-scala2.12"
+									}
 								}
 							}
 						}

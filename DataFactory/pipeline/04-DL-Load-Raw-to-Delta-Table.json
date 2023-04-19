@@ -143,10 +143,6 @@
 											"PoolId": {
 												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
 												"type": "Expression"
-											},
-											"DatabricksVersion": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
-												"type": "Expression"
 											}
 										}
 									}
