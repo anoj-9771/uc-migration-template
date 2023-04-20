@@ -7,6 +7,11 @@ from delta.tables import *
 
 # COMMAND ----------
 
+def CoalesceColumn(columns):
+    return ",".join([f"coalesce({k},'') {k}" for k in columns.split(',')]) if(',' in columns) else f"coalesce({columns},'') {columns}"
+
+# COMMAND ----------
+
 def PrefixColumn(columns, prefix=None):
     return ",'|',".join([f"{prefix}.{k}" for k in columns.split(',')]) if(',' in columns) else f"{prefix}.{columns}"
 

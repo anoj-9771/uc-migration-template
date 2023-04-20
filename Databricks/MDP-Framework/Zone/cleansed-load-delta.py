@@ -67,12 +67,19 @@ cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",curren
                                    .withColumn("_RecordStart",current_timestamp()) \
                                    .withColumn("_RecordEnd",to_timestamp(lit("9999-12-31"), "yyyy-MM-dd"))
 
-# GET LATEST RECORD OF THE BUSINESS KEY
+# HANDLE SOURCE SYSTEM DELETES
 if(extendedProperties):
+    deleteRecordsTable = extendedProperties.get("deleteRecordsTable")
     groupOrderBy = extendedProperties.get("GroupOrderBy")
+    if(deleteRecordsTable):
+        deleteRecordsTable = f"cleansed.{deleteRecordsTable}"
+        deletedRecordsDataFrame = SourceDeletedRecords(cleansedTableName,businessKey,groupOrderBy,deleteRecordsTable,systemCode,lastLoadTimeStamp)
+        if (deletedRecordsDataFrame):
+            cleanseDataFrame = cleanseDataFrame.unionByName(deletedRecordsDataFrame, allowMissingColumns=True)                                                  
+
+# GET LATEST RECORD OF THE BUSINESS KEY
     if(groupOrderBy):
-        cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
-        cleanseDataFrame = spark.sql(f"select * from (select vwCleanseDataFrame.*, row_number() OVER (Partition By {businessKey} order by {groupOrderBy}) row_num from vwCleanseDataFrame) where row_num = 1 ").drop("row_num")   
+        cleanseDataFrame = GetRawLatestRecordBK(cleanseDataFrame,businessKey,groupOrderBy,systemCode)
 
 CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
 

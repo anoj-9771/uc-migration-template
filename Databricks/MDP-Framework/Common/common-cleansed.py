@@ -431,3 +431,39 @@ def CleansedTransformByRules(dataFrame, tableFqn, systemCode, showTransform=Fals
     print(f"Successfully transformed {tableFqn}!")
     # RETURN TRANSFORMED DATAFRAME
     return transformedDataFrame
+
+# COMMAND ----------
+
+def SourceDeletedRecords(cleansedTableName, businessKey, groupOrderBy, deleteRecordsTable, systemCode, lastLoadTimeStamp):
+    if 'maximo' in systemCode:
+        rowStampRemovedBusinessKey = businessKey.replace(', rowStamp','').replace(',rowStamp','')
+        if TableExists(cleansedTableName):
+            try:                
+                deletedRecordsDataFrame = spark.sql(f"select * from (select {CoalesceColumn(businessKey)}, row_number() OVER (Partition By {rowStampRemovedBusinessKey} order by {groupOrderBy}) row_num from {deleteRecordsTable} where _DLCleansedZoneTimeStamp > '{lastLoadTimeStamp}') where row_num = 1 ").drop("row_num")
+                deletedRecordsDataFrame.createOrReplaceTempView("vwDeletedRecordsDataFrame")
+                deletedRecordsCleansedDf = spark.sql(f"select cleansed.*  from vwDeletedRecordsDataFrame del, {cleansedTableName} cleansed WHERE {ConcatBusinessKey(businessKey, 'del')} = {ConcatBusinessKey(businessKey, 'cleansed')}")
+                deletedRecordsCleansedDf = deletedRecordsCleansedDf.withColumn("_DLCleansedZoneTimeStamp",current_timestamp()) \
+                                                                        .withColumn("_RecordCurrent",lit('1')) \
+                                                                        .withColumn("_RecordDeleted",lit('1')) \
+                                                                        .withColumn("_RecordStart",current_timestamp()) \
+                                                                        .withColumn("_RecordEnd",to_timestamp(lit("9999-12-31"), "yyyy-MM-dd"))    
+
+            except Exception as e:
+                print(f"Deletion Records handling failed, exception: {e}")
+                deletedRecordsCleansedDf = None
+                return deletedRecordsCleansedDf
+
+        else:
+            deletedRecordsCleansedDf = None
+    
+    return deletedRecordsCleansedDf                                                           
+
+
+# COMMAND ----------
+
+def GetRawLatestRecordBK(cleanseDataFrame,businessKey,groupOrderBy,systemCode):
+    cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
+    if 'maximo' in systemCode:
+        businessKey = businessKey.replace(', rowStamp','').replace(',rowStamp','')
+    cleanseDataFrame = spark.sql(f"select * from (select vwCleanseDataFrame.*, row_number() OVER (Partition By {businessKey} order by {groupOrderBy}) row_num from vwCleanseDataFrame) where row_num = 1 ").drop("row_num")
+    return cleanseDataFrame
