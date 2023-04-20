@@ -43,10 +43,16 @@ if fileFormat == "csv" and not(separator):
 if fileFormat == "txt":
     fileFormat = "text"
 
-if charset:
-    fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","charset":f"{charset}"}
+if fileFormat != "json":
+    if charset:
+        fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","charset":f"{charset}"}
+    else:
+        fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True"}
 else:
-    fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True"}
+    if charset:
+        fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","allowBackslashEscapingAnyCharacter":"True","charset":f"{charset}"}
+    else:
+        fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","allowBackslashEscapingAnyCharacter":"True"}       
 
 # COMMAND ----------
 
