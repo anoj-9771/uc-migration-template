@@ -12,18 +12,42 @@
 
 # COMMAND ----------
 
+# %sql
 # FOLLOWING TABLE TO BE CREATED MANUALLY FIRST TIME LOADING AFTER THE TABLE CLEANUP
 # CREATE TABLE `curated_v2`.`factBilledWaterConsumption` (
 #   `sourceSystemCode` STRING NOT NULL,
 #   `meterConsumptionBillingDocumentSK` STRING NOT NULL,
+#   `billingDocumentNumber` STRING NOT NULL,
 #   `meterConsumptionBillingLineItemSK` STRING NOT NULL,
+#   `billingDocumentLineItemId` STRING NOT NULL,
 #   `propertySK` STRING NOT NULL,
-#   `deviceSK` STRING NOT NULL,
+#   `propertyNumber` STRING NOT NULL,
 #   `locationSK` STRING NOT NULL,
+#   `locationId` STRING NOT NULL,
+#   `deviceSK` STRING NOT NULL,
+#   `deviceNumber` STRING NOT NULL,
+#   `logicalDeviceNumber` STRING NOT NULL,
+#   `logicalRegisterNumber` STRING NOT NULL,
+#   `registerNumber` INT NOT NULL,
+#   `installationSK` STRING NOT NULL,
+#   `installationNumber` STRING NOT NULL,
 #   `businessPartnerGroupSK` STRING NOT NULL,
+#   `businessPartnerGroupNumber` STRING NOT NULL,
 #   `contractSK` STRING NOT NULL,
+#   `contractId` STRING NOT NULL,
+#   `divisionCode` STRING NOT NULL,
+#   `division` STRING NOT NULL,
+#   `lineItemTypeCode` STRING NOT NULL,
+#   `lineItemType` STRING NOT NULL,
+#   `inferiorPropertyTypeCode` STRING,
+#   `inferiorPropertyType` STRING ,
+#   `isReversedFlag` STRING NOT NULL,
+#   `isOutsortedFlag` STRING NOT NULL,
+#   `billingLineItemBudgetBillingFlag` STRING NOT NULL,
 #   `billingPeriodStartDate` DATE NOT NULL,
 #   `billingPeriodEndDate` DATE NOT NULL,
+#   `meterActiveStartDate` DATE NOT NULL,
+#   `meterActiveEndDate` DATE NOT NULL,
 #   `meteredWaterConsumption` DECIMAL(24,12),
 #   `_DLCuratedZoneTimeStamp` TIMESTAMP NOT NULL,
 #   `_RecordStart` TIMESTAMP NOT NULL,
@@ -86,13 +110,28 @@ def isuConsumption():
             "sourceSystemCode", 
             "billingDocumentNumber", 
             "billingDocumentLineItemId",
+            "isReversedFlag",
+            "isOutsortedFlag",
+            "billingLineItemBudgetBillingFlag",
+            "lineItemTypeCode",
+            "lineItemType",
+            "divisionCode",
+            "division",
+            "inferiorPropertyTypeCode",
+            "inferiorPropertyType",
             "businessPartnerGroupNumber", 
-            "equipmentNumber", 
+            "deviceNumber", 
+            "logicalDeviceNumber",
+            "logicalRegisterNumber",
+            "registerNumber",
+            "installationNumber",
             "contractId", 
             "billingPeriodStartDate", 
             "billingPeriodEndDate", 
+            "meterActiveStartDate",
+            "meterActiveEndDate",
             "meteredWaterConsumption"
-        )
+        ) 
     )
     return isuConsDf
 
@@ -141,7 +180,7 @@ def getBilledWaterConsumption():
         SELECT sourceSystemCode, propertySK, propertyNumber, _RecordStart, _RecordEnd
         FROM {ADS_DATABASE_CURATED_V2}.dimProperty
         """
-     )
+    )
 
     dimLocationDf = spark.sql(f"""
         SELECT sourceSystemCode, locationSK, locationId, _RecordStart, _RecordEnd 
@@ -168,7 +207,7 @@ def getBilledWaterConsumption():
     )
 
     dimBusinessPartnerGroupDf = spark.sql(f"""
-        SELECT sourceSystemCode, businessPartnerGroupSK, ltrim('0', businessPartnerGroupNumber) as businessPartnerGroupNumber, _RecordStart, _RecordEnd 
+        SELECT sourceSystemCode, businessPartnerGroupSK, businessPartnerGroupNumber, _RecordStart, _RecordEnd 
         FROM {ADS_DATABASE_CURATED_V2}.dimBusinessPartnerGroup
         """
     )
@@ -179,35 +218,45 @@ def getBilledWaterConsumption():
         """
     )
 
+    dimInstallationDf = spark.sql(f"""
+        SELECT sourceSystemCode, installationSK, installationNumber, _RecordStart, _RecordEnd
+        FROM {ADS_DATABASE_CURATED_V2}.dimInstallation
+        """
+    )
+    
     dummyDimRecDf = spark.sql(f"""
     /* Union All Dimensions 'dummy' Records */
-    SELECT PropertySk as dummyDimSK, 'dimProperty' as dimension 
+    SELECT PropertySk as dummyDimSK, PropertyNumber as dummyDimNumber, 'dimProperty' as dimension 
     FROM {ADS_DATABASE_CURATED_V2}.dimProperty 
     WHERE propertyNumber = '-1' UNION
      
-    SELECT LocationSk as dummyDimSK, 'dimLocation' as dimension 
+    SELECT LocationSk as dummyDimSK, LocationId as dummyDimNumber, 'dimLocation' as dimension 
     FROM {ADS_DATABASE_CURATED_V2}.dimLocation 
     WHERE LocationId = '-1' UNION
      
-    SELECT deviceSK as dummyDimSK, 'dimDevice' as dimension 
+    SELECT deviceSK as dummyDimSK, deviceNumber as dummyDimNumber, 'dimDevice' as dimension 
     FROM {ADS_DATABASE_CURATED_V2}.dimDevice 
     WHERE deviceNumber = '-1' UNION
      
-    SELECT meterConsumptionBillingDocumentSK as dummyDimSK, 'dimMeterConsumptionBillingDocument' as dimension 
+    SELECT meterConsumptionBillingDocumentSK as dummyDimSK, billingDocumentNumber as dummyDimNumber, 'dimMeterConsumptionBillingDocument' as dimension 
     FROM {ADS_DATABASE_CURATED_V2}.dimMeterConsumptionBillingDocument 
     WHERE billingDocumentNumber = '-1' UNION
      
-    SELECT meterConsumptionBillingLineItemSK as dummyDimSK, 'dimMeterConsumptionBillingLineItem' as dimension 
+    SELECT meterConsumptionBillingLineItemSK as dummyDimSK, billingDocumentLineItemId as dummyDimNumber, 'dimMeterConsumptionBillingLineItem' as dimension 
     FROM {ADS_DATABASE_CURATED_V2}.dimMeterConsumptionBillingLineItem 
     WHERE billingDocumentLineItemId = '-1' UNION
      
-    SELECT businessPartnerGroupSK as dummyDimSK, 'dimBusinessPartnerGroup' as dimension 
+    SELECT businessPartnerGroupSK as dummyDimSK, businessPartnerGroupNumber as dummyDimNumber, 'dimBusinessPartnerGroup' as dimension 
     FROM {ADS_DATABASE_CURATED_V2}.dimBusinessPartnerGroup 
     WHERE BusinessPartnerGroupNumber = '-1' UNION
      
-    SELECT contractSK as dummyDimSK, 'dimContract' as dimension 
+    SELECT contractSK as dummyDimSK, contractId as dummyDimNumber, 'dimContract' as dimension 
     FROM {ADS_DATABASE_CURATED_V2}.dimContract 
-    WHERE contractId = '-1' 
+    WHERE contractId = '-1'  UNION
+
+    SELECT installationSK as dummyDimSK, installationNumber as dummyDimNumber, 'dimInstallation' as dimension 
+    FROM {ADS_DATABASE_CURATED_V2}.dimInstallation 
+    WHERE installationNumber = '-1'
     """
     )
 
@@ -221,8 +270,8 @@ def getBilledWaterConsumption():
             dimPropertyDf, 
             (   # join conditions 
                 (billedConsDf.businessPartnerGroupNumber == dimPropertyDf.propertyNumber) 
-                & (dimPropertyDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
-                & (dimPropertyDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
+                & (dimPropertyDf._RecordStart  <= billedConsDf.meterActiveEndDate)
+                & (dimPropertyDf._RecordEnd >= billedConsDf.meterActiveEndDate)
             ), 
             how="left"
         )
@@ -236,8 +285,8 @@ def getBilledWaterConsumption():
                 dimLocationDf, 
                 (   # join conditions
                     (billedConsDf.businessPartnerGroupNumber == dimLocationDf.locationId) 
-                    & (dimLocationDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
-                    & (dimLocationDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
+                    & (dimLocationDf._RecordStart  <= billedConsDf.meterActiveEndDate)
+                    & (dimLocationDf._RecordEnd >= billedConsDf.meterActiveEndDate)
                 ), 
                 how="left"
             ) 
@@ -250,9 +299,9 @@ def getBilledWaterConsumption():
         .join(
             dimDeviceDf, 
             (   # join conditions
-                (billedConsDf.equipmentNumber == dimDeviceDf.deviceNumber) 
-                & (dimDeviceDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
-                & (dimDeviceDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
+                (billedConsDf.deviceNumber == dimDeviceDf.deviceNumber) 
+                & (dimDeviceDf._RecordStart  <= billedConsDf.meterActiveEndDate)
+                & (dimDeviceDf._RecordEnd >= billedConsDf.meterActiveEndDate)
             ), 
             how="left"
         ) 
@@ -266,8 +315,8 @@ def getBilledWaterConsumption():
             dimBillDocDf, 
             (   # join conditions
                 (billedConsDf.billingDocumentNumber == dimBillDocDf.billingDocumentNumber)
-                & (dimBillDocDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
-                & (dimBillDocDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
+                & (dimBillDocDf._RecordStart  <= billedConsDf.meterActiveEndDate)
+                & (dimBillDocDf._RecordEnd >= billedConsDf.meterActiveEndDate)
             ), 
             how="left"
         ) 
@@ -282,8 +331,8 @@ def getBilledWaterConsumption():
             (   # join conditions
                 (billedConsDf.billingDocumentNumber == dimBillLineItemDf.billingDocumentNumber)
                 & (billedConsDf.billingDocumentLineItemId == dimBillLineItemDf.billingDocumentLineItemId) 
-                & (dimBillLineItemDf._RecordStart  <= billedConsDf.billingPeriodEndDate) 
-                & (dimBillLineItemDf._RecordEnd >= billedConsDf.billingPeriodEndDate) 
+                & (dimBillLineItemDf._RecordStart  <= billedConsDf.meterActiveEndDate) 
+                & (dimBillLineItemDf._RecordEnd >= billedConsDf.meterActiveEndDate) 
             ),
             how="left"
         ) 
@@ -297,12 +346,27 @@ def getBilledWaterConsumption():
             dimContractDf, 
             (   # join conditions
                 (billedConsDf.contractId == dimContractDf.contractId)
-                & (dimContractDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
-                & (dimContractDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
+                & (dimContractDf._RecordStart  <= billedConsDf.meterActiveEndDate)
+                & (dimContractDf._RecordEnd >= billedConsDf.meterActiveEndDate)
             ), 
             how="left"
         ) 
         .select(billedConsDf['*'], dimContractDf['contractSK'])
+    )
+
+    # --- dimInstallation ---#
+    billedConsDf = (
+        billedConsDf
+        .join(
+            dimInstallationDf, 
+            (   # join conditions
+                (billedConsDf.installationNumber == dimInstallationDf.installationNumber)
+                & (dimInstallationDf._RecordStart  <= billedConsDf.meterActiveEndDate)
+                & (dimInstallationDf._RecordEnd >= billedConsDf.meterActiveEndDate)
+            ), 
+            how="left"
+        ) 
+        .select(billedConsDf['*'], dimInstallationDf['installationSK'])
     )
 
     # --- dimBusinessPartnerGroup --- #
@@ -312,8 +376,8 @@ def getBilledWaterConsumption():
             dimBusinessPartnerGroupDf, 
             (
                 (billedConsDf.businessPartnerGroupNumber == dimBusinessPartnerGroupDf.businessPartnerGroupNumber)
-                & (dimBusinessPartnerGroupDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
-                & (dimBusinessPartnerGroupDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
+                & (dimBusinessPartnerGroupDf._RecordStart  <= billedConsDf.meterActiveEndDate)
+                & (dimBusinessPartnerGroupDf._RecordEnd >= billedConsDf.meterActiveEndDate)
             ), 
             how="left"
         ) 
@@ -330,7 +394,7 @@ def getBilledWaterConsumption():
             dummyDimRecDf, 
             (dummyDimRecDf.dimension == 'dimProperty'), how="left"
         )
-        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyPropertySK'))
+        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyPropertySK'), dummyDimRecDf['dummyDimNumber'].alias('dummyPropertyNumber'))
     )
 
     # --- dimLocation --- #
@@ -340,7 +404,7 @@ def getBilledWaterConsumption():
             dummyDimRecDf, 
             (dummyDimRecDf.dimension == 'dimLocation'), how="left"
         ) 
-        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyLocationSK'))
+        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyLocationSK'), dummyDimRecDf['dummyDimNumber'].alias('dummyLocationId'))
     )
 
     # --- dimDevice --- #
@@ -350,7 +414,7 @@ def getBilledWaterConsumption():
             dummyDimRecDf, 
             (dummyDimRecDf.dimension == 'dimDevice'), how="left"
         ) 
-        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyDeviceSK'))
+        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyDeviceSK'), dummyDimRecDf['dummyDimNumber'].alias('dummyDeviceNumber'))
     )
 
     # --- dimMeterConsumtpionBillingDocument --- #
@@ -360,7 +424,7 @@ def getBilledWaterConsumption():
             dummyDimRecDf, 
             (dummyDimRecDf.dimension == 'dimMeterConsumptionBillingDocument'), how="left"
         ) 
-        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyMeterConsumptionBillingDocumentSK'))
+        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyMeterConsumptionBillingDocumentSK'), dummyDimRecDf['dummyDimNumber'].alias('dummyBillingDocumentNumber'))
     )
     
     # --- dimMeterConsumptionBillingLineItem --- #
@@ -370,7 +434,7 @@ def getBilledWaterConsumption():
             dummyDimRecDf, 
             (dummyDimRecDf.dimension == 'dimMeterConsumptionBillingLineItem'), how="left" 
         )
-        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyMeterConsumptionBillingLineItemSK'))
+        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyMeterConsumptionBillingLineItemSK'), dummyDimRecDf['dummyDimNumber'].alias('dummyBillingDocumentLineItemId'))
     )
 
     # --- dimContract --- #
@@ -380,7 +444,17 @@ def getBilledWaterConsumption():
             dummyDimRecDf, 
             (dummyDimRecDf.dimension == 'dimContract'), how="left"
         )
-        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyContractSK'))
+        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyContractSK'), dummyDimRecDf['dummyDimNumber'].alias('dummyContractId'))
+    )
+
+    # --- dimInstallation --- #
+    billedConsDf = (
+        billedConsDf
+        .join(
+            dummyDimRecDf, 
+            (dummyDimRecDf.dimension == 'dimInstallation'), how="left"
+        )
+        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyInstallationSK'), dummyDimRecDf['dummyDimNumber'].alias('dummyInstallationNumber'))
     )
 
     # --- dimBusinessPartnerGroup --- #
@@ -390,7 +464,7 @@ def getBilledWaterConsumption():
             dummyDimRecDf, 
             (dummyDimRecDf.dimension == 'dimBusinessPartnerGroup'), how="left"
         )
-        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerGroupSK'))
+        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerGroupSK'), dummyDimRecDf['dummyDimNumber'].alias('dummyBusinessPartnerGroupNumber'))
     )
 
     #7.SELECT / TRANSFORM
@@ -400,26 +474,72 @@ def getBilledWaterConsumption():
         .selectExpr(
             "sourceSystemCode",
             "coalesce(meterConsumptionBillingDocumentSK, dummyMeterConsumptionBillingDocumentSK) as meterConsumptionBillingDocumentSK",
+            "coalesce(billingDocumentNumber, dummyBillingDocumentNumber) as billingDocumentNumber",
             "coalesce(meterConsumptionBillingLineItemSK, dummyMeterConsumptionBillingLineItemSK) as meterConsumptionBillingLineItemSK",
+            "coalesce(billingDocumentLineItemId, dummyBillingDocumentLineItemId) as billingDocumentLineItemId",
             "coalesce(propertySK, dummyPropertySK) as propertySK",
+            "coalesce(businessPartnerGroupNumber, dummyPropertyNumber) as propertyNumber",
+            "coalesce(locationSK, dummyLocationSK) as locationSK" ,
+            "coalesce(businessPartnerGroupNumber, dummyLocationId) as locationId",
             "coalesce(deviceSK, dummyDeviceSK) as deviceSK",
-            "coalesce(locationSk, dummyLocationSK) as locationSK" ,
+            "coalesce(deviceNumber, dummyDeviceNumber) as deviceNumber",
+            "logicalDeviceNumber",
+            "logicalRegisterNumber",
+            "registerNumber",
+            "coalesce(installationSK, dummyinstallationSK) as installationSK",
+            "coalesce(installationNumber, dummyInstallationNumber) as installationNumber",
             "coalesce(businessPartnerGroupSK, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK",
+            "coalesce(businessPartnerGroupNumber, dummybusinessPartnerGroupNumber) as businessPartnerGroupNumber",
             "coalesce(contractSK, dummyContractSK) as contractSK",
+            "coalesce(contractId, dummyContractId) as contractId",
+            "divisionCode",
+            "division",
+            "lineItemTypeCode",
+            "lineItemType",
+            "inferiorPropertyTypeCode",
+            "inferiorPropertyType",
+            "isReversedFlag",
+            "isOutsortedFlag",
+            "billingLineItemBudgetBillingFlag",
             "billingPeriodStartDate",
-            "billingPeriodEndDate" ,
-            "meteredWaterConsumption" ,
+            "billingPeriodEndDate",
+            "meterActiveStartDate",
+            "meterActiveEndDate",
+            "meteredWaterConsumption"
         ) 
         .groupby(
             "sourceSystemCode", 
             "meterConsumptionBillingDocumentSK", 
+            "billingDocumentNumber",
             "meterConsumptionBillingLineItemSK", 
+            "billingDocumentLineItemId",
             "propertySK", 
-            "deviceSK", 
+            "propertyNumber",
             "locationSK",
+            "locationId",
+            "deviceSK", 
+            "deviceNumber", 
+            "logicalDeviceNumber",
+            "logicalRegisterNumber",
+            "registerNumber",
+            "installationSK",
+            "installationNumber",
             "businessPartnerGroupSK",
-            "contractSK", 
-            "billingPeriodStartDate"
+            "businessPartnerGroupNumber",
+            "contractSK",
+            "contractId",
+            "divisionCode",
+            "division",
+            "lineItemTypeCode",
+            "lineItemType",
+            "inferiorPropertyTypeCode",
+            "inferiorPropertyType",
+            "isReversedFlag",
+            "isOutsortedFlag",
+            "billingLineItemBudgetBillingFlag",
+            "billingPeriodStartDate",
+            "meterActiveStartDate",
+            "meterActiveEndDate"
         ) 
         .agg(
             max("billingPeriodEndDate").alias("billingPeriodEndDate"), 
@@ -428,30 +548,77 @@ def getBilledWaterConsumption():
         .selectExpr(
             "sourceSystemCode", 
             "meterConsumptionBillingDocumentSK", 
+            "billingDocumentNumber", 
             "meterConsumptionBillingLineItemSK", 
+            "billingDocumentLineItemId",
             "propertySK", 
-            "deviceSK", 
+            "propertyNumber", 
             "locationSK",
+            "locationId",
+            "deviceSK", 
+            "deviceNumber", 
+            "logicalDeviceNumber",
+            "logicalRegisterNumber",
+            "registerNumber",
+            "installationSK",
+            "installationNumber",
             "businessPartnerGroupSK", 
+            "businessPartnerGroupNumber",
             "contractSK", 
+            "contractId", 
+            "divisionCode",
+            "division",
+            "lineItemTypeCode",
+            "lineItemType",
+            "inferiorPropertyTypeCode",
+            "inferiorPropertyType",
+            "isReversedFlag",
+            "isOutsortedFlag",
+            "billingLineItemBudgetBillingFlag",
             "billingPeriodStartDate", 
             "billingPeriodEndDate", 
+            "meterActiveStartDate",
+            "meterActiveEndDate",
             "cast(meteredWaterConsumption as decimal(24,12)) as meteredWaterConsumption" 
         )
     )
+
 
     #8.Apply schema definition
     schema = StructType([
         StructField("sourceSystemCode", StringType(), False),
         StructField("meterConsumptionBillingDocumentSK", StringType(), False),
+        StructField("billingDocumentNumber", StringType(), False),
         StructField("meterConsumptionBillingLineItemSK", StringType(), False),
+        StructField("billingDocumentLineItemId", StringType(), False),
         StructField("propertySK", StringType(), False),
-        StructField("deviceSK", StringType(), False),
+        StructField("propertyNumber", StringType(), False),
         StructField("locationSK", StringType(), False),
+        StructField("locationId", StringType(), False),
+        StructField("deviceSK", StringType(), False),
+        StructField("deviceNumber", StringType(), False),
+        StructField("logicalDeviceNumber",StringType(), False),
+        StructField("logicalRegisterNumber",StringType(), False),
+        StructField("registerNumber",IntegerType(), False),
+        StructField("installationSK", StringType(), False),
+        StructField("installationNumber", StringType(), False),
         StructField("businessPartnerGroupSK", StringType(), False),
+        StructField("businessPartnerGroupNumber", StringType(), False),
         StructField("contractSK", StringType(), False),
+        StructField("contractId", StringType(), False),
+        StructField("divisionCode",StringType(), False),
+        StructField("division",StringType(), False),
+        StructField("lineItemTypeCode",StringType(), False),
+        StructField("lineItemType",StringType(), False),
+        StructField("inferiorPropertyTypeCode",StringType(), True),
+        StructField("inferiorPropertyType",StringType(), True),
+        StructField("isReversedFlag", StringType(), False),
+        StructField("isOutsortedFlag", StringType(), False),
+        StructField("billingLineItemBudgetBillingFlag",StringType(), False),
         StructField("billingPeriodStartDate", DateType(), False),
         StructField("billingPeriodEndDate", DateType(), False),
+        StructField("meterActiveStartDate", DateType(), False),
+        StructField("meterActiveEndDate", DateType(), False),
         StructField("meteredWaterConsumption", DecimalType(24,12), True)
     ])
 

@@ -22,57 +22,63 @@ def getBilledWaterConsumptionIsu():
     spark.udf.register("TidyCase", GeneralToTidyCase)  
   
     #2.Load Cleansed layer table data into dataframe
-    erchDf = spark.sql(f"select 'ISU' as sourceSystemCode, billingDocumentNumber, \
-                             case when ltrim('0', businessPartnerGroupNumber) is null then 'Unknown' else ltrim('0', businessPartnerGroupNumber) end as businessPartnerGroupNumber, \
-                             case when startBillingPeriod is null then to_date('19000101', 'yyyymmdd') else startBillingPeriod end as startBillingPeriod, \
-                             case when endBillingPeriod is null then to_date('19000101', 'yyyymmdd') else endBillingPeriod end as endBillingPeriod, \
-                             billingDocumentCreateDate, documentNotReleasedFlag, reversalDate, \
-                             portionNumber, \
-                             documentTypeCode, \
-                             meterReadingUnit, \
-                             billingTransactionCode as billingReasonCode, \
-                             contractId, \
-                             divisionCode, \
-                             lastChangedDate, \
-                             createdDate, \
-                             billingDocumentCreateDate, \
-                             erchcExistFlag, \
-                             billingDocumentWithoutInvoicingCode, \
-                             newBillingDocumentNumberForReversedInvoicing \
-                         from {ADS_DATABASE_CLEANSED}.isu_erch \
-                         where trim(billingSimulationIndicator) = ''")
+    erchDf = spark.sql(f"""select 'ISU' as sourceSystemCode, erch.billingDocumentNumber,
+                             case when businessPartnerGroupNumber is null then 'Unknown' else erch.businessPartnerGroupNumber end as businessPartnerGroupNumber,
+                             case when erch.startBillingPeriod is null then to_date('19000101', 'yyyymmdd') else erch.startBillingPeriod end as billingPeriodStartDate,
+                             case when erch.endBillingPeriod is null then to_date('19000101', 'yyyymmdd') else erch.endBillingPeriod end as billingPeriodEndDate,
+                             erch.billingDocumentCreateDate as billCreatedDate, erch.documentNotReleasedFlag as isOutsortedFlag,
+                             erch.reversalDate,
+                             case when (erch.reversalDate is null  or erch.reversalDate = '1900-01-01' or erch.reversalDate = '9999-12-31') then 'N' else 'Y' end as isReversedFlag,
+                             erch.portionNumber,
+                             erch.documentTypeCode,
+                             erch.documentType,
+                             erch.meterReadingUnit,
+                             erch.billingTransactionCode as billingReasonCode,
+                             erch.contractId,
+                             conth.installationNumber,
+                             erch.divisionCode,
+                             erch.division,
+                             erch.lastChangedDate,
+                             erch.createdDate,
+                             erch.erchcExistFlag,
+                             erch.billingDocumentWithoutInvoicingCode,
+                             erch.newBillingDocumentNumberForReversedInvoicing
+                         from {ADS_DATABASE_CLEANSED}.isu_erch erch
+                         left outer join {ADS_DATABASE_CLEANSED}.isu_0uccontracth_attr_2 conth on conth.contractid = erch.contractid
+                                        and erch.endbillingperiod between conth.validFromDate and conth.validToDate and conth._recordDeleted = 0
+                         where trim(billingSimulationIndicator) = '' """)
 
-    dberchz1Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
-                                ,lineItemTypeCode, lineItemType, billingLineItemBudgetBillingFlag \
-                                ,subTransactionCode, industryCode \
-                                ,billingClassCode, billingClass, rateTypeCode \
-                                ,rateType, rateId, rateDescription \
-                                ,statisticalAnalysisRateType as statisticalAnalysisRateTypeCode, statisticalAnalysisRateTypeDescription as statisticalAnalysisRateType \
-                                ,validFromDate, validToDate \
-                                ,billingQuantityPlaceBeforeDecimalPoint \
-                             from {ADS_DATABASE_CLEANSED}.isu_dberchz1 \
-                             where lineItemTypeCode in ('ZDQUAN', 'ZRQUAN') ")
+    dberchz1Df = spark.sql(f"""select billingDocumentNumber, billingDocumentLineItemId
+                                ,lineItemTypeCode, lineItemType, billingLineItemBudgetBillingFlag
+                                ,subTransactionCode, industryCode as inferiorPropertyTypeCode , infprty.inferiorPropertyType
+                                ,billingClassCode, billingClass, rateTypeCode
+                                ,rateType, rateId, rateDescription
+                                ,statisticalAnalysisRateType as statisticalAnalysisRateTypeCode, statisticalAnalysisRateTypeDescription as statisticalAnalysisRateType
+                                ,validFromDate as meterActiveStartDate, validToDate as meterActiveEndDate
+                                ,billingQuantityPlaceBeforeDecimalPoint
+                             from {ADS_DATABASE_CLEANSED}.isu_dberchz1 left outer join cleansed.isu_zcd_tinfprty_tx infprty on infprty.inferiorPropertyTypeCode = isu_dberchz1.industryCode
+                             where lineItemTypeCode in ('ZDQUAN', 'ZRQUAN') """)
   
-    dberchz2Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
-                                ,equipmentNumber \
-                                ,logicalRegisterNumber, registerNumber \
-                                ,suppressedMeterReadingDocumentId, meterReadingReasonCode \
-                                ,previousMeterReadingReasonCode, meterReadingTypeCode \
-                                ,previousMeterReadingTypeCode, maxMeterReadingDate \
-                                ,maxMeterReadingTime, billingMeterReadingTime \
-                                ,previousMeterReadingTime, meterReadingResultsSimulationIndicator \
-                                ,registerRelationshipConsecutiveNumber, meterReadingAllocationDate \
-                                ,logicalDeviceNumber, registerRelationshipSortHelpCode \
-                                ,meterReaderNoteText, quantityDeterminationProcedureCode, meterReadingDocumentId \
-                             from {ADS_DATABASE_CLEANSED}.isu_dberchz2 \
-                             where trim(suppressedMeterReadingDocumentId) <> ''")
+    dberchz2Df = spark.sql(f"""select billingDocumentNumber, billingDocumentLineItemId
+                                ,equipmentNumber as deviceNumber, logicalDeviceNumber
+                                ,logicalRegisterNumber, cast(registerNumber as int) registerNumber
+                                ,suppressedMeterReadingDocumentId, meterReadingReasonCode
+                                ,previousMeterReadingReasonCode, meterReadingTypeCode
+                                ,previousMeterReadingTypeCode, maxMeterReadingDate
+                                ,maxMeterReadingTime, billingMeterReadingTime
+                                ,previousMeterReadingTime, meterReadingResultsSimulationIndicator
+                                ,registerRelationshipConsecutiveNumber, meterReadingAllocationDate
+                                ,registerRelationshipSortHelpCode
+                                ,meterReaderNoteText, quantityDeterminationProcedureCode, meterReadingDocumentId
+                             from {ADS_DATABASE_CLEANSED}.isu_dberchz2
+                             where trim(suppressedMeterReadingDocumentId) <> '' """)
     
-    erchcDf = spark.sql(f"select * from (select billingDocumentNumber, postingDate as invoicePostingDate \
-                                            , documentNotReleasedFlag as invoiceNotReleasedIndicator \
-                                            , invoiceReversalPostingDate, sequenceNumber as invoiceMaxSequenceNumber \
-                                            , row_number() over (partition by billingDocumentNumber order by sequenceNumber desc) rnk \
-                                         from {ADS_DATABASE_CLEANSED}.isu_erchc \
-                                       ) as erchc where erchc.rnk=1")
+    erchcDf = spark.sql(f"""select * from (select billingDocumentNumber, postingDate as invoicePostingDate
+                                            , documentNotReleasedFlag as invoiceNotReleasedIndicator
+                                            , invoiceReversalPostingDate, sequenceNumber as invoiceMaxSequenceNumber
+                                            , row_number() over (partition by billingDocumentNumber order by sequenceNumber desc) rnk
+                                         from {ADS_DATABASE_CLEANSED}.isu_erchc
+                                       ) as erchc where erchc.rnk=1""")
   
     #3.JOIN TABLES
     billedConsDf = erchDf.join(erchcDf, erchDf.billingDocumentNumber == erchcDf.billingDocumentNumber, how="left") \
@@ -86,19 +92,6 @@ def getBilledWaterConsumptionIsu():
                     .drop(dberchz2Df.billingDocumentNumber) \
                     .drop(dberchz2Df.billingDocumentLineItemId)
 
-#     billedConsDf = billedConsDf.select("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", \
-#                     "startBillingPeriod", "endBillingPeriod", "validFromDate", "validToDate", \
-#                     "billingDocumentCreateDate", "documentNotReleasedIndicator", "reversalDate", \
-#                     "portionNumber","documentTypeCode","meterReadingUnit","billingReasonCode", "contractId", \
-#                     "billingQuantityPlaceBeforeDecimalPoint") \
-#                   .groupby("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", \
-#                              "startBillingPeriod", "endBillingPeriod", "billingDocumentCreateDate", \
-#                              "documentNotReleasedIndicator", "reversalDate", \
-#                     "portionNumber","documentTypeCode","meterReadingUnit","billingReasonCode", "contractId") \
-#                   .agg(min("validFromDate").alias("meterActiveStartDate") \
-#                       ,max("validToDate").alias("meterActiveEndDate") \
-#                       ,sum("billingQuantityPlaceBeforeDecimalPoint").alias("meteredWaterConsumption"))
-
   #4.UNION TABLES
   
     #5.SELECT / TRANSFORM
@@ -108,34 +101,33 @@ def getBilledWaterConsumptionIsu():
                     ,"billingDocumentNumber" \
                     ,"billingDocumentLineItemId" \
                     ,"businessPartnerGroupNumber" \
-                    ,"equipmentNumber" \
-                    ,"startBillingPeriod as billingPeriodStartDate" \
-                    ,"endBillingPeriod as billingPeriodEndDate" \
-                    ,"billingDocumentCreateDate as billCreatedDate" \
-                    ,"reversalDate" \
-                    ,"portionNumber" \
+                    ,"contractId" \
+                    ,"installationNumber" \
+                    ,"deviceNumber" \
+                    ,"logicalDeviceNumber" \
+                    ,"logicalRegisterNumber" \
+                    ,"registerNumber" \
+                    ,"divisionCode" \
+                    ,"division" \
                     ,"documentTypeCode" \
+                    ,"documentType" \
+                    ,"lineItemTypeCode" \
+                    ,"lineItemType" \
+                    ,"isReversedFlag" \
+                    ,"isOutsortedFlag" \
+                    ,"billingLineItemBudgetBillingFlag" \
+                    ,"portionNumber" \
                     ,"meterReadingUnit" \
                     ,"billingReasonCode" \
-                    ,"contractId" \
-                    ,"divisionCode" \
-                    ,"lastChangedDate" \
-                    ,"createdDate" \
-                    ,"billingDocumentCreateDate" \
                     ,"erchcExistFlag" \
                     ,"billingDocumentWithoutInvoicingCode" \
                     ,"newBillingDocumentNumberForReversedInvoicing" \
-                    ,"invoicePostingDate" \
                     ,"invoiceNotReleasedIndicator" \
                     ,"invoiceReversalPostingDate" \
                     ,"invoiceMaxSequenceNumber" \
-                    ,"case when (reversalDate is null  or reversalDate = '1900-01-01' or reversalDate = '9999-12-31') then 'N' else 'Y' end as isReversedFlag" \
-                    ,"documentNotReleasedFlag as isOutsortedFlag" \
-                    ,"lineItemTypeCode" \
-                    ,"lineItemType" \
-                    ,"billingLineItemBudgetBillingFlag" \
                     ,"subTransactionCode" \
-                    ,"industryCode" \
+                    ,"inferiorPropertyTypeCode" \
+                    ,"inferiorPropertyType" \
                     ,"billingClassCode" \
                     ,"billingClass" \
                     ,"rateTypeCode" \
@@ -144,11 +136,6 @@ def getBilledWaterConsumptionIsu():
                     ,"rateDescription" \
                     ,"statisticalAnalysisRateTypeCode" \
                     ,"statisticalAnalysisRateType" \
-                    ,"validFromDate" \
-                    ,"validToDate" \
-                    ,"billingQuantityPlaceBeforeDecimalPoint as meteredWaterConsumption" \
-                    ,"logicalRegisterNumber" \
-                    ,"registerNumber" \
                     ,"suppressedMeterReadingDocumentId" \
                     ,"meterReadingReasonCode" \
                     ,"previousMeterReadingReasonCode" \
@@ -161,11 +148,19 @@ def getBilledWaterConsumptionIsu():
                     ,"meterReadingResultsSimulationIndicator" \
                     ,"registerRelationshipConsecutiveNumber" \
                     ,"meterReadingAllocationDate" \
-                    ,"logicalDeviceNumber" \
                     ,"registerRelationshipSortHelpCode" \
                     ,"meterReaderNoteText" \
                     ,"quantityDeterminationProcedureCode" \
                     ,"meterReadingDocumentId" \
+                    ,"billingPeriodStartDate" \
+                    ,"billingPeriodEndDate" \
+                    ,"invoicePostingDate" \
+                    ,"reversalDate" \
+                    ,"billCreatedDate" \
+                    ,"createdDate" \
+                    ,"lastChangedDate" \
+                    ,"meterActiveStartDate" \
+                    ,"meterActiveEndDate" \
+                    ,"billingQuantityPlaceBeforeDecimalPoint as meteredWaterConsumption" \
                   )
-  
     return billedConsDf
