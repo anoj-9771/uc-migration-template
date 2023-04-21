@@ -18,6 +18,8 @@ if systemCodeCleaned[-3:] == 'ref':
     systemCodeCleaned = systemCode[:len(systemCodeCleaned)-3]
 if systemCodeCleaned[-4:] == 'data':
     systemCodeCleaned = systemCode[:len(systemCodeCleaned)-4]
+if "|" in systemCodeCleaned:
+    systemCodeCleaned = systemCode.split("|")[0]
     
 print(systemCode)
 print(systemCodeCleaned)

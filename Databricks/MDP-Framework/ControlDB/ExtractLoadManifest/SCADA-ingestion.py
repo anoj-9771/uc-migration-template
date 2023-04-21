@@ -3,7 +3,7 @@
 
 # COMMAND ----------
 
-SYSTEM_CODE = 'SCADA'
+SYSTEM_CODE = 'scada'
 
 # COMMAND ----------
 
@@ -34,6 +34,9 @@ df = spark.sql("""
     ORDER BY SourceSchema, SourceTableName
     """)
 
+dfDaily = df.where("sourceTableName not in ('event','tsv')")
+df15Min = df.where("sourceTableName in ('event','tsv')")
+
 # COMMAND ----------
 
 def ConfigureManifest(df):
@@ -48,7 +51,10 @@ def ConfigureManifest(df):
     # ------------- ShowConfig ----------------- #
     ShowConfig()
     
-ConfigureManifest(df)       
+ConfigureManifest(dfDaily)
+
+SYSTEM_CODE = "scada|15min"
+ConfigureManifest(df15Min)
 
 # COMMAND ----------
 
@@ -70,7 +76,7 @@ when 'scxuser' then 'userInternalId,effectiveFromDateTime'
 else businessKeyColumn
 end
 ,destinationSchema = systemCode
-where systemCode = '{SYSTEM_CODE}'
+where systemCode like 'scada%'
 """)
 
 # COMMAND ----------
@@ -80,7 +86,11 @@ ExecuteStatement(f"""
 merge into dbo.config as target using(
     select
         keyGroup = 'runviewCreation'
-        ,[key] = '{SYSTEM_CODE}'
+        ,[key] = 'scada'
+    union 
+    select
+        keyGroup = 'runviewCreation'
+        ,[key] = 'scada|15min'
 ) as source on
     target.keyGroup = source.keyGroup
     and target.[key] = source.[key]

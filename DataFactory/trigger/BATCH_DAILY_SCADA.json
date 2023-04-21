@@ -1,0 +1,28 @@
+{
+	"name": "BATCH_DAILY_SCADA",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Main",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"SystemCodes": "scada",
+					"RunParallel": "Y"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2023-04-21T06:00:00Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}

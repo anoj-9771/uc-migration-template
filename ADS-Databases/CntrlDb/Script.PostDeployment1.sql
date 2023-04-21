@@ -10,7 +10,7 @@ WITH [_Common] AS
         UNION SELECT 'IngestionSheet' [KeyGroup], 'Index' [Key], '0' [Value]
         UNION SELECT 'IngestionSheet' [KeyGroup], 'Limit' [Key], '0' [Value]
         UNION SELECT 'IngestionSheet' [KeyGroup], 'Path' [Key], 'testonly/labware_upload.csv' [Value]
-        UNION SELECT 'TriggerInterval' [KeyGroup], '15Min' [Key], 'maximo|15min,iicats|15min' [Value]
+        UNION SELECT 'TriggerInterval' [KeyGroup], '15Min' [Key], 'maximo|15min,iicats|15min,scada|15min' [Value]
     ) T
 ),
 [_Env] AS
