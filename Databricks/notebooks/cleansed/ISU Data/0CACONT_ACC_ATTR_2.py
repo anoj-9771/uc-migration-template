@@ -226,7 +226,7 @@ df = spark.sql(f"""
      ) 
           
           SELECT 
-               case when VKONT = 'na' then '' else VKONT end   as contractAccountNumber, 
+               case when VKONT = 'na' then '' else ltrim('0', VKONT) end   as contractAccountNumber, 
                ToValidDate(ERDAT)                              as createdDate, 
                ERNAM                                           as createdBy, 
                ToValidDate(AEDAT)                              as lastChangedDate, 
@@ -240,7 +240,7 @@ df = spark.sql(f"""
                APP.applicationArea                             as applicationArea,
                VKTYP                                           as contractAccountCategoryCode, 
                ty.contractAccountCategory                      as contractAccountCategory, 
-               VKONA                                           as legacyContractAccountNumber, 
+               ltrim('0', VKONA)                               as legacyContractAccountNumber, 
                cast('1900-01-01' as TimeStamp)                 as _RecordStart, 
                cast('9999-12-31' as TimeStamp)                 as _RecordEnd, 
                CASE 

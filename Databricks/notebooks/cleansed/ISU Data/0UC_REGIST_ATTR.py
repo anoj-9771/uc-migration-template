@@ -179,11 +179,11 @@ Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,ZWNUMMER,AB,BIS ORDER BY _FileDa
                     FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
                       stage AS (select * from stageUpsert union select * from stageDelete) \
                            SELECT \
-                                case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
+                                case when EQUNR = 'na' then '' else ltrim('0', EQUNR) end as equipmentNumber, \
                                 case when ZWNUMMER = 'na' then '' else (cast(ZWNUMMER as int)) end  as registerNumber, \
                                 ToValidDate(BIS,'MANDATORY') as validToDate, \
                                 ToValidDate(AB) as validFromDate, \
-                                cast(LOGIKZW as string) as logicalRegisterNumber, \
+                                ltrim('0', cast(LOGIKZW as string)) as logicalRegisterNumber, \
                                 cast(SPARTYP as string) as divisionCategoryCode, \
                                 di.sectorCategory as divisionCategory, \
                                 ZWKENN as registerIdCode, \

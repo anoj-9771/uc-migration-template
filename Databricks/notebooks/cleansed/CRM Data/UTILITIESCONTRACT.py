@@ -178,7 +178,7 @@ df = spark.sql(f"WITH stage AS \
                                 PodUUID as podUUID, \
                                 HeaderUUID as headerUUID, \
                                 case when UtilitiesContract = 'na' then '' else UtilitiesContract end as utilitiesContract, \
-                                BusinessPartner as businessPartnerGroupNumber, \
+                                ltrim('0', BusinessPartner) as businessPartnerGroupNumber, \
                                 BusinessPartnerFullName as businessPartnerGroupName, \
                                 BusinessAgreement as businessAgreement, \
                                 BusinessAgreementUUID as businessAgreementUUID, \
@@ -210,7 +210,7 @@ df = spark.sql(f"WITH stage AS \
                                 HeaderCategoryName as headerCategoryName, \
                                 HeaderDescription as headerDescription, \
                                 (CASE WHEN IsDeregulationPod = 'X' THEN 'Y' ELSE 'N' END) as isDeregulationPODFlag, \
-                                UtilitiesPremise as premise, \
+                                ltrim('0', UtilitiesPremise) as premise, \
                                 NumberOfPersons as numberOfPersons, \
                                 CityName as cityName, \
                                 StreetName as streetName, \

@@ -178,7 +178,7 @@ df = spark.sql(f"WITH stageUpsert AS \
 Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
                       stage AS (select * from stageUpsert union select * from stageDelete) \
                            SELECT \
-                                case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
+                                case when dev.EQUNR = 'na' then '' else ltrim('0', dev.EQUNR) end as equipmentNumber, \
                                 ToValidDate(dev.BIS,'MANDATORY') as validToDate, \
                                 ToValidDate(dev.AB) as validFromDate, \
                                 dev.KOMBINAT as deviceCategoryCombination, \

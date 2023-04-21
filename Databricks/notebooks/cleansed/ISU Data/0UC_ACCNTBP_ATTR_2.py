@@ -217,8 +217,8 @@ print(delta_raw_tbl_name)
 df = spark.sql(f"""WITH stage AS 
                       (Select *, ROW_NUMBER() OVER (PARTITION BY GPART,VKONT ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') 
                            SELECT 
-                                GPART as businessPartnerGroupNumber, 
-                                VKONT as contractAccountNumber, 
+                                ltrim('0',GPART) as businessPartnerGroupNumber, 
+                                ltrim('0',VKONT) as contractAccountNumber, 
                                 dd07t2.domainValueText as budgetBillingRequestForDebtor, 
                                 dd07t1.domainValueText as budgetBillingRequestForCashPayer, 
                                 if(KEINZAHL = 'X', 'Y', 'N') as noPaymentFormFlag, 

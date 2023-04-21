@@ -173,7 +173,7 @@ print(delta_raw_tbl_name)
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR,OUTCNSO ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
-                                  case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
+                                  case when BELNR = 'na' then '' else ltrim('0', BELNR) end as billingDocumentNumber, \
                                   case when OUTCNSO = 'na' then '' else OUTCNSO end as outsortingNumber, \
                                   VALIDATION as billingValidationName, \
                                   MANOUTSORT as manualOutsortingReasonCode, \

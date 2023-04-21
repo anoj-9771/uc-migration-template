@@ -175,10 +175,10 @@ df = spark.sql(f"WITH stage AS \
                                       WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                 case when SIMRUNID = 'na' then '' else SIMRUNID end as simulationPeriodId, \
-                                case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
+                                case when BELNR = 'na' then '' else ltrim('0', BELNR) end as billingDocumentNumber, \
                                 BUKRS as companyCode, \
                                 SPARTE as divisonCode, \
-                                VKONT as contractAccountNumber, \
+                                ltrim('0', VKONT) as contractAccountNumber, \
                                 VERTRAG as contractId, \
                                 ABRVORG as billingTransactionCode, \
                                 HVORG as mainTransactionLineItemCode, \

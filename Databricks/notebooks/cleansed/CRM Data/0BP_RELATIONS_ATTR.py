@@ -218,8 +218,8 @@ df = spark.sql(f"""WITH stage AS
                                       WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') 
                            SELECT 
                                 case when RELNR = 'na' then '' else RELNR end as businessPartnerRelationshipNumber, 
-                                case when PARTNER1 = 'na' then '' else PARTNER1 end as businessPartnerNumber1, 
-                                case when PARTNER2 = 'na' then '' else PARTNER2 end as businessPartnerNumber2, 
+                                case when PARTNER1 = 'na' then '' else ltrim('0',PARTNER1) end as businessPartnerNumber1, 
+                                case when PARTNER2 = 'na' then '' else ltrim('0',PARTNER2) end as businessPartnerNumber2, 
                                 PARTNER1_GUID as businessPartnerGUID1, 
                                 PARTNER2_GUID as businessPartnerGUID2, 
                                 RELDIR as relationshipDirection, 

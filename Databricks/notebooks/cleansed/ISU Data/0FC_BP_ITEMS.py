@@ -181,9 +181,9 @@ df = spark.sql(f"WITH stage AS \
                                 BUKRS as companyCode, \
                                 cc.companyName as company, \
                                 AUGST as clearingStatus, \
-                                GPART as businessPartnerGroupNumber, \
+                                ltrim('0',GPART) as businessPartnerGroupNumber, \
                                 VTREF as contractReferenceSpecification, \
-                                VKONT as contractAccountNumber, \
+                                ltrim('0',VKONT) as contractAccountNumber, \
                                 ABWBL as ficaDocumentNumber, \
                                 ABWTP as ficaDocumentCategory, \
                                 APPLK as applicationArea, \

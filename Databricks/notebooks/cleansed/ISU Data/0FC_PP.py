@@ -174,8 +174,8 @@ df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY PPKEY ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                           SELECT \
                                 case when PPKEY = 'na' then '' else PPKEY end as promiseToPayId, \
-                                GPART as businessPartnerGroupNumber, \
-                                VKONT as contractAccountNumber, \
+                                ltrim('0', GPART) as businessPartnerGroupNumber, \
+                                ltrim('0', VKONT) as contractAccountNumber, \
                                 BUKRS as companyCode, \
                                 PPRSC as promiseToPayReasonCode, \
                                 PPRSW as withdrawalReasonCode, \

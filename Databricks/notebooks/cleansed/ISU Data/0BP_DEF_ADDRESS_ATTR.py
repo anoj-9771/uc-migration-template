@@ -233,7 +233,7 @@ df = spark.sql(f"""
             CASE 
                 WHEN PARTNER = 'na' 
                 THEN '' 
-                ELSE PARTNER 
+                ELSE ltrim('0', PARTNER)  
             END                                        as businessPartnerNumber, 
             PARTNER_GUID                               as businessPartnerGUID, 
             CASE 

@@ -173,10 +173,10 @@ print(delta_raw_tbl_name)
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR, BELZEILE ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
-                                case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
+                                case when BELNR = 'na' then '' else ltrim('0', BELNR) end as billingDocumentNumber, \
                                 case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
-                                EQUNR as equipmentNumber, \
-                                GERAET as deviceNumber, \
+                                ltrim('0', trim(EQUNR)) as equipmentNumber, \
+                                ltrim('0', trim(GERAET)) as deviceNumber, \
                                 MATNR as materialNumber, \
                                 ZWNUMMER as registerNumber, \
                                 INDEXNR as registerRelationshipConsecutiveNumber, \
@@ -190,7 +190,7 @@ df = spark.sql(f"WITH stage AS \
                                 ToValidDate(ZUORDDAT) as  meterReadingAllocationDate, \
                                 ABLBELNR as suppressedMeterReadingDocumentId, \
                                 LOGIKNR as logicalDeviceNumber, \
-                                LOGIKZW as logicalRegisterNumber, \
+                                ltrim('0', LOGIKZW) as logicalRegisterNumber, \
                                 ISTABLART as meterReadingTypeCode, \
                                 ISTABLARTVA as previousMeterReadingTypeCode, \
                                 EXTPKZ as meterReadingResultsSimulationIndicator, \

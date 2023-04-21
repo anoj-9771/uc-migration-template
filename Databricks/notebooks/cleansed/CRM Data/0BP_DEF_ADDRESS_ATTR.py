@@ -228,7 +228,7 @@ WITH stage AS (
     WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
 ) 
     SELECT 
-        case when PARTNER = 'na' then '' else PARTNER end        as businessPartnerNumber, 
+        case when PARTNER = 'na' then '' else ltrim('0', PARTNER) end        as businessPartnerNumber, 
         PARTNER_GUID                                             as businessPartnerGUID, 
         case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end  as addressNumber, 
         ToValidDate(DATE_FROM)                                   as validFromDate, 

@@ -233,7 +233,7 @@ df = spark.sql(f"""
                end                                                     as installationNumber, -- 2.2
                stg.SPARTE                                              as divisionCode, -- 1.2
                div.division                                            as division, 
-               stg.VSTELLE                                             as premise, 
+               ltrim('0', stg.VSTELLE)                                 as premise, 
                stg.BEZUG                                               as reference, 
                stg.ABLESARTST                                          as meterReadingControlCode, 
                mrc.meterReadingControl                                 as meterReadingControl, 

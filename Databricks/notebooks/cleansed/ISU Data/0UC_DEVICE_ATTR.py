@@ -163,9 +163,9 @@ print(delta_raw_tbl_name)
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
-                                  case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber,\
+                                  case when EQUNR = 'na' then '' else ltrim('0',EQUNR) end as equipmentNumber,\
                                   MATNR as materialNumber,\
-                                  GERAET as deviceNumber,\
+                                  ltrim('0', GERAET) as deviceNumber,\
                                   BESITZ as inspectionRelevanceIndicator,\
                                   GROES as deviceSize,\
                                   HERST as assetManufacturerName,\

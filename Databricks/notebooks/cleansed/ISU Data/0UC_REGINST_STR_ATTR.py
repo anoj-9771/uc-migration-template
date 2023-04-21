@@ -179,7 +179,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY LOGIKZW,ANLAGE,AB,BIS ORDER BY _FileDa
                     FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
                       stage AS (select * from stageUpsert union select * from stageDelete) \
                            SELECT \
-                                case when LOGIKZW = 'na' then '' else LOGIKZW end as logicalRegisterNumber, \
+                                case when LOGIKZW = 'na' then '' else ltrim('0', LOGIKZW) end as logicalRegisterNumber, \
                                 case when ZWNABR = 'X' then 'Y' else 'N' end as registerNotRelevantToBilling, \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationNumber, \
                                 ToValidDate(BIS,'MANDATORY') as validToDate, \

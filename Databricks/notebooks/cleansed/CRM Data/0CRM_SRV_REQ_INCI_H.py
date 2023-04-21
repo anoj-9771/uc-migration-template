@@ -273,7 +273,7 @@ df = spark.sql(f"WITH stage AS \
                                 ZZAFLD000026 as source, \
                                 ZZAFLD000027 as projectId, \
                                 ZZAFLD000028 as issueResponsibility, \
-                                ZZREPORTED_BY as businessPartnerNumber, \
+                                ltrim('0',ZZREPORTED_BY) as businessPartnerNumber, \
                                 ZZAGREEMENT_N as agreementNumber, \
                                 ZZ_PROPERTY_NO as propertyNumber, \
                                 ZZ_SR_AREA as serviceArea, \

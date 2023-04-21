@@ -186,13 +186,13 @@ df = spark.sql(f"""
     )
         
         SELECT 
-            case when BELNR = 'na' then '' else BELNR end                       as billingDocumentNumber, 
+            case when BELNR = 'na' then '' else ltrim('0', BELNR) end                       as billingDocumentNumber, 
             BUKRS                                                               as companyCode, 
             cc.companyName                                                      as companyName,
             SPARTE                                                              as divisionCode, 
             divText.division                                                    as division,
-            GPARTNER                                                            as businessPartnerGroupNumber, 
-            VKONT                                                               as contractAccountNumber, 
+            ltrim('0',GPARTNER)                                                 as businessPartnerGroupNumber, 
+            ltrim('0', VKONT)                                                   as contractAccountNumber, 
             VERTRAG                                                             as contractId, 
             ToValidDate(BEGABRPE)                                               as startBillingPeriod, 
             ToValidDate(ENDABRPE)                                               as endBillingPeriod, 

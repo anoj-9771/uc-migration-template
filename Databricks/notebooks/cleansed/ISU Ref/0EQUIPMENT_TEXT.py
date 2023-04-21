@@ -173,7 +173,7 @@ print(delta_raw_tbl_name)
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR, DATETO ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
-                                case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
+                                case when EQUNR = 'na' then '' else ltrim('0', EQUNR) end as equipmentNumber, \
                                 ToValidDate(DATETO,'MANDATORY') as validToDate, \
                                 ToValidDate(DATEFROM) as validFromDate, \
                                 TXTMD as equipmentDescription, \

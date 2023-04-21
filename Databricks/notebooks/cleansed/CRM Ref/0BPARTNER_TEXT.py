@@ -173,7 +173,7 @@ print(delta_raw_tbl_name)
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY PARTNER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                           SELECT \
-                                  case when PARTNER = 'na' then '' else PARTNER end as businessPartnerNumber,\
+                                  case when PARTNER = 'na' then '' else ltrim('0',PARTNER) end as businessPartnerNumber,\
                                   TYPE as businessPartnerCategoryCode, \
                                   TXTMD as businessPartnerCategory, \
                                   cast('1900-01-01' as TimeStamp) as _RecordStart, \

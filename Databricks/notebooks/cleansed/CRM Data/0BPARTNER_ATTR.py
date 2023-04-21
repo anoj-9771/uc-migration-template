@@ -234,7 +234,7 @@ df = (
         case 
             when PARTNER = 'na' 
             then '' 
-            else PARTNER 
+            else ltrim('0', PARTNER)
         end                                                             as businessPartnerNumber, 
         TYPE                                                            as businessPartnerCategoryCode, 
         BP_TXT.businessPartnerCategory                                  as businessPartnerCategory, 

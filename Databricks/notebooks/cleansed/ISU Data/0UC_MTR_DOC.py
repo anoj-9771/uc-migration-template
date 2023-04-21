@@ -179,7 +179,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR ORDER BY _FileDateTimeStamp D
             FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
           stage AS (select * from stageUpsert union select * from stageDelete) \
               SELECT  case when ABLBELNR = 'na' then '' else ABLBELNR end as meterReadingId , \
-                                      EQUNR as equipmentNumber , \
+                                      ltrim('0', EQUNR) as equipmentNumber , \
                                       ZWNUMMER as registerNumber , \
                                       ToValidDate(ADAT) as meterReadingDate , \
                                       MRESULT as meterReadingTaken , \
@@ -209,7 +209,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR ORDER BY _FileDateTimeStamp D
                                       ZZ_FREE_TEXT as freeText , \
                                       ZZ_COMM_CODE as meterReadingCommentCode , \
                                       ZZ_NO_READ_CODE as noReadCode , \
-                                      ZGERNR as deviceNumber , \
+                                      ltrim('0', ZGERNR) as deviceNumber , \
                                       ToValidDate(ZADATTATS) as actualMeterReadingDate , \
                                       ZWNABR as registerNotRelevantToBilling , \
                                       ToValidDate(AEDAT) as lastChangedDate , \

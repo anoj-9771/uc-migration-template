@@ -176,8 +176,8 @@ df = spark.sql(f"WITH stage AS \
                            SELECT \
                                 ToValidDate(LAUFD,'MANDATORY') as dateId, \
                                 case when LAUFI = 'na' then '' else LAUFI end as additionalIdentificationCharacteristic, \
-                                case when GPART = 'na' then '' else GPART end as businessPartnerGroupNumber, \
-                                case when VKONT = 'na' then '' else VKONT end as contractAccountNumber, \
+                                case when GPART = 'na' then '' else ltrim('0', GPART) end as businessPartnerGroupNumber, \
+                                case when VKONT = 'na' then '' else ltrim('0', VKONT) end as contractAccountNumber, \
                                 case when MAZAE = 'na' then '' else MAZAE end as dunningNoticeCounter, \
                                 ABWBL as ficaDocumentNumber, \
                                 ABWTP as ficaDocumentCategory, \
@@ -193,7 +193,7 @@ df = spark.sql(f"WITH stage AS \
                                 STDBK as standardCompanyCode, \
                                 SPART as divisionCode, \
                                 VTREF as contractReferenceSpecification, \
-                                VKNT1 as leadingContractAccount, \
+                                ltrim('0', VKNT1) as leadingContractAccount, \
                                 ABWMA as alternativeDunningRecipient, \
                                 MAHNS as dunningLevel, \
                                 WAERS as currencyKey, \

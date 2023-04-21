@@ -228,7 +228,7 @@ df = (
         WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
     ) 
         SELECT  
-            case when BP.PARTNER = 'na' then '' else BP.PARTNER end               as businessPartnerNumber, -- TRANSFORMATION
+            case when BP.PARTNER = 'na' then '' else ltrim('0', BP.PARTNER) end   as businessPartnerNumber, -- TRANSFORMATION
             BP.TYPE                                                               as businessPartnerCategoryCode, 
             BP_TXT.businessPartnerCategory                                        as businessPartnerCategory, 
             BP.BPKIND                                                             as businessPartnerTypeCode, 

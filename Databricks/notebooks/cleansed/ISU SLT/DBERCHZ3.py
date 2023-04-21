@@ -173,7 +173,7 @@ print(delta_raw_tbl_name)
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR, BELZEILE ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
-                                    case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
+                                    case when BELNR = 'na' then '' else ltrim('0', BELNR) end as billingDocumentNumber, \
                                     case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
                                     MWSKZ as taxSalesCode, \
                                     ERMWSKZ as taxDeterminationCode, \

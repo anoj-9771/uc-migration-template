@@ -227,7 +227,7 @@ df = spark.sql(f"""
             case 
                 when BP.PARTNER = 'na' 
                 then '' 
-                else TRIM(BP.PARTNER) 
+                else ltrim('0', TRIM(BP.PARTNER))  
             end                                                             as businessPartnerNumber, 
             case
                 when BP.TYPE = 'na'

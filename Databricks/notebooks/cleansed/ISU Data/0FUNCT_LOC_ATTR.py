@@ -187,13 +187,13 @@ df = spark.sql(f"WITH stage AS \
                                   ZZ_ZCD_AONR as architecturalObjectCount, \
                                   ZZ_ADRNR as zzAddressNumber, \
                                   ZZ_OWNER as objectReferenceIndicator, \
-                                  ZZ_VSTELLE as premiseId, \
+                                  ltrim('0', ZZ_VSTELLE) as premiseId, \
                                   ZZ_ANLAGE as installationId, \
-                                  ZZ_VKONTO as contractAccountNumber, \
+                                  ltrim('0', ZZ_VKONTO) as contractAccountNumber, \
                                   ZZADRMA as alternativeAddressNumber, \
                                   ZZ_OBJNR as objectNumber, \
                                   ZZ_IDNUMBER as identificationNumber, \
-                                  ZZ_GPART as businessPartnerNumber, \
+                                  ltrim('0', ZZ_GPART) as businessPartnerNumber, \
                                   ZZ_HAUS as connectionObjectId, \
                                   ZZ_LOCATION as locationDescription, \
                                   ZZ_BUILDING as buildingNumber, \
