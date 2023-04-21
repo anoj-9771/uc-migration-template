@@ -72,8 +72,8 @@ SELECT * FROM
 (
 SELECT
     /* Business Partner Columns */
-    BP.businessPartnerSK,
-    BR.businessPartnerGroupSK,
+    --BP.businessPartnerSK,
+    --BR.businessPartnerGroupSK,
     coalesce(BP.sourceSystemCode, ADDR.sourceSystemCode,BR.sourceSystemCode) as sourceSystemCode,
     coalesce(DR.businessPartnerNumber,BP.businessPartnerNumber, ADDR.businessPartnerNumber, '-1') as businessPartnerNumber,
     BR.businessPartnerGroupNumber,
@@ -122,7 +122,7 @@ SELECT
     BP.lastUpdatedDateTime as businessPartnerLastUpdatedDateTime,
     BP.lastUpdatedBy as businessPartnerLastUpdatedBy,
     /* Address Columns */
-    ADDR.businesspartnerAddressSK,
+    --ADDR.businesspartnerAddressSK,
     ADDR.businessPartnerAddressNumber,
     ADDR.addressValidFromDate,
     ADDR.addressValidToDate,

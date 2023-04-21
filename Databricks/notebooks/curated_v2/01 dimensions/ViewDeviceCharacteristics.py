@@ -13,8 +13,8 @@ SELECT deviceNumber,classifiedEntityType,classTypeCode,classType,archivingObject
 from 
 (
 SELECT
-     deviceCharacteristicsSK
-    ,dimDeviceCharacteristics.deviceNumber
+     --deviceCharacteristicsSK,
+    dimDeviceCharacteristics.deviceNumber
     ,dimDeviceCharacteristics.classifiedEntityType
     ,dimDeviceCharacteristics.classTypeCode
     ,dimDeviceCharacteristics.classType

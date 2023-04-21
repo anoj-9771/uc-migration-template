@@ -59,8 +59,8 @@ SELECT * FROM
 (
     SELECT
         /* Installation */
-        dimInstallation.installationSK                                 AS installationSK,
-        dimInstallationHistory.installationHistorySK                   AS installationHistorySK,
+        --dimInstallation.installationSK                                 AS installationSK,
+        --dimInstallationHistory.installationHistorySK                   AS installationHistorySK,
         COALESCE(dimInstallation.sourceSystemCode, dimInstallationHistory.sourceSystemCode, dimDisconnectionDocument.sourceSystemCode) AS sourceSystemCode,
         COALESCE(
           dimInstallation.installationNumber,
@@ -101,7 +101,7 @@ SELECT * FROM
         dimInstallationHistory.billingClass                            AS billingClass,
         dimInstallationHistory.meterReadingUnit                        AS meterReadingUnit,
         /* Disconnection Document */
-        dimDisconnectionDocument.disconnectionDocumentSK               AS disconnectionDocumentSK,
+        --dimDisconnectionDocument.disconnectionDocumentSK               AS disconnectionDocumentSK,
         dimDisconnectionDocument.disconnectionDocumentNumber           AS disconnectionDocumentNumber,
         dimDisconnectionDocument.disconnectionActivityPeriod           AS disconnectionActivityPeriod,
         dimDisconnectionDocument.disconnectionObjectNumber             AS disconnectionObjectNumber,

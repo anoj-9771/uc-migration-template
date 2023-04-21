@@ -57,9 +57,9 @@ effectiveDateRanges AS
 SELECT * FROM 
 (
 SELECT
-     dimdevice.deviceSK
-    ,dimdevicehistory.deviceHistorySK
-    ,dimdevice.sourceSystemCode
+     --dimdevice.deviceSK
+    --,dimdevicehistory.deviceHistorySK,
+    dimdevice.sourceSystemCode
    ,coalesce(dimdevice.deviceNumber, dimdevicehistory.deviceNumber, -1) as deviceNumber
     ,dimdevice.materialNumber
     ,dimdevice.deviceID
@@ -92,7 +92,7 @@ SELECT
     ,dimdevicehistory.activityReason
     ,dimdevicehistory.firstInstallationDate
     ,dimdevicehistory.lastDeviceRemovalDate
-    ,dimdeviceinstallationhistory.deviceInstallationHistorySK
+    --,dimdeviceinstallationhistory.deviceInstallationHistorySK
     ,dimdeviceinstallationhistory.installationNumber
     ,dimdeviceinstallationhistory.validToDate AS deviceInstallationHistoryValidToDate
     ,dimdeviceinstallationhistory.validFromDate AS deviceInstallationHistoryValidFromDate
@@ -100,7 +100,7 @@ SELECT
     ,dimdeviceinstallationhistory.priceClass
     ,dimdeviceinstallationhistory.rateTypeCode AS deviceInstallationHistoryRateTypeCode
     ,dimdeviceinstallationhistory.rateType AS deviceInstallationHistoryRateType
-    ,dimregisterhistory.registerHistorySK
+    --,dimregisterhistory.registerHistorySK
     ,dimregisterhistory.registerNumber
     ,dimregisterhistory.validToDate AS registerHistoryValidToDate
     ,dimregisterhistory.validFromDate AS registerHistoryvalidFromDate
@@ -117,7 +117,7 @@ SELECT
     ,dimregisterhistory.reactiveApparentOrActiveRegister
     ,dimregisterhistory.unitOfMeasurementMeterReading
     ,dimregisterhistory.doNotReadFlag 
-    ,dimregisterinstallationhistory.registerInstallationHistorySK
+    --,dimregisterinstallationhistory.registerInstallationHistorySK
     ,dimregisterinstallationhistory.validToDate AS registerInstallationHistoryValidToDate
     ,dimregisterinstallationhistory.validFromDate AS registerInstallationHistoryValidFromDate
     ,dimregisterinstallationhistory.operationCode

@@ -58,9 +58,9 @@ effectiveDateRanges AS
 SELECT * FROM 
 (
 SELECT
-      dimContractAccount.contractAccountSK
-     ,dimAccountBusinessPartner.accountBusinessPartnerSK
-     ,coalesce(dimContractAccount.sourceSystemCode, dimAccountBusinessPartner.sourceSystemCode) as sourceSystemCode
+      --dimContractAccount.contractAccountSK
+     --,dimAccountBusinessPartner.accountBusinessPartnerSK,
+     coalesce(dimContractAccount.sourceSystemCode, dimAccountBusinessPartner.sourceSystemCode) as sourceSystemCode
      ,coalesce(dimContractAccount.contractAccountNumber, dimAccountBusinessPartner.contractAccountNumber, -1) as contractAccountNumber     
      ,dimContractAccount.legacyContractAccountNumber
      ,dimContractAccount.applicationAreaCode

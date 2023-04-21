@@ -11,7 +11,7 @@ CREATE OR REPLACE VIEW curated_v2.viewPropertyRelation AS
 SELECT * FROM 
 (
 SELECT
-		propertyRelationSK,
+		--propertyRelationSK,
 		sourceSystemCode,
 		property1Number,
 		property2Number,

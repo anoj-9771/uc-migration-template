@@ -244,8 +244,8 @@ FROM
   (
     SELECT
       /* Business Partner Group Columns */
-      BPG.businessPartnerGroupSK,
-      ADDR.businessPartnerAddressSK,
+      --BPG.businessPartnerGroupSK,
+      --ADDR.businessPartnerAddressSK,
       BPG.sourceSystemCode,
       coalesce(
         BPG.businessPartnerGroupNumber,

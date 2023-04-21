@@ -56,9 +56,9 @@ effectiveDateRanges AS
 SELECT * FROM 
 (
 SELECT
-     dimContract.contractSK
-    ,dimContractHistory.contractHistorySK
-    ,coalesce(dimContract.sourceSystemCode, dimContractHistory.sourceSystemCode) as sourceSystemCode
+     --dimContract.contractSK
+    --,dimContractHistory.contractHistorySK,
+    coalesce(dimContract.sourceSystemCode, dimContractHistory.sourceSystemCode) as sourceSystemCode
     ,coalesce(dimContract.contractId, dimContractHistory.contractId, -1) as contractId    
     ,dimContract.companyCode
     ,dimContract.companyName

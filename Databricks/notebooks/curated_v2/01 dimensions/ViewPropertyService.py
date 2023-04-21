@@ -12,8 +12,8 @@ as
 SELECT * FROM 
 (
 SELECT
-		dimpropertyservice.propertyServiceSK
-		,dimpropertyservice.sourceSystemCode
+		--dimpropertyservice.propertyServiceSK,
+		 dimpropertyservice.sourceSystemCode
 		,dimpropertyservice.propertyNumber
 		,dimpropertyservice.architecturalObjectInternalId
 		,dimpropertyservice.validToDate
