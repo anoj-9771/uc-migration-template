@@ -73,7 +73,7 @@ tables15Mins = ['event','iicats_work_orders','tsv','qlty_config','wfp_daily_dema
 df = (
     df.withColumn('SystemCode', when(lower(df.SourceTableName).isin(tables15Mins),lit('iicats|15min')) 
                                         .otherwise(expr('SystemCode')))
-      .withColumn('ExtendedProperties', lit('{"OverrideClusterName" : "interactive"}'))                          
+    #   .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tables15Mins),lit('{"OverrideClusterName" : "interactive"}')))
 )
 display(df)
 
