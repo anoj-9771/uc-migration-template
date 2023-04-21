@@ -1,4 +1,10 @@
--- Databricks notebook source
+# Databricks notebook source
+notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+view = notebookPath[-1:][0]
+db = notebookPath[-3:][0]
+
+spark.sql("""
+
 -- View: viewContractAccount
 -- Description: viewContractAccount
 CREATE OR REPLACE VIEW curated_v2.viewContractAccount AS
@@ -150,8 +156,4 @@ LEFT OUTER JOIN curated_v2.dimAccountBusinessPartner
       --WHERE dimContractAccount.contractAccountSK is not null 
 )
 ORDER BY _effectiveFrom
-
--- COMMAND ----------
-
--- MAGIC %python
--- MAGIC dbutils.notebook.exit("1")
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 0 else "CREATE OR REPLACE VIEW"))

@@ -1,9 +1,9 @@
--- Databricks notebook source
--- MAGIC %md
--- MAGIC # viewInstallation
+# Databricks notebook source
+notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+view = notebookPath[-1:][0]
+db = notebookPath[-3:][0]
 
--- COMMAND ----------
-
+spark.sql("""
 -- View: viewInstallation
 -- Description: viewInstallation
 
@@ -146,3 +146,4 @@ SELECT * FROM
         AND dimInstallationHistory.validtodate = '9999-12-31' 
    )
 ORDER BY _effectiveFrom
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 0 else "CREATE OR REPLACE VIEW"))

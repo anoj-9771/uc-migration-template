@@ -1,32 +1,36 @@
 # Databricks notebook source
-# MAGIC %sql
-# MAGIC 
-# MAGIC -- View: viewPropertyService
-# MAGIC -- Description: viewProprtyService
-# MAGIC create or replace view curated_v2.viewPropertyService
-# MAGIC as
-# MAGIC 
-# MAGIC SELECT * FROM 
-# MAGIC (
-# MAGIC SELECT
-# MAGIC 		dimpropertyservice.propertyServiceSK
-# MAGIC 		,dimpropertyservice.sourceSystemCode
-# MAGIC 		,dimpropertyservice.propertyNumber
-# MAGIC 		,dimpropertyservice.architecturalObjectInternalId
-# MAGIC 		,dimpropertyservice.validToDate
-# MAGIC 		,dimpropertyservice.validFromDate
-# MAGIC 		,dimpropertyservice.fixtureAndFittingCharacteristicCode
-# MAGIC 		,dimpropertyservice.fixtureAndFittingCharacteristic
-# MAGIC         ,dimpropertyservice.supplementInfo
-# MAGIC         ,dimpropertyservice._RecordStart as _effectiveFrom
-# MAGIC         ,dimpropertyservice._RecordEnd as _effectiveTo
-# MAGIC     , CASE
-# MAGIC       WHEN CURRENT_TIMESTAMP() BETWEEN dimpropertyservice._RecordStart AND dimpropertyservice._RecordEnd then 'Y'
-# MAGIC       ELSE 'N'
-# MAGIC       END AS currentFlag,
-# MAGIC       'Y' AS currentRecordFlag 
-# MAGIC FROM curated_v2.dimpropertyservice
-# MAGIC         where dimpropertyservice._recordDeleted = 0
-# MAGIC         and dimpropertyservice.fixtureAndFittingCharacteristicCode NOT IN ('Unknown','ZDW1','ZDW2','ZPW1','ZPW2','ZPW3','ZPW4','ZRW1','ZRW2','ZRW3','ZWW1','ZWW2','ZWW3')
-# MAGIC )
-# MAGIC ORDER BY _effectiveFrom
+notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+view = notebookPath[-1:][0]
+db = notebookPath[-3:][0]
+
+spark.sql("""
+-- View: viewPropertyService
+-- Description: viewProprtyService
+CREATE OR REPLACE VIEW curated_v2.viewPropertyService2
+as
+
+SELECT * FROM 
+(
+SELECT
+		dimpropertyservice.propertyServiceSK
+		,dimpropertyservice.sourceSystemCode
+		,dimpropertyservice.propertyNumber
+		,dimpropertyservice.architecturalObjectInternalId
+		,dimpropertyservice.validToDate
+		,dimpropertyservice.validFromDate
+		,dimpropertyservice.fixtureAndFittingCharacteristicCode
+		,dimpropertyservice.fixtureAndFittingCharacteristic
+        ,dimpropertyservice.supplementInfo
+        ,dimpropertyservice._RecordStart as _effectiveFrom
+        ,dimpropertyservice._RecordEnd as _effectiveTo
+    , CASE
+      WHEN CURRENT_TIMESTAMP() BETWEEN dimpropertyservice._RecordStart AND dimpropertyservice._RecordEnd then 'Y'
+      ELSE 'N'
+      END AS currentFlag,
+      'Y' AS currentRecordFlag 
+FROM curated_v2.dimpropertyservice
+        where dimpropertyservice._recordDeleted = 0
+        and dimpropertyservice.fixtureAndFittingCharacteristicCode NOT IN ('Unknown','ZDW1','ZDW2','ZPW1','ZPW2','ZPW3','ZPW4','ZRW1','ZRW2','ZRW3','ZWW1','ZWW2','ZWW3')
+)
+ORDER BY _effectiveFrom
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 0 else "CREATE OR REPLACE VIEW"))
