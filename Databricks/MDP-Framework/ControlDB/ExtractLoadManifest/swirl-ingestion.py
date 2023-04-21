@@ -235,12 +235,17 @@ swirldata_tables =['BMS_0002185_849',
 'BMS_9999999_750_T9999999_102',
 'BMS_9999999_750_T9999999_103']
 
-swirlref_tables = ['BMS_LOOKUP_ITEMS']
+swirlref_tables = ['BMS_LOOKUP_ITEMS',
+                   'BMS_MULTILOOKUPITEMS',
+                   'BMS_NFCOMPONENTS',
+                   'BMS_RELATIONSHIPS',
+                   'BMS_COMPONENT_LINKS',
+                   'BMS_LOOKUPS']
 
 # COMMAND ----------
 
-group_names = {"swirldata":swirldata_tables
-              ,"swirlref":swirlref_tables
+group_names = {"swirlref":swirlref_tables
+              ,"swirldata":swirldata_tables
               } 
 source_key_vault_secret = "daf-oracle-swirl-connectionstring"
 source_handler = 'oracle-load'
@@ -377,7 +382,6 @@ for code in group_names:
  WHEN 'BMS_9999999_140' THEN 'licence_and_permit'
  WHEN 'BMS_0002185_865' THEN 'licence_clause'
  WHEN 'BMS_9999999_824' THEN 'licence_noncompliance'
- WHEN 'BMS_LOOKUP_ITEMS' THEN 'lookup_items'
  WHEN 'BMS_9999999_839' THEN 'maximo_work_order_details'
  WHEN 'BMS_9999999_144' THEN 'monitoring'
  WHEN 'BMS_9999999_193' THEN 'monitoring_plan'
@@ -442,7 +446,13 @@ for code in group_names:
  WHEN 'BMS_9999999_137' THEN 'workers_compensation'
  WHEN 'BMS_9999999_190' THEN 'workers_compensation_claim_management'
  WHEN 'BMS_9999999_157' THEN 'workers_compensation_cost'
- WHEN 'BMS_9999999_803' THEN 'zzchange_sme_review'
+ WHEN 'BMS_9999999_803' THEN 'location'
+ WHEN 'BMS_LOOKUP_ITEMS' THEN 'lookup_items'
+ WHEN 'BMS_MULTILOOKUPITEMS' THEN 'multi_lookup_items'
+ WHEN 'BMS_NFCOMPONENTS' THEN 'nf_components'
+ WHEN 'BMS_RELATIONSHIPS' THEN 'relationships'
+ WHEN 'BMS_COMPONENT_LINKS' THEN 'componentLinks'
+ WHEN 'BMS_LOOKUPS' THEN 'lookups'
  ELSE SourceTableName
  END
  WHERE systemCode IN ('swirldata','swirlref')
@@ -461,6 +471,11 @@ ExecuteStatement("""
     UPDATE controldb.dbo.extractloadmanifest
     SET BusinessKeyColumn = CASE 
                             WHEN DestinationTableName = 'lookup_items' THEN 'lookupid,lookupitemid'
+                            WHEN DestinationTableName = 'multi_lookup_items' THEN 'componentEntityId,componentFieldId,lookupItemId'
+                            WHEN DestinationTableName = 'nf_components' THEN 'componentId'
+                            WHEN DestinationTableName = 'relationships' THEN 'relationshipId'
+                            WHEN DestinationTableName = 'componentLinks' THEN 'fromId,relationshipId,toId'
+                            WHEN DestinationTableName = 'lookups' THEN 'lookupId'
                             ELSE 'id'
                             END
     WHERE SystemCode in ('swirldata','swirlref')

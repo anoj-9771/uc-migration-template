@@ -12,7 +12,7 @@
 				},
 				"parameters": {
 					"SystemCodes": "swirlref,swirldata",
-					"RunParallel": "Y"
+					"RunParallel": "N"
 				}
 			}
 		],
