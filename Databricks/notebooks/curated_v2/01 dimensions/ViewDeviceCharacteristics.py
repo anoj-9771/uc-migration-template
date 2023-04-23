@@ -178,4 +178,4 @@ FROM  curated_v2.dimDeviceCharacteristics where deviceNumber in (select distinct
 )
 group by  deviceNumber,classifiedEntityType,classTypeCode,classType,archivingObjectsInternalId,currentFlag,currentRecordFlag
 ORDER BY _effectiveFrom
-""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 0 else "CREATE OR REPLACE VIEW"))
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 1 else "CREATE OR REPLACE VIEW"))

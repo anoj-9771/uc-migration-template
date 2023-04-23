@@ -6,7 +6,7 @@ db = notebookPath[-3:][0]
 spark.sql("""
 -- View: viewPropertyService
 -- Description: viewProprtyService
-CREATE OR REPLACE VIEW curated_v2.viewPropertyService2
+CREATE OR REPLACE VIEW curated_v2.viewPropertyService
 as
 
 SELECT * FROM 
@@ -33,4 +33,8 @@ FROM curated_v2.dimpropertyservice
         and dimpropertyservice.fixtureAndFittingCharacteristicCode NOT IN ('Unknown','ZDW1','ZDW2','ZPW1','ZPW2','ZPW3','ZPW4','ZRW1','ZRW2','ZRW3','ZWW1','ZWW2','ZWW3')
 )
 ORDER BY _effectiveFrom
-""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 0 else "CREATE OR REPLACE VIEW"))
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 1 else "CREATE OR REPLACE VIEW"))
+
+# COMMAND ----------
+
+

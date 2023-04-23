@@ -142,4 +142,4 @@ LEFT OUTER JOIN curated_v2.dimContractHistory
         AND dimContractHistory._recordDeleted = 0
 )
 ORDER BY _effectiveFrom
-""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 0 else "CREATE OR REPLACE VIEW"))
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 1 else "CREATE OR REPLACE VIEW"))
