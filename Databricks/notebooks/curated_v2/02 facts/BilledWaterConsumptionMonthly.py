@@ -421,8 +421,8 @@ def getBilledWaterConsumptionMonthly():
             dimBillDocDf, 
             (   # join conditions
                 (billedConsDf.billingDocumentNumber == dimBillDocDf.billingDocumentNumber)
-                & (dimBillDocDf._RecordStart  <= billedConsDf.meterActiveMonthEndDate)
-                & (dimBillDocDf._RecordEnd >= billedConsDf.meterActiveMonthEndDate)
+                & (dimBillDocDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
+                & (dimBillDocDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
             ), 
             how="left"
         ) 

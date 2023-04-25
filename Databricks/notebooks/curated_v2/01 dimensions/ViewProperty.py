@@ -91,10 +91,26 @@ select
     coalesce(dimProperty.sourceSystemCode, dimPropertyTypeHistory.sourceSystemCode, dimPropertyLot.sourceSystemCode, dimLocation.sourceSystemCode) as sourceSystemCode,
     coalesce(dimProperty.propertyNumber, dimPropertyTypeHistory.propertyNumber, dimPropertyLot.propertyNumber, dimLocation.locationID, -1) as propertyNumber,
     dimProperty.premise,
-    --dimProperty.waterNetworkSK_drinkingWater,
-    --dimProperty.waterNetworkSK_recycledWater,
-    --dimProperty.sewerNetworkSK,
-    --dimProperty.stormWaterNetworkSK,
+    -- dimProperty.waterNetworkSK_drinkingWater,
+    -- dimwaternetwork.waterNetworkSK drinkingWaterNetworkSK,
+    -- dimProperty.waterNetworkSK_recycledWater,
+    -- dimrecycledwaternetwork.waterNetworkSK recycledWaterNetworkSK,
+    -- dimProperty.sewerNetworkSK,
+    -- dimsewernetwork.sewerNetworkSK dimsewerNetworkSK,
+    -- dimProperty.stormWaterNetworkSK,
+    -- dimstormwaternetwork.stormWaterNetworkSK dimstormWaterNetworkSK,
+    dimwaternetwork.deliverySystem as waterNetworkDeliverySystem,
+    dimwaternetwork.distributionSystem as waterNetworkDistributionSystem,
+    dimwaternetwork.supplyZone as waterNetworkSupplyZone,
+    dimwaternetwork.pressureArea as waterNetworkPressureArea,
+    dimrecycledwaternetwork.deliverySystem as recycledWaterNetworkDeliverySystem,
+    dimrecycledwaternetwork.distributionSystem as recycledWaterNetworkDistributionSystem,
+    dimrecycledwaternetwork.supplyZone as recycledWaterNetworkSupplyZone,
+    dimsewernetwork.sewerNetwork,
+    dimsewernetwork.sewerCatchment,
+    dimsewernetwork.SCAMP,
+    dimstormwaternetwork.stormWaterNetwork,
+    dimstormwaternetwork.stormWaterCatchment,
     dimProperty.objectNumber,
     dimProperty.propertyInfo,
     dimProperty.buildingFeeDate,
@@ -175,6 +191,10 @@ left outer join curated_v2.dimLocation dimLocation
         on dimLocation.locationID = effectiveDateRanges.propertyNumber 
 		and dimLocation._recordEnd >= effectiveDateRanges._effectiveFrom 
 		and dimLocation._recordStart <= effectiveDateRanges._effectiveTo 
-        --AND dimLocation._recordDeleted = 0 
+        --AND dimLocation._recordDeleted = 0
+left outer join curated_v2.dimwaternetwork dimwaternetwork on dimwaternetwork.waterNetworkSK = dimProperty.waterNetworkSK_drinkingWater
+left outer join curated_v2.dimwaternetwork dimrecycledwaternetwork on dimrecycledwaternetwork.waterNetworkSK = dimProperty.waterNetworkSK_recycledWater
+left outer join curated_V2.dimsewernetwork dimsewernetwork on dimsewernetwork.sewerNetworkSK = dimProperty.sewerNetworkSK
+left outer join curated_v2.dimstormwaternetwork dimstormwaternetwork on dimstormwaternetwork.stormWaterNetworkSK = dimProperty.stormWaterNetworkSK
 ) ORDER BY _effectiveFrom;
 """.replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 1 else "CREATE OR REPLACE VIEW"))

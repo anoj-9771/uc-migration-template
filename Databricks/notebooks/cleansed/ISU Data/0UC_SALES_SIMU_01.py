@@ -187,7 +187,7 @@ df = spark.sql(f"WITH stage AS \
                                 cast(ANZTAGE as int) as numberOfContractDaysBilled, \
                                 cast(ANZVERTR as int) as numberOfBilledContracts, \
                                 cast(CNTBILLDOC as int) as numberOfBillingDocuments, \
-                                case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
+                                case when BELZEILE = 'na' then '' else ltrim('0', BELZEILE) end as billingDocumentLineItemId, \
                                 BELZART as lineItemTypeCode, \
                                 AKLASSE as billingClassCode, \
                                 TVORG as subtransactionLineItemCode, \

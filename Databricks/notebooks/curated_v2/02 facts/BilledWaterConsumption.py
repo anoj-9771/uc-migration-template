@@ -315,8 +315,8 @@ def getBilledWaterConsumption():
             dimBillDocDf, 
             (   # join conditions
                 (billedConsDf.billingDocumentNumber == dimBillDocDf.billingDocumentNumber)
-                & (dimBillDocDf._RecordStart  <= billedConsDf.meterActiveEndDate)
-                & (dimBillDocDf._RecordEnd >= billedConsDf.meterActiveEndDate)
+                & (dimBillDocDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
+                & (dimBillDocDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
             ), 
             how="left"
         ) 
@@ -331,8 +331,8 @@ def getBilledWaterConsumption():
             (   # join conditions
                 (billedConsDf.billingDocumentNumber == dimBillLineItemDf.billingDocumentNumber)
                 & (billedConsDf.billingDocumentLineItemId == dimBillLineItemDf.billingDocumentLineItemId) 
-                & (dimBillLineItemDf._RecordStart  <= billedConsDf.meterActiveEndDate) 
-                & (dimBillLineItemDf._RecordEnd >= billedConsDf.meterActiveEndDate) 
+                & (dimBillLineItemDf._RecordStart  <= billedConsDf.billingPeriodEndDate) 
+                & (dimBillLineItemDf._RecordEnd >= billedConsDf.billingPeriodEndDate) 
             ),
             how="left"
         ) 
