@@ -10,7 +10,7 @@ def Transform():
     .withColumn("received_BK",expr("concat(coherentAspectIdD,'|',coherentCategoryIdD)")) \
     .withColumn("resolution_BK",expr("concat(coherentAspectIdC,'|',coherentCategoryIdC)")) \
     .withColumn("processType_BK",expr("concat(ProcessTypeCode,'|','CRM')")) \
-    .withColumn("status_BK",expr("concat(serviceRequestCategory, '|', statusProfile, '|', statusCode)")) 
+    .withColumn("status_BK",expr("concat(statusProfile, '|', statusCode)")) 
 
     received_category_df = GetTable(f"{DEFAULT_TARGET}.dimcategory") \
     .select("categorySK","_BusinessKey","_recordStart","_recordEnd") \
@@ -48,9 +48,9 @@ def Transform():
     .select("propertySK","_BusinessKey","_recordStart","_recordEnd") \
     .withColumnRenamed("propertySK","propertyFK")
 
-    status_df = GetTable(f"{DEFAULT_TARGET}.dimStatus") \
-    .select("StatusSK","_BusinessKey","_recordStart","_recordEnd") \
-    .withColumnRenamed("StatusSK","StatusFK")
+    status_df = GetTable(f"{DEFAULT_TARGET}.dimServiceRequestStatus") \
+    .select("serviceRequestStatusSK","_BusinessKey","_recordStart","_recordEnd") \
+    .withColumnRenamed("serviceRequestStatusSK","StatusFK")
     
     channel_df = GetTable(f"{DEFAULT_TARGET}.dimCommunicationChannel") \
     .select("sourceChannelCode","communicationChannelSK")
@@ -181,11 +181,3 @@ where L.setObjectType = '30'""")
     #DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-1383321
-
-# COMMAND ----------
-
-

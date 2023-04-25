@@ -25,21 +25,22 @@ def Transform():
     .join(process_usage_pref1,df.processTypeCode == process_usage_pref1.pc1,"left") \
     .join(process_usage_pref2,df.processTypeCode == process_usage_pref2.pc2,"left") \
     .join(object_df,"objectTypeCode","left") \
-    .withColumn("SourceSystemCode", lit("CRM"))
+    .withColumn("sourceSystemCode", lit("CRM"))
     
     df = df.withColumn("processTypeUsage",  when( df.pc1.isNotNull(), lit("Service Request"))
                        .when(df.pc2.isNotNull(), lit("Interaction"))
                        .otherwise(df.objectTypeDescription))
     
     df = df.na.drop(subset =["processTypeUsage"],how = "all")
+    df = df.where("processTypeUsage == 'Interaction' or processTypeUsage == 'Service Request' "  )
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
-        f"processTypeCode||'|'||SourceSystemCode {BK}"
+        f"processTypeCode||'|'||sourceSystemCode {BK}"
         ,"processTypeCode processTypeCode"
         ,"processTypeShortDescription processTypeShortDescription"
         ,"processTypeDescription processTypeDescription"
         ,"processTypeUsage processTypeUsage"
-        ,"SourceSystemCode SourceSystemCode"
+        ,"sourceSystemCode sourceSystemCode"
     ]
     df = df.selectExpr(
         _.Transforms
@@ -48,8 +49,8 @@ def Transform():
     # ------------- CLAUSES ---------------- #
 
     # ------------- SAVE ------------------- #
-#     display(df)
-    # CleanSelf()
+#    display(df)
+#    CleanSelf()
     Save(df)
     #DisplaySelf()
 pass

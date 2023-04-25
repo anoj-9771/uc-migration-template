@@ -12,9 +12,9 @@ def Transform():
     df = df.withColumn("sourceSystemCode",lit("CRM")) \
        
     _.Transforms = [
-         f"categoryCode||'|'||categoryDescription {BK}"
-        ,"categoryCode sourceChannelCode"
-        ,"categoryDescription sourceChannelDescription"
+         f"categoryCode||'|'||sourceSystemCode {BK}"
+        ,"categoryCode channelCode"
+        ,"categoryDescription channelDescription"
         ,"sourceSystemCode sourceSystemCode"
     ]
     df = df.selectExpr(
@@ -24,12 +24,8 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-    # CleanSelf()
+#     CleanSelf()
     Save(df)
     #DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-

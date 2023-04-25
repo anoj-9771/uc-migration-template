@@ -1,4 +1,12 @@
 # Databricks notebook source
+# MAGIC %md 
+# MAGIC Vno| Date      | Who         |Purpose
+# MAGIC ---|:---------:|:-----------:|:--------:
+# MAGIC 1  |01/04/2023 |Antonio      |Initial
+# MAGIC 2  |24/04/2023 |Mag          |Removed encrypt for propertyNumber, agent and partnernumber
+
+# COMMAND ----------
+
 # MAGIC %run ../Common/common-include-all
 
 # COMMAND ----------
@@ -63,15 +71,15 @@ masks = {
     ,"developmentlocationtext" : template
     ,"invoicenumber" : template
     ,"objectid" : template
-    ,"agent" : template
+    #,"agent" : template
     ,"paidamount" : template
     ,"paiddate" : template
     ,"paymentcode" : template
     ,"paymentmethod" : template
     ,"plumbername" : template
     ,"postcode" : template
-    ,"propertynumber" : template
-    ,"partnernumber" : template
+    #,"propertynumber" : template
+    #,"partnernumber" : template
     ,"telephone" : template
     ,"state" : template
     ,"suburb" : template
