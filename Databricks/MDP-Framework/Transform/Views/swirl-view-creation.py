@@ -1,7 +1,7 @@
 # Databricks notebook source
 #Curated view SWIRL Network
 spark.sql("""
-CREATE OR REPLACE VIEW curated.vw_swirl_network_incident AS
+CREATE OR REPLACE VIEW curated.viewswirlnetworkincident AS
 SELECT DISTINCT 
  inc.incidentNumber as incidentNumber
 , cast(inc.incidentDate as date) as incidentDate
@@ -56,7 +56,7 @@ LEFT JOIN cleansed.swirl_stakeholder_notification StakeHolder on Net.id = StakeH
 
 #Curated view SWIRL licence noncompliance
 spark.sql("""
-CREATE OR REPLACE VIEW curated.vw_swirl_licence_noncompliance AS
+CREATE OR REPLACE VIEW curated.viewswirllicencenoncompliance AS
 SELECT DISTINCT 
  cast(inc.reportedDate as date) as reportedDate
 ,inc.incidentNumber as incidentNumber
@@ -85,7 +85,7 @@ LEFT JOIN cleansed.swirl_person per on inc.incidentProcessor_FK = per.id
 
 #Curated view SWIRL open action report
 spark.sql("""
-CREATE OR REPLACE VIEW curated.vw_swirl_open_action AS
+CREATE OR REPLACE VIEW curated.viewswirlopenaction AS
 SELECT DISTINCT Dept.businessArea AS businessArea ,
        Dept.subDivision AS subDivision ,
        act.actionNumber AS actionNumber ,
@@ -140,7 +140,7 @@ LEFT JOIN
 
 #Curated view SWIRL open incident report
 spark.sql("""
-CREATE OR REPLACE VIEW curated.vw_swirl_open_incident AS
+CREATE OR REPLACE VIEW curated.viewswirlopenincident AS
 SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
      inc.incidentStatus AS incidentStatus ,
      NULL as incidentEventType,
@@ -174,7 +174,7 @@ LEFT JOIN
 
 #Curated view SWIRL bypass and reportable incidents
 spark.sql("""
-CREATE OR REPLACE VIEW curated.vw_swirl_bypass_and_reportable_incident AS
+CREATE OR REPLACE VIEW curated.viewswirlbypassandreportableincidents AS
 SELECT DISTINCT 
  inc.incidentNumber
 ,NULL as incidentEventType
