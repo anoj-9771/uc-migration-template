@@ -59,7 +59,7 @@ ConfigureManifest(df15Min)
 # COMMAND ----------
 
 # ------------- POST LOAD UPDATE ----------------- #  
-#ADD BUSINESS KEY
+#ADD BUSINESS KEY AND SET DESTINATION SCHEMA TO SCADA
 ExecuteStatement(f"""
 update dbo.extractLoadManifest set
 businessKeyColumn = case sourceTableName
@@ -75,7 +75,7 @@ when 'scxfield' then 'fieldName,IICATSStagingTableName,IICATSStagingFieldName,so
 when 'scxuser' then 'userInternalId,effectiveFromDateTime'
 else businessKeyColumn
 end
-,destinationSchema = systemCode
+,destinationSchema = 'scada'
 where systemCode like 'scada%'
 """)
 
