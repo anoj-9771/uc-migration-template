@@ -2,7 +2,7 @@
 # MAGIC %md 
 # MAGIC Vno| Date      | Who         |Purpose
 # MAGIC ---|:---------:|:-----------:|:--------:
-# MAGIC 1  |11/04/2023 |Mag          |Initial
+# MAGIC 1  |28/04/2023 |Mag          |Initial
 
 # COMMAND ----------
 
@@ -14,13 +14,13 @@ TARGET = DEFAULT_TARGET
 
 # COMMAND ----------
 
-from pyspark.sql.functions import lit, monotonically_increasing_id, col 
+from pyspark.sql.functions import lit, monotonically_increasing_id, col, when
 
 def add_missing_columns(df, required_columns):
     for col_name in required_columns:
         if col_name not in df.schema.fieldNames():
             df = df.withColumn(col_name, lit(None))
-    return df.select(required_columns)
+    return df.select(required_columns).filter(col("recipientEmail").isNotNull())
 
 
 table_name = ["qualtrics_billpaidsuccessfullyresponses", "qualtrics_businessConnectServiceRequestCloseResponses", "qualtrics_complaintsComplaintClosedResponses", "qualtrics_contactcentreinteractionmeasurementsurveyResponses", "qualtrics_customercareResponses", "qualtrics_developerapplicationreceivedResponses",
@@ -41,8 +41,12 @@ for table in table_name:
         union_df = union_df.unionByName(df)
         
 
-finaldf = union_df.withColumn("sourceSystem", lit('Qualtrics').cast("string")) \
-                  .withColumn("BusinessKey", concat_ws('|', union_df.recipientEmail, union_df.recipientFirstName, union_df.recipientLastName))
+finaldf = union_df.withColumn("sourceSystemCode", lit('Qualtrics').cast("string")) \
+                  .withColumn("BusinessKey", concat_ws('|', union_df.recipientEmail, \
+                                                            when((union_df.recipientFirstName).isNull(), lit('')).otherwise(union_df.recipientFirstName),
+                                                            when((union_df.recipientLastName).isNull(), lit('')).otherwise(union_df.recipientLastName))) \
+                  .dropDuplicates()  
+
 
 # COMMAND ----------
 
@@ -53,14 +57,14 @@ def Transform():
     # ------------- TRANSFORMS ------------- # 
     _.Transforms = [
         f"BusinessKey {BK}"
-        ,"recipientEmail emailRecepient"
-        ,"recipientFirstName emailRecepientFirstname"
-        ,"recipientLastName emailRecepientSurname"
+        ,"recipientEmail emailRecipient"
+        ,"recipientFirstName emailRecipientFirstName"
+        ,"recipientLastName emailRecipientSurname"
         ,"customerFirstName customerFirstName"
         ,"customerLastName customerSurname" 
         ,"companyName companyName"
         ,"ageGroup ageGroup"             
-        ,"sourceSystem sourceSystem"
+        ,"sourceSystemCode sourceSystemCode"
     ]
     
     df_final = df_final.selectExpr(
@@ -70,6 +74,6 @@ def Transform():
     # ------------- SAVE ------------------- #
     #df_final.display()
     #CleanSelf()
-    Save(df_final)
+    Save(df_final)     
     #DisplaySelf()
 Transform() 

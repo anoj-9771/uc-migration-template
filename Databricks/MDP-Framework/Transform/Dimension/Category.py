@@ -66,6 +66,8 @@ from pyspark.sql.window import Window
 
 # COMMAND ----------
 
+from pyspark.sql.functions import when, col
+
 def Transform():
     global df
     # ------------- TABLES ----------------- #
@@ -107,7 +109,8 @@ def Transform():
     .filter("categoryDescription_null is null") 
     
     df1 = l1_join_df \
-    .withColumn("business_key", concat_ws('|', "categoryTreeID", "categoryLevel1Code")) \
+    .withColumn("business_key", concat_ws('|', "categoryTreeID", "categoryLevel1Code", "validFromDatetime")) \
+    .withColumn("sourceBusinessKey", concat_ws('|', "categoryTreeID", "categoryLevel1Code")) \
     .withColumn("categoryLevel2Code", lit(None)) \
     .withColumn("categoryLevel2Description",  lit(None)) \
     .withColumn("categoryLevel3Code",  lit(None)) \
@@ -127,7 +130,8 @@ def Transform():
     
     df2 = l2_join_df \
     .filter("categoryLevel2Code is not null") \
-    .withColumn("business_key", concat_ws('|', "categoryTreeID", "categoryLevel2Code")) \
+    .withColumn("business_key", concat_ws('|', "categoryTreeID", "categoryLevel2Code", "validFromDatetime")) \
+    .withColumn("sourceBusinessKey", concat_ws('|', "categoryTreeID", "categoryLevel2Code")) \
     .withColumn("categoryLevel3Code",  lit(None)) \
     .withColumn("categoryLevel3Description",  lit(None)) \
     .withColumn("categoryLevel4Code",  lit(None)) \
@@ -143,7 +147,8 @@ def Transform():
     
     df3 = l3_join_df \
     .filter("categoryLevel3Code is not null") \
-    .withColumn("business_key", concat_ws('|', "categoryTreeID", "categoryLevel3Code")) \
+    .withColumn("business_key", concat_ws('|', "categoryTreeID", "categoryLevel3Code", "validFromDatetime")) \
+    .withColumn("sourceBusinessKey", concat_ws('|', "categoryTreeID", "categoryLevel3Code")) \
     .withColumn("categoryLevel4Code",  lit(None)) \
     .withColumn("categoryLevel4Description",  lit(None))
     
@@ -155,9 +160,11 @@ def Transform():
     .join(catL4,["L4categoryTreeGUID","L4childGuid"],"left") \
     .join(cat_DescL4,h4.L4childGuid == cat_DescL4.L4categoryGUID ,"left") \
     .filter("categoryLevel4Code is not null") \
-    .withColumn("business_key", concat_ws('|', "categoryTreeID", "categoryLevel4Code"))
+    .withColumn("business_key", concat_ws('|', "categoryTreeID", "categoryLevel4Code", "validFromDatetime")) \
+    .withColumn("sourceBusinessKey", concat_ws('|', "categoryTreeID", "categoryLevel4Code")) \
     
-    columns =["business_key","catalogType","categoryTreeID","subjectCatogoryTreeId","categoryTreeDescription","categoryLevel1Code","categoryLevel1Description","categoryLevel2Code","categoryLevel2Description","categoryLevel3Code","categoryLevel3Description","categoryLevel4Code","categoryLevel4Description","validFromDatetime","validToDatetime"]
+    columns =["business_key","catalogType","categoryTreeID","subjectCatogoryTreeId","categoryTreeDescription","categoryLevel1Code","categoryLevel1Description","categoryLevel2Code","categoryLevel2Description","categoryLevel3Code","categoryLevel3Description","categoryLevel4Code",
+              "categoryLevel4Description","validFromDatetime","validToDatetime", "sourceBusinessKey"]
     
     df = df1.select([col for col in columns]).union(df2.select([col for col in columns])).union(df3.select([col for col in columns])).union(df4.select([col for col in columns])).distinct()
         
@@ -165,6 +172,7 @@ def Transform():
     
     df = df.withColumn("categoryUsage", when( df.subjectCatogoryTreeId.isNull(), lit("Interaction")).otherwise(lit("Service Request"))) \
     .withColumn("categoryType", when(df.catalogType== 'D', lit("Received Category")).otherwise(lit("Resolution Category"))) \
+    .withColumn("sourceRecordCurrent", when(year(col("validToDatetime")) == '9999', 1).otherwise(0))
      
     _.Transforms = [
         f"business_key {BK}"
@@ -180,8 +188,10 @@ def Transform():
         ,"categoryLevel3Description categoryLevel3Description"
         ,"categoryLevel4Code categoryLevel4Code"
         ,"categoryLevel4Description categoryLevel4Description"
-        ,"validFromDatetime validFromDatetime"
-        ,"validToDatetime validToDatetime"
+        ,"validFromDatetime sourceValidFromDatetime"
+        ,"validToDatetime sourceValidToDatetime"
+        ,"sourceRecordCurrent sourceRecordCurrent"
+        ,"sourceBusinessKey sourceBusinessKey"
     ]
     df = df.selectExpr(
         _.Transforms
@@ -190,8 +200,9 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-#     CleanSelf()
-    SaveSCDFromSource(df)
+    #CleanSelf()
+    #SaveSCDFromSource(df)
+    Save(df)
     #DisplaySelf()
 pass
 Transform()
