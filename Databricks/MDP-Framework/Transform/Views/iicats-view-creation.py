@@ -39,7 +39,7 @@ for i in df.collect():
     whereClause = 'where sourceRecordSystemId in(89,90)' if sourceRecordSystemFilterList.count(i.SourceTableName) > 0 else ''
     if dedupeList.count(i.SourceTableName) > 0:        
         sql = (f"""
-        create or replace view curated.vw_{i.DestinationSchema}_{i.DestinationTableName} as
+        create or replace view curated.view{i.DestinationSchema}{i.DestinationTableName} as
         with cteDedup as(
           select *, row_number() over (partition by {partitionKey} order by {i.WatermarkColumnMapped} desc) dedupe
           from cleansed.{i.DestinationSchema}_{i.DestinationTableName}
@@ -52,7 +52,7 @@ for i in df.collect():
     # else create basic view with filter logic if applicable
     else:
         sql = (f"""
-        create or replace view curated.vw_{i.DestinationSchema}_{i.DestinationTableName} as
+        create or replace view curated.view{i.DestinationSchema}{i.DestinationTableName} as
         select *
         from cleansed.{i.DestinationSchema}_{i.DestinationTableName} 
         {whereClause}

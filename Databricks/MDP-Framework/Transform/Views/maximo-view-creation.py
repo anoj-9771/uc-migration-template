@@ -15,7 +15,7 @@ dedupeList = ('RELATEDRECORD', 'PM', 'PERSONGROUP', 'PERSONGROUPTEAM', 'WORKORDE
 
 #Cleansed view SR
 spark.sql("""
-CREATE OR REPLACE VIEW cleansed.vw_maximo_sr AS
+CREATE OR REPLACE VIEW cleansed.viewmaximosr AS
 SELECT
   *
 FROM
@@ -36,7 +36,7 @@ WHERE
 
 #Cleansed view WOACTIVITY
 spark.sql("""
-CREATE OR REPLACE VIEW cleansed.vw_maximo_woactivity AS
+CREATE OR REPLACE VIEW cleansed.viewmaximowoactivity AS
 SELECT
   *
 FROM
@@ -57,10 +57,10 @@ WHERE
 
 #Curated view WOACTIVITY
 spark.sql("""
-CREATE OR REPLACE VIEW curated.vw_maximo_WOACTIVITY as
+CREATE OR REPLACE VIEW curated.viewmaximowoactivity as
         with cteDedup as(
           select *, row_number() over (partition by site,workOrder order by rowStamp desc) dedupe
-          from cleansed.vw_maximo_WOACTIVITY
+          from cleansed.viewmaximowoactivity
         )
         select * EXCEPT (dedupe)
         from cteDedup 
@@ -94,7 +94,7 @@ for i in df.collect():
     if dedupeList.count(i.SourceTableName) > 0:
         whereClause = 'where dedupe = 1'
         sql = (f"""
-        create or replace view curated.vw_{i.DestinationSchema}_{i.DestinationTableName} as
+        create or replace view curated.view{i.DestinationSchema}{i.DestinationTableName} as
         with cteDedup as(
           select *, row_number() over (partition by {partitionKey} order by {i.WatermarkColumnMapped} desc) dedupe
           from cleansed.{i.DestinationSchema}_{i.DestinationTableName}
