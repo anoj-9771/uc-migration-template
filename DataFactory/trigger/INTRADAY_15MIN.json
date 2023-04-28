@@ -18,7 +18,7 @@
 		"typeProperties": {
 			"recurrence": {
 				"frequency": "Minute",
-				"interval": 15,
+				"interval": 20,
 				"startTime": "2023-01-01T23:42:00",
 				"timeZone": "AUS Eastern Standard Time"
 			}
