@@ -60,12 +60,13 @@ for j in manifest_df.collect():
 # COMMAND ----------
 
 #GET LAST CLEANSED LOAD TIMESTAMP
+lastLoadTimeStamp = '2022-01-01'
 try:
     lastLoadTimeStamp = spark.sql(f"select max(_DLCleansedZoneTimeStamp) as lastLoadTimeStamp from {cleansedTableName}").collect()[0][0]
     print(lastLoadTimeStamp)
 except Exception as e:
-    if "Table or view not found" in str(e):
-        lastLoadTimeStamp = '2022-01-01'            
+    print(str(e))
+                    
 
 # COMMAND ----------
 

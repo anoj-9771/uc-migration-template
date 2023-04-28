@@ -76,12 +76,13 @@ def CleanTable(tableNameFqn):
 #         pass
 
 #     #GET LAST CLEANSED LOAD TIMESTAMP
+#     lastLoadTimeStamp = '2022-01-01'
 #     try:
 #         lastLoadTimeStamp = spark.sql(f"select max(_DLCleansedZoneTimeStamp) as lastLoadTimeStamp from {cleansedTableName}").collect()[0][0]
 #         print(lastLoadTimeStamp)
 #     except Exception as e:
-#         if "Table or view not found" in str(e):
-#             lastLoadTimeStamp = '2022-01-01'  
+#         print(str(e))
+#               
 
 #     sourceDataFrame = spark.sql(f"select * from {sourceTableName} where _DLRawZoneTimeStamp > '{lastLoadTimeStamp}'")
 #     sourceDataFrame = sourceDataFrame.groupby(sourceDataFrame.columns[0:-1]).count().drop("count")
@@ -158,12 +159,13 @@ for j in manifest_df.collect():
             pass
         
         #GET LAST CLEANSED LOAD TIMESTAMP
+        lastLoadTimeStamp = '2022-01-01'
         try:
             lastLoadTimeStamp = spark.sql(f"select max(_DLCleansedZoneTimeStamp) as lastLoadTimeStamp from {cleansedTableName}").collect()[0][0]
             print(lastLoadTimeStamp)
         except Exception as e:
-            if "Table or view not found" in str(e):
-                lastLoadTimeStamp = '2022-01-01'  
+            print(str(e))
+                  
                 
         sourceDataFrame = spark.sql(f"select * from {sourceTableName} where _DLRawZoneTimeStamp > '{lastLoadTimeStamp}'")
         sourceDataFrame = sourceDataFrame.groupby(sourceDataFrame.columns[0:-1]).count().drop("count")

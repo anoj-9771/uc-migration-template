@@ -313,10 +313,6 @@
 															"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
 															"type": "Expression"
 														},
-														"DataBricksClusterVersion": {
-															"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
-															"type": "Expression"
-														},
 														"DataBricksWorkerNodes": {
 															"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
 															"type": "Expression"

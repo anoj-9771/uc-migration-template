@@ -10,7 +10,8 @@
 				"type": "String"
 			},
 			"DataBricksClusterVersion": {
-				"type": "String"
+				"type": "String",
+				"defaultValue": "12.2.x-scala2.12"
 			},
 			"DataBricksWorkerNodes": {
 				"type": "String"

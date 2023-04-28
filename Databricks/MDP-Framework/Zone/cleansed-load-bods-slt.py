@@ -30,11 +30,12 @@ cleansedTableName = get_table_name('cleansed', destinationSchema, destinationTab
 # COMMAND ----------
 
 #GET LAST CLEANSED LOAD TIMESTAMP
+lastLoadTimeStamp ='2000-01-01T01:00:00.000' 
 try:
     lastLoadTimeStamp = spark.sql(f"select max(_DLCleansedZoneTimeStamp) as extract_datetime from {cleansedTableName}").collect()[0][0]
 except Exception as e:
-    if "Table or view not found" in str(e):
-            lastLoadTimeStamp ='2000-01-01T01:00:00.000'      
+    print(str(e))
+                 
 print(lastLoadTimeStamp)
 
 # COMMAND ----------
@@ -42,8 +43,8 @@ print(lastLoadTimeStamp)
 try:
     sourceDataFrame = spark.table(sourceTableName).where(f"_DLRawZoneTimeStamp > '{lastLoadTimeStamp}'")
 except Exception as e:
-    if "Table or view not found" in str(e):
-        dbutils.notebook.exit({"CleansedSinkCount": 0})
+    print(str(e))
+    dbutils.notebook.exit({"CleansedSinkCount": 0})
 
 if sourceDataFrame.count() <= 0:
     try:
@@ -51,8 +52,8 @@ if sourceDataFrame.count() <= 0:
         print("Exiting Notebook as no records to process")
         dbutils.notebook.exit({"CleansedSinkCount": CleansedSinkCount})
     except Exception as e:
-        if "Table or view not found" in str(e):
-            dbutils.notebook.exit({"CleansedSinkCount": 0})
+        print(str(e))
+        dbutils.notebook.exit({"CleansedSinkCount": 0})
 print(sourceDataFrame.count())
 
 # FIX BAD COLUMNS

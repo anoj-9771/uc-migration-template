@@ -12,7 +12,7 @@
 			},
 			"DatabricksVersion": {
 				"type": "string",
-				"defaultValue": "10.4.x-scala2.12"
+				"defaultValue": "12.2.x-scala2.12"
 			},
 			"newClusterNumOfWorker": {
 				"type": "string",

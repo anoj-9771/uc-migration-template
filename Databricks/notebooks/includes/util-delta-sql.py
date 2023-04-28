@@ -10,7 +10,7 @@ def DeltaTableExists(table_name):
     LogExtended(sql)
     spark.sql(sql)
   except Exception as e:
-    if "not found" in str(e):
+    if "not found" in str(e) or "NOT_FOUND" in str(e):
       return False
     else:
       #Else raise a error. Something's gone wrong
@@ -29,7 +29,7 @@ def DeltaTablePartitioned(table_name):
   except Exception as e:
     if "not partitioned" in str(e):
       return False
-    elif "not found" in str(e):
+    elif "not found" in str(e) or "NOT_FOUND" in str(e):
       return False
     else:
       #Else raise a error. Something's gone wrong
@@ -44,7 +44,7 @@ def DeltaDatabaseExists(database_name):
   try:
     spark.sql("DESCRIBE " + database_name)
   except Exception as e:
-    if "not found" in str(e):
+    if "not found" in str(e) or "NOT_FOUND" in str(e):
       return False
     else:
       #Else raise a error. Something's gone wrong

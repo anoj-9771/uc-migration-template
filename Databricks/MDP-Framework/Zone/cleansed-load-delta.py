@@ -37,12 +37,13 @@ cleansedTableName = get_table_name('cleansed', destinationSchema, destinationTab
 # COMMAND ----------
 
 #GET LAST CLEANSED LOAD TIMESTAMP
+lastLoadTimeStamp = '2022-01-01'
 try:
     lastLoadTimeStamp = spark.sql(f"select date_format(max(_DLCleansedZoneTimeStamp),'yyyy-MM-dd HH:mm:ss') as lastLoadTimeStamp from {cleansedTableName}").collect()[0][0]
     print(lastLoadTimeStamp)
 except Exception as e:
-    if "Table or view not found" in str(e):
-        lastLoadTimeStamp = '2022-01-01'            
+    print(str(e))
+                    
 
 # COMMAND ----------
 
