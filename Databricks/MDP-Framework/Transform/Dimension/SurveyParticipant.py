@@ -14,7 +14,9 @@ TARGET = DEFAULT_TARGET
 
 # COMMAND ----------
 
-from pyspark.sql.functions import lit, monotonically_increasing_id, col, when
+from pyspark.sql.functions import lit, col, when, row_number
+from pyspark.sql.window import Window
+
 
 def add_missing_columns(df, required_columns):
     for col_name in required_columns:
@@ -27,7 +29,7 @@ table_name = ["qualtrics_billpaidsuccessfullyresponses", "qualtrics_businessConn
               "qualtrics_p4sonlinefeedbackResponses", "qualtrics_s73surveyResponses", "qualtrics_waterfixpostinteractionfeedbackResponses",
               "qualtrics_websitegoliveResponses", "qualtrics_wscs73experiencesurveyResponses", "qualtrics_feedbacktabgoliveResponses"]
 
-required_columns = ["recipientEmail", "recipientFirstName", "recipientLastName", "customerFirstName", "customerLastName", "companyName", "ageGroup"]
+required_columns = ["recipientEmail", "recipientFirstName", "recipientLastName", "customerFirstName", "customerLastName", "companyName", "ageGroup", "recordedDate"]
 
 union_df = None
 
@@ -44,9 +46,18 @@ for table in table_name:
 finaldf = union_df.withColumn("sourceSystemCode", lit('Qualtrics').cast("string")) \
                   .withColumn("BusinessKey", concat_ws('|', union_df.recipientEmail, \
                                                             when((union_df.recipientFirstName).isNull(), lit('')).otherwise(union_df.recipientFirstName),
+                                                            when((union_df.recipientLastName).isNull(), lit('')).otherwise(union_df.recipientLastName),
+                                                            union_df.recordedDate)) \
+                  .withColumn("sourceBusinessKey", concat_ws('|', union_df.recipientEmail, \
+                                                            when((union_df.recipientFirstName).isNull(), lit('')).otherwise(union_df.recipientFirstName),
                                                             when((union_df.recipientLastName).isNull(), lit('')).otherwise(union_df.recipientLastName))) \
                   .dropDuplicates()  
 
+
+windowSpec = Window.partitionBy("sourceBusinessKey").orderBy(col("recordedDate").desc())
+finaldf = finaldf.withColumn("row_num", row_number().over(windowSpec)) \
+                 .withColumn("lagValidDate", lag("recordedDate").over(windowSpec)- expr("Interval 1 milliseconds")) \
+                 .withColumn("sourceRecordCurrent", when(col("row_num") == 1, 1).otherwise(0))
 
 # COMMAND ----------
 
@@ -63,7 +74,11 @@ def Transform():
         ,"customerFirstName customerFirstName"
         ,"customerLastName customerSurname" 
         ,"companyName companyName"
-        ,"ageGroup ageGroup"             
+        ,"ageGroup ageGroup"
+        ,"sourceBusinessKey sourceBusinessKey"
+        ,"sourceRecordCurrent" 
+        ,"RecordedDate sourceValidFromDatetime"  
+        ,"CASE WHEN lagValidDate is NULL THEN CAST('9999-12-31' AS TIMESTAMP) ELSE lagValidDate END sourceValidToDatetime"     
         ,"sourceSystemCode sourceSystemCode"
     ]
     
@@ -76,4 +91,4 @@ def Transform():
     #CleanSelf()
     Save(df_final)     
     #DisplaySelf()
-Transform() 
+Transform()
