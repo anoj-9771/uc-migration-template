@@ -6,8 +6,7 @@ db = notebookPath[-3:][0]
 spark.sql("""
 -- View: viewBusinessPartnerGroup
 -- Description: viewBusinessPartnerGroup
-CREATE
-OR REPLACE VIEW curated_v2.viewBusinessPartnerGroup AS
+CREATE OR REPLACE VIEW curated_v2.viewBusinessPartnerGroup AS
 /*================================================================================================
 			all_ID
 				-> _rank: used to only bring 1 businesspartner ID per identification type

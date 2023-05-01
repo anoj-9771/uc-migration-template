@@ -7,7 +7,7 @@ spark.sql("""
 -- View: viewInstallation
 -- Description: viewInstallation
 
-create or replace view curated_v2.viewInstallation
+CREATE OR REPLACE VIEW curated_v2.viewInstallation
 as
 
 With dimInstallationRanges AS
