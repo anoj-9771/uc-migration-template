@@ -1,6 +1,5 @@
 {
 	"name": "LS-AzureDatabricks_JobCluster",
-	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"parameters": {
 			"kvSecret": {
@@ -20,7 +19,7 @@
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "$(LS-AzureDatabricks_JobCluster_properties_typeProperties_domain)",
+			"domain": "https://australiaeast.azuredatabricks.net",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
@@ -46,5 +45,6 @@
 			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 			"type": "IntegrationRuntimeReference"
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
 }
