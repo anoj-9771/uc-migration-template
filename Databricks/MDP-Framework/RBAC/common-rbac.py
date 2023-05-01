@@ -26,7 +26,6 @@ def PopuateGroups():
             CUSTOM_GROUPS.extend(j["CUSTOM_GROUPS"])
         except Exception as e:
             print(e)
-            #pass
 PopuateGroups()
 
 # COMMAND ----------

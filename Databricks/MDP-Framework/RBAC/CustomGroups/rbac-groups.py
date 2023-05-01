@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./rbac-uc1
+
+# COMMAND ----------
+
 CUSTOM_GROUPS = [
     {
         "Name" : "L1-Official"
@@ -35,6 +39,10 @@ CUSTOM_GROUPS = [
             ,"cleansed.iicats_hierarchy_cnfgn"
             ,"cleansed.iicats_event"
             ,*L2_Maximo
+            ,"cleansed.scada_event"
+            ,"cleansed.scada_hierarchy_cnfgn"
+            ,"cleansed.scada_point_limit"
+            ,"cleansed.scada_scxuser"
         ]
         ,"Users" : []
         ,"AADGroups" : [ "cleansed-sensitive" ]
@@ -71,6 +79,7 @@ CUSTOM_GROUPS = [
         ]
         ,"Users" : ["onyu", "o2pr", "v4y", "49f", "39A", "9T9"] 
     }
+    ,*RBAC_UC1
 ]
 
 # COMMAND ----------
