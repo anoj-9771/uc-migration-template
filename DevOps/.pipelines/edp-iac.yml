@@ -48,3 +48,27 @@ stages:
                   overrideParameters: '-environment ${{parameters.environment}} -program $(program) -dataFactoryName $(dataFactoryName) -emailForAlerts $(emailForAlerts) -enableAlerts $(enableAlerts)'
                   deploymentMode: 'Incremental'
                   deploymentOutputs: 'armOutputs'
+- stage: 'Deploy_Logic_App_Send_Email'
+  displayName: 'Deploy LogicApp SendEmail in ${{ parameters.environment }}'
+  jobs:
+  - deployment: 'Deploy_Logic_App_Send_Email'
+    displayName: 'Deploy LogicApp in ${{ parameters.environment }}'
+    environment: ${{ parameters.environment }}
+    strategy:
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self
+              - task: AzureResourceManagerTemplateDeployment@3
+                displayName: 'Deploy Azure LogicApp in $(resourceGroupName)'
+                inputs:
+                  deploymentScope: 'Resource Group'
+                  azureResourceManagerConnection: '$(azdoResourceConnection)'
+                  action: 'Create Or Update Resource Group'
+                  resourceGroupName: '$(resourceGroupName)'
+                  location: $(location)
+                  templateLocation: 'Linked artifact'
+                  csmFile: '$(DevOpsDirectory)/logicapp/arm-logic-app-send-email.json'
+                  overrideParameters: '-apiName "api-$(subscriptionName)-daf-${{parameters.environment}}-o365-01" -logicAppName "logic-$(subscriptionName)-daf-${{parameters.environment}}-sendemail-01"'
+                  deploymentMode: 'Incremental'
+                  deploymentOutputs: 'armOutputs'
