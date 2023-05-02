@@ -1,0 +1,34 @@
+{
+	"name": "generic-elt-failure",
+	"properties": {
+		"activities": [
+			{
+				"name": "execute-send-email",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "send-email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"importance": "High",
+						"body": {
+							"value": "<p>Hi team, we have identified a delay with the EDP refresh today.</p>\n<p>Data is still available but will only be current as of yesterday.</p>\n\n<p><b>You will be notified shortly on when data has been refreshed once our team have corrected and rerun load.<b></p>\n",
+							"type": "Expression"
+						},
+						"recipient": "JESSICA.LI@sydneywater.com.au; KESHAV.KUMARBHUPATHIRAJAN@sydneywater.com.au; HAOSUMMER.HU@sydneywater.com.au; KELVIN.HONG@sydneywater.com.au",
+						"sender": "logicAppTestMailbox@sydneywater.com.au",
+						"subject": "ELT Failure"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "MDP-Framework/Common/Alerting"
+		},
+		"annotations": []
+	}
+}

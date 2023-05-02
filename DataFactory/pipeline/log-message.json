@@ -21,37 +21,6 @@
 					},
 					"ifTrueActivities": [
 						{
-							"name": "send-email",
-							"type": "WebActivity",
-							"dependsOn": [
-								{
-									"activity": "set-body",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"url": {
-									"value": "@pipeline().globalParameters.logicAppAlertUrl",
-									"type": "Expression"
-								},
-								"method": "POST",
-								"body": {
-									"value": "{\n\"importance\": \"\",\n\"body\": \"@{variables('body')}\",\n\"recipient\": \"@{activity('log-copy').output.firstRow.RecipientList}\",\n\"sender\": \"logicAppTestMailbox@sydneywater.com.au\",\n\"subject\": \"ADF Pipeline Failure\"\n}",
-									"type": "Expression"
-								}
-							}
-						},
-						{
 							"name": "set-body",
 							"type": "SetVariable",
 							"dependsOn": [],
@@ -61,6 +30,38 @@
 								"value": {
 									"value": "<style> table {   border: 1px solid #1C6EA4;   background-color: #EEEEEE;   width: 100%;   text-align: left;   border-collapse: collapse; } table td, table th {   border: 1px solid #AAAAAA;   padding: 3px 2px; } table tbody td {   font-size: 13px; } table thead {   background: red;   border-bottom: 2px solid #444444; } table thead th {   font-size: 15px;   font-weight: bold;   border-left: 2px solid #D0E4F5;   text-align: left;   text-color:#FFFFFF; } table thead th:first-child {   border-left: none; } </style>\n<table>\n   <thead>\n      <tr>\n         <th>LogId</th>\n         <th>BatchId</th>\n         <th>SystemCode</th>\n         <th>DestinationTableName</th>\n         <th>ExtractLoadStatusID</th>\n         <th>ActivityType</th>\n         <th>ErrorMessage</th>\n      </tr>\n   </thead>\n   <tbody>\n      <tr>\n         <td>@{activity('log-copy').output.firstRow.LogId}</td>\n         <td>@{activity('log-copy').output.firstRow.BatchId}</td>\n         <td>@{activity('log-copy').output.firstRow.SystemCode}</td>\n         <td>@{activity('log-copy').output.firstRow.DestinationTableName}</td>\n         <td>@{activity('log-copy').output.firstRow.ExtractLoadStatusID}</td>\n         <td>@{activity('log-copy').output.firstRow.ActivityType}</td>\n         <td>@{activity('log-copy').output.firstRow.ErrorMessage}</td>\n      </tr>\n   </tbody>\n</table>",
 									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "execute-send-email",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "set-body",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "send-email",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"body": {
+										"value": "@variables('body')",
+										"type": "Expression"
+									},
+									"recipient": {
+										"value": "@{activity('log-copy').output.firstRow.RecipientList}",
+										"type": "Expression"
+									},
+									"sender": "logicAppTestMailbox@sydneywater.com.au",
+									"subject": "ADF Pipeline Failure"
 								}
 							}
 						}

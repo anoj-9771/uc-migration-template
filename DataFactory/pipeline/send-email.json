@@ -1,0 +1,52 @@
+{
+	"name": "send-email",
+	"properties": {
+		"activities": [
+			{
+				"name": "send-email",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@pipeline().globalParameters.logicAppAlertUrl",
+						"type": "Expression"
+					},
+					"method": "POST",
+					"body": {
+						"value": "{\n\"importance\": \"@{pipeline().parameters.importance}\",\n\"body\": \"@{pipeline().parameters.body}\",\n\"recipient\": \"@{pipeline().parameters.recipient}\",\n\"sender\": \"@{pipeline().parameters.sender}\",\n\"subject\": \"@{pipeline().parameters.subject}\"\n}",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"importance": {
+				"type": "string"
+			},
+			"body": {
+				"type": "string"
+			},
+			"recipient": {
+				"type": "string"
+			},
+			"sender": {
+				"type": "string"
+			},
+			"subject": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/Common/Alerting"
+		},
+		"annotations": []
+	}
+}

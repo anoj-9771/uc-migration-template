@@ -451,6 +451,26 @@
 									}
 								]
 							}
+						},
+						{
+							"name": "execute-generic-elt-failure",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Cleansed-to-Curated Stage3",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "generic-elt-failure",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": false
+							}
 						}
 					]
 				}
