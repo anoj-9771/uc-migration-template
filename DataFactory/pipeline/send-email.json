@@ -5,6 +5,37 @@
 			{
 				"name": "send-email",
 				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "get-logicapp-send-email-url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@activity('get-logicapp-send-email-url').output.value",
+						"type": "Expression"
+					},
+					"method": "POST",
+					"body": {
+						"value": "{\n\"importance\": \"@{pipeline().parameters.importance}\",\n\"body\": \"@{pipeline().parameters.body}\",\n\"recipient\": \"@{pipeline().parameters.recipient}\",\n\"sender\": \"@{pipeline().parameters.sender}\",\n\"subject\": \"@{pipeline().parameters.subject}\"\n}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "get-logicapp-send-email-url",
+				"type": "WebActivity",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -16,13 +47,13 @@
 				"userProperties": [],
 				"typeProperties": {
 					"url": {
-						"value": "@pipeline().globalParameters.logicAppAlertUrl",
+						"value": "@concat('https://', pipeline().globalParameters.keyVaultName, '.vault.azure.net/secrets/daf-logicapp-send-email-url?api-version=7.0')",
 						"type": "Expression"
 					},
-					"method": "POST",
-					"body": {
-						"value": "{\n\"importance\": \"@{pipeline().parameters.importance}\",\n\"body\": \"@{pipeline().parameters.body}\",\n\"recipient\": \"@{pipeline().parameters.recipient}\",\n\"sender\": \"@{pipeline().parameters.sender}\",\n\"subject\": \"@{pipeline().parameters.subject}\"\n}",
-						"type": "Expression"
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
 					}
 				}
 			}
