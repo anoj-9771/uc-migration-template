@@ -78,7 +78,10 @@ if(extendedProperties):
         if (deletedRecordsDataFrame):
             cleanseDataFrame = cleanseDataFrame.unionByName(deletedRecordsDataFrame, allowMissingColumns=True)                                                  
     elif(deleteRecordsQuery and businessKey):
-        cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
+        if TableExists(cleansedTableName):
+            cleanseDataFrame.unionByName(spark.table(cleansedTableName)).createOrReplaceTempView("vwCleanseDataFrame")
+        else:    
+            cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
         deletedRecordsDataFrame = spark.sql(deleteRecordsQuery.replace("{lastLoadTimeStamp}", lastLoadTimeStamp)
                                                               .replace("{vwCleanseDataFrame}", "vwCleanseDataFrame")
                                            )
