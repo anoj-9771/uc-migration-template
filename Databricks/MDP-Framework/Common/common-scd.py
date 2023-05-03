@@ -35,6 +35,17 @@ def BasicMerge(sourceDataFrame, targetTableFqn, businessKey=None):
 
 # COMMAND ----------
 
+def BasicMergeNoUpdate(sourceDataFrame, targetTableFqn, businessKey=None):
+  businessKey = spark.table(targetTableFqn).columns[0] if businessKey is None else businessKey
+  s = ConcatBusinessKey(businessKey, "s")
+  t = ConcatBusinessKey(businessKey, "t")
+  
+  df = DeltaTable.forName(spark, targetTableFqn).alias("t").merge(sourceDataFrame.alias("s"), f"{s} = {t}") \
+    .whenNotMatchedInsertAll() \
+    .execute()
+
+# COMMAND ----------
+
 def MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource, BK, SK):
     targetTable = spark.table(targetTableFqn)
     # _exclude = {f"{_.SK}", f"{_.BK}", '_recordStart', '_recordEnd', '_Current', "_Batch_SK"}
@@ -95,9 +106,12 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource, BK, SK):
 
 # COMMAND ----------
 
-def CreateOrMerge(sourceDataFrame, targetTableFqn, dataLakePath, businessKey=None, createTableConstraints = True):
+def CreateOrMerge(sourceDataFrame, targetTableFqn, dataLakePath, businessKey=None, createTableConstraints = True, mergeWithUpdate = True):
     if (TableExists(targetTableFqn)):
-        BasicMerge(sourceDataFrame, targetTableFqn, businessKey)
+        if mergeWithUpdate: 
+            BasicMerge(sourceDataFrame, targetTableFqn, businessKey)
+        else:
+            BasicMergeNoUpdate(sourceDataFrame, targetTableFqn, businessKey)
     else:
         #create delta table with not null constraints on buiness keys
         CreateDeltaTable(sourceDataFrame, targetTableFqn, dataLakePath, businessKey, createTableConstraints)

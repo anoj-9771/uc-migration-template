@@ -3,10 +3,6 @@
 
 # COMMAND ----------
 
-SYSTEM_CODE = "hydstra"
-
-# COMMAND ----------
-
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType, LongType
 from pyspark.sql.functions import col, expr, when, desc
 
@@ -28,13 +24,13 @@ df.display()
 # COMMAND ----------
 
 sqlBase = """
-    with _Base as (SELECT 'hydstra' SourceSchema, '' SourceKeyVaultSecret, 'skip-load' SourceHandler, 'csv' RawFileExtension, 'raw-load-autoloader' RawHandler, '{"separator":"|"}' ExtendedProperties, '' CleansedHandler, '' WatermarkColumn, 1 Enabled) 
+    with _Base as (SELECT 'hydstra' SourceSchema, '' SourceKeyVaultSecret, 'skip-load' SourceHandler, 'csv' RawFileExtension, 'raw-load-autoloader' RawHandler, '{"separator":"|"}' ExtendedProperties, 'cleansed-load-hydstra' CleansedHandler, '' WatermarkColumn, 1 Enabled) 
     select '' SourceQuery, '' SourceTableName, * from _base where 1 = 0
     """
 sqlLines = ""
 
 for i in df.collect():
-    fileName = i.name.replace("/","")
+    fileName = i.name.replace("/","").replace("Hydstra","")
     folderPath = i.path.split("dbfs:")[1]
     sqlLines += f"UNION ALL select '{folderPath}' SourceQuery, '{fileName}' SourceTableName, * from _Base "
 
@@ -42,6 +38,10 @@ print(sqlBase + sqlLines)
 
 df = spark.sql(sqlBase + sqlLines)
 df.display()
+
+dfHydstraRef = df.where("SourceTableName = 'MetaData'")
+
+dfHydstraData = df.where("SourceTableName <> 'MetaData'")
 
 # COMMAND ----------
 
@@ -57,4 +57,24 @@ def ConfigureManifest(df):
     # ------------- ShowConfig ----------------- #
     ShowConfig()
 
-ConfigureManifest(df)   
+SYSTEM_CODE = 'hydstraRef'
+ConfigureManifest(dfHydstraRef)
+
+SYSTEM_CODE = "hydstraData"
+ConfigureManifest(dfHydstraData)
+
+# COMMAND ----------
+
+ExecuteStatement("""
+update dbo.extractLoadManifest set businessKeyColumn = case sourceTableName
+when 'MetaData' then 'metaDataType,referenceCd'
+when 'GaugeDetails' then 'gaugeIdentifier'
+when 'TSV_Provisional' then 'gaugeId,variableNameUnit,measurementResultDateTime'
+when 'TSV_Verified' then 'gaugeId,variableNameUnit,measurementResultDateTime'
+end
+where systemCode in ('hydstraRef','hydstraData')
+""")
+
+# COMMAND ----------
+
+

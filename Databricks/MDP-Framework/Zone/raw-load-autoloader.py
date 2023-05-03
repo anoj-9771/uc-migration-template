@@ -52,7 +52,7 @@ else:
     if charset:
         fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","allowBackslashEscapingAnyCharacter":"True","charset":f"{charset}"}
     else:
-        fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","allowBackslashEscapingAnyCharacter":"True"}       
+        fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","allowBackslashEscapingAnyCharacter":"True"}        
 
 # COMMAND ----------
 
@@ -67,7 +67,3 @@ df = df.toDF(*(RemoveBadCharacters(c) for c in df.columns))
 df = df.withColumn('_DLRawZoneTimeStamp', F.current_timestamp()).withColumn('_InputFileName', F.input_file_name())
 
 query = AppendDeltaTableStream(df, tableFqn, dataLakePath)
-
-# COMMAND ----------
-
-
