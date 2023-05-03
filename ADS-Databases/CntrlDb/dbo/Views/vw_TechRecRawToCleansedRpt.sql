@@ -47,7 +47,7 @@ SELECT * FROM
 		CleansedStatus BatchExecutionStatus,
 		CleansedStatus TaskExecutionStatus,
 		ID TaskExecutionLogId,
-		row_number() over (partition by log.systemcode, log.sourceid order by log.rawstartdts desc) as CurrentRecord		 
+		row_number() over (partition by log.systemcode, log.sourceid, cast(log.rawstartdts as date) order by log.rawstartdts desc) as CurrentRecord		 
 	from dbo.ExtractLoadStatus log, dbo.ExtractLoadManifest config 
    where config.sourceid = log.SourceID
 	 and CHARINDEX(config.systemCode, log.RawPath) > 0

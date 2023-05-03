@@ -45,7 +45,7 @@ SELECT * FROM
 		TRY_CONVERT(DATE, log.RawEndDTS) as EndDate,
 		RawStatus BatchExecutionStatus,
 		RawStatus,
-		row_number() over (partition by log.systemcode, log.sourceid order by log.rawstartdts desc) as ValidRecord
+		row_number() over (partition by log.systemcode, log.sourceid, cast(log.rawstartdts as date) order by log.rawstartdts desc) as ValidRecord
 	from dbo.ExtractLoadStatus log, dbo.ExtractLoadManifest config 
 	where config.sourceid = log.SourceID
 	and CHARINDEX(config.systemCode, log.RawPath) > 0
