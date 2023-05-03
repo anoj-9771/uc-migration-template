@@ -1,0 +1,31 @@
+﻿RawTable,CleansedTable,RawColumnName,DataType,CleansedColumnName,TransformTag,CustomTransform,Lookup
+raw.hydstra_tsv_provisional,cleansed.hydstra_tsv_provisional,Gauge_Id,string,gaugeId,,,
+raw.hydstra_tsv_provisional,cleansed.hydstra_tsv_provisional,VariableName_Unit,string,variableNameUnit,,,
+raw.hydstra_tsv_provisional,cleansed.hydstra_tsv_provisional,DataSource,string,dataSource,,,
+raw.hydstra_tsv_provisional,cleansed.hydstra_tsv_provisional,Timestamp,timestamp,measurementResultDateTime,,,
+raw.hydstra_tsv_provisional,cleansed.hydstra_tsv_provisional,Value,"decimal (38,4)",measurementResultVal,,,
+raw.hydstra_tsv_provisional,cleansed.hydstra_tsv_provisional,Quality,integer,dataQualityCd,,,
+raw.hydstra_tsv_provisional,cleansed.hydstra_tsv_provisional,Quality,string,dataQuality,,"concat('Quality',cast(Quality as Int))",lookup-hydstra-metadata-reference
+raw.hydstra_tsv_provisional,cleansed.hydstra_tsv_provisional,Data_Transformation_Code,integer,dataTransformationCd,,,
+raw.hydstra_tsv_provisional,cleansed.hydstra_tsv_provisional,Data_Transformation_Code,string,dataTransformation,,"concat('Transformation',cast(Data_Transformation_Code as Int))",lookup-hydstra-metadata-reference
+raw.hydstra_tsv_verified,cleansed.hydstra_tsv_verified,Gauge_Id,string,gaugeId,,,
+raw.hydstra_tsv_verified,cleansed.hydstra_tsv_verified,VariableName_Unit,string,variableNameUnit,,,
+raw.hydstra_tsv_verified,cleansed.hydstra_tsv_verified,DataSource,string,dataSource,,,
+raw.hydstra_tsv_verified,cleansed.hydstra_tsv_verified,Timestamp,timestamp,measurementResultDateTime,,,
+raw.hydstra_tsv_verified,cleansed.hydstra_tsv_verified,Value,"decimal (38,4)",measurementResultVal,,,
+raw.hydstra_tsv_verified,cleansed.hydstra_tsv_verified,Quality,integer,dataQualityCd,,,
+raw.hydstra_tsv_verified,cleansed.hydstra_tsv_verified,Quality,string,dataQuality,,"concat('Quality',cast(Quality as Int))",lookup-hydstra-metadata-reference
+raw.hydstra_tsv_verified,cleansed.hydstra_tsv_verified,Data_Transformation_Code,integer,dataTransformationCd,,,
+raw.hydstra_tsv_verified,cleansed.hydstra_tsv_verified,Data_Transformation_Code,string,dataTransformation,,"concat('Transformation',cast(Data_Transformation_Code as Int))",lookup-hydstra-metadata-reference
+raw.hydstra_gaugedetails,cleansed.hydstra_gaugedetails,Gauge_ID,string,gaugeIdentifier,,,
+raw.hydstra_gaugedetails,cleansed.hydstra_gaugedetails,Gauge_Type,string,gaugeType,,,
+raw.hydstra_gaugedetails,cleansed.hydstra_gaugedetails,Gauge_Address,string,gaugeAddress,,,
+raw.hydstra_gaugedetails,cleansed.hydstra_gaugedetails,Latitude,"decimal (38,10)",gaugeLatitude,,,
+raw.hydstra_gaugedetails,cleansed.hydstra_gaugedetails,Longitude,"decimal (38,10)",gaugeLongitude,,,
+raw.hydstra_gaugedetails,cleansed.hydstra_gaugedetails,Gauge_Manhole_Asset_Number,string,gaugeManholeAssetNumber,,,
+raw.hydstra_gaugedetails,cleansed.hydstra_gaugedetails,Gauged_Pipe_Asset_Number,string,gaugedPipeAssetNumber,,,
+raw.hydstra_gaugedetails,cleansed.hydstra_gaugedetails,Gauge_Ekams_Identifier,string,gaugeEkamsIdentifier,,,
+raw.hydstra_gaugedetails,cleansed.hydstra_gaugedetails,Gauge_Facility_Asset_Tag,string,gaugeFacilityAssetTag,,,
+raw.hydstra_metadata,cleansed.hydstra_metadata,MetadataType,string,metadataType,,,
+raw.hydstra_metadata,cleansed.hydstra_metadata,Code,string,referenceCd,,,
+raw.hydstra_metadata,cleansed.hydstra_metadata,Description,string,referenceDescription,,,
