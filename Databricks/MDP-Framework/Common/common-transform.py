@@ -295,6 +295,31 @@ def Save(sourceDataFrame):
 
 # COMMAND ----------
 
+def SaveDefaultSource(sourceDataFrame):
+    scdFromSource = False
+    targetTableFqn = f"{_.Destination}"
+    print(f"Saving {targetTableFqn}...")
+    if (not(TableExists(targetTableFqn))):
+        print(f"Creating {targetTableFqn}...")
+        # Adjust _RecordStart date for first load
+        sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
+        sourceDataFrame = _WrapSystemColumns(sourceDataFrame, scdFromSource) if sourceDataFrame is not None else None
+
+        if all(colName in sourceDataFrame.columns for colName in ["sourceValidFromDateTime", "sourceValidToDateTime"]):
+            sourceDataFrame = sourceDataFrame.withColumn("sourceValidFromDateTime", when(col("sourceValidFromDateTime").isNull(), col("_recordStart")).otherwise(col("sourceValidFromDateTime"))) \
+                                             .withColumn("sourceValidToDateTime", when(col("sourceValidToDateTime").isNull(), col("_recordEnd")).otherwise(col("sourceValidToDateTime"))) \
+                                             .withColumn("sourceRecordCurrent", when(col("sourceRecordCurrent").isNull(), col("_recordCurrent")).otherwise(col("sourceRecordCurrent")))
+
+        CreateDeltaTableR1W4(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        EndNotebook(sourceDataFrame)
+        return
+    sourceDataFrame = _WrapSystemColumns(sourceDataFrame, scdFromSource) if sourceDataFrame is not None else None
+    MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource,_.BK,_.SK)
+    EndNotebook(sourceDataFrame)
+    return
+
+# COMMAND ----------
+
 def SaveSCDFromSource(sourceDataFrame):
     scdFromSource = True
     sourceDataFrame = _WrapSystemColumns(sourceDataFrame, scdFromSource) if sourceDataFrame is not None else None

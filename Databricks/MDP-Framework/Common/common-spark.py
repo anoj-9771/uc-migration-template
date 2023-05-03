@@ -20,6 +20,18 @@ def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = Non
 
 # COMMAND ----------
 
+def CreateDeltaTableR1W4(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints=True):
+    dataFrame.write \
+             .format("delta") \
+             .option("delta.readerVersion", "1") \
+             .option("delta.writerVersion", "4") \
+             .option("mergeSchema", "true") \
+             .mode("overwrite") \
+             .save(dataLakePath)
+    CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints)
+
+# COMMAND ----------
+
 #A streaming variant of AppendDeltaTable function. The other difference is that the table creation has been decoupled. We should look at saving the dataframe to table directly.
 def AppendDeltaTableStream(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, triggerType = "once"):
     if triggerType == "once":
