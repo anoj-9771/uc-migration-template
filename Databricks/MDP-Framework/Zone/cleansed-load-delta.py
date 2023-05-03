@@ -43,7 +43,6 @@ try:
     print(lastLoadTimeStamp)
 except Exception as e:
     print(str(e))
-                    
 
 # COMMAND ----------
 
@@ -71,12 +70,25 @@ cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",curren
 # HANDLE SOURCE SYSTEM DELETES
 if(extendedProperties):
     deleteRecordsTable = extendedProperties.get("deleteRecordsTable")
+    deleteRecordsQuery = extendedProperties.get("deleteRecordsQuery")
     groupOrderBy = extendedProperties.get("GroupOrderBy")
     if(deleteRecordsTable):
         deleteRecordsTable = f"cleansed.{deleteRecordsTable}"
         deletedRecordsDataFrame = SourceDeletedRecords(cleansedTableName,businessKey,groupOrderBy,deleteRecordsTable,systemCode,lastLoadTimeStamp)
         if (deletedRecordsDataFrame):
             cleanseDataFrame = cleanseDataFrame.unionByName(deletedRecordsDataFrame, allowMissingColumns=True)                                                  
+    elif(deleteRecordsQuery and businessKey):
+        cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
+        deletedRecordsDataFrame = spark.sql(deleteRecordsQuery.replace("{lastLoadTimeStamp}", lastLoadTimeStamp)
+                                                              .replace("{vwCleanseDataFrame}", "vwCleanseDataFrame")
+                                           )
+        deletedRecordsDataFrame = deletedRecordsDataFrame.withColumn("_DLCleansedZoneTimeStamp",current_timestamp()) \
+                                                         .withColumn("_RecordCurrent",lit('1')) \
+                                                         .withColumn("_RecordDeleted",lit('1')) \
+                                                         .withColumn("_RecordStart",current_timestamp()) \
+                                                         .withColumn("_RecordEnd",to_timestamp(lit("9999-12-31"), "yyyy-MM-dd"))
+        cleanseDataFrame = cleanseDataFrame.join(deletedRecordsDataFrame,businessKey.split(','),'leftanti')
+        cleanseDataFrame = cleanseDataFrame.unionByName(deletedRecordsDataFrame)                                                         
 
 # GET LATEST RECORD OF THE BUSINESS KEY
     if(groupOrderBy):
@@ -86,6 +98,6 @@ CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if j.get("Bu
 
 # COMMAND ----------
 
-CleansedSinkCount = spark.table(cleansedTableName).count()
+CleansedSinkCount = spark.table(cleansedTableName).where("_RecordDeleted = 0").count()
 #print(f"Cleansed Source Count: {CleansedSourceCount} Cleansed Sink Count: {CleansedSinkCount}")
 dbutils.notebook.exit({"CleansedSourceCount": CleansedSourceCount, "CleansedSinkCount": CleansedSinkCount})

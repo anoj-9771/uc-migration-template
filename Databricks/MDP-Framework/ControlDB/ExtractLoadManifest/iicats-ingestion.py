@@ -7,7 +7,7 @@ from pyspark.sql.functions import lit, when, lower, expr
 df = spark.sql("""
     WITH _Base AS 
     (
-      SELECT 'iicatsref' SystemCode, 'iicats' SourceSchema, 'daf-oracle-IICATS-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, '' RawFileExtension, 'raw-load-delta' RawHandler, '' ExtendedProperties, 'cleansed-load-delta' CleansedHandler
+      SELECT 'iicatsref' SystemCode, 'iicats' SourceSchema, 'daf-oracle-IICATS-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, '' RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, '' ExtendedProperties
     )
     SELECT 'std_asset_type' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
@@ -17,27 +17,29 @@ df = spark.sql("""
     SELECT 'bi_reference_codes' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
     SELECT 'std_unit' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    UNION 
+    SELECT 'hierarchy_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from scxstg.hierarchy_cnfgn where lower(substr(site_cd,1,2)) <> ''tw''" SourceQuery, * FROM _Base    
     UNION
     (
     WITH _Base AS 
     (
-      SELECT 'iicatsdata' SystemCode, 'iicats' SourceSchema, 'daf-oracle-IICATS-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, '' RawFileExtension, 'raw-load-delta' RawHandler, '' ExtendedProperties, 'cleansed-load-delta' CleansedHandler
+      SELECT 'iicatsdata' SystemCode, 'iicats' SourceSchema, 'daf-oracle-IICATS-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, '' RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler
     )
-    SELECT 'scx_facility' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from iicats.scx_facility where lower(edw_export_config) = ''y''" SourceQuery, * FROM _Base
+    SELECT 'scx_facility' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from iicats.scx_facility where lower(edw_export_config) = ''y''" SourceQuery, *, '{"deleteRecordsQuery" : "select * from {vwCleanseDataFrame} where facilityInternalId in (select objectInternalId from cleansed.iicats_hierarchy_cnfgn where sourceRecordUpsertLogic = \\'\\'D\\'\\' and objestLevelNumber = 9 and _DLCleansedZoneTimeStamp > \\'\\'{lastLoadTimeStamp}\\'\\')"}' ExtendedProperties FROM _Base
     UNION 
-    SELECT 'groups' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'groups' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, *, '' ExtendedProperties FROM _Base
     UNION 
-    SELECT 'scx_point' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from iicats.scx_point where lower(edw_export_config) = ''y''" SourceQuery, * FROM _Base
+    SELECT 'scx_point' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from iicats.scx_point where lower(edw_export_config) = ''y''" SourceQuery, *, '{"deleteRecordsQuery" : "select * from {vwCleanseDataFrame} where pointInternalId in (select objectInternalId from cleansed.iicats_hierarchy_cnfgn where sourceRecordUpsertLogic = \\'\\'D\\'\\' and objestLevelNumber = 11 and _DLCleansedZoneTimeStamp > \\'\\'{lastLoadTimeStamp}\\'\\')"}' ExtendedProperties FROM _Base
     UNION 
-    SELECT 'wfp_daily_demand_archive' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'wfp_daily_demand_archive' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, *, '' ExtendedProperties FROM _Base
     UNION 
-    SELECT 'site_hierarchy' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from iicats.site_hierarchy where lower(substr(scx_site_code,1,2)) <> ''tw'' and lower(edw_export_config) = ''y''" SourceQuery, * FROM _Base    
+    SELECT 'site_hierarchy' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from iicats.site_hierarchy where lower(substr(scx_site_code,1,2)) <> ''tw'' and lower(edw_export_config) = ''y''" SourceQuery, *, '{"deleteRecordsQuery" : "select * from {vwCleanseDataFrame} where siteInternalId in (select objectInternalId from cleansed.iicats_hierarchy_cnfgn where sourceRecordUpsertLogic = \\'\\'D\\'\\' and objestLevelNumber = 8 and _DLCleansedZoneTimeStamp > \\'\\'{lastLoadTimeStamp}\\'\\')"}' ExtendedProperties FROM _Base    
     )    
     UNION
     (
     WITH _Base AS 
     (
-      SELECT 'iicatsdata' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, '' RawFileExtension, 'raw-load-delta' RawHandler, '' ExtendedProperties, 'cleansed-load-delta' CleansedHandler
+      SELECT 'iicatsdata' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, '' RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, '' ExtendedProperties
     )
     SELECT 'event' SourceTableName, "TO_CHAR(HT_CRT_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
@@ -52,8 +54,6 @@ df = spark.sql("""
     SELECT 'wkly_prof_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
     SELECT 'dly_prof_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
-    UNION 
-    SELECT 'hierarchy_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from scxstg.hierarchy_cnfgn where lower(substr(site_cd,1,2)) <> ''tw''" SourceQuery, * FROM _Base
     UNION 
     SELECT 'point_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
