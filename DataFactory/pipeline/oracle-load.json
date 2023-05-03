@@ -697,7 +697,7 @@
 					"source": {
 						"type": "OracleSource",
 						"oracleReaderQuery": {
-							"value": "@replace(replace('SELECT COUNT(*) CleansedSourceCount FROM $A$.$B$',\n'$A$',pipeline().parameters.task.SourceSchema),\n'$B$',pipeline().parameters.task.SourceTableName)",
+							"value": "@replace(\n'SELECT COUNT(*) CleansedSourceCount FROM ($Q$)'\n,'$Q$', variables('BaseQuery'))",
 							"type": "Expression"
 						},
 						"partitionOption": "None",
