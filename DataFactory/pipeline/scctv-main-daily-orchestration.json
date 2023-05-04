@@ -651,7 +651,7 @@
 			},
 			"processEndTime": {
 				"type": "int",
-				"defaultValue": 23
+				"defaultValue": 10
 			},
 			"kalturaId": {
 				"type": "string",
