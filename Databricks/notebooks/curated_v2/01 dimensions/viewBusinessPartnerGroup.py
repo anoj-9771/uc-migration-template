@@ -7,6 +7,7 @@ spark.sql("""
 -- View: viewBusinessPartnerGroup
 -- Description: viewBusinessPartnerGroup
 CREATE OR REPLACE VIEW curated_v2.viewBusinessPartnerGroup AS
+/*** 
 /*================================================================================================
 			all_ID
 				-> _rank: used to only bring 1 businesspartner ID per identification type
@@ -185,11 +186,13 @@ businessPartnerIdentification AS (
       )
     )
 ),
+
+***/
 /*==============================
           Effective From and To Dates
       ================================*/
 
-dimBusinessPartnerGroupRanges AS
+with dimBusinessPartnerGroupRanges AS
 (
                 SELECT
                 businessPartnerGroupNumber, 
@@ -249,7 +252,7 @@ FROM
       coalesce(
         BPG.businessPartnerGroupNumber,
         ADDR.businessPartnerNumber,
-        ID.businessPartnerNumber,
+        --ID.businessPartnerNumber,
         -1
       ) as businessPartnerGroupNumber,
       BPG.businessPartnerGroupCode,
@@ -325,16 +328,16 @@ FROM
       ADDR.faxNumber,
       ADDR.emailAddress,
       /* BP ID columns */
-      ID.ebillRegistrationPartyType,
-      ID.ebillRegistrationTelephoneNumber,
-      ID.ebillRegistrationEmail,
-      ID.ebillRegistrationEmailEntryDate,
-      ID.dealingNumber,
-      ID.dealingType,
-      ID.dealingAmount,
-      ID.dealingDate,
-      ID.directDebitTelephoneNumber,
-      ID.directDebitEmail,
+      --ID.ebillRegistrationPartyType,
+      --ID.ebillRegistrationTelephoneNumber,
+      --ID.ebillRegistrationEmail,
+      --ID.ebillRegistrationEmailEntryDate,
+      --ID.dealingNumber,
+      --ID.dealingType,
+      --ID.dealingAmount,
+      --ID.dealingDate,
+      --ID.directDebitTelephoneNumber,
+      --ID.directDebitEmail,
       DR._effectiveFrom,
       DR._effectiveTo, 
       CASE
@@ -353,7 +356,7 @@ FROM
       AND DR._effectiveFrom <= ADDR._RecordEnd
       AND DR._effectiveTo >= ADDR._RecordStart
       --AND ADDR._recordDeleted = 0
-      LEFT JOIN businessPartnerIdentification ID ON DR.businessPartnerGroupNumber = ID.businessPartnerNumber
+      --LEFT JOIN businessPartnerIdentification ID ON DR.businessPartnerGroupNumber = ID.businessPartnerNumber
     WHERE
       businessPartnerGroupSK IS NOT NULL
   )

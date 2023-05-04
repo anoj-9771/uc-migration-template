@@ -20,7 +20,7 @@ for table in spark.catalog.listTables("curated"):
     if table.name != '' and not table.name.startswith("vw") and table.name.startswith(("brg", "meter", "view", "dim", "fact")):
         table_name_seperated = ' '.join(re.sub( r"([A-Z])", r" \1", table.name).split())
         table_name_formatted = table_name_seperated[0:1].capitalize() + table_name_seperated[1:100]
-        sql_statement = "create or replace view " + database_name + "." + table.name + " as select "
+        sql_statement = "CREATE OR REPLACE VIEW " + database_name + "." + table.name + " as select "
         #indexing the column
         curr_column = 0
         #list columns of the table selected
@@ -41,6 +41,7 @@ for table in spark.catalog.listTables("curated"):
                     sql_statement = sql_statement + " , " + column.name + " as `" + col_name_formatted + "`"
         sql_statement = sql_statement + "  from curated." + table.name + ";"
         #print(sql_statement)
+        sql_statement = sql_statement.replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {database_name} LIKE '{table.name}'").count() == 1 else "CREATE OR REPLACE VIEW")
         print(table.name)
         #executing the sql statement on spark creating the semantic view
         df = sqlContext.sql(sql_statement)
