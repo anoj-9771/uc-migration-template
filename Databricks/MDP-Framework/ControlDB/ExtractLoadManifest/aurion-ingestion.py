@@ -54,7 +54,7 @@ when 'position' then 'positionNumber'
 when 'organisation' then 'organisationUnitNumber'
 when 'active_employees' then 'employeeNumber,personNumber,dateEffective,positionNumber'
 when 'terminated_employees' then 'employeeNumber,personNumber,dateEffective,positionNumber'
-when 'employee_history' then 'employeeNumber,personNumber,dateEffective,positionNumber'
+when 'employee_history' then 'employeeNumber,personNumber,dateEffective,positionNumber,dateTo'
 else businessKeyColumn
 end
 where systemCode in ('aurion')
