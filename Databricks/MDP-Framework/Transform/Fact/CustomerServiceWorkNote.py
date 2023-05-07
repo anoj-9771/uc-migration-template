@@ -124,17 +124,17 @@ def Transform():
 
     _.Transforms = [
     f"objectTypeCode||'|'||workNoteType||'|'||noteID {BK}"
-    ,"objectID objectID"
-    ,"objectTypeCode objectTypeCode"
-    ,"objectType objectType"
-    ,"noteID workNoteId"
-    ,"workNoteLineNumber workNoteLineNumber"
-    ,"workNoteType workNoteType"
-    ,"Content workNotes"
-    ,"createdBy createdBy"
-    ,"CreateDateTime createdTimeStamp"
-    ,"modifiedBy modifiedBy"
-    ,"modifiedTimeStamp modifiedTimeStamp"
+    ,"objectID customerServiceObjectId"
+    ,"objectTypeCode customerServiceobjectTypeCode"
+    ,"objectType customerServiceObjectTypeName"
+    ,"noteID customerServiceWorkNoteId"
+    ,"workNoteLineNumber customerServiceWorkNoteLineNumber"
+    ,"workNoteType customerServiceWorkNoteTypeName"
+    ,"Content customerServiceWorkNotesDescription"
+    ,"createdBy customerServiceWorkNoteCreatedByUserName"
+    ,"CreateDateTime customerServiceWorkNoteCreatedTimestamp"
+    ,"modifiedBy customerServiceWorkNoteModifiedByUserName"
+    ,"modifiedTimeStamp customerServiceWorkNoteModifiedTimestamp"
 
     ]
     df = df.selectExpr(
@@ -145,7 +145,7 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-#   CleanSelf()
+    CleanSelf()
     Save(df)
     #DisplaySelf()
 pass

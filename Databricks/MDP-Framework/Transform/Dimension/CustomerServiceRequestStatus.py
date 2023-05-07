@@ -15,7 +15,7 @@ def Transform():
     global df 
     
     # ------------- TABLES ----------------- #   
-    srStatus = GetTable(f"{SOURCE}.crm_0crm_sales_act_1").select("statusProfile").distinct().filter("statusProfile IS NOT NULL") 
+    srStatus = GetTable(f"{SOURCE}.crm_0crm_srv_req_inci_h").select("statusProfile").distinct().filter("statusProfile IS NOT NULL") 
     
     recStatus = GetTable(f"{SOURCE}.crm_tj30t") \
     .select("statusProfile", "statusCode", "statusShortDescription","status").dropDuplicates() 
@@ -27,10 +27,10 @@ def Transform():
     #------------- TRANSFORMS ------------- #
     _.Transforms = [
         f"statusProfile||'|'||statusCode {BK}" 
-        ,"statusProfile"
-        ,"statusCode"
-        ,"statusShortDescription"
-        ,"status"        
+        ,"statusProfile             customerServiceRequestStatusProfile"
+        ,"statusCode                customerServiceRequestStatusCode"
+        ,"statusShortDescription    customerServiceRequestStatusShortDescription"
+        ,"status                    customerServiceRequestStatusDescription"        
         
     ]
     

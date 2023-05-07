@@ -2,7 +2,7 @@
 # MAGIC %md 
 # MAGIC Vno| Date      | Who         |Purpose
 # MAGIC ---|:---------:|:-----------:|:--------:
-# MAGIC 1  |05/04/2023 |Mag          |Initial
+# MAGIC 1  |04/05/2023 |Mag          |Initial
 
 # COMMAND ----------
 
@@ -137,6 +137,34 @@ for df in Surveys:
     else:
         union_df = union_df.union(flattened_df)
 
+#########Added CRM Survey #############################
+union_df = union_df.withColumn("surveyVersion", lit(None).cast("string"))
+
+dimBuss = GetTable(f"{DEFAULT_TARGET}.dimSurvey")
+crmQues = GetTable(f"{SOURCE}.crm_crm_svy_re_quest")
+
+split_col = split(col("sourceBusinessKey"), r"\|")
+dimBuss = dimBuss.withColumn("surveyID", split_col.getItem(1))
+#dimBuss.display()
+crmQuestion = dimBuss.join(crmQues, (dimBuss["surveyID"] == crmQues["surveyID"]) & (dimBuss["surveyVersion"] == crmQues["surveyVersion"])) \
+                     .select(dimBuss["surveySK"], crmQues["surveyID"], crmQues["questionId"], crmQues["surveyVersion"].alias("surveyVersion"), crmQues["longDescription"].alias("questionText"), crmQues["longDescription"].alias("questionDescription")) 
+
+
+crmQuestion =   crmQuestion.withColumn("questionType", lit(None).cast("string")) \
+                           .withColumn("questionPartId", lit(None).cast("string")) \
+                           .withColumn("questionPartText", lit(None).cast("string")) \
+                           .withColumn("answers", lit(None).cast("string")) \
+                           .withColumn("choices", lit(None).cast("string")) \
+                           .withColumn("surveyVersion", col("surveyVersion")) \
+                           .withColumn("sourceSystem", lit('CRM').cast("string")) \
+                           .select("surveySK", "surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "questionPartId", "questionPartText", "answers", "choices", "surveyVersion", "sourceSystem")
+
+
+union_df = union_df.unionByName(crmQuestion)
+
+crmQuestion.display()
+#######################################################
+
 # COMMAND ----------
 
 def Transform():
@@ -145,9 +173,10 @@ def Transform():
 
     # ------------- TRANSFORMS ------------- # 
     _.Transforms = [
-        f"sourceSystem||'|'||surveyID||'|'||questionId||'|'||CASE WHEN questionPartId IS NULL THEN '' ELSE questionPartId END {BK}"
+        f"sourceSystem||'|'||surveyID||'|'||questionId||'|'||CASE WHEN sourceSystem = 'CRM' THEN surveyVersion WHEN questionPartId IS NULL THEN '' ELSE questionPartId END {BK}"
         ,"surveySK surveyFK"
         ,"surveyID surveyID"
+        ,"surveyVersion surveyVersion"
         ,"questionId questionId"
         ,"questionText questionText"
         ,"questionDescription questionDescription" 
@@ -156,7 +185,7 @@ def Transform():
         ,"questionPartText questionPartText"
         ,"answers answers"
         ,"choices choices"
-        ,"sourceSystem sourceSystem"
+        ,"sourceSystem sourceSystemCode"
     ]
     
     df_final = df_final.selectExpr(

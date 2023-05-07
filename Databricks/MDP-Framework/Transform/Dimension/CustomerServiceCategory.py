@@ -99,6 +99,8 @@ def Transform():
 
     # ------------- JOINS ------------------ #
     windowSpec  = Window.partitionBy("business_key")
+    windowSpecSourceBusinessKey  = Window.partitionBy("sourceBusinessKey")
+    
     
     l1_join_df = main_df.join(time_slice_df,["categoryTreeGUID","categoryTreeID"],"inner") \
     .join(category_df,main_df.categoryTreeID==category_df.subjectCatogoryTreeId,"left") \
@@ -172,26 +174,27 @@ def Transform():
     
     df = df.withColumn("categoryUsage", when( df.subjectCatogoryTreeId.isNull(), lit("Interaction")).otherwise(lit("Service Request"))) \
     .withColumn("categoryType", when(df.catalogType== 'D', lit("Received Category")).otherwise(lit("Resolution Category"))) \
-    .withColumn("sourceRecordCurrent", when(year(col("validToDatetime")) == '9999', 1).otherwise(0))
+    .withColumn("sourceRecordCurrent", when(year(col("validToDatetime")) == '9999', 1).otherwise(0)) \
+    .withColumn("sourceValidToDatetime",lag("ValidFromDatetime",1).over( windowSpecSourceBusinessKey.orderBy(col("ValidFromDatetime").desc())))
      
     _.Transforms = [
         f"business_key {BK}"
-        ,"categoryUsage categoryUsage"
-        ,"categoryType categoryType"
-        ,"categoryTreeID categoryGroupCode"
-        ,"categoryTreeDescription categoryGroupDescription"
-        ,"categoryLevel1Code categoryLevel1Code"
-        ,"categoryLevel1Description categoryLevel1Description"
-        ,"categoryLevel2Code categoryLevel2Code"
-        ,"categoryLevel2Description categoryLevel2Description"
-        ,"categoryLevel3Code categoryLevel3Code"
-        ,"categoryLevel3Description categoryLevel3Description"
-        ,"categoryLevel4Code categoryLevel4Code"
-        ,"categoryLevel4Description categoryLevel4Description"
-        ,"validFromDatetime sourceValidFromDatetime"
-        ,"validToDatetime sourceValidToDatetime"
-        ,"sourceRecordCurrent sourceRecordCurrent"
-        ,"sourceBusinessKey sourceBusinessKey"
+        ,"categoryUsage             customerServiceCategoryUsageName"
+        ,"categoryType              customerServiceCategoryTypeName"
+        ,"categoryTreeID            customerServiceCategoryGroupCode"
+        ,"categoryTreeDescription   customerServiceCategoryGroupDescription"
+        ,"categoryLevel1Code        customerServiceCategoryLevel1Code"
+        ,"categoryLevel1Description customerServiceCategoryLevel1Description"
+        ,"categoryLevel2Code        customerServiceCategoryLevel2Code"
+        ,"categoryLevel2Description customerServiceCategoryLevel2Description"
+        ,"categoryLevel3Code        customerServiceCategoryLevel3Code"
+        ,"categoryLevel3Description customerServiceCategoryLevel3Description"
+        ,"categoryLevel4Code        customerServiceCategoryLevel4Code"
+        ,"categoryLevel4Description customerServiceCategoryLevel4Description"
+        ,"validFromDatetime         sourceValidFromDatetime"
+        ,"CASE WHEN YEAR(validToDatetime) = 9999 THEN validToDatetime ELSE dateadd(millisecond,-1,sourceValidToDatetime) END sourceValidToDatetime"
+        ,"sourceRecordCurrent       sourceRecordCurrent"
+        ,"sourceBusinessKey         sourceBusinessKey"
     ]
     df = df.selectExpr(
         _.Transforms

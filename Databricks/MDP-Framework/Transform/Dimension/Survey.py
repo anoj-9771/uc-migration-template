@@ -10,7 +10,7 @@
 
 # COMMAND ----------
 
-SurveyDim = spark.sql(f"""
+surveyQualtrics = spark.sql(f"""
        SELECT aa.id  as surveyId, 
        aa.name as surveyName,
        'Qualtrics'||'|'||aa.id||'|'||current_timestamp() as businessKey, 
@@ -26,53 +26,57 @@ SurveyDim = spark.sql(f"""
             WHEN DestinationTableName LIKE '%WaterFixPostInteractionFeedbackQuestions%' THEN 'Survey to measure the success of Water efficiency programs'
             WHEN DestinationTableName LIKE '%WebsitegoliveQuestions%' THEN 'Survey to measure the overall customer experience of using Sydney Water website'
             WHEN DestinationTableName LIKE '%WSCS73ExperienceSurveyQuestions%' THEN 'Survey to measure how Sydney Water can improve the quality of services for wscs73 Developer Applications'
-            ELSE NULL END as surveyDescription, 
+            ELSE NULL END as surveyDescription,
+            'Qualtrics' as sourceSystemCode,
+            current_timestamp() as createdDate,
+            NULL as createdBy,
+            NULL as surveyVersion,
             NULL as sourceValidFromDateTime,
             NULL as sourceValidToDateTime,
             NULL as sourceRecordCurrent,
-            'Qualtrics'||'|'||aa.id||'|'||current_timestamp() as sourceBusinessKey,
-            'batch'  as createdBy,          
-            'Qualtrics' as surveySourceSystem
+            'Qualtrics'||'|'||aa.id||'|' as sourceBusinessKey            
         FROM (SELECT r.* FROM ( SELECT explode(result.elements) r FROM raw.qualtrics_surveys )) aa
                                ,controldb.dbo_extractLoadManifest bb 
         WHERE SystemCode = 'Qualtricsref'
           AND  aa.id = concat('SV_', regexp_extract(bb.SourceQuery, "/SV_(.*?)/", 1)) 
         """)
 
-SurveyCRM = spark.sql(F"""Select * , CASE WHEN ISNULL(dateadd(MILLISECOND ,-1,LEAD(validFromDate) OVER(partition by surveyId order by validFromDate ))) THEN CAST('9999-12-31' as TIMESTAMP) 
-                               ELSE dateadd(MILLISECOND ,-1,LEAD(validFromDate) OVER(partition by surveyID order by validFromDate )) END  as validToDate 
-                            from (Select distinct s.surveyID,  questionnaireLong as SurveyName,  s.createdBy,  q.surveyVersion , creationDateAt as validFromDate 
-                            FROM {SOURCE}.crm_crm_svy_re_quest q
-                            INNER JOIN {SOURCE}.crm_crm_svy_db_s s on q.surveyID = s.surveyID and q.surveyVersion = s.surveyVersion
-                            LEFT JOIN {SOURCE}.crm_0svy_qstnnr_text S on q.questionnaire = S.questionnaireId) A """)
 
-# COMMAND ----------
-
-# Select surveyID as surveyId, 
-#        surveyName, 
-#        validFromDate as sourceValidFromDateTime,
-#        CASE WHEN ISNULL(dateadd(MILLISECOND ,-1,LEAD(validFromDate) OVER(partition by surveyId order by validFromDate ))) THEN CAST('9999-12-31' as TIMESTAMP) 
-#                                ELSE dateadd(MILLISECOND ,-1,LEAD(validFromDate) OVER(partition by surveyID order by validFromDate )) END  as sourceValidToDateTime,
-#        NULL createdBy--(Select * from view_name where createdBy = userid and rownum = 1) createdBy
-# from (
-# Select distinct s.surveyID,  questionnaireLong as surveyName,  s.createdBy ,  q.surveyVersion , creationDateAt as validFromDate 
-# from cleansed.crm_crm_svy_re_quest q
-# Inner JOIN cleansed.crm_crm_svy_db_s s on q.surveyID = s.surveyID and q.surveyVersion = s.surveyVersion
-# LEFT Join cleansed.crm_0svy_qstnnr_text S on q.questionnaire = S.questionnaireId)
-
-
-# "Select * , CASE WHEN ISNULL(dateadd(MILLISECOND ,-1,LEAD(validFromDate) OVER(partition by surveyId order by validFromDate ))) THEN CAST('9999-12-31' as TIMESTAMP) 
-#                                ELSE dateadd(MILLISECOND ,-1,LEAD(validFromDate) OVER(partition by surveyID order by validFromDate )) END  as validToDate 
-# from (
-# Select distinct s.surveyID,  questionnaireLong as SurveyName,  s.createdBy,  q.surveyVersion , creationDateAt as validFromDate 
-# from crm_crm_svy_re_quest q
-# Inner JOIN crm_crm_svy_db_s s on q.surveyID = s.surveyID and q.surveyVersion = s.surveyVersion
-# LEFT Join crm_0svy_qstnnr_text S on q.questionnaire = S.questionnaireId
-# ) A"
-
-# COMMAND ----------
+surveyCRM = spark.sql(f""" 
+                     WITH maintab as
+                     (Select * , dateadd(MILLISECOND ,-1,LEAD(sourceValidFromDateTime ) OVER(partition by surveyId order by sourceValidFromDateTime )) sourceValidToDateTime
+                     from (Select distinct s.surveyID as surveyId,  questionnaireLong as surveyName,  s.createdBy createdByUserId ,  q.surveyVersion, 
+                                  creationDateAt as sourceValidFromDateTime 
+                                 from {SOURCE}.crm_crm_svy_re_quest q
+                                 INNER JOIN {SOURCE}.crm_crm_svy_db_s s on q.surveyID = s.surveyID and q.surveyVersion = s.surveyVersion
+                                  LEFT JOIN {SOURCE}.crm_0svy_qstnnr_text S on q.questionnaire = S.questionnaireId))
+                       SELECT surveyId
+                             ,surveyName
+                             ,'CRM'||'|'||surveyId||'|'||sourceValidFromDateTime as businessKey
+                             ,'CRM'||'|'||surveyId||'|'||surveyVersion as sourceBusinessKey
+                             ,NULL as surveyDescription
+                             ,'CRM' as sourceSystemCode
+                             ,sourceValidFromDateTime as createdDate
+                             ,createdByUserId
+                             ,surveyVersion
+                             ,sourceValidFromDateTime
+                             ,CASE WHEN sourceValidToDateTime IS NOT NULL THEN sourceValidToDateTime ELSE CAST('9999-12-31' as TIMESTAMP) END sourceValidToDateTime
+                             ,CASE WHEN sourceValidToDateTime IS NOT NULL THEN '0' ELSE '1' END sourceRecordCurrent FROM maintab """)
 
 
+createdByDF= spark.sql(f"""Select userid, concat_ws(' ',givenNames,surname) as createdBy 
+                              from {SOURCE}.vw_aurion_employee_details""").drop_duplicates()
+
+#remove duplicates USERID assignments has aurion data has duplicates #
+windowSpec = Window.partitionBy("userid").orderBy(col("createdBy").desc())
+createdByDF = createdByDF.withColumn("row_num", row_number().over(windowSpec)) \
+                         .filter(col("row_num") == 1).drop("row_num")
+
+##################################################
+surveyCRM = surveyCRM.join(createdByDF, surveyCRM["createdByUserId"] == createdByDF["userid"], how='left').drop("userid", "createdByUserId")
+
+#surveyCRM.display()
+survey = surveyQualtrics.unionByName(surveyCRM)
 
 # COMMAND ----------
 
@@ -82,13 +86,14 @@ def Transform():
     # ------------- TRANSFORMS ------------- # 
     _.Transforms = [
         f"businessKey {BK}"
-        ,"surveyName surveyName"
-        ,"surveyDescription surveyDescription"
-        ,"current_timestamp() as surveyStartDate"
+        ,"surveyName"
+        ,"surveyDescription"
+        ,f"CAST(NULL AS timestamp) as surveyStartDate"
         ,f"CAST(NULL AS timestamp) as surveyEndDate"
-        ,"surveySourceSystem surveySourceSystem" 
-        ,"current_timestamp() as createdDate"
-        ,"createdBy createdBy"
+        ,"sourceSystemCode" 
+        ,"createdDate"
+        ,"createdBy"
+        ,"surveyVersion"
         ,"sourceValidFromDateTime" 
         ,"sourceValidToDateTime"
         ,"sourceRecordCurrent"
@@ -96,7 +101,7 @@ def Transform():
 
     ]
     
-    df = SurveyDim.selectExpr(
+    df = survey.selectExpr(
         _.Transforms
     )
 

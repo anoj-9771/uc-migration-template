@@ -23,8 +23,8 @@ def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = Non
 def CreateDeltaTableR1W4(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints=True):
     dataFrame.write \
              .format("delta") \
-             .option("delta.readerVersion", "1") \
-             .option("delta.writerVersion", "4") \
+             .option("delta.minReaderVersion", "1") \
+             .option("delta.minWriterVersion", "4") \
              .option("mergeSchema", "true") \
              .mode("overwrite") \
              .save(dataLakePath)

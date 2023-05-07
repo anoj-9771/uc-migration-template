@@ -34,20 +34,20 @@ def Transform():
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
         f"emailID {BK}"
-        ,"right(emailID, 17) emailID"
-        ,"eventID eventID"
-        ,"emailEventDescription eventDescription"
-        ,"eventTimestamp eventTimestamp"
-        ,"stepNumber eventStepNumber"
-        ,"case when stepDirection = 1 then 'Inbound' when stepDirection = 2 then 'Outbound' end emailEventDirection"
+        ,"right(emailID, 17) customerServiceEmailEventEmaiId"
+        ,"eventID customerServiceEmailEventId"
+        ,"emailEventDescription customerServiceEmailEventDescription"
+        ,"eventTimestamp customerServiceEmailEventTimestamp"
+        ,"stepNumber customerServiceEmailEventStepNumber"
+        ,"case when stepDirection = 1 then 'Inbound' when stepDirection = 2 then 'Outbound' end customerServiceEmailEventDirectionIdentifier"
         ,"firstAgentSK firstAgentFK"
         ,"secondAgentSK secondAgentFK"
         ,"firstServiceTeamSK firstServiceTeamFK"
         ,"secondServiceTeamSK secondServiceTeamFK"
         ,"emailHeaderSK emailHeaderFK"
-        ,"duration emailStepDuration"
-        ,"totalDurationStep emailTotalStepDuration"
-        ,"connectionStepTransferNumber emailTransferStepNumber"
+        ,"duration customerServiceEmailEventStepDurationHourQuantity"
+        ,"totalDurationStep customerServiceEmailEventTotalStepDurationHourQuantity"
+        ,"connectionStepTransferNumber customerServiceEmailEventTransferStepNumber"
     ]
     df = df.selectExpr(
         _.Transforms
@@ -61,5 +61,3 @@ def Transform():
     #DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------

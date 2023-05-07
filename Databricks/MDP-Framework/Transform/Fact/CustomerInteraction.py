@@ -20,11 +20,11 @@ def Transform():
     .withColumn("subCategory" , expr("'to be provide'"))   
 
 
-    process_type_df = GetTable(f"{DEFAULT_TARGET}.dimProcessType") \
-    .select("processTypeSK","_BusinessKey","_recordStart","_recordEnd","_recordCurrent")
+    process_type_df = GetTable(f"{DEFAULT_TARGET}.dimCustomerServiceProcessType") \
+    .select("customerServiceProcessTypeSK","_BusinessKey","_recordStart","_recordEnd","_recordCurrent")
         
-    status_df = GetTable(f"{DEFAULT_TARGET}.dimInteractionStatus") \
-    .select("interactionStatusSK","_BusinessKey","_recordStart","_recordEnd","_recordCurrent")
+    status_df = GetTable(f"{DEFAULT_TARGET}.dimCustomerInteractionStatus") \
+    .select("customerInteractionStatusSK","_BusinessKey","_recordStart","_recordEnd","_recordCurrent")
        
     responsible_employee_df = GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner") \
     .select("businessPartnerSK","businessPartnerNumber","_recordStart","_recordEnd","_businessKey") \
@@ -38,7 +38,7 @@ def Transform():
     .select("propertySK","_BusinessKey","_recordStart","_recordEnd") 
 
     channel_df = GetTable(f"{DEFAULT_TARGET}.dimcommunicationchannel") \
-    .select("communicationChannelSK","_businessKey","channelCode", "sourceSystemCode", "_recordStart","_recordEnd","_recordCurrent")
+    .select("communicationChannelSK","_businessKey","customerServiceChannelCode", "sourceSystemCode", "_recordStart","_recordEnd","_recordCurrent")
     
     date_df = GetTable(f"{DEFAULT_TARGET}.dimdate").select("dateSK","calendarDate")
     
@@ -56,29 +56,28 @@ def Transform():
     .drop("_BusinessKey","_recordStart","_recordEnd") \
     .join(date_df,to_date(df.createdDate) == date_df.calendarDate,"inner") \
     .join(channel_df,(df.channel_BK == channel_df._businessKey) & (channel_df._recordCurrent == 1 ),"left") \
-    .drop("channelCode","_recordStart","_recordEnd","_recordCurrent")     
+    .drop("customerServiceChannelCode","_recordStart","_recordEnd","_recordCurrent")     
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
         f"interactionId {BK}"
-        ,"interactionId interactionId"
-        ,"CASE WHEN processTypeSK IS NULL THEN '-1' ELSE processTypeSK END processTypeFK"
-        ,"CASE WHEN communicationChannelSK IS NULL THEN '-1' ELSE communicationChannelSK END communicationChannelFK"
-        ,"CASE WHEN interactionStatusSK IS NULL THEN '-1' ELSE interactionStatusSK END statusFK"
+        ,"interactionId customerInteractionId"
+        ,"CASE WHEN customerServiceProcessTypeSK IS NULL THEN '-1' ELSE customerServiceProcessTypeSK END customerInteractionProcessTypeFK"
+        ,"CASE WHEN communicationChannelSK IS NULL THEN '-1' ELSE communicationChannelSK END customerInteractionCommunicationChannelFK"
+        ,"CASE WHEN customerInteractionStatusSK IS NULL THEN '-1' ELSE customerInteractionStatusSK END customerInteractionStatusFK"
         ,"responsibleEmployeeFK responsibleEmployeeFK"
         ,"contactPersonFK contactPersonFK"
         ,"propertySK propertyFK"
         ,"dateSK createdDateFK"
-        ,"interactionCategory interactionCategory"
-        ,"interactionGUID interactionGUID"
-        ,"category category"
-        ,"subCategory subCategory"
-        ,"externalNumber externalNumber"
-        ,"description description"
-        ,"createdDate createdDate"
-        ,"priority priority"
-        ,"direction direction"
-        ,"directionCode directionCode"        
+        ,"interactionGUID customerInteractionGUID"
+        ,"category customerInteractionCategory"
+        ,"subCategory interationSubCategory"
+        ,"externalNumber customerIneteractionExternalNumber"
+        ,"description customerInteractionDescription"
+        ,"createdDate customerInteractionCreatedTimestamp"
+        ,"priority customerInteractionPriorityIndicator"
+        ,"direction customerInteractionDirectionIndicator"
+        ,"directionCode customerInteractionDirectionCode"        
         
         
     ]

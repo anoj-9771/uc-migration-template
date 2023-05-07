@@ -36,10 +36,10 @@ def Transform():
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
         f"processTypeCode||'|'||sourceSystemCode {BK}"
-        ,"processTypeCode processTypeCode"
-        ,"processTypeShortDescription processTypeShortDescription"
-        ,"processTypeDescription processTypeDescription"
-        ,"processTypeUsage processTypeUsage"
+        ,"processTypeCode customerServiceProcessTypeCode"
+        ,"processTypeShortDescription customerServiceProcessTypeShortDescription"
+        ,"processTypeDescription customerServiceProcessTypeDescription"
+        ,"processTypeUsage customerServiceProcessTypeUsageName"
         ,"sourceSystemCode sourceSystemCode"
     ]
     df = df.selectExpr(

@@ -35,16 +35,16 @@ def Transform():
         
     _.Transforms = [
          f"documentId {BK}"
-        ,"fileName"
-        ,"fileType"
-        ,"fileSize"
-        ,"documentId"
-        ,"createdBy"
-        ,"createdByUser createdByUserID"
-        ,"creationDatetime createdDateTime"
-        ,"modifiedBy"
-        ,"changedByUser modifiedByUserID"
-        ,"changeDateTime modifiedDateTime"
+        ,"fileName          customerServiceAttachmentFileName"
+        ,"fileType          customerServiceAttachmentFileType"
+        ,"fileSize          customerServiceAttachmentFileSize"
+        ,"documentId        customerServiceAttachmentDocumentId"
+        ,"createdBy         customerServiceAttachmentCreatedByUserName"
+        ,"createdByUser     customerServiceAttachmentCreatedByUserId"
+        ,"creationDatetime  customerServiceAttachmentCreatedTimestamp"
+        ,"modifiedBy        customerServiceAttachmentModifiedByUserName"
+        ,"changedByUser     customerServiceAttachmentModifiedByUserId"
+        ,"changeDateTime    customerServiceAttachmentModifiedTimestamp"
     ]
     df = df.selectExpr(
         _.Transforms
@@ -53,8 +53,9 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-    # CleanSelf()
+    #CleanSelf()
     Save(df)
 #     DisplaySelf()
 pass
 Transform()
+

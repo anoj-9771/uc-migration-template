@@ -13,8 +13,8 @@ def Transform():
        
     _.Transforms = [
          f"categoryCode||'|'||sourceSystemCode {BK}"
-        ,"categoryCode channelCode"
-        ,"categoryDescription channelDescription"
+        ,"categoryCode customerServiceChannelCode"
+        ,"categoryDescription customerServiceChannelDescription"
         ,"sourceSystemCode sourceSystemCode"
     ]
     df = df.selectExpr(
@@ -24,7 +24,7 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-#     CleanSelf()
+    #CleanSelf()
     Save(df)
     #DisplaySelf()
 pass

@@ -2,7 +2,7 @@
 # MAGIC %md 
 # MAGIC Vno| Date      | Who         |Purpose
 # MAGIC ---|:---------:|:-----------:|:--------:
-# MAGIC 1  |21/04/2023 |Mag          |Initial
+# MAGIC 1  |05/05/2023 |Mag          |Initial
 
 # COMMAND ----------
 
@@ -195,7 +195,7 @@ def transpose_feedback_df(df, quesdf, duplicate_columns):
 
     coredf = spark.sql(respQry)
 
-    return coredf 
+    return coredf
 
 # COMMAND ----------
 
@@ -271,8 +271,8 @@ df_wscs73exp =  GetTable(f"{SOURCE}.qualtrics_wscs73experiencesurveyresponses")
 df_wscs73exp = add_missing_columns(df_wscs73exp, duplicate_columns)
 
 billpaid_df  = transpose_df(df_billpaid, df_dimQues, duplicate_columns)
-billpaid_df = billpaid_df.join(dsv.filter(dsv._recordCurrent == 1), (billpaid_df["recipientEmail"] == dsv["emailRecepient"]) & (billpaid_df["recipientFirstName"] == dsv["emailRecepientFirstname"]) 
-                                      & (billpaid_df["recipientLastName"] == dsv["emailRecepientSurname"]), how = 'left') \
+billpaid_df = billpaid_df.join(dsv.filter(dsv._recordCurrent == 1), (billpaid_df["recipientEmail"] == dsv["emailRecipient"]) & (billpaid_df["recipientFirstName"] == dsv["emailRecipientFirstname"]) 
+                                      & (billpaid_df["recipientLastName"] == dsv["emailRecipientSurname"]), how = 'left') \
                          .join(dsr.filter(dsr._recordCurrent == 1), (billpaid_df["surveyId"] == dsr["surveyID"]) & (billpaid_df["recordId"] == dsr["responseId"]), how = 'left') \
                          .join(dp.filter(dp._RecordCurrent == 1), (billpaid_df["propertyNumber"] == dp["propertyNumber"]), how = 'left') \
                          .select(billpaid_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"], dp["propertySK"]) \
@@ -288,9 +288,9 @@ businessXconn_df = businessXconn_df.join(dbp.filter(dbp._RecordCurrent == 1), (b
                                    .withColumn("sourceSystem", lit('Qualtrics'))
 
 complaintsClosed_df = transpose_df(df_complaintsClosed, df_dimQues, duplicate_columns)
-complaintsClosed_df = complaintsClosed_df.join(dsv.filter(dsv._recordCurrent == 1), (complaintsClosed_df["recipientEmail"] == dsv["emailRecepient"]) \
-                                      & (complaintsClosed_df["recipientFirstName"] == dsv["emailRecepientFirstname"]) \
-                                      & (complaintsClosed_df["recipientLastName"] == dsv["emailRecepientSurname"]), how = 'left') \
+complaintsClosed_df = complaintsClosed_df.join(dsv.filter(dsv._recordCurrent == 1), (complaintsClosed_df["recipientEmail"] == dsv["emailRecipient"]) \
+                                      & (complaintsClosed_df["recipientFirstName"] == dsv["emailRecipientFirstname"]) \
+                                      & (complaintsClosed_df["recipientLastName"] == dsv["emailRecipientSurname"]), how = 'left') \
                          .join(dsr.filter(dsr._recordCurrent == 1), (complaintsClosed_df["surveyId"] == dsr["surveyID"]) & (complaintsClosed_df["recordId"] == dsr["responseId"]), how = 'left') \
                          .join(dp.filter(dp._RecordCurrent == 1), (complaintsClosed_df["propertyNumber"] == dp["propertyNumber"]), how = 'left') \
                          .select(complaintsClosed_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"], dp["propertySK"]) \
@@ -299,9 +299,9 @@ complaintsClosed_df = complaintsClosed_df.join(dsv.filter(dsv._recordCurrent == 
 
 
 contactCentreInteract_df = transpose_df(df_contactCentreInteract, df_dimQues, duplicate_columns)
-contactCentreInteract_df = contactCentreInteract_df.join(dsv.filter(dsv._recordCurrent == 1), (contactCentreInteract_df["recipientEmail"] == dsv["emailRecepient"]) \
-                                                         & (contactCentreInteract_df["recipientFirstName"] == dsv["emailRecepientFirstname"]) \
-                                                         & (contactCentreInteract_df["recipientLastName"] == dsv["emailRecepientSurname"]), how = 'left') \
+contactCentreInteract_df = contactCentreInteract_df.join(dsv.filter(dsv._recordCurrent == 1), (contactCentreInteract_df["recipientEmail"] == dsv["emailRecipient"]) \
+                                                         & (contactCentreInteract_df["recipientFirstName"] == dsv["emailRecipientFirstname"]) \
+                                                         & (contactCentreInteract_df["recipientLastName"] == dsv["emailRecipientSurname"]), how = 'left') \
                                                     .select(contactCentreInteract_df["*"], dsv["surveyParticipantSK"]) \
                                                     .withColumn("businessPartnerSK", lit('-1')) \
                                                     .withColumn("surveyResponseInformationSK", lit('-1')) \
@@ -310,9 +310,9 @@ contactCentreInteract_df = contactCentreInteract_df.join(dsv.filter(dsv._recordC
 
 
 Customercareresponses_df = transpose_df(df_Customercareresponses, df_dimQues, duplicate_columns)
-Customercareresponses_df = Customercareresponses_df.join(dsv.filter(dsv._recordCurrent == 1), (Customercareresponses_df["recipientEmail"] == dsv["emailRecepient"]) \
-                                                         & (Customercareresponses_df["recipientFirstName"] == dsv["emailRecepientFirstname"]) \
-                                                         & (Customercareresponses_df["recipientLastName"] == dsv["emailRecepientSurname"]), how = 'left') \
+Customercareresponses_df = Customercareresponses_df.join(dsv.filter(dsv._recordCurrent == 1), (Customercareresponses_df["recipientEmail"] == dsv["emailRecipient"]) \
+                                                         & (Customercareresponses_df["recipientFirstName"] == dsv["emailRecipientFirstname"]) \
+                                                         & (Customercareresponses_df["recipientLastName"] == dsv["emailRecipientSurname"]), how = 'left') \
                                                     .select(Customercareresponses_df["*"], dsv["surveyParticipantSK"]) \
                                                     .withColumn("businessPartnerSK", lit('-1')) \
                                                     .withColumn("surveyResponseInformationSK", lit('-1')) \
@@ -320,9 +320,9 @@ Customercareresponses_df = Customercareresponses_df.join(dsv.filter(dsv._recordC
                                                     .withColumn("sourceSystem", lit('Qualtrics'))
 
 waterfixpost_df = transpose_df(df_waterfixpost, df_dimQues, duplicate_columns)
-waterfixpost_df = waterfixpost_df.join(dsv.filter(dsv._recordCurrent == 1), (waterfixpost_df["recipientEmail"] == dsv["emailRecepient"]) \
-                                                         & (waterfixpost_df["recipientFirstName"] == dsv["emailRecepientFirstname"]) \
-                                                         & (waterfixpost_df["recipientLastName"] == dsv["emailRecepientSurname"]), how = 'left') \
+waterfixpost_df = waterfixpost_df.join(dsv.filter(dsv._recordCurrent == 1), (waterfixpost_df["recipientEmail"] == dsv["emailRecipient"]) \
+                                                         & (waterfixpost_df["recipientFirstName"] == dsv["emailRecipientFirstname"]) \
+                                                         & (waterfixpost_df["recipientLastName"] == dsv["emailRecipientSurname"]), how = 'left') \
                                                     .select(waterfixpost_df["*"], dsv["surveyParticipantSK"]) \
                                                     .withColumn("businessPartnerSK", lit('-1')) \
                                                     .withColumn("surveyResponseInformationSK", lit('-1')) \
@@ -389,6 +389,110 @@ finaldf = billpaid_df.union(businessXconn_df) \
                      .union(wscs73exp_df) \
                      .union(feedbacktabgolive_df) 
 
+#finaldf.count()
+
+# COMMAND ----------
+
+#########Added CRM Survey #############################
+dimBuss = GetTable(f"{DEFAULT_TARGET}.dimSurvey")
+split_col = split(col("sourceBusinessKey"), r"\|")
+dimBuss = dimBuss.withColumn("surveyId", split_col.getItem(1)).withColumn("SourceSystem", split_col.getItem(0)).filter(col("SourceSystem") == 'CRM').select(col("surveyId")).distinct().collect()
+#print(dimBuss)
+
+crm_0crm_srv_req_inci_h_df = GetTable(f"{SOURCE}.crm_0crm_srv_req_inci_h")
+crm_crmd_link_df = GetTable(f"{SOURCE}.crm_crmd_link")
+crm_crmd_survey_df = GetTable(f"{SOURCE}.crm_crmd_survey")
+crm_crm_svy_db_sv_df = GetTable(f"{SOURCE}.crm_crm_svy_db_sv")
+crm_crm_svy_re_quest_df = GetTable(f"{SOURCE}.crm_crm_svy_re_quest")
+crm_crm_svy_db_s_df = GetTable(f"{SOURCE}.crm_crm_svy_db_s")
+crm_0svy_qstnnr_text_df = GetTable(f"{SOURCE}.crm_0svy_qstnnr_text")
+crm_0svy_qstnnr_text_df2 = GetTable(f"{SOURCE}.crm_0svy_quest_text")
+dimQuestion_df = GetTable(f"{DEFAULT_TARGET}.dimSurveyQuestion")
+
+max_svv = crm_crm_svy_db_sv_df.groupBy("surveyValuesGUID").agg(max(col("surveyValuesVersion")).alias("max_surveyValuesVersion"))
+sv1 = (crm_crm_svy_db_sv_df.alias("sv1")
+                           .join(max_svv.alias("sv2"), col("sv1.surveyValuesGUID") == col("sv2.surveyValuesGUID"))
+                           .filter(col("sv1.surveyValuesVersion") == col("sv2.max_surveyValuesVersion"))
+                           .select(col("sv1.*"), split(col("sv1.surveyValueKeyAttribute"), "/") [0].alias("questionId")) )
+
+#sv1.count()
+
+
+joined_df = (crm_0crm_srv_req_inci_h_df.alias("I")
+    .join(crm_crmd_link_df.alias("L"), (col("I.serviceRequestGUID") == col("L.hiGUID")) & (col("L.setObjectType") == 58))
+    .join(crm_crmd_survey_df.alias("S"), col("S.setGUID") == col("L.setGUID") )
+    .join(sv1.alias("SV"), col("SV.surveyValuesGUID") == col("S.surveyValuesGUID"))
+    .join(crm_crm_svy_re_quest_df.alias("R"), (col("SV.questionId") == col("R.questionId")) & (col("SV.surveyValuesVersion") == col("R.surveyVersion")))
+    .join(crm_crm_svy_db_s_df.alias("SDB"), (col("R.surveyId") == col("SDB.surveyId")) & (col("R.surveyVersion") == col("SDB.surveyVersion")))
+    .join(crm_0svy_qstnnr_text_df.alias("Q"), col("Q.questionnaireId") == col("R.questionnaire"))
+    .join(crm_0svy_qstnnr_text_df2.alias("QT"), (col("QT.questionnaireId") == col("Q.questionnaireId")) & (col("QT.surveyQuestionId") == col("R.questionId")))
+    .filter(col("R.surveyId").isNotNull())
+    .join(dimQuestion_df.alias("DQ"), (col("R.surveyId") == col("DQ.surveyId")) & (col("R.questionId") == col("DQ.questionId")) 
+                                                                                & (col("R.surveyVersion") == col("DQ.surveyVersion")) 
+                                                                                & (col("DQ.sourceSystemCode") == lit("CRM")), how = 'left')
+)
+
+
+#  col("I.requestStartDate").alias("requestStartDate"),
+                                #  col("I.serviceRequestId").alias("serviceRequestId"),
+                                #  col("R.questionnaire").alias("questionnaire"),
+                                #  col("R.surveyVersion").alias("surveyVersion"),
+                                #  col("R.questionSequenceNumber").alias("questionSequenceNumber"),
+                                #  col("QT.questionLong").alias("questionLong")   
+                                #                               
+joined_df = (joined_df.select (col("R.surveyId").alias("surveyId"),
+                               col("Q.questionnaireLong").alias("surveyName"),
+                               col("SV.surveyValuesGUID").alias("recordId"),                                 
+                               col("QT.surveyQuestionId").alias("questionId"),
+                               col("SV.surveyValueAttribute").alias("responseText"),
+                               col("DQ.surveyQuestionSK").alias("surveyQuestionSK"),
+                               col("DQ.surveyFK").alias("surveyFK")                                
+                              ).withColumn("questionPartId", lit(None).cast("string"))
+                                .withColumn("questionText", lit(None).cast("string"))
+                                .withColumn("responseCode", lit(None).cast("string"))
+                                .withColumn("sentimentDsc", lit(None).cast("string"))
+                                .withColumn("sentimentPolarityNumber", lit(None).cast("string"))
+                                .withColumn("sentimentScore", lit(None).cast("string"))
+                                .withColumn("topicsText", lit(None).cast("string"))
+                                .withColumn("topicSentimentScore", lit(None).cast("string"))
+                                .withColumn("topicsSentimentsLabel", lit(None).cast("string"))
+                                .withColumn("parTopicsText", lit(None).cast("string"))
+                                .withColumn("recipientEmail", lit(None).cast("string"))
+                                .withColumn("recipientFirstName", lit(None).cast("string"))
+                                .withColumn("recipientLastName", lit(None).cast("string"))
+                                .withColumn("propertyNumber", lit(None).cast("string"))
+                                .withColumn("assignedTo", lit(None).cast("string"))
+                                .withColumn("businessPartnerSK", lit('-1')) 
+                                .withColumn("surveyResponseInformationSK", lit('-1')) 
+                                .withColumn("propertySK", lit('-1')) 
+                                .withColumn("sourceSystem", lit('CRM')) 
+                                .withColumn("surveyParticipantSK", lit('-1'))
+            )
+
+#joined_df.count()
+finaldf = finaldf.unionByName(joined_df)
+#print(finaldf.count())
+
+############################no need to loop ###################################
+# filtered_dfs = []
+
+# for row in dimBuss:
+#     surveyId = row["surveyId"]
+#     filtered_df = joined_df.filter(col("surveyId") == surveyId)
+#     filtered_dfs.append(filtered_df)
+
+
+# final_crm_list_df = filtered_dfs[0]
+# for i in range(1, len(filtered_dfs)):
+#     final_crm_list_df = final_crm_list_df.unionByName(filtered_dfs[i])
+
+# print(joined_df.count())
+# print(final_crm_list_df.count())
+#finaldf = finaldf.unionByName(final_crm_list_df)
+# print(finaldf.count())
+
+
+
 
 # COMMAND ----------
 
@@ -418,7 +522,7 @@ def Transform():
         ,"topicsSentimentsLabel topicSentimentLabel" 
         ,"topicsText topicsText" 
         ,"parTopicsText parTopicsText"               
-        ,"sourceSystem sourceSystem"
+        ,"sourceSystem sourceSystemCode"
     ]
     
     df_final = df_final.selectExpr(

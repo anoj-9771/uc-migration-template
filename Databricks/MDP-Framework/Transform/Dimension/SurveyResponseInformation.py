@@ -54,15 +54,14 @@ def Transform():
     # ------------- TRANSFORMS ------------- # 
     _.Transforms = [
         f"sourceSystem||'|'||surveyID||'|'||recordId {BK}"   
-        ,"surveyName surveyName"    
-        ,"surveyID surveyID"
+        ,"surveyID surveyId"
         ,"recordId responseId"
         ,"startDate responseStartDate" 
         ,"endDate responseEndDate"
         ,"finished finished"
         ,"status responseStatus"
         ,"recordedDate responseRecordedDate"      
-        ,"sourceSystem sourceSystem"
+        ,"sourceSystem sourceSystemCode"
     ]
     
     df_final = df_final.selectExpr(
