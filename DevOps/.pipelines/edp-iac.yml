@@ -2,16 +2,16 @@ name: $(Build.BuildId).$(date:yyyyMMdd)
 
 parameters:
   - name: environment
-    displayName:  "environment"
+    displayName: "environment"
     type: string
     default: dev
     values:
      - dev
-     - test    
+     - test
      - preprod
      - prod 
 
-trigger: none    
+trigger: none
 pr: none
 
 variables:
@@ -70,5 +70,54 @@ stages:
                   templateLocation: 'Linked artifact'
                   csmFile: '$(DevOpsDirectory)/logicapp/arm-logic-app-send-email.json'
                   overrideParameters: '-apiName "api-$(subscriptionName)-daf-${{parameters.environment}}-o365-01" -logicAppName "logic-$(subscriptionName)-daf-${{parameters.environment}}-sendemail-01"'
+                  deploymentMode: 'Incremental'
+                  deploymentOutputs: 'armOutputs'
+- stage: 'Deploy_Unity_Catalog'
+  displayName: 'Deploy Unity Catalog in ${{ parameters.environment }}'
+  jobs:
+  - deployment: 'unity_catalog_deploy'
+    displayName: 'Deploy Unity Catalog in ${{ parameters.environment }}'
+    environment: ${{ parameters.environment }}
+    strategy:
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self
+              - task: AzureResourceManagerTemplateDeployment@3
+                displayName: 'Deploy Unity Catalog in $(resourceGroupName)'
+                inputs:
+                  deploymentScope: 'Resource Group'
+                  azureResourceManagerConnection: '$(azdoResourceConnection)'
+                  action: 'Create Or Update Resource Group'
+                  resourceGroupName: '$(resourceGroupName)'
+                  location: '$(location)'
+                  templateLocation: 'Linked artifact'
+                  csmFile: '$(DevOpsDirectory)/UnityCatalog/daf-dbw-unity-storage-deploy.bicep'
+                  csmParametersFile: '$(DevOpsDirectory)/UnityCatalog/daf-dbw-unity-storage-deploy-${{ parameters.environment }}.parameters.json'
+                  deploymentMode: 'Incremental'
+                  deploymentOutputs: 'armOutputs'
+- stage: 'Deploy_Root_Unity_Catalog'
+  displayName: 'Deploy Root Unity Catalog in ${{ parameters.environment }}'
+  condition: and(succeeded(), eq('${{ parameters.environment }}', 'prod'))
+  jobs:
+  - deployment: 'root_unity_catalog_deploy'
+    displayName: 'Deploy Root Unity Catalog in ${{ parameters.environment }}'
+    environment: ${{ parameters.environment }}
+    strategy:
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self
+              - task: AzureResourceManagerTemplateDeployment@3
+                displayName: 'Deploy Root Unity Catalog in $(resourceGroupName)'
+                inputs:
+                  deploymentScope: 'Resource Group'
+                  azureResourceManagerConnection: '$(azdoResourceConnection)'
+                  action: 'Create Or Update Resource Group'
+                  resourceGroupName: '$(resourceGroupName)'
+                  location: '$(location)'
+                  templateLocation: 'Linked artifact'
+                  csmFile: '$(DevOpsDirectory)/UnityCatalog/daf-dbw-unity-storage-deploy.bicep'
+                  csmParametersFile: '$(DevOpsDirectory)/UnityCatalog/daf-dbw-unity-storage-deploy-metastore-prod.parameters.json'
                   deploymentMode: 'Incremental'
                   deploymentOutputs: 'armOutputs'
