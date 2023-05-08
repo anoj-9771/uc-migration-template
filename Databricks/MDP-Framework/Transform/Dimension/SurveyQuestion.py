@@ -162,7 +162,7 @@ crmQuestion =   crmQuestion.withColumn("questionType", lit(None).cast("string"))
 
 union_df = union_df.unionByName(crmQuestion)
 
-crmQuestion.display()
+#crmQuestion.display()
 #######################################################
 
 # COMMAND ----------
@@ -173,7 +173,7 @@ def Transform():
 
     # ------------- TRANSFORMS ------------- # 
     _.Transforms = [
-        f"sourceSystem||'|'||surveyID||'|'||questionId||'|'||CASE WHEN sourceSystem = 'CRM' THEN surveyVersion WHEN questionPartId IS NULL THEN '' ELSE questionPartId END {BK}"
+        f"sourceSystem||'|'||surveyID||'|'||questionId||'|'||CASE WHEN questionPartId IS NULL THEN '' ELSE questionPartId END ||'|'||CASE WHEN sourceSystem = 'CRM' THEN surveyVersion ELSE '' END {BK}"
         ,"surveySK surveyFK"
         ,"surveyID surveyID"
         ,"surveyVersion surveyVersion"

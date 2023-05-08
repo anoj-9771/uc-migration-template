@@ -111,6 +111,17 @@ def Transform():
     channel_df = GetTable(f"{DEFAULT_TARGET}.dimCommunicationChannel") \
     .select("customerServiceChannelCode","communicationChannelSK","_recordCurrent","_BusinessKey")
 
+    ####FetchDummyBusinessPartner
+
+    dummyDimPartnerSKD = spark.sql(f""" Select businessPartnerSK from {DEFAULT_TARGET}.dimbusinesspartner where _businessKey = '-1' """)
+
+    first_row = dummyDimPartnerSKD.first()    
+    if first_row:
+        dummyDimPartnerSK   = first_row["businessPartnerSK"]    
+
+
+################################ 
+
     aurion_df = spark.sql(f"""select concat('HR8', RIGHT(concat('000000',ED.personnumber),7)) as personNumber, ED.dateEffective, ED.dateTo, 
                                 CASE WHEN BPM.businessPartnerSK IS NULL THEN (Select businessPartnerSK from {DEFAULT_TARGET}.dimbusinesspartner where _businessKey = '-1') ELSE BPM.businessPartnerSK END as reportToManagerFK, 
                                 CASE WHEN BPO.businessPartnerSK IS NULL THEN (Select businessPartnerSK from {DEFAULT_TARGET}.dimbusinesspartner where _businessKey = '-1') ELSE BPO.businessPartnerSK END as organisationUnitFK 
@@ -188,7 +199,7 @@ def Transform():
 #     Aurion attributes are "reportToManagerFK","organisationUnitFK","CreatedByName","changedByName"
     windowSpec1  = Window.partitionBy("serviceRequestGUID") 
     df = df.withColumn("row_number",row_number().over(windowSpec1.orderBy(lit(1)))).filter("row_number == 1").drop("row_number")
-
+    
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
@@ -198,7 +209,7 @@ def Transform():
         ,"CASE WHEN receivedCategoryFK IS NULL THEN '-1' ELSE receivedCategoryFK END  customerServiceRequestReceivedCategoryFK"      #UC3 Dimension
         ,"CASE WHEN resolutionCategoryFK IS NULL THEN '-1' ELSE resolutionCategoryFK END customerServiceRequestResolutionCategoryFK" #UC3 Dimension
         ,"CASE WHEN communicationChannelSK IS NULL THEN '-1' ELSE communicationChannelSK END channcommunicationChannelFKelFK"        #UC3 Dimension
-        ,"CASE WEHN contactPersonFK IS NULL THEN (Select businessPartnerSK from {DEFAULT_TARGET}.dimbusinesspartner where _businessKey = '-1') ELSE contactPersonFK END contactPersonFK"
+        ,f"CASE WHEN contactPersonFK IS NULL THEN '{dummyDimPartnerSK}' ELSE contactPersonFK END contactPersonFK"
         ,"reportByPersonFK reportByPersonFK"
         ,"serviceTeamFK serviceTeamFK"
         ,"contractFK contractFK"
@@ -260,7 +271,7 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-    CleanSelf()
+    #CleanSelf()
     Save(df)
     #DisplaySelf()
 pass
