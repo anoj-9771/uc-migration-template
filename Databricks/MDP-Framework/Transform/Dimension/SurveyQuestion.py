@@ -126,9 +126,9 @@ for df in Surveys:
             
           
     
-    joinDF = stringconvertedDF.join(DimSurvey, stringconvertedDF["surveyName"] == DimSurvey["surveyName"], "inner").drop("surveyName")
+    joinDF = stringconvertedDF.join(DimSurvey, stringconvertedDF["surveyName"] == DimSurvey["surveyName"], "inner").drop("surveyName")                               
     flattened_df = joinDF.select("*", explode_outer("split").alias("kv")) \
-                        .select("surveySK", "surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "kv.questionPartId", "kv.questionPartText", "answers", "choices", "sourceSystem") 
+                        .select("surveySK", "surveyId", "questionid", "questionText", "questionDescription", "QuestionType", "kv.questionPartId", "kv.questionPartText", "answers", "choices", "sourceSystem") 
                         
                        
     
@@ -146,7 +146,7 @@ crmQues = GetTable(f"{SOURCE}.crm_crm_svy_re_quest")
 split_col = split(col("sourceBusinessKey"), r"\|")
 dimBuss = dimBuss.withColumn("surveyID", split_col.getItem(1))
 #dimBuss.display()
-crmQuestion = dimBuss.join(crmQues, (dimBuss["surveyID"] == crmQues["surveyID"]) & (dimBuss["surveyVersion"] == crmQues["surveyVersion"])) \
+crmQuestion = dimBuss.join(crmQues, (dimBuss["surveyID"] == crmQues["surveyID"]) & (dimBuss["surveyVersionNumber"] == crmQues["surveyVersion"])) \
                      .select(dimBuss["surveySK"], crmQues["surveyID"], crmQues["questionId"], crmQues["surveyVersion"].alias("surveyVersion"), crmQues["longDescription"].alias("questionText"), crmQues["longDescription"].alias("questionDescription")) 
 
 
@@ -163,7 +163,6 @@ crmQuestion =   crmQuestion.withColumn("questionType", lit(None).cast("string"))
 union_df = union_df.unionByName(crmQuestion)
 
 #crmQuestion.display()
-#######################################################
 
 # COMMAND ----------
 
@@ -173,18 +172,18 @@ def Transform():
 
     # ------------- TRANSFORMS ------------- # 
     _.Transforms = [
-        f"sourceSystem||'|'||surveyID||'|'||questionId||'|'||CASE WHEN questionPartId IS NULL THEN '' ELSE questionPartId END ||'|'||CASE WHEN sourceSystem = 'CRM' THEN surveyVersion ELSE '' END {BK}"
+        f"sourceSystem||'|'||surveyID||'|'||CASE WHEN sourceSystem = 'CRM' THEN surveyVersion ELSE '' END||'|'||questionId||'|'||CASE WHEN questionPartId IS NULL THEN '' ELSE questionPartId END  {BK}"
         ,"surveySK surveyFK"
         ,"surveyID surveyID"
-        ,"surveyVersion surveyVersion"
-        ,"questionId questionId"
-        ,"questionText questionText"
-        ,"questionDescription questionDescription" 
-        ,"questionType questionType"
-        ,"questionPartId questionPartId"
-        ,"questionPartText questionPartText"
-        ,"answers answers"
-        ,"choices choices"
+        ,"surveyVersion surveyVersionNumber"
+        ,"questionId surveyQuestionId"
+        ,"questionText surveyQuestionText"
+        ,"questionDescription surveyQuestionDescription" 
+        ,"questionType surveyQuestionTypeName"
+        ,"questionPartId surveyQuestionPartId"
+        ,"questionPartText surveyQuestionPartText"
+        ,"answers surveyAnswersText"
+        ,"choices surveyChoicesText"
         ,"sourceSystem sourceSystemCode"
     ]
     

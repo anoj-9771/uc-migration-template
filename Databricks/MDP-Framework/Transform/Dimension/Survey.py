@@ -31,9 +31,11 @@ surveyQualtrics = spark.sql(f"""
             current_timestamp() as createdDate,
             NULL as createdBy,
             NULL as surveyVersion,
-            NULL as sourceValidFromDateTime,
-            NULL as sourceValidToDateTime,
-            NULL as sourceRecordCurrent,
+            CAST(NULL AS TIMESTAMP) as surveyStartDate,
+            CAST(NULL AS TIMESTAMP) as surveyEndDate,
+            CAST(NULL as TIMESTAMP) as sourceValidFromDateTime,
+            CAST(NULL as TIMESTAMP) as sourceValidToDateTime,
+            CAST(NULL as INTEGER) as sourceRecordCurrent,
             'Qualtrics'||'|'||aa.id||'|' as sourceBusinessKey            
         FROM (SELECT r.* FROM ( SELECT explode(result.elements) r FROM raw.qualtrics_surveys )) aa
                                ,controldb.dbo_extractLoadManifest bb 
@@ -49,7 +51,8 @@ surveyCRM = spark.sql(f"""
                                   creationDateAt as sourceValidFromDateTime 
                                  from {SOURCE}.crm_crm_svy_re_quest q
                                  INNER JOIN {SOURCE}.crm_crm_svy_db_s s on q.surveyID = s.surveyID and q.surveyVersion = s.surveyVersion
-                                  LEFT JOIN {SOURCE}.crm_0svy_qstnnr_text S on q.questionnaire = S.questionnaireId))
+                                  LEFT JOIN {SOURCE}.crm_0svy_qstnnr_text S on q.questionnaire = S.questionnaireId                           
+                                  ))
                        SELECT surveyId
                              ,surveyName
                              ,'CRM'||'|'||surveyId||'|'||sourceValidFromDateTime as businessKey
@@ -59,6 +62,8 @@ surveyCRM = spark.sql(f"""
                              ,sourceValidFromDateTime as createdDate
                              ,createdByUserId
                              ,surveyVersion
+                             ,CAST(NULL AS TIMESTAMP) as surveyStartDate
+                             ,CAST(NULL AS TIMESTAMP) as surveyEndDate
                              ,sourceValidFromDateTime
                              ,CASE WHEN sourceValidToDateTime IS NOT NULL THEN sourceValidToDateTime ELSE CAST('9999-12-31' as TIMESTAMP) END sourceValidToDateTime
                              ,CASE WHEN sourceValidToDateTime IS NOT NULL THEN '0' ELSE '1' END sourceRecordCurrent FROM maintab """)
@@ -86,16 +91,17 @@ def Transform():
     # ------------- TRANSFORMS ------------- # 
     _.Transforms = [
         f"businessKey {BK}"
+        ,"sourceSystemCode" 
+        ,"surveyId"
         ,"surveyName"
         ,"surveyDescription"
-        ,f"CAST(NULL AS timestamp) as surveyStartDate"
-        ,f"CAST(NULL AS timestamp) as surveyEndDate"
-        ,"sourceSystemCode" 
-        ,"createdDate"
-        ,"createdBy"
-        ,"surveyVersion"
-        ,"sourceValidFromDateTime" 
-        ,"sourceValidToDateTime"
+        ,"surveyStartDate"
+        ,"surveyEndDate"
+        ,"createdDate surveyCreatedDate"
+        ,"createdBy surveyCreatedByName"
+        ,"surveyVersion surveyVersionNumber"
+        ,"sourceValidFromDatetime sourceValidFromTimestamp" 
+        ,"sourceValidToDatetime sourceValidToTimestamp"
         ,"sourceRecordCurrent"
         ,"sourceBusinessKey"
 

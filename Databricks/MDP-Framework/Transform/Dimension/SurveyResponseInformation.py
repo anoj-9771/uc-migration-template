@@ -55,12 +55,12 @@ def Transform():
     _.Transforms = [
         f"sourceSystem||'|'||surveyID||'|'||recordId {BK}"   
         ,"surveyID surveyId"
-        ,"recordId responseId"
-        ,"startDate responseStartDate" 
-        ,"endDate responseEndDate"
-        ,"finished finished"
-        ,"status responseStatus"
-        ,"recordedDate responseRecordedDate"      
+        ,"recordId surveyResponseId"
+        ,"startDate surveyResponseStartDate" 
+        ,"endDate surveyResponseEndDate"
+        ,"finished surveyFinishedIndicator"
+        ,"status surveyResponseStatusIndicator"
+        ,"recordedDate surveyResponseRecordedDate"      
         ,"sourceSystem sourceSystemCode"
     ]
     

@@ -208,7 +208,7 @@ def Transform():
         ,"serviceRequestGUID customerServiceRequestGUID"
         ,"CASE WHEN receivedCategoryFK IS NULL THEN '-1' ELSE receivedCategoryFK END  customerServiceRequestReceivedCategoryFK"      #UC3 Dimension
         ,"CASE WHEN resolutionCategoryFK IS NULL THEN '-1' ELSE resolutionCategoryFK END customerServiceRequestResolutionCategoryFK" #UC3 Dimension
-        ,"CASE WHEN communicationChannelSK IS NULL THEN '-1' ELSE communicationChannelSK END channcommunicationChannelFKelFK"        #UC3 Dimension
+        ,"CASE WHEN communicationChannelSK IS NULL THEN '-1' ELSE communicationChannelSK END communicationChannelFK"        #UC3 Dimension
         ,f"CASE WHEN contactPersonFK IS NULL THEN '{dummyDimPartnerSK}' ELSE contactPersonFK END contactPersonFK"
         ,"reportByPersonFK reportByPersonFK"
         ,"serviceTeamFK serviceTeamFK"
@@ -219,13 +219,13 @@ def Transform():
         ,"CASE WHEN processTypeFK IS NULL THEN '-1' ELSE processTypeFK END customerServiceProcessTypeFK" #UC3 Dimension
         ,"propertyFK propertyFK"
         ,"locationSK locationFK"
-        ,"CASE WHEN statusFK IS NULL THEN '-1' ELSE statusFK END statcustomerServiceRequestStatusFK"  #UC3 Dimension
+        ,"CASE WHEN statusFK IS NULL THEN '-1' ELSE statusFK END customerServiceRequestStatusFK"  #UC3 Dimension
         ,"salesEmployeeFK salesEmployeeFK"
         ,"serviceRequestStartDateFK customerServiceRequestStartDateFK"
         ,"serviceRequestEndDateFK customerServiceRequestEndDateFK"
         ,"snapshotDateFK customerServiceRequestSnapshotDateFK"
-        ,"totalDuration customerServiceRequestTotalDurationHoursQuantity"
-        ,"workDuration customerServiceRequstWorkDurationHoursQuantity"
+        ,"totalDuration customerServiceRequestTotalDurationHourQuantity"
+        ,"workDuration customerServiceRequstWorkDurationHourQuantity"
         ,"source customerServiceRequestSourceName"
         ,"sourceCode customerServiceRequestSourceCode"
         ,"issueResponsibility customerServiceRequestIssueResponsibilityName"
@@ -241,20 +241,20 @@ def Transform():
         ,"maximoWorkOrderNumber customerServiceRequestMaximoWorkOrderNumber"
         ,"projectId customerServiceRequestProjectId"
         ,"agreementNumber customerServiceRequestAgreementNumber"
-        ,"recommendedPriority customerServiceRequestRecommendedPriorityNumber"
-        ,"impact customerServiceRequestImpactScoreNumber"
+        ,"CAST( recommendedPriority AS INTEGER) customerServiceRequestRecommendedPriorityNumber"
+        ,"CAST( impact AS INTEGER) customerServiceRequestImpactScoreNumber"
         ,"urgency customerServiceRequestUrgencyNumber"
-        ,"serviceLifeCycle customerServiceRequestServiceLifeCycleUnitHoursQuantity"
+        ,"serviceLifeCycle customerServiceRequestServiceLifeCycleUnitHourQuantity"
         ,"serviceLifeCycleUnit customerServiceRequestServiceLifeCycleUnitName"
         ,"activityPriorityCode customerServiceRequestActivityPriorityCode"
         ,"respondByDateTime customerServiceRequestRespondByTimestamp"
-        ,"respondedDateTime cutomerServiceRequestRespondedTimestamp"
+        ,"respondedDateTime customerServiceRequestRespondedTimestamp"
         ,"serviceRequestClosedDateTime customerServiceRequestClosedTimestamp"
         ,"toDoByDateTime customerServiceRequestToDoByTimestamp"
-        ,"interimResponseDays customerServiceRequestInterimResponseDaysQuantity"
-        ,"interimResponseWorkingDays customerServiceRequestInterimResponseWorkingDaysQuantity"
+        ,"CAST(interimResponseDays        as DECIMAL(15,2)) customerServiceRequestInterimResponseDaysQuantity"
+        ,"CAST(interimResponseWorkingDays as DECIMAL(15,2)) customerServiceRequestInterimResponseWorkingDaysQuantity"
         ,"metInterimResponseFlag customerServiceRequestMetInterimResponseIndicator"
-        ,"CreatedDateTime customerServiceRequsestCreatedTimestamp"
+        ,"CreatedDateTime customerServiceRequestCreatedTimestamp"
         ,"CreatedBy customeServiceRequestCreatedByUserId"
         ,"coalesce(CreatedByName, CreatedBy) customeServiceRequestCreatedByUserName" #aurion
         ,"lastChangedDate customerServiceRequestLastChangeDate"
@@ -270,10 +270,9 @@ def Transform():
     # ------------- CLAUSES ---------------- #
 
     # ------------- SAVE ------------------- #
-#     display(df)
-    #CleanSelf()
+    # display(df)
+    CleanSelf()
     Save(df)
     #DisplaySelf()
 pass
 Transform()
-

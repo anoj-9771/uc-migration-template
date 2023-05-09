@@ -134,9 +134,9 @@ final_df = billpaid_df.union(businessXconn_df) \
 
 
 resp_df = GetTable(f"{TARGET}.dimSurveyResponseInformation") \
-          .select("surveyResponseInformationSK", "responseId")
+          .select("surveyResponseInformationSK", "surveyResponseId")
 
-finaldf = final_df.join(resp_df, resp_df["responseId"] == final_df["recordId"], "left").withColumn("sourceSystem", lit('Qualtrics').cast("string")) 
+finaldf = final_df.join(resp_df, resp_df["surveyResponseId"] == final_df["recordId"], "left").withColumn("sourceSystem", lit('Qualtrics').cast("string")) 
 
 # COMMAND ----------
 
@@ -145,14 +145,15 @@ def Transform():
     df_final = finaldf
 
     # ------------- TRANSFORMS ------------- # 
+    #based on (sourceSystemCode, surveyId, surveyResponseId and surveyAttributeName)
     _.Transforms = [
-        f"sourceSystem||'|'||surveyID||'|'||surveyResponseInformationSK {BK}"
-        ,"surveyID surveyID"
+        f"sourceSystem||'|'||surveyID||'|'||surveyResponseId||'|'||attributeName {BK}"
+        ,"surveyID surveyId"
         ,"surveyResponseInformationSK surveyResponseInformationFK"
         ,"surveyName surveyName"       
-        ,"attributeName attributeName" 
-        ,"attributeValue attributeValue"
-        ,"sourceSystem sourceSystem"
+        ,"attributeName surveyAttributeName" 
+        ,"attributeValue surveyAttributeValue"
+        ,"sourceSystem sourceSystemCode"
     ]
     
     df_final = df_final.selectExpr(
