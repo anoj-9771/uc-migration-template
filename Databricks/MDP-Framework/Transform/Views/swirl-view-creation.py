@@ -1,7 +1,7 @@
 # Databricks notebook source
  spark.sql("""
 CREATE OR REPLACE VIEW cleansed.vw_swirl_ref_lookup AS 
-SELECT 
+SELECT DISTINCT 
    mli.lookupItemId as lookupItemId,
    li.lookupId as lookupId,
     mli.componentEntityId as incidentId, 
@@ -17,7 +17,7 @@ WHERE mli.lookupItemId <> '0'
 
  spark.sql("""
 CREATE OR REPLACE VIEW cleansed.vw_swirl_ref_nfcomponents AS 
-SELECT nfc1.componentName as headTable,
+SELECT DISTINCT nfc1.componentName as headTable,
 nfc2.componentName as childTable,
 rel.twoDescription as headDescription,
 rel.oneDescription as childDescription,
@@ -42,7 +42,7 @@ SELECT DISTINCT
 ,inc.reasonForRecycledCancelledStatus as incRecycledOrCancelledStatus
 ,Net.incidentTypeStatus as incidentTypeStatus
 ,Net.ifIncidentStatusIsCancelledPleaseProvideReasonWhy as netCancelledReason
-,inc.incidentShortDescription as shortDescription
+,inc.incidentShortDescription as incidentShortDescription
 ,Net.confirmedAddressLocation
 ,Net.weather as weather
 ,Maxio.workOrderNumber
@@ -141,7 +141,7 @@ SELECT DISTINCT Dept.businessArea AS businessArea ,
        act.priority AS actionPriority ,
        Imp.consequenceCategory AS consequenceCategory ,
        act.actionStatus as actionStatus , 
-       inc.incidentShortDescription AS incShortDescription ,
+       inc.incidentShortDescription AS incidentShortDescription ,
        act.actionDescription AS actionDescription ,
        inc.initialActionTaken AS actionTaken ,
        act.completionDate AS dateClosed ,
@@ -154,7 +154,7 @@ SELECT DISTINCT Dept.businessArea AS businessArea ,
        act.actionTitle AS actionTitle ,
        Lesson.description AS lessonsLearnedDescription ,
        act.completionCategory AS completionCategory ,
-       eventType.incidentEvenType as incidentEvenType
+       eventType.incidentEventType as incidentEventType
 FROM cleansed.swirl_action act
 INNER JOIN cleansed.swirl_incident inc ON act.incidentAsSourceOfAction_FK = inc.id
 LEFT JOIN
@@ -181,7 +181,7 @@ LEFT JOIN
                    SD.organisationalUnit AS subDivision
    FROM cleansed.swirl_department BA
    LEFT JOIN cleansed.swirl_department SD ON BA.parentOrganisationalUnit_FK = SD.id) Dept ON Inc.organisationalUnitPrimaryResponsibility_FK = Dept.BAID 
-LEFT JOIN (SELECT DISTINCT description as incidentEvenType
+LEFT JOIN (SELECT DISTINCT description as incidentEventType
                   ,incidentId 
            FROM cleansed.vw_swirl_ref_lookup
            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
@@ -189,11 +189,12 @@ LEFT JOIN (SELECT DISTINCT description as incidentEvenType
            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
           ) eventType ON inc.id = eventType.incidentId
 WHERE inc.incidentNumber IS NOT NULL 
+AND UPPER(eventType.incidentEventType) IN ('PERSONNEL', 'HEALTH AND SAFETY')
 """)
 
 # COMMAND ----------
 
-#Curated view SWIRL open action report -no personal
+#Curated view SWIRL open action report -non personal
 spark.sql("""
 CREATE OR REPLACE VIEW curated.viewswirlopenactionnonpersonal AS
 SELECT DISTINCT Dept.businessArea AS businessArea ,
@@ -205,7 +206,7 @@ SELECT DISTINCT Dept.businessArea AS businessArea ,
        act.priority AS actionPriority ,
        Imp.consequenceCategory AS consequenceCategory ,
        act.actionStatus as actionStatus , 
-       inc.incidentShortDescription AS incShortDescription ,
+       inc.incidentShortDescription AS incidentShortDescription ,
        act.actionDescription AS actionDescription ,
        inc.initialActionTaken AS actionTaken ,
        act.completionDate AS dateClosed ,
@@ -218,7 +219,7 @@ SELECT DISTINCT Dept.businessArea AS businessArea ,
        act.actionTitle AS actionTitle ,
        Lesson.description AS lessonsLearnedDescription ,
        act.completionCategory AS completionCategory ,
-       eventType.incidentEvenType as incidentEvenType
+       eventType.incidentEventType as incidentEventType
 FROM cleansed.swirl_action act
 INNER JOIN cleansed.swirl_incident inc ON act.incidentAsSourceOfAction_FK = inc.id
 LEFT JOIN
@@ -245,14 +246,15 @@ LEFT JOIN
                    SD.organisationalUnit AS subDivision
    FROM cleansed.swirl_department BA
    LEFT JOIN cleansed.swirl_department SD ON BA.parentOrganisationalUnit_FK = SD.id) Dept ON Inc.organisationalUnitPrimaryResponsibility_FK = Dept.BAID 
-LEFT JOIN (SELECT DISTINCT description as incidentEvenType
+LEFT JOIN (SELECT DISTINCT description as incidentEventType
                   ,incidentId 
            FROM cleansed.vw_swirl_ref_lookup
            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
            AND lookupItemId <> '0'
-           AND UPPER(description) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY')
+           --AND UPPER(description) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY')
           ) eventType ON inc.id = eventType.incidentId
 WHERE inc.incidentNumber IS NOT NULL 
+AND UPPER(eventType.incidentEventType) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY')
 """)
 
 # COMMAND ----------
@@ -262,11 +264,11 @@ spark.sql("""
 CREATE OR REPLACE VIEW curated.viewswirlopenincidentpersonal AS
 SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
      inc.incidentStatus AS incidentStatus ,
-     eventType.incidentEvenType as incidentEventType,
-     NULL as severity,
+     eventType.incidentEventType as incidentEventType,
+     --inj.severityOfTheInjury as severity,
      cast(inc.incidentDate as date) as incidentDate,
      cast(inc.reportedDate as date) as reportedDate,
-     inc.incidentShortDescription AS incShortDescription ,
+     inc.incidentShortDescription AS incidentShortDescription ,
      inc.summary as incidentSummary ,
      loc.location as incidentLocation ,
      inc.incidentLocation as locationOther , 
@@ -276,8 +278,10 @@ SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
      inc.incidentOwnerOrganisation as incidentOwnerOrganisation , 
      inc.itemsToCompletePriorToIncidentClose as itemsToCompletePriorToIncidentClose , 
      per.sydneyWaterBusinessUnit as businessUnit ,
-     imp.consequenceCategory as consequenceCategory 
-     --,CAST(GETDATE() as DATE)-CAST(inc.incidentDate as date) as overdueForMoreThan45Days
+     imp.consequenceCategory as consequenceCategory, 
+     CASE WHEN UPPER(inc.incidentStatus) = 'OPEN' THEN datediff(CAST(current_date() as DATE),CAST(inc.incidentDate as date)) 
+          ELSE 0
+     END as overdueGreaterThan45Days
 FROM cleansed.swirl_incident inc 
 LEFT JOIN cleansed.swirl_person per ON per.id = inc.incidentProcessor_FK
 LEFT JOIN cleansed.swirl_person ent ON ent.id = inc.enteredBy_FK
@@ -287,15 +291,17 @@ LEFT JOIN
                    consequenceCategory 
   FROM cleansed.swirl_incident_impact) imp ON imp.incident_FK = inc.id
 --LEFT JOIN 
---cleansed.swirl_injury_details inj ON inj.incident_FK = inc.id 
-LEFT JOIN (SELECT DISTINCT description as incidentEvenType
+--(SELECT DISTINCT incident_FK,severityOfTheInjury 
+-- FROM cleansed.swirl_injury) inj ON inj.incident_FK = inc.id 
+LEFT JOIN (SELECT DISTINCT description as incidentEventType
                   ,incidentId 
            FROM cleansed.vw_swirl_ref_lookup
            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
            AND lookupItemId <> '0'
            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
           ) eventType ON inc.id = eventType.incidentId
-WHERE inc.incidentNumber IS NOT NULL
+WHERE inc.incidentNumber IS NOT NULL 
+AND UPPER(eventType.incidentEventType) IN ('PERSONNEL', 'HEALTH AND SAFETY')
 """)
 
 # COMMAND ----------
@@ -305,11 +311,11 @@ spark.sql("""
 CREATE OR REPLACE VIEW curated.viewswirlopenincidentnonpersonal AS
 SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
      inc.incidentStatus AS incidentStatus ,
-     eventType.incidentEvenType as incidentEventType,
-     NULL as severity,
+     eventType.incidentEventType as incidentEventType,
+     --inj.severityOfTheInjury as severity,
      cast(inc.incidentDate as date) as incidentDate,
      cast(inc.reportedDate as date) as reportedDate,
-     inc.incidentShortDescription AS incShortDescription ,
+     inc.incidentShortDescription AS incidentShortDescription ,
      inc.summary as incidentSummary ,
      loc.location as incidentLocation ,
      inc.incidentLocation as locationOther , 
@@ -319,8 +325,10 @@ SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
      inc.incidentOwnerOrganisation as incidentOwnerOrganisation , 
      inc.itemsToCompletePriorToIncidentClose as itemsToCompletePriorToIncidentClose , 
      per.sydneyWaterBusinessUnit as businessUnit ,
-     imp.consequenceCategory as consequenceCategory
-     --,CAST(GETDATE() as DATE)-CAST(inc.incidentDate as date) as overdueForMoreThan45Days
+     imp.consequenceCategory as consequenceCategory,
+     CASE WHEN UPPER(inc.incidentStatus) = 'OPEN' THEN datediff(CAST(current_date() as DATE),CAST(inc.incidentDate as date)) 
+          ELSE 0
+     END as overdueGreaterThan45Days
 FROM cleansed.swirl_incident inc 
 LEFT JOIN cleansed.swirl_person per ON per.id = inc.incidentProcessor_FK
 LEFT JOIN cleansed.swirl_person ent ON ent.id = inc.enteredBy_FK
@@ -330,15 +338,17 @@ LEFT JOIN
                    consequenceCategory 
   FROM cleansed.swirl_incident_impact) imp ON imp.incident_FK = inc.id
 --LEFT JOIN 
---cleansed.swirl_injury_details inj ON inj.incident_FK = inc.id 
-LEFT JOIN (SELECT DISTINCT description as incidentEvenType
+--(SELECT DISTINCT incident_FK,severityOfTheInjury 
+-- FROM cleansed.swirl_injury) inj ON inj.incident_FK = inc.id 
+LEFT JOIN (SELECT DISTINCT description as incidentEventType
                   ,incidentId 
            FROM cleansed.vw_swirl_ref_lookup
            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
            AND lookupItemId <> '0'
-           AND UPPER(description) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY')
+           --AND UPPER(description) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY')
           ) eventType ON inc.id = eventType.incidentId
-WHERE inc.incidentNumber IS NOT NULL
+WHERE inc.incidentNumber IS NOT NULL 
+AND UPPER(eventType.incidentEventType) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY')
 """)
 
 # COMMAND ----------
@@ -400,3 +410,131 @@ LEFT JOIN ( SELECT invest.incidentAsSourceOfInvestigation_FK as incidentAsSource
 --Left join cleansed.swirl_treatment_plan treat_plan on 
 WHERE inc.incidentNumber IS NOT NULL
 """)
+
+# COMMAND ----------
+
+#All incidents and events -personal
+spark.sql("""
+CREATE OR REPLACE VIEW curated.viewswirlallincidentsandeventspersonal AS 
+SELECT DISTINCT inc.id,
+inc.incidentNumber
+,cast(incidentDate as date) as incidentDate
+,cast(reportedDate as date) as recordedDate
+,cast(closeIncidentDate as date) as dateClosed
+,incidentStatus
+,incidentCategory
+,incidentShortDescription
+,inc.consequenceRating
+,inc.incidentOwnerOrganisation as incidentOwnerOrganisation
+,Dep.organisationalUnit as businessArea
+,per.sydneyWaterBusinessUnit as businessLocation
+,incidentLocation
+,IFNULL(concat(per.lastName,',',per.firstName,',',per.userName),'') as incidentOwner
+,IFNULL(concat(report.lastName,',',report.firstName,',',report.userName),'') as reportedBy
+,Imp.isTheIncidentImpact as actualPotential
+,Imp.consequenceRating as consequenceRatingWord
+,inc.riskRating
+,Imp.consequenceCategory as consequenceCategory
+,rootcause.rootCause
+,rootcause.rootCauseDescription
+,Lesson.description as lessonLearntDescription
+,Imp.consequenceRatingInteger as consequenceRatingInteger
+,Bypass.doesTheIncidentResultInLicenceNonCompliance as bypassNonCompliance
+,treatmentType.treatmentType as bypassTreatmentType
+,Bypass.volumeBypassed as bypassVolumeBypassed
+,Bypass.volumeTreated as bypassVolumeTreated
+,pod.name as bypassPointOfDischarge
+,ReceivingWaterway.name as bypassReceivingWaterway
+,inc.isAnInvestigationRequired as investigationRequired
+,bypass.weather as weather
+FROM cleansed.swirl_incident inc
+LEFT JOIN cleansed.swirl_person per on inc.incidentProcessor_FK = per.id
+LEFT JOIN cleansed.swirl_person report on inc.reportedBy_FK = report.id
+LEFT JOIN cleansed.swirl_action act ON act.incidentAsSourceOfAction_FK = inc.id
+LEFT JOIN cleansed.swirl_root_cause_analysis rootcause ON rootcause.incident_FK = inc.id
+LEFT JOIN cleansed.swirl_incident_bypass_and_partial_treatment bypass ON bypass.incident_FK = Inc.id
+LEFT JOIN
+(SELECT DISTINCT incidentId ,
+                 description as treatmentType 
+ FROM cleansed.vw_swirl_ref_lookup
+ WHERE UPPER(lookupName) = UPPER('Treatment Type')
+ AND lookupItemId <> '0'
+) treatmentType on treatmentType.incidentId = inc.id
+LEFT JOIN cleansed.swirl_pre_treatment ReceivingWaterway on ReceivingWaterway.id = bypass.receivingWaterway_FK
+LEFT JOIN cleansed.swirl_pre_treatment pod on pod.id = bypass.pointOfDischarge_FK
+LEFT JOIN (SELECT DISTINCT incident_FK, consequenceCategory,consequenceRating,consequenceRatingInteger,isTheIncidentImpact FROM cleansed.swirl_incident_impact) Imp ON Imp.incident_FK= inc.id
+LEFT JOIN (SELECT DISTINCT incidentAsSourceOfLessonsLearned_FK,description FROM cleansed.swirl_lessons_learned) Lesson ON Lesson.incidentAsSourceOfLessonsLearned_FK = Inc.id
+LEFT JOIN cleansed.swirl_department Dep on Dep.id = inc.organisationalUnitPrimaryResponsibility_FK
+LEFT JOIN (SELECT DISTINCT description as incidentEventType
+                  ,incidentId 
+           FROM cleansed.vw_swirl_ref_lookup
+           WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+           AND lookupItemId <> '0'
+           AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+          ) eventType ON inc.id = eventType.incidentId
+WHERE inc.incidentNumber IS NOT NULL 
+AND UPPER(eventType.incidentEventType) IN ('PERSONNEL', 'HEALTH AND SAFETY') """)
+
+# COMMAND ----------
+
+#All incidents and events -non personal
+spark.sql("""
+CREATE OR REPLACE VIEW curated.viewswirlallincidentsandeventsnonpersonal AS 
+SELECT DISTINCT inc.id,
+inc.incidentNumber
+,cast(incidentDate as date) as incidentDate
+,cast(reportedDate as date) as recordedDate
+,cast(closeIncidentDate as date) as dateClosed
+,incidentStatus
+,incidentCategory
+,incidentShortDescription
+,inc.consequenceRating
+,inc.incidentOwnerOrganisation as incidentOwnerOrganisation
+,Dep.organisationalUnit as businessArea
+,per.sydneyWaterBusinessUnit as businessLocation
+,incidentLocation
+,IFNULL(concat(per.lastName,',',per.firstName,',',per.userName),'') as incidentOwner
+,IFNULL(concat(report.lastName,',',report.firstName,',',report.userName),'') as reportedBy
+,Imp.isTheIncidentImpact as actualPotential
+,Imp.consequenceRating as consequenceRatingWord
+,inc.riskRating
+,Imp.consequenceCategory as consequenceCategory
+,rootcause.rootCause
+,rootcause.rootCauseDescription
+,Lesson.description as lessonLearntDescription
+,Imp.consequenceRatingInteger as consequenceRatingInteger
+,Bypass.doesTheIncidentResultInLicenceNonCompliance as bypassNonCompliance
+,treatmentType.treatmentType as bypassTreatmentType
+,Bypass.volumeBypassed as bypassVolumeBypassed
+,Bypass.volumeTreated as bypassVolumeTreated
+,pod.name as bypassPointOfDischarge
+,ReceivingWaterway.name as bypassReceivingWaterway
+,inc.isAnInvestigationRequired as investigationRequired
+,bypass.weather as weather
+FROM cleansed.swirl_incident inc
+LEFT JOIN cleansed.swirl_person per on inc.incidentProcessor_FK = per.id
+LEFT JOIN cleansed.swirl_person report on inc.reportedBy_FK = report.id
+LEFT JOIN cleansed.swirl_action act ON act.incidentAsSourceOfAction_FK = inc.id
+LEFT JOIN cleansed.swirl_root_cause_analysis rootcause ON rootcause.incident_FK = inc.id
+LEFT JOIN cleansed.swirl_incident_bypass_and_partial_treatment bypass ON bypass.incident_FK = Inc.id
+LEFT JOIN
+(SELECT DISTINCT incidentId ,
+                   description as treatmentType 
+ FROM cleansed.vw_swirl_ref_lookup
+ WHERE UPPER(lookupName) = UPPER('Treatment Type')
+ AND lookupItemId <> '0'
+) treatmentType on treatmentType.incidentId = inc.id
+LEFT JOIN cleansed.swirl_pre_treatment ReceivingWaterway on ReceivingWaterway.id = bypass.receivingWaterway_FK
+LEFT JOIN cleansed.swirl_pre_treatment pod on pod.id = bypass.pointOfDischarge_FK
+LEFT JOIN (SELECT DISTINCT incident_FK, consequenceCategory,consequenceRating,consequenceRatingInteger,isTheIncidentImpact FROM cleansed.swirl_incident_impact) Imp ON Imp.incident_FK= inc.id
+LEFT JOIN (SELECT DISTINCT incidentAsSourceOfLessonsLearned_FK,description FROM cleansed.swirl_lessons_learned) Lesson ON Lesson.incidentAsSourceOfLessonsLearned_FK = Inc.id
+LEFT JOIN cleansed.swirl_department Dep on Dep.id = inc.organisationalUnitPrimaryResponsibility_FK
+LEFT JOIN (SELECT DISTINCT description as incidentEventType
+                  ,incidentId 
+           FROM cleansed.vw_swirl_ref_lookup
+           WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+           AND lookupItemId <> '0'
+           --AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+          ) eventType ON inc.id = eventType.incidentId
+WHERE inc.incidentNumber IS NOT NULL 
+AND UPPER(eventType.incidentEventType) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY') """)
