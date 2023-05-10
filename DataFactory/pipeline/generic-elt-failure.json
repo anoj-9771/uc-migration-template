@@ -77,7 +77,7 @@
 					"parameters": {
 						"importance": "High",
 						"body": {
-							"value": "<p>Hi team, we have identified a delay with the EDP refresh today.</p>\n<p>Data is still available but will only be current as of yesterday.</p>\n\n<p><b>You will be notified shortly on when data has been refreshed once our team have corrected and rerun load.<b></p>\n",
+							"value": "<p>Hi team, we have identified a delay with the EDP refresh today.</p>\n<p>Data will be still available to query and you will be notified shortly when our team have corrected the load.</p>\n\n<p><b>Once data has been refreshed, please validate any results derived in the interim and inform us if you have any further issues.<b></p>\n",
 							"type": "Expression"
 						},
 						"recipient": {
