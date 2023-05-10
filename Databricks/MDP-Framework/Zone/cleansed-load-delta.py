@@ -97,7 +97,10 @@ if(extendedProperties):
     if(groupOrderBy):
         cleanseDataFrame = GetRawLatestRecordBK(cleanseDataFrame,businessKey,groupOrderBy,systemCode)
 
-CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
+if extendedProperties and extendedProperties.get("LoadType") == "Append":
+    AppendDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
+else:    
+    CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
 
 # COMMAND ----------
 

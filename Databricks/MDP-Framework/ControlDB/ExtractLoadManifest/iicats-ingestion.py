@@ -75,6 +75,14 @@ df = (
                                         .otherwise(expr('SystemCode')))
     #   .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tables15Mins),lit('{"OverrideClusterName" : "interactive"}')))
 )
+appendTables = ['tsv']
+df = (
+    df.withColumn('ExtendedProperties', expr('trim("{}" FROM ExtendedProperties)'))
+      .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(appendTables)
+                                        ,expr('ltrim(",",ExtendedProperties ||", "||\'\"LoadType\" : \"Append\"\')')) 
+                                        .otherwise(expr('ExtendedProperties')))
+      .withColumn('ExtendedProperties', expr('if(ExtendedProperties<>"","{"||ExtendedProperties ||"}","")')) 
+)
 display(df)
 
 # COMMAND ----------
