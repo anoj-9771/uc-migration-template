@@ -106,7 +106,7 @@ SELECT DISTINCT
 ,inc.incidentShortDescription
 ,Maxio.workOrderNumber
 ,inc.incidentOwnerOrganisation as organisation
-,IFNULL(concat(per.lastName,',',per.firstName,',',per.userName),'') as owner
+,concat_ws(',',per.Lastname,per.Firstname,per.userName) as owner
 ,inc.incidentStatus as incidentStatus
 ,lic.licenceTitle as licenceName
 ,Maxio.networkDeliverySystemReceivingWaters as maximoDeliverySystem
@@ -145,7 +145,7 @@ SELECT DISTINCT Dept.businessArea AS businessArea ,
        act.actionDescription AS actionDescription ,
        inc.initialActionTaken AS actionTaken ,
        act.completionDate AS dateClosed ,
-       IFNULL(Concat(per.Lastname, ',', per.Firstname, ',', per.userName), '') AS actionsAsAssignedToPerson ,
+       concat_ws(',',per.Lastname,per.Firstname,per.userName) AS actionsAsAssignedToPerson ,
        Imp.consequenceRating AS consequenceRatingWord ,
        Imp.consequenceRatingInteger AS consequenceRating ,
        Invest.typeOfInvestigation AS typeOfInvestigation ,
@@ -181,15 +181,21 @@ LEFT JOIN
                    SD.organisationalUnit AS subDivision
    FROM cleansed.swirl_department BA
    LEFT JOIN cleansed.swirl_department SD ON BA.parentOrganisationalUnit_FK = SD.id) Dept ON Inc.organisationalUnitPrimaryResponsibility_FK = Dept.BAID 
-LEFT JOIN (SELECT DISTINCT description as incidentEventType
-                  ,incidentId 
+LEFT JOIN (SELECT DISTINCT incidentId 
+                           ,array_join(collect_set(description), ',')  as incidentEventType 
            FROM cleansed.vw_swirl_ref_lookup
            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
-           AND lookupItemId <> '0'
-           AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+           AND lookupItemId <> '0' 
+           AND description IS NOT NULL
+           GROUP BY incidentId
           ) eventType ON inc.id = eventType.incidentId
 WHERE inc.incidentNumber IS NOT NULL 
-AND UPPER(eventType.incidentEventType) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+AND EXISTS (SELECT 1 
+            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
+            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+            AND lookupItemId <> '0'
+            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+            AND inner_tbl.incidentId = inc.id)
 """)
 
 # COMMAND ----------
@@ -210,7 +216,7 @@ SELECT DISTINCT Dept.businessArea AS businessArea ,
        act.actionDescription AS actionDescription ,
        inc.initialActionTaken AS actionTaken ,
        act.completionDate AS dateClosed ,
-       IFNULL(Concat(per.Lastname, ',', per.Firstname, ',', per.userName), '') AS actionsAsAssignedToPerson ,
+       concat_ws(',',per.Lastname,per.Firstname,per.userName) AS actionsAsAssignedToPerson ,
        Imp.consequenceRating AS consequenceRatingWord ,
        Imp.consequenceRatingInteger AS consequenceRating ,
        Invest.typeOfInvestigation AS typeOfInvestigation ,
@@ -246,15 +252,21 @@ LEFT JOIN
                    SD.organisationalUnit AS subDivision
    FROM cleansed.swirl_department BA
    LEFT JOIN cleansed.swirl_department SD ON BA.parentOrganisationalUnit_FK = SD.id) Dept ON Inc.organisationalUnitPrimaryResponsibility_FK = Dept.BAID 
-LEFT JOIN (SELECT DISTINCT description as incidentEventType
-                  ,incidentId 
+LEFT JOIN (SELECT DISTINCT incidentId 
+                           ,array_join(collect_set(description), ',')  as incidentEventType 
            FROM cleansed.vw_swirl_ref_lookup
            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
-           AND lookupItemId <> '0'
-           --AND UPPER(description) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY')
+           AND lookupItemId <> '0' 
+           AND description IS NOT NULL
+           GROUP BY incidentId
           ) eventType ON inc.id = eventType.incidentId
 WHERE inc.incidentNumber IS NOT NULL 
-AND UPPER(eventType.incidentEventType) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY')
+AND NOT EXISTS (SELECT 1 
+            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
+            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+            AND lookupItemId <> '0'
+            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+            AND inner_tbl.incidentId = inc.id)
 """)
 
 # COMMAND ----------
@@ -273,8 +285,8 @@ SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
      loc.location as incidentLocation ,
      inc.incidentLocation as locationOther , 
      per.sydneyWaterDepartmentId as incidentOwnerResponsible ,   
-     IFNULL(Concat(per.Lastname, ',', per.Firstname, ',', per.userName), '') AS owner ,
-     IFNULL(Concat(ent.Lastname, ',', ent.Firstname, ',', ent.userName), '') AS enteredBy ,
+     concat_ws(',',per.Lastname,per.Firstname,per.userName) AS owner ,
+     concat_ws(',',ent.Lastname,ent.Firstname,ent.userName) AS enteredBy ,
      inc.incidentOwnerOrganisation as incidentOwnerOrganisation , 
      inc.itemsToCompletePriorToIncidentClose as itemsToCompletePriorToIncidentClose , 
      per.sydneyWaterBusinessUnit as businessUnit ,
@@ -293,15 +305,21 @@ LEFT JOIN
 --LEFT JOIN 
 --(SELECT DISTINCT incident_FK,severityOfTheInjury 
 -- FROM cleansed.swirl_injury) inj ON inj.incident_FK = inc.id 
-LEFT JOIN (SELECT DISTINCT description as incidentEventType
-                  ,incidentId 
+LEFT JOIN (SELECT DISTINCT incidentId 
+                           ,array_join(collect_set(description), ',')  as incidentEventType 
            FROM cleansed.vw_swirl_ref_lookup
            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
-           AND lookupItemId <> '0'
-           AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+           AND lookupItemId <> '0' 
+           AND description IS NOT NULL
+           GROUP BY incidentId
           ) eventType ON inc.id = eventType.incidentId
 WHERE inc.incidentNumber IS NOT NULL 
-AND UPPER(eventType.incidentEventType) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+AND EXISTS (SELECT 1 
+            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
+            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+            AND lookupItemId <> '0'
+            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+            AND inner_tbl.incidentId = inc.id)
 """)
 
 # COMMAND ----------
@@ -320,8 +338,8 @@ SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
      loc.location as incidentLocation ,
      inc.incidentLocation as locationOther , 
      per.sydneyWaterDepartmentId as incidentOwnerResponsible ,   
-     IFNULL(Concat(per.Lastname, ',', per.Firstname, ',', per.userName), '') AS owner ,
-     IFNULL(Concat(ent.Lastname, ',', ent.Firstname, ',', ent.userName), '') AS enteredBy ,
+     concat_ws(',',per.Lastname,per.Firstname,per.userName) AS owner ,
+     concat_ws(',',ent.Lastname,ent.Firstname,ent.userName) AS enteredBy ,
      inc.incidentOwnerOrganisation as incidentOwnerOrganisation , 
      inc.itemsToCompletePriorToIncidentClose as itemsToCompletePriorToIncidentClose , 
      per.sydneyWaterBusinessUnit as businessUnit ,
@@ -340,76 +358,88 @@ LEFT JOIN
 --LEFT JOIN 
 --(SELECT DISTINCT incident_FK,severityOfTheInjury 
 -- FROM cleansed.swirl_injury) inj ON inj.incident_FK = inc.id 
-LEFT JOIN (SELECT DISTINCT description as incidentEventType
-                  ,incidentId 
+LEFT JOIN (SELECT DISTINCT incidentId 
+                           ,array_join(collect_set(description), ',')  as incidentEventType 
            FROM cleansed.vw_swirl_ref_lookup
            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
-           AND lookupItemId <> '0'
-           --AND UPPER(description) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY')
+           AND lookupItemId <> '0' 
+           AND description IS NOT NULL
+           GROUP BY incidentId
           ) eventType ON inc.id = eventType.incidentId
 WHERE inc.incidentNumber IS NOT NULL 
-AND UPPER(eventType.incidentEventType) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY')
+AND NOT EXISTS (SELECT 1 
+            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
+            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+            AND lookupItemId <> '0'
+            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+            AND inner_tbl.incidentId = inc.id)
 """)
 
 # COMMAND ----------
 
 #Curated view SWIRL bypass and reportable incidents
-spark.sql("""
-CREATE OR REPLACE VIEW curated.viewswirlbypassandreportableincidents AS
-SELECT DISTINCT 
- inc.incidentNumber
-,NULL as incidentEventType
-,inc.incidentShortDescription as incidentShortDescription
-,bps.doesTheIncidentResultInLicenceNonCompliance as isItNonCompliance
-, cast(inc.incidentDate as date) as incidentDate
-,cast(stnf.dateNotificationReported as date) as dateNotificationReported
-,date_format(inc.incidentTime ,'HH:mm') as incidentTime
-,date_format(stnf.timeNotificationReported ,'HH:mm') as timeNotificationReported
-,stnf.externalAgencyRegulator as externalAgencyRegulator
-,stnf.externalStakeholderContactChannel as externalStakeholderContactChannel
-,stnf.externalStakeholderReferenceNumber as externalStakeholderReferenceNumber
-,stnf.notificationNumber as notificationNumber
-,stnf.notificationDetails as notificationDetails
-,stnf.notificationType as notificationType
-,bps.sendEmailNotificationToDepartmentOfHealthCode as sendEmailNotificationToDepartmentOfHealthCode
-,licnc.commentsToExternalStakeholders as commentsToExternalStakeholders
-,log.notificationMethod as notificationMethod
-,date_format(log.timeNotified ,'HH:mm') as timeNotified
-,cast(log.dateNotified as date) as dateNotified
-,env_req.regulationOrConditionNotCompliedWith as regulationOrConditionNotCompliedWith
-,env_req.regulatoryNoticeYesNoPotentially as regulatoryNoticeYesNoPotentially
-,reg_notice.regulatoryNoticeType as regulatoryNoticeType
-,file.fileName as fileName
-,bps.cause as cause
-,bps.incidentClass as incidentClass
-,bps.potentialPublicHealthImpact as potentialPublicHealthImpact
-,NULL as treatmentType 
-FROM cleansed.swirl_incident inc
-INNER JOIN cleansed.swirl_incident_bypass_and_partial_treatment bps on inc.id = bps.incident_FK 
-LEFT JOIN cleansed.swirl_stakeholder_notification stnf on bps.id = stnf.bypassIncident_FK
-LEFT JOIN cleansed.swirl_licence_noncompliance licnc on inc.id = licnc.incident_FK 
-LEFT JOIN cleansed.swirl_notification_log log on inc.id = log.incident_FK  
-LEFT JOIN ( SELECT env.incident_FK as incident_FK
-                  ,req.id as environmentRequirementsNotMetId
-                  ,req.regulationOrConditionNotCompliedWith
-                  ,req.regulatoryNoticeYesNoPotentially
-            FROM cleansed.swirl_incident_environment env
-            INNER JOIN 
-            cleansed.swirl_incident_environment_requirements_not_met req
-            ON env.id = req.environmentIncident_FK
-          ) env_req ON inc.id = env_req.incident_FK
-LEFT JOIN cleansed.swirl_regulatory_notice_received reg_notice on env_req.environmentRequirementsNotMetId = reg_notice.environmentRequirementsNotMet_FK
-LEFT JOIN ( SELECT invest.incidentAsSourceOfInvestigation_FK as incidentAsSourceOfInvestigation_FK
-                   ,file.investigation_FK as investigation_FK
-                   ,file.fileName as fileName
-            FROM cleansed.swirl_investigation invest
-            INNER JOIN
-            cleansed.swirl_file file 
-            ON invest.id = file.investigation_FK
-          ) file ON inc.id = file.incidentAsSourceOfInvestigation_FK
---Left join cleansed.swirl_treatment_plan treat_plan on 
-WHERE inc.incidentNumber IS NOT NULL
-""")
+#spark.sql("""
+#CREATE OR REPLACE VIEW curated.viewswirlbypassandreportableincidents AS
+#SELECT DISTINCT 
+# inc.incidentNumber
+#,NULL as incidentEventType
+#,inc.incidentShortDescription as incidentShortDescription
+#,bps.doesTheIncidentResultInLicenceNonCompliance as isItNonCompliance
+#, cast(inc.incidentDate as date) as incidentDate
+#,cast(stnf.dateNotificationReported as date) as dateNotificationReported
+#,date_format(inc.incidentTime ,'HH:mm') as incidentTime
+#,date_format(stnf.timeNotificationReported ,'HH:mm') as timeNotificationReported
+#,stnf.externalAgencyRegulator as externalAgencyRegulator
+#,stnf.externalStakeholderContactChannel as externalStakeholderContactChannel
+#,stnf.externalStakeholderReferenceNumber as externalStakeholderReferenceNumber
+#,stnf.notificationNumber as notificationNumber
+#,stnf.notificationDetails as notificationDetails
+#,stnf.notificationType as notificationType
+#,bps.sendEmailNotificationToDepartmentOfHealthCode as sendEmailNotificationToDepartmentOfHealthCode
+#,licnc.commentsToExternalStakeholders as commentsToExternalStakeholders
+#,log.notificationMethod as notificationMethod
+#,date_format(log.timeNotified ,'HH:mm') as timeNotified
+#,cast(log.dateNotified as date) as dateNotified
+#,env_req.regulationOrConditionNotCompliedWith as regulationOrConditionNotCompliedWith
+#,env_req.regulatoryNoticeYesNoPotentially as regulatoryNoticeYesNoPotentially
+#,reg_notice.regulatoryNoticeType as regulatoryNoticeType
+#,file.fileName as fileName
+#,bps.cause as cause
+#,bps.incidentClass as incidentClass
+#,bps.potentialPublicHealthImpact as potentialPublicHealthImpact
+#,NULL as treatmentType 
+#FROM cleansed.swirl_incident inc
+#INNER JOIN cleansed.swirl_incident_bypass_and_partial_treatment bps on inc.id = bps.incident_FK 
+#LEFT JOIN cleansed.swirl_stakeholder_notification stnf on bps.id = stnf.bypassIncident_FK
+#LEFT JOIN cleansed.swirl_licence_noncompliance licnc on inc.id = licnc.incident_FK 
+#LEFT JOIN cleansed.swirl_notification_log log on inc.id = log.incident_FK  
+#LEFT JOIN ( SELECT env.incident_FK as incident_FK
+#                  ,req.id as environmentRequirementsNotMetId
+#                  ,req.regulationOrConditionNotCompliedWith
+#                  ,req.regulatoryNoticeYesNoPotentially
+#            FROM cleansed.swirl_incident_environment env
+#            INNER JOIN 
+#            cleansed.swirl_incident_environment_requirements_not_met req
+#            ON env.id = req.environmentIncident_FK
+#          ) env_req ON inc.id = env_req.incident_FK
+#LEFT JOIN cleansed.swirl_regulatory_notice_received reg_notice on env_req.environmentRequirementsNotMetId = reg_notice.environmentRequirementsNotMet_FK
+#LEFT JOIN ( SELECT invest.incidentAsSourceOfInvestigation_FK as incidentAsSourceOfInvestigation_FK
+#                   ,file.investigation_FK as investigation_FK
+#                   ,file.fileName as fileName
+#            FROM cleansed.swirl_investigation invest
+#            INNER JOIN
+#            cleansed.swirl_file file 
+#            ON invest.id = file.investigation_FK
+#          ) file ON inc.id = file.incidentAsSourceOfInvestigation_FK
+#--Left join cleansed.swirl_treatment_plan treat_plan on 
+#WHERE inc.incidentNumber IS NOT NULL
+#AND EXISTS (SELECT 1 
+#            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
+#            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+#            AND lookupItemId <> '0'
+#            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+#            AND inner_tbl.incidentId = inc.id)
+#""")
 
 # COMMAND ----------
 
@@ -429,8 +459,8 @@ inc.incidentNumber
 ,Dep.organisationalUnit as businessArea
 ,per.sydneyWaterBusinessUnit as businessLocation
 ,incidentLocation
-,IFNULL(concat(per.lastName,',',per.firstName,',',per.userName),'') as incidentOwner
-,IFNULL(concat(report.lastName,',',report.firstName,',',report.userName),'') as reportedBy
+,concat_ws(',',per.Lastname,per.Firstname,per.userName) as incidentOwner
+,concat_ws(',',report.Lastname,report.Firstname,report.userName) as reportedBy
 ,Imp.isTheIncidentImpact as actualPotential
 ,Imp.consequenceRating as consequenceRatingWord
 ,inc.riskRating
@@ -455,25 +485,34 @@ LEFT JOIN cleansed.swirl_root_cause_analysis rootcause ON rootcause.incident_FK 
 LEFT JOIN cleansed.swirl_incident_bypass_and_partial_treatment bypass ON bypass.incident_FK = Inc.id
 LEFT JOIN
 (SELECT DISTINCT incidentId ,
-                 description as treatmentType 
+                 array_join(collect_set(description), ',')  as treatmentType 
  FROM cleansed.vw_swirl_ref_lookup
  WHERE UPPER(lookupName) = UPPER('Treatment Type')
- AND lookupItemId <> '0'
+ AND lookupItemId <> '0' 
+ AND description IS NOT NULL
+ GROUP BY incidentId 
 ) treatmentType on treatmentType.incidentId = inc.id
 LEFT JOIN cleansed.swirl_pre_treatment ReceivingWaterway on ReceivingWaterway.id = bypass.receivingWaterway_FK
 LEFT JOIN cleansed.swirl_pre_treatment pod on pod.id = bypass.pointOfDischarge_FK
 LEFT JOIN (SELECT DISTINCT incident_FK, consequenceCategory,consequenceRating,consequenceRatingInteger,isTheIncidentImpact FROM cleansed.swirl_incident_impact) Imp ON Imp.incident_FK= inc.id
 LEFT JOIN (SELECT DISTINCT incidentAsSourceOfLessonsLearned_FK,description FROM cleansed.swirl_lessons_learned) Lesson ON Lesson.incidentAsSourceOfLessonsLearned_FK = Inc.id
 LEFT JOIN cleansed.swirl_department Dep on Dep.id = inc.organisationalUnitPrimaryResponsibility_FK
-LEFT JOIN (SELECT DISTINCT description as incidentEventType
-                  ,incidentId 
+LEFT JOIN (SELECT DISTINCT incidentId 
+                           ,array_join(collect_set(description), ',')  as incidentEventType 
            FROM cleansed.vw_swirl_ref_lookup
            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
-           AND lookupItemId <> '0'
-           AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+           AND lookupItemId <> '0' 
+           AND description IS NOT NULL
+           GROUP BY incidentId
           ) eventType ON inc.id = eventType.incidentId
 WHERE inc.incidentNumber IS NOT NULL 
-AND UPPER(eventType.incidentEventType) IN ('PERSONNEL', 'HEALTH AND SAFETY') """)
+AND EXISTS (SELECT 1 
+            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
+            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+            AND lookupItemId <> '0'
+            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+            AND inner_tbl.incidentId = inc.id)
+ """)
 
 # COMMAND ----------
 
@@ -493,8 +532,8 @@ inc.incidentNumber
 ,Dep.organisationalUnit as businessArea
 ,per.sydneyWaterBusinessUnit as businessLocation
 ,incidentLocation
-,IFNULL(concat(per.lastName,',',per.firstName,',',per.userName),'') as incidentOwner
-,IFNULL(concat(report.lastName,',',report.firstName,',',report.userName),'') as reportedBy
+,concat_ws(',',per.Lastname,per.Firstname,per.userName) as incidentOwner
+,concat_ws(',',report.Lastname,report.Firstname,report.userName) as reportedBy
 ,Imp.isTheIncidentImpact as actualPotential
 ,Imp.consequenceRating as consequenceRatingWord
 ,inc.riskRating
@@ -519,22 +558,31 @@ LEFT JOIN cleansed.swirl_root_cause_analysis rootcause ON rootcause.incident_FK 
 LEFT JOIN cleansed.swirl_incident_bypass_and_partial_treatment bypass ON bypass.incident_FK = Inc.id
 LEFT JOIN
 (SELECT DISTINCT incidentId ,
-                   description as treatmentType 
+                 array_join(collect_set(description), ',')  as treatmentType 
  FROM cleansed.vw_swirl_ref_lookup
  WHERE UPPER(lookupName) = UPPER('Treatment Type')
- AND lookupItemId <> '0'
+ AND lookupItemId <> '0' 
+ AND description IS NOT NULL 
+ GROUP BY incidentId
 ) treatmentType on treatmentType.incidentId = inc.id
 LEFT JOIN cleansed.swirl_pre_treatment ReceivingWaterway on ReceivingWaterway.id = bypass.receivingWaterway_FK
 LEFT JOIN cleansed.swirl_pre_treatment pod on pod.id = bypass.pointOfDischarge_FK
 LEFT JOIN (SELECT DISTINCT incident_FK, consequenceCategory,consequenceRating,consequenceRatingInteger,isTheIncidentImpact FROM cleansed.swirl_incident_impact) Imp ON Imp.incident_FK= inc.id
 LEFT JOIN (SELECT DISTINCT incidentAsSourceOfLessonsLearned_FK,description FROM cleansed.swirl_lessons_learned) Lesson ON Lesson.incidentAsSourceOfLessonsLearned_FK = Inc.id
 LEFT JOIN cleansed.swirl_department Dep on Dep.id = inc.organisationalUnitPrimaryResponsibility_FK
-LEFT JOIN (SELECT DISTINCT description as incidentEventType
-                  ,incidentId 
+LEFT JOIN (SELECT DISTINCT incidentId 
+                           ,array_join(collect_set(description), ',')  as incidentEventType 
            FROM cleansed.vw_swirl_ref_lookup
            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
-           AND lookupItemId <> '0'
-           --AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+           AND lookupItemId <> '0' 
+           AND description IS NOT NULL
+           GROUP BY incidentId
           ) eventType ON inc.id = eventType.incidentId
 WHERE inc.incidentNumber IS NOT NULL 
-AND UPPER(eventType.incidentEventType) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY') """)
+AND NOT EXISTS (SELECT 1 
+            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
+            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+            AND lookupItemId <> '0'
+            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+            AND inner_tbl.incidentId = inc.id)
+""")
