@@ -1,4 +1,37 @@
 # Databricks notebook source
+ spark.sql("""
+CREATE OR REPLACE VIEW cleansed.vw_swirl_ref_lookup AS 
+SELECT 
+   mli.lookupItemId as lookupItemId,
+   li.lookupId as lookupId,
+    mli.componentEntityId as incidentId, 
+    l.lookupName as lookupName,
+    li.description as description
+FROM cleansed.swirl_multi_lookup_items mli
+INNER JOIN cleansed.swirl_lookup_items li ON mli.lookupItemId = li.lookupitemid
+INNER JOIN cleansed.swirl_lookups l ON li.lookupid = l.lookupId
+WHERE mli.lookupItemId <> '0'
+""")
+
+# COMMAND ----------
+
+ spark.sql("""
+CREATE OR REPLACE VIEW cleansed.vw_swirl_ref_nfcomponents AS 
+SELECT nfc1.componentName as headTable,
+nfc2.componentName as childTable,
+rel.twoDescription as headDescription,
+rel.oneDescription as childDescription,
+cl.fromId as headId,
+cl.toId as childId 
+FROM cleansed.swirl_nf_components nfc1
+INNER JOIN cleansed.swirl_relationships rel ON nfc1.componentId = rel.compidOne
+INNER JOIN cleansed.swirl_nf_components nfc2 ON nfc2.componentId = rel.compidTwo
+INNER JOIN cleansed.swirl_componentlinks cl ON cl.relationshipId = rel.relationshipId
+""")
+
+
+# COMMAND ----------
+
 #Curated view SWIRL Network
 spark.sql("""
 CREATE OR REPLACE VIEW curated.viewswirlnetworkincident AS
@@ -21,7 +54,7 @@ SELECT DISTINCT
 ,Net.incidentSubType
 ,Net.impactType
 ,Net.waterwaysAffected
-,null as waterways
+,waterwaysAffected.waterSource as waterways
 ,Net.incidentClass as product
 ,Assetin.numberOfProperties
 ,Assetin.manualVolumeCalculation
@@ -50,6 +83,14 @@ LEFT JOIN cleansed.swirl_asset_information Assetin on inc.id = Assetin.incident_
 LEFT JOIN cleansed.swirl_maximo_work_order_details Maxio on inc.id = Maxio.incident_FK  
 LEFT JOIN cleansed.swirl_system sys on sys.id = Net.sydneyWaterSystemWhereIncidentOccurred_FK
 LEFT JOIN cleansed.swirl_stakeholder_notification StakeHolder on Net.id = StakeHolder.networkIncident_FK
+LEFT JOIN ( SELECT DISTINCT ref.headId,ref.childId, w.waterSource 
+            FROM cleansed.vw_swirl_ref_nfcomponents ref
+            INNER JOIN cleansed.swirl_water_source w
+            ON ref.childId = w.id 
+            WHERE UPPER(ref.headTable) = UPPER('Incident - Network') 
+            AND UPPER(ref.childDescription) = UPPER('Waterways Affected')
+          ) waterwaysAffected ON Net.id = waterwaysAffected.headId
+WHERE inc.incidentNumber IS NOT NULL 
 """)
 
 # COMMAND ----------
@@ -72,6 +113,10 @@ SELECT DISTINCT
 ,Net.doesTheIncidentResultInLicenceNonCompliance as isItNonCompliance
 ,liccl.title as licenceTitle
 ,liccl.description
+,licnc.causeOfNonCompliance as causeOfNonCompliance
+,licnc.commentsToExternalStakeholders as commentsToExternalStakeholders
+,licnc.mitigationActionsActionsTakenToLessenTheEffect as mitigationActionsActionsTakenToLessenTheEffect
+,licnc.preventionActions as preventionActions
 FROM cleansed.swirl_incident inc
 INNER JOIN cleansed.swirl_licence_noncompliance licnc on inc.id = licnc.incident_FK 
 LEFT JOIN cleansed.swirl_licence lic on lic.id = licnc.licence_FK  
@@ -79,13 +124,14 @@ LEFT JOIN cleansed.swirl_maximo_work_order_details Maxio on inc.id = Maxio.incid
 LEFT JOIN cleansed.swirl_incident_network Net on inc.id = Net.incident_FK 
 LEFT JOIN cleansed.swirl_licence_clause liccl  on liccl.id = licnc.newLicenceClause_FK
 LEFT JOIN cleansed.swirl_person per on inc.incidentProcessor_FK = per.id 
+WHERE inc.incidentNumber IS NOT NULL
 """)
 
 # COMMAND ----------
 
-#Curated view SWIRL open action report
+#Curated view SWIRL open action report -personal
 spark.sql("""
-CREATE OR REPLACE VIEW curated.viewswirlopenaction AS
+CREATE OR REPLACE VIEW curated.viewswirlopenactionpersonal AS
 SELECT DISTINCT Dept.businessArea AS businessArea ,
        Dept.subDivision AS subDivision ,
        act.actionNumber AS actionNumber ,
@@ -107,7 +153,8 @@ SELECT DISTINCT Dept.businessArea AS businessArea ,
        Invest.investigationNumber AS investigationNumber ,
        act.actionTitle AS actionTitle ,
        Lesson.description AS lessonsLearnedDescription ,
-       act.completionCategory AS completionCategory
+       act.completionCategory AS completionCategory ,
+       eventType.incidentEvenType as incidentEvenType
 FROM cleansed.swirl_action act
 INNER JOIN cleansed.swirl_incident inc ON act.incidentAsSourceOfAction_FK = inc.id
 LEFT JOIN
@@ -133,17 +180,132 @@ LEFT JOIN
                    SD.id AS SDID,
                    SD.organisationalUnit AS subDivision
    FROM cleansed.swirl_department BA
-   LEFT JOIN cleansed.swirl_department SD ON BA.parentOrganisationalUnit_FK = SD.id) Dept ON Inc.organisationalUnitPrimaryResponsibility_FK = Dept.BAID
+   LEFT JOIN cleansed.swirl_department SD ON BA.parentOrganisationalUnit_FK = SD.id) Dept ON Inc.organisationalUnitPrimaryResponsibility_FK = Dept.BAID 
+LEFT JOIN (SELECT DISTINCT description as incidentEvenType
+                  ,incidentId 
+           FROM cleansed.vw_swirl_ref_lookup
+           WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+           AND lookupItemId <> '0'
+           AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+          ) eventType ON inc.id = eventType.incidentId
+WHERE inc.incidentNumber IS NOT NULL 
 """)
 
 # COMMAND ----------
 
-#Curated view SWIRL open incident report
+#Curated view SWIRL open action report -no personal
 spark.sql("""
-CREATE OR REPLACE VIEW curated.viewswirlopenincident AS
+CREATE OR REPLACE VIEW curated.viewswirlopenactionnonpersonal AS
+SELECT DISTINCT Dept.businessArea AS businessArea ,
+       Dept.subDivision AS subDivision ,
+       act.actionNumber AS actionNumber ,
+       inc.incidentNumber AS incidentNumber ,
+       cast(act.dateRaised AS date) AS dateRaised ,
+       cast(act.dueDate AS date) AS dueDate ,
+       act.priority AS actionPriority ,
+       Imp.consequenceCategory AS consequenceCategory ,
+       act.actionStatus as actionStatus , 
+       inc.incidentShortDescription AS incShortDescription ,
+       act.actionDescription AS actionDescription ,
+       inc.initialActionTaken AS actionTaken ,
+       act.completionDate AS dateClosed ,
+       IFNULL(Concat(per.Lastname, ',', per.Firstname, ',', per.userName), '') AS actionsAsAssignedToPerson ,
+       Imp.consequenceRating AS consequenceRatingWord ,
+       Imp.consequenceRatingInteger AS consequenceRating ,
+       Invest.typeOfInvestigation AS typeOfInvestigation ,
+       Invest.investigationFindings AS investigationFindings ,
+       Invest.investigationNumber AS investigationNumber ,
+       act.actionTitle AS actionTitle ,
+       Lesson.description AS lessonsLearnedDescription ,
+       act.completionCategory AS completionCategory ,
+       eventType.incidentEvenType as incidentEvenType
+FROM cleansed.swirl_action act
+INNER JOIN cleansed.swirl_incident inc ON act.incidentAsSourceOfAction_FK = inc.id
+LEFT JOIN
+  (SELECT DISTINCT incident_FK,
+                   consequenceCategory,
+                   consequenceRating,
+                   consequenceRatingInteger
+   FROM cleansed.swirl_incident_impact) Imp ON Imp.incident_FK = inc.id
+LEFT JOIN cleansed.swirl_person per ON inc.incidentProcessor_FK = per.id
+LEFT JOIN
+  (SELECT DISTINCT incidentAsSourceOfInvestigation_FK,
+                   typeOfInvestigation,
+                   investigationFindings,
+                   investigationNumber
+   FROM cleansed.swirl_investigation)Invest ON Invest.incidentAsSourceOfInvestigation_FK = inc.id
+LEFT JOIN
+  (SELECT DISTINCT incidentAsSourceOfLessonsLearned_FK,
+                   description
+   FROM cleansed.swirl_lessons_learned) Lesson ON Lesson.incidentAsSourceOfLessonsLearned_FK = Inc.id
+LEFT JOIN
+  (SELECT DISTINCT BA.id AS BAID,
+                   BA.organisationalUnit AS businessArea,
+                   SD.id AS SDID,
+                   SD.organisationalUnit AS subDivision
+   FROM cleansed.swirl_department BA
+   LEFT JOIN cleansed.swirl_department SD ON BA.parentOrganisationalUnit_FK = SD.id) Dept ON Inc.organisationalUnitPrimaryResponsibility_FK = Dept.BAID 
+LEFT JOIN (SELECT DISTINCT description as incidentEvenType
+                  ,incidentId 
+           FROM cleansed.vw_swirl_ref_lookup
+           WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+           AND lookupItemId <> '0'
+           AND UPPER(description) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY')
+          ) eventType ON inc.id = eventType.incidentId
+WHERE inc.incidentNumber IS NOT NULL 
+""")
+
+# COMMAND ----------
+
+#Curated view SWIRL open incident report-personal
+spark.sql("""
+CREATE OR REPLACE VIEW curated.viewswirlopenincidentpersonal AS
 SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
      inc.incidentStatus AS incidentStatus ,
-     NULL as incidentEventType,
+     eventType.incidentEvenType as incidentEventType,
+     NULL as severity,
+     cast(inc.incidentDate as date) as incidentDate,
+     cast(inc.reportedDate as date) as reportedDate,
+     inc.incidentShortDescription AS incShortDescription ,
+     inc.summary as incidentSummary ,
+     loc.location as incidentLocation ,
+     inc.incidentLocation as locationOther , 
+     per.sydneyWaterDepartmentId as incidentOwnerResponsible ,   
+     IFNULL(Concat(per.Lastname, ',', per.Firstname, ',', per.userName), '') AS owner ,
+     IFNULL(Concat(ent.Lastname, ',', ent.Firstname, ',', ent.userName), '') AS enteredBy ,
+     inc.incidentOwnerOrganisation as incidentOwnerOrganisation , 
+     inc.itemsToCompletePriorToIncidentClose as itemsToCompletePriorToIncidentClose , 
+     per.sydneyWaterBusinessUnit as businessUnit ,
+     imp.consequenceCategory as consequenceCategory 
+     --,CAST(GETDATE() as DATE)-CAST(inc.incidentDate as date) as overdueForMoreThan45Days
+FROM cleansed.swirl_incident inc 
+LEFT JOIN cleansed.swirl_person per ON per.id = inc.incidentProcessor_FK
+LEFT JOIN cleansed.swirl_person ent ON ent.id = inc.enteredBy_FK
+LEFT JOIN cleansed.swirl_location loc ON loc.id = inc.location_FK
+LEFT JOIN 
+ (SELECT DISTINCT incident_FK,
+                   consequenceCategory 
+  FROM cleansed.swirl_incident_impact) imp ON imp.incident_FK = inc.id
+--LEFT JOIN 
+--cleansed.swirl_injury_details inj ON inj.incident_FK = inc.id 
+LEFT JOIN (SELECT DISTINCT description as incidentEvenType
+                  ,incidentId 
+           FROM cleansed.vw_swirl_ref_lookup
+           WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+           AND lookupItemId <> '0'
+           AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+          ) eventType ON inc.id = eventType.incidentId
+WHERE inc.incidentNumber IS NOT NULL
+""")
+
+# COMMAND ----------
+
+#Curated view SWIRL open incident report-non personal
+spark.sql("""
+CREATE OR REPLACE VIEW curated.viewswirlopenincidentnonpersonal AS
+SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
+     inc.incidentStatus AS incidentStatus ,
+     eventType.incidentEvenType as incidentEventType,
      NULL as severity,
      cast(inc.incidentDate as date) as incidentDate,
      cast(inc.reportedDate as date) as reportedDate,
@@ -158,6 +320,7 @@ SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
      inc.itemsToCompletePriorToIncidentClose as itemsToCompletePriorToIncidentClose , 
      per.sydneyWaterBusinessUnit as businessUnit ,
      imp.consequenceCategory as consequenceCategory
+     --,CAST(GETDATE() as DATE)-CAST(inc.incidentDate as date) as overdueForMoreThan45Days
 FROM cleansed.swirl_incident inc 
 LEFT JOIN cleansed.swirl_person per ON per.id = inc.incidentProcessor_FK
 LEFT JOIN cleansed.swirl_person ent ON ent.id = inc.enteredBy_FK
@@ -167,7 +330,15 @@ LEFT JOIN
                    consequenceCategory 
   FROM cleansed.swirl_incident_impact) imp ON imp.incident_FK = inc.id
 --LEFT JOIN 
---cleansed.swirl_injury_details inj ON inj.incident_FK = inc.id
+--cleansed.swirl_injury_details inj ON inj.incident_FK = inc.id 
+LEFT JOIN (SELECT DISTINCT description as incidentEvenType
+                  ,incidentId 
+           FROM cleansed.vw_swirl_ref_lookup
+           WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+           AND lookupItemId <> '0'
+           AND UPPER(description) NOT IN ('PERSONNEL', 'HEALTH AND SAFETY')
+          ) eventType ON inc.id = eventType.incidentId
+WHERE inc.incidentNumber IS NOT NULL
 """)
 
 # COMMAND ----------
@@ -227,5 +398,5 @@ LEFT JOIN ( SELECT invest.incidentAsSourceOfInvestigation_FK as incidentAsSource
             ON invest.id = file.investigation_FK
           ) file ON inc.id = file.incidentAsSourceOfInvestigation_FK
 --Left join cleansed.swirl_treatment_plan treat_plan on 
-
+WHERE inc.incidentNumber IS NOT NULL
 """)
