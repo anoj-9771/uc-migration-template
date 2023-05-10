@@ -21,7 +21,7 @@ def Transform():
     businessPartner_secondAgent_df = GetTable(f"{TARGET}.dimbusinessPartner").select("businessPartnerSK", "businessPartnerNumber")
     businessPartner_firstOrgUnit_df = GetTable(f"{TARGET}.dimbusinessPartner").select("businessPartnerSK", "businessPartnerNumber")
     businessPartner_secondOrgUnit_df = GetTable(f"{TARGET}.dimbusinessPartner").select("businessPartnerSK", "businessPartnerNumber")
-    emailHeader_df = GetTable(f"{TARGET}.dimEmailHeader").select("emailHeaderSK","_businessKey").filter("_recordCurrent == 1")
+    emailHeader_df = GetTable(f"{TARGET}.dimcustomerserviceemailheader").select("customerServiceEmailHeaderSK","_businessKey").filter("_recordCurrent == 1")
     
     # ------------- JOINS ------------------ #
     df = df.join(crmd_erms_eventt_df, crmd_erms_eventt_df.emailEventID == df.eventID, "left").select(df["*"],crmd_erms_eventt_df["emailEventDescription"])
@@ -33,7 +33,7 @@ def Transform():
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
-        f"emailID {BK}"
+        f"emailID ||'|'||stepNumber {BK}"
         ,"right(emailID, 17) customerServiceEmailEventEmaiId"
         ,"eventID customerServiceEmailEventId"
         ,"emailEventDescription customerServiceEmailEventDescription"
@@ -44,7 +44,7 @@ def Transform():
         ,"secondAgentSK secondAgentFK"
         ,"firstServiceTeamSK firstServiceTeamFK"
         ,"secondServiceTeamSK secondServiceTeamFK"
-        ,"emailHeaderSK emailHeaderFK"
+        ,"customerServiceEmailHeaderSK customerServiceEmailHeaderFK"
         ,"duration customerServiceEmailEventStepDurationHourQuantity"
         ,"totalDurationStep customerServiceEmailEventTotalStepDurationHourQuantity"
         ,"connectionStepTransferNumber customerServiceEmailEventTransferStepNumber"
@@ -56,7 +56,7 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #   display(df)
-#   CleanSelf()
+    #CleanSelf()
     Save(df)
     #DisplaySelf()
 pass

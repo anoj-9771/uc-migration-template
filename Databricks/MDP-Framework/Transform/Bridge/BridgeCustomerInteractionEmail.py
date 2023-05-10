@@ -15,7 +15,7 @@ def Transform():
 
     # ------------- TABLES ----------------- #
     crm_crmd_brelvonae_df = GetTable(f"{SOURCE}.crm_crmd_brelvonae").alias('B')
-    dimemailheader_df = GetTable(f"{TARGET}.dimemailheader").alias('H')    
+    dimemailheader_df = GetTable(f"{TARGET}.dimcustomerserviceemailheader").alias('H')    
     factinteraction_df = GetTable(f"{TARGET}.factcustomerinteraction").alias('IR')    
 
     # ------------- JOINS ------------------ #
@@ -27,7 +27,7 @@ def Transform():
           #Will propose - since there doesn't seem to be any date field in B table, use _recordCurrent instead
           .join(dimemailheader_df,expr("trim(B.objectKeyB) = H.customerServiceEmailID and H._recordCurrent = 1"))
           .join(factinteraction_df,expr("IR.customerInteractionGUID = B.objectKeyA and IR._recordCurrent = 1"))
-          .selectExpr("IR.customerInteractionSK as customerInteractionFK","H.emailHeaderSK as emailHeaderFK", "IR.customerInteractionId as customerInteractionId", "H.customerServiceEmailID customerServiceEmailID", "'Interaction - Email' as relationshipType")    
+          .selectExpr("IR.customerInteractionSK as customerInteractionFK","H.customerServiceEmailHeaderSK as customerServiceEmailHeaderFK", "IR.customerInteractionId as customerInteractionId", "H.customerServiceEmailID customerServiceEmailID", "'Interaction - Email' as relationshipType")    
     )    
     
     df = interaction_email_df
@@ -35,9 +35,9 @@ def Transform():
     # ------------- TRANSFORMS ------------- #
       
     _.Transforms = [
-         f"customerInteractionFK||'|'||emailHeaderFK {BK}"
+         f"customerInteractionFK||'|'||customerServiceEmailHeaderFK {BK}"
         ,"customerInteractionFK"
-        ,"emailHeaderFK"
+        ,"customerServiceEmailHeaderFK"
         ,"customerInteractionId customerInteractionId"
         ,"customerServiceEmailId customerServiceEmailId"
         ,"relationshipType customerInteractionRelationshipTypeName"
@@ -49,7 +49,7 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-#    CleanSelf()
+#   CleanSelf()
     Save(df)
 #     DisplaySelf()
 pass
