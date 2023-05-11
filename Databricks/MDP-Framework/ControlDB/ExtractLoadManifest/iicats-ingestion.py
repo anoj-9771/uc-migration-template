@@ -12,13 +12,18 @@ df = spark.sql("""
     SELECT 'std_asset_type' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
     SELECT 'std_facility_type' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
-    UNION 
-    
+    UNION     
     SELECT 'bi_reference_codes' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
     SELECT 'std_unit' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
-    UNION 
+    UNION
+    (
+    WITH _Base AS 
+    (
+      SELECT 'iicatsref' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, '' RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, '' ExtendedProperties
+    )
     SELECT 'hierarchy_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from scxstg.hierarchy_cnfgn where lower(substr(site_cd,1,2)) <> ''tw''" SourceQuery, * FROM _Base    
+    )        
     UNION
     (
     WITH _Base AS 
@@ -35,6 +40,7 @@ df = spark.sql("""
     UNION 
     SELECT 'site_hierarchy' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from iicats.site_hierarchy where lower(substr(scx_site_code,1,2)) <> ''tw'' and lower(edw_export_config) = ''y''" SourceQuery, *, '{"deleteRecordsQuery" : "select * from {vwCleanseDataFrame} where siteInternalId in (select objectInternalId from cleansed.iicats_hierarchy_cnfgn where sourceRecordUpsertLogic = \\'\\'D\\'\\' and objestLevelNumber = 8 and _DLCleansedZoneTimeStamp > \\'\\'{lastLoadTimeStamp}\\'\\')"}' ExtendedProperties FROM _Base    
     )    
+    
     UNION
     (
     WITH _Base AS 
@@ -75,7 +81,7 @@ df = (
                                         .otherwise(expr('SystemCode')))
     #   .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tables15Mins),lit('{"OverrideClusterName" : "interactive"}')))
 )
-appendTables = ['tsv']
+appendTables = ['tsv','event']
 df = (
     df.withColumn('ExtendedProperties', expr('trim("{}" FROM ExtendedProperties)'))
       .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(appendTables)
