@@ -88,6 +88,7 @@
 							"inputs": {
 								"body": {
 									"Body": "@{triggerBody()?['body']}",
+									"MailboxAddress": "@triggerBody()?['sender']",
 									"Importance": "@triggerBody()?['importance']",
 									"Subject": "@triggerBody()?['subject']",
 									"To": "@triggerBody()?['recipient']"
@@ -98,7 +99,7 @@
 									}
 								},
 								"method": "post",
-								"path": "/v2/Mail"
+								"path": "/v2/SharedMailbox/Mail"
 							}
 						}
 					}
