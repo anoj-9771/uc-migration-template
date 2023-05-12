@@ -214,42 +214,6 @@
 						}
 					]
 				}
-			},
-			{
-				"name": "end-systems",
-				"type": "Lookup",
-				"dependsOn": [
-					{
-						"activity": "If-RunParallel",
-						"dependencyConditions": [
-							"Failed"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "AzureSqlSource",
-						"sqlReaderQuery": {
-							"value": "UPDATE U\nSET [EndedDTS] = CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time')\nFROM [dbo].[ExtractLoadStatus] U\nWHERE BatchID = '@{variables('ParentBatchID')}'\nAND EndedDTS IS NULL\nSELECT 1 A",
-							"type": "Expression"
-						},
-						"queryTimeout": "02:00:00",
-						"partitionOption": "None"
-					},
-					"dataset": {
-						"referenceName": "SQL_ControlDB",
-						"type": "DatasetReference"
-					},
-					"firstRowOnly": false
-				}
 			}
 		],
 		"parameters": {

@@ -173,6 +173,18 @@
 						"dependencyConditions": [
 							"Completed"
 						]
+					},
+					{
+						"activity": "for-each-raw",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "for-each-cleansed",
+						"dependencyConditions": [
+							"Failed"
+						]
 					}
 				],
 				"policy": {
