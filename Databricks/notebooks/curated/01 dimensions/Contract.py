@@ -1,13 +1,10 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Loads CONTRACT dimension
+# Loads CONTRACT dimension 
 #############################################################################################################################
 # Method
 # 1.Load Cleansed layer table data into dataframe and transform
-# 2.JOIN TABLES
-# 3.UNION TABLES
-# 4.SELECT / TRANSFORM
-# 5.SCHEMA DEFINITION
+# 2.SCHEMA DEFINITION
 #############################################################################################################################
 
 # COMMAND ----------
@@ -16,83 +13,147 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC
+# MAGIC Need to Run Contract History Before Contract
+
+# COMMAND ----------
+
+# MAGIC %run ./ContractHistory
+
+# COMMAND ----------
+
 def getContract():
 
-    #1.Load current Cleansed layer table data into dataframe
-    df = spark.sql(f"select  co.contractId, \
-                             coalesce(coh.validFromDate,to_date('1900-01-01','yyyy-MM-dd')) as validFromDate, \
-                             coalesce(coh.validToDate,to_date('9999-12-31','yyyy-MM-dd')) as validToDate, \
-                             'ISU' as sourceSystemCode, \
-                             least(coh.validFromDate, co.createdDate) as contractStartDate, \
-                             coh.validToDate as contractEndDate, \
-                             co.invoiceContractsJointlyCode, \
-                             co.moveInDate, \
-                             co.moveOutDate, \
-                             ca.contractAccountNumber, \
-                             ca.contractAccountCategory, \
-                             ca.applicationAreaCode, \
-                             co.installationNumber \
-                             from {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACT_ATTR_2 co left outer join \
-                                  {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACTH_ATTR_2 coh on co.contractId = coh.contractId \
-                                                           and coh._RecordDeleted = 0 and coh._RecordCurrent = 1 left outer join \
-                                  {ADS_DATABASE_CLEANSED}.isu_0CACONT_ACC_ATTR_2 ca on co.contractAccountNumber = ca.contractAccountNumber \
-                                                           and ca._RecordDeleted = 0 and ca._RecordCurrent = 1 \
-                             where co._RecordDeleted = 0 \
-                             and   co._RecordCurrent = 1 \
-                     ")
-
-    df.createOrReplaceTempView('allcontracts')
-    #2.JOIN TABLES  
-
-    #3.UNION TABLES
-    #Create dummy record
+    #Contract Data from SAP ISU
+    isuContractDf  = spark.sql(f"""select 'ISU' as sourceSystemCode
+                                    ,contractId
+                                    ,companyCode
+                                    ,companyName
+                                    ,divisionCode
+                                    ,division
+                                    ,installationNumber
+                                    ,contractAccountNumber
+                                    ,accountDeterminationCode
+                                    ,accountDetermination
+                                    ,allowableBudgetBillingCyclesCode
+                                    ,allowableBudgetBillingCycles
+                                    ,invoiceContractsJointlyCode
+                                    ,invoiceContractsJointly
+                                    ,manualBillContractflag
+                                    ,billBlockingReasonCode
+                                    ,billBlockingReason
+                                    ,specialMoveOutCaseCode
+                                    ,specialMoveOutCase
+                                    ,contractText
+                                    ,legacyMoveInDate
+                                    ,numberOfCancellations
+                                    ,numberOfRenewals
+                                    ,personnelNumber
+                                    ,contractNumberLegacy
+                                    ,isContractInvoicedFlag
+                                    ,isContractTransferredFlag
+                                    ,outsortingCheckGroupForBilling
+                                    ,manualOutsortingCount
+                                    ,serviceProvider
+                                    ,contractTerminatedForBillingFlag
+                                    ,invoicingParty
+                                    ,cancellationReasonCRM
+                                    ,moveInDate
+                                    ,moveOutDate
+                                    ,budgetBillingStopDate
+                                    ,premise
+                                    ,propertyNumber
+                                    ,validFromDate
+                                    ,agreementNumber
+                                    ,addressNumber
+                                    ,alternativeAddressNumber
+                                    ,identificationNumber
+                                    ,objectReferenceIndicator
+                                    ,objectNumber
+                                    ,createdDate
+                                    ,createdBy
+                                    ,lastChangedDate
+                                    ,lastChangedBy 
+                                    ,_RecordDeleted 
+                                from {ADS_DATABASE_CLEANSED}.isu_0uccontract_attr_2
+                                where _RecordCurrent = 1 
+                              """)
     
-    dummyDimRecDf = spark.createDataFrame([("-1","1900-01-01", "9999-12-31")], ["contractId", "validFromDate", "validToDate"])
-                                     
-    df = df.unionByName(dummyDimRecDf,allowMissingColumns = True)
-    df = df.withColumn("validFromDate",col("validFromDate").cast("date")).withColumn("validToDate",col("validToDate").cast("date"))
+    dummyDimRecDf = spark.createDataFrame(["-1"], "string").toDF("contractId") 
+    dfResult = isuContractDf.unionByName(dummyDimRecDf, allowMissingColumns = True)    
     
-    #4.SELECT / TRANSFORM
-    df = df.selectExpr( \
-                  'contractId' \
-                , 'validFromDate' \
-                , 'validToDate' \
-                , 'sourceSystemCode' \
-                , 'contractStartDate' \
-                , 'contractEndDate' \
-                , 'invoiceContractsJointlyCode' \
-                , 'moveInDate' \
-                , 'moveOutDate' \
-                , 'contractAccountNumber' \
-                , 'contractAccountCategory' \
-                , 'applicationAreaCode' \
-                , 'installationNumber')
-
     #5.Apply schema definition
     schema = StructType([
                             StructField('contractSK', StringType(), False),
-                            StructField('contractId', StringType(), False),
-                            StructField('validFromDate', DateType(), True),
-                            StructField('validToDate', DateType(), False),
                             StructField('sourceSystemCode', StringType(), True),
-                            StructField('contractStartDate', DateType(), True),
-                            StructField('contractEndDate', DateType(), True),
+                            StructField('contractId', StringType(), False),
+                            StructField('companyCode', StringType(), True),
+                            StructField('companyName', StringType(), True),
+                            StructField('divisionCode', StringType(), True),
+                            StructField('division', StringType(), True),
+                            StructField('installationNumber', StringType(), True),
+                            StructField('contractAccountNumber', StringType(), True),
+                            StructField('accountDeterminationCode', StringType(), True),
+                            StructField('accountDetermination', StringType(), True),
+                            StructField('allowableBudgetBillingCyclesCode', StringType(), True),
+                            StructField('allowableBudgetBillingCycles', StringType(), True),
                             StructField('invoiceContractsJointlyCode', StringType(), True),
+                            StructField('invoiceContractsJointly', StringType(), True),
+                            StructField('manualBillContractflag', StringType(), True),
+                            StructField('billBlockingReasonCode', StringType(), True),
+                            StructField('billBlockingReason', StringType(), True),
+                            StructField('specialMoveOutCaseCode', StringType(), True),   
+                            StructField('specialMoveOutCase', StringType(), True),
+                            StructField('contractText', StringType(), True),
+                            StructField('legacyMoveInDate', DateType(), True),
+                            StructField('numberOfCancellations', StringType(), True),
+                            StructField('numberOfRenewals', StringType(), True),
+                            StructField('personnelNumber', StringType(), True),
+                            StructField('contractNumberLegacy', StringType(), True),
+                            StructField('isContractInvoicedFlag', StringType(), True),
+                            StructField('isContractTransferredFlag', StringType(), True),
+                            StructField('outsortingCheckGroupForBilling', StringType(), True),
+                            StructField('manualOutsortingCount', StringType(), True),
+                            StructField('serviceProvider', StringType(), True),
+                            StructField('contractTerminatedForBillingFlag', StringType(), True),
+                            StructField('invoicingParty', StringType(), True),
+                            StructField('cancellationReasonCRM', StringType(), True),
                             StructField('moveInDate', DateType(), True),
                             StructField('moveOutDate', DateType(), True),
-                            StructField('contractAccountNumber', StringType(), True),
-                            StructField('contractAccountCategory', StringType(), True),
-                            StructField('applicationAreaCode', StringType(), True),
-                            StructField('installationNumber', StringType(), True)
-                      ])
-
-#    display(df)
-    return df, schema
+                            StructField('budgetBillingStopDate', DateType(), True),
+                            StructField('premise', StringType(), True),
+                            StructField('propertyNumber', StringType(), True),
+                            StructField('validFromDate', DateType(), True),
+                            StructField('agreementNumber', StringType(), True),
+                            StructField('addressNumber', StringType(), True),
+                            StructField('alternativeAddressNumber', StringType(), True),
+                            StructField('identificationNumber', StringType(), True),
+                            StructField('objectReferenceIndicator', StringType(), True),
+                            StructField('objectNumber', StringType(), True),   
+                            StructField('createdDate', DateType(), True),
+                            StructField('createdBy', StringType(), True),
+                            StructField('lastChangedDate', DateType(), True),
+                            StructField('lastChangedBy', StringType(), True)
+                      ])    
+    
+    return dfResult, schema
 
 # COMMAND ----------
 
 df, schema = getContract()
-TemplateEtl(df,  entity="dimContract", businessKey="contractId,validToDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+
+curnt_table = f'{ADS_DATABASE_CURATED}.dimContract'
+curnt_pk = 'contractId' 
+curnt_recordStart_pk = 'contractId'
+history_table = f'{ADS_DATABASE_CURATED}.dimContractHistory'
+history_table_pk = 'contractId'
+history_table_pk_convert = 'contractId'
+
+df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk)
+updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
+
+TemplateEtlSCD(df_, entity="dimContract", businessKey="contractId", schema=schema)
 
 # COMMAND ----------
 

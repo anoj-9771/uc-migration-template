@@ -73,7 +73,7 @@ from  cleansed.access_z309_tprevproperty--propList
 -- MAGIC         newProp = getActiveProp(propDict[cancelledProperty][0])
 -- MAGIC     else:
 -- MAGIC         newProp = propDict.get(cancelledProperty,[0,'x'])[0]
--- MAGIC 
+-- MAGIC
 -- MAGIC     return newProp
 -- MAGIC             
 

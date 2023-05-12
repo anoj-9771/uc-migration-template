@@ -244,8 +244,7 @@ def getDate():
 # COMMAND ----------
 
 df, schema = getDate()
-# TemplateEtl(df, entity="dimDate", businessKey="calendarDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimDate", businessKey="calendarDate", schema=schema)
+TemplateEtl(df, entity="dimDate", businessKey="calendarDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 

@@ -19,20 +19,20 @@
 def getWaterNetwork():
 
     #1.Load Cleansed layer table data into dataframe
-    baseDf = spark.sql(f"""select level30 as deliverySystem, 
-                                level40 as distributionSystem, 
-                                level50 as supplyZone, 
-                                coalesce(case when trim(level60) = '' then null else level60 end,'Unknown')  as pressureArea, 
-                                case when product = 'Water'  then 'Y' else 'N' end as isPotableWaterNetwork, 
-                                case when product = 'RecycledWater'  then 'Y' else 'N' end as isRecycledWaterNetwork ,
-                                _RecordDeleted 
-                        from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA 
-                        where product in ('Water','RecycledWater') 
-                        and   _RecordCurrent = 1 
-                        """)
+    baseDf = spark.sql(f"select level30 as deliverySystem, \
+                                level40 as distributionSystem, \
+                                level50 as supplyZone, \
+                                coalesce(level60,'Unknown')  as pressureArea, \
+                                case when product = 'Water'  then 'Y' else 'N' end as isPotableWaterNetwork, \
+                                case when product = 'RecycledWater'  then 'Y' else 'N' end as isRecycledWaterNetwork \
+                        from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA \
+                        where product in ('Water','RecycledWater') \
+                        and   _RecordDeleted = 0 \
+                        and   _RecordCurrent = 1 \
+                        ")
 
     #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","Unknown","N","N")], ["deliverySystem", "distributionSystem","supplyZone","pressureArea","isRecycledWaterNetwork","isPotableWaterNetwork"])
+    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","Unknown","Y","Y")], ["deliverySystem", "distributionSystem","supplyZone","pressureArea","isRecycledWaterNetwork","isPotableWaterNetwork"])
 
     #2.JOIN TABLES  
     #3.UNION TABLES
@@ -47,7 +47,6 @@ def getWaterNetwork():
                             ,"pressureArea" \
                             ,"isPotableWaterNetwork" \
                             ,"isRecycledWaterNetwork" \
-                           ,"_RecordDeleted" \
                             )
                                             
     #5.Apply schema definition
@@ -56,7 +55,7 @@ def getWaterNetwork():
                             StructField("deliverySystem", StringType(), False),
                             StructField("distributionSystem", StringType(), False),
                             StructField("supplyZone", StringType(), False),
-                            StructField("pressureArea", StringType(), False),
+                            StructField("pressureArea", StringType(), True),
                             StructField("isPotableWaterNetwork", StringType(), False),
                             StructField("isRecycledWaterNetwork", StringType(), False)
                       ])
@@ -66,8 +65,7 @@ def getWaterNetwork():
 # COMMAND ----------
 
 df, schema = getWaterNetwork()
-#TemplateEtl(df, entity="dimWaterNetwork", businessKey="supplyZone,pressureArea", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimWaterNetwork", businessKey="supplyZone,pressureArea", schema=schema)
+TemplateEtl(df, entity="dimWaterNetwork", businessKey="supplyZone,pressureArea", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 
