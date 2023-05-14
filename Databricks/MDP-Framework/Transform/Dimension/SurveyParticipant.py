@@ -76,10 +76,10 @@ def Transform():
         ,"companyName surveyParticipantCompanyName"
         ,"ageGroup surveyParticipantAgeGroupIndicator"
         ,"sourceBusinessKey sourceBusinessKey"
-        ,"RecordedDate surveyRecordedDate"
+        ,"RecordedDate surveyRecordedTimestamp"
         ,"sourceRecordCurrent" 
-        ,"RecordedDate sourceValidFromDatetime"  
-        ,"CASE WHEN lagValidDate is NULL THEN CAST('9999-12-31' AS TIMESTAMP) ELSE lagValidDate END sourceValidToDatetime"     
+        ,"RecordedDate sourceValidFromTimestamp"
+        ,"CASE WHEN lagValidDate is NULL THEN CAST('9999-12-31' AS TIMESTAMP) ELSE lagValidDate END sourceValidToTimestamp"
         ,"sourceSystemCode sourceSystemCode"
     ]
     

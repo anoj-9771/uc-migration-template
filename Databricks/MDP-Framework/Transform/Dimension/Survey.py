@@ -2,7 +2,7 @@
 # MAGIC %md 
 # MAGIC Vno| Date      | Who         |Purpose
 # MAGIC ---|:---------:|:-----------:|:--------:
-# MAGIC 1  |11/05/2023 |Mag          |Initial
+# MAGIC 1  |15/05/2023 |Mag          |Initial
 
 # COMMAND ----------
 
@@ -95,9 +95,9 @@ def Transform():
         ,"surveyId"
         ,"surveyName"
         ,"surveyDescription"
-        ,"surveyStartDate"
-        ,"surveyEndDate"
-        ,"createdDate surveyCreatedDate"
+        ,"surveyStartDate surveyStartTimestamp"
+        ,"surveyEndDate surveyEndTimestamp" 
+        ,"createdDate surveyCreatedTimestamp" 
         ,"createdBy surveyCreatedByName"
         ,"CAST(surveyVersion as string) surveyVersionNumber"
         ,"sourceValidFromDatetime sourceValidFromTimestamp" 
@@ -117,4 +117,3 @@ def Transform():
     SaveDefaultSource(df)
     #DisplaySelf()
 Transform()
-

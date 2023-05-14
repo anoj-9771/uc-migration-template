@@ -22,9 +22,9 @@ def Transform():
     intern_servReq_df = (
         crm_crmd_brelvonae_df.where("B.objectTypeA = 'BUS2000126' and B.objectTypeB = 'BUS2000223'") 
           .join(factinteraction_df,expr("IR.customerInteractionGUID = B.objectKeyA"), "Inner") 
-          .join(factservicerequest_df,expr("(SR.customerserviceRequestGUID = B.objectKeyB) and (IR._recordStart between SR._recordStart and SR._recordEnd)"),"Inner") 
+          .join(factservicerequest_df,expr("(SR.customerserviceRequestGUID = B.objectKeyB) "),"Inner") 
           .filter(expr("B.objectKeyB <> B.objectKeyA"))  
-          .selectExpr("IR.customerInteractionSK as customerInteractionFK","SR.customerServiceRequestSK as customerServiceRequesFK","IR.customerInteractionGUID as customerInteractionGUID", "SR.customerServiceRequestId as customerServiceRequestId", "'Interaction - Service Request' as relationshipType")
+          .selectExpr("IR.customerInteractionSK as customerInteractionFK","SR.customerServiceRequestSK as customerServiceRequestFK","IR.customerInteractionId as customerInteractionId", "SR.customerServiceRequestId as customerServiceRequestId", "'Interaction - Service Request' as relationshipType")
     )  
 
     df = intern_servReq_df        
@@ -32,10 +32,10 @@ def Transform():
     # ------------- TRANSFORMS ------------- #
       
     _.Transforms = [
-         f"customerInteractionFK||'|'||customerServiceRequesFK {BK}"
+         f"customerInteractionFK||'|'||customerServiceRequestFK {BK}"
         ,"customerInteractionFK"
-        ,"customerServiceRequesFK"
-        ,"customerInteractionGUID customerInteractionId"
+        ,"customerServiceRequestFK"
+        ,"customerInteractionId customerInteractionId"
         ,"customerServiceRequestId customerServiceRequestId"
         ,"relationshipType customerInteractionRelationshipTypeName"
     ]
@@ -46,7 +46,7 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-#    CleanSelf()
+    #CleanSelf()
     Save(df)
 #     DisplaySelf()
 pass
