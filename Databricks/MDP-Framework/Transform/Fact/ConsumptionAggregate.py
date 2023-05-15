@@ -33,15 +33,12 @@ def Transform():
     _.Transforms = [
         f"supplyZone||'|'||pressureArea||'|'||unmeteredConnectedFlag||'|'||unmeteredConstructionFlag||'|'||reportDate {BK}"
         ,"waterNetworkSK waterNetworkSK"
-        ,"deliverySystem deliverySystem"
-        ,"distributionSystem distributionSystem"
-        ,"supplyZone supplyZone"
-        ,"pressureArea pressureArea"
-        ,"propertyCount propertyCount"
-        ,"consumptionKLMonth consumptionKLMonth"
         ,"reportDate reportDate"        
         ,"unmeteredConnectedFlag unmeteredConnectedFlag"     
         ,"unmeteredConstructionFlag unmeteredConstructionFlag"
+        ,"propertyCount propertyCount"
+        ,"consumptionKLMonth consumptionQuantity"
+        
     ]
     df = df.selectExpr(
         _.Transforms

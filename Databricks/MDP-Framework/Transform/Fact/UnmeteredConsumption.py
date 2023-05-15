@@ -85,22 +85,15 @@ def Transform():
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
         f"propertyNumber||'|'||reportDate {BK}"
-        ,"propertyNumber propertyNumber"
         ,"propertySK propertySK"
         ,"propertyTypeHistorySK propertyTypeHistorySK"
-        ,"superiorPropertyTypeCode superiorPropertyTypeCode"
-        ,"superiorPropertyType superiorPropertyType"
-        ,"inferiorPropertyTypeCode inferiorPropertyTypeCode"
-        ,"inferiorPropertyType inferiorPropertyType"
         ,"drinkingWaterNetworkSK waterNetworkSK"
-        ,"waterNetworkDeliverySystem deliverySystem"
-        ,"waterNetworkDistributionSystem distributionSystem"
-        ,"waterNetworkSupplyZone supplyZone"
-        ,"waterNetworkPressureArea pressureArea"
-        ,"consumptionKLMonth consumptionKLMonth"
         ,"reportDate reportDate"        
+        ,"propertyNumber propertyNumber"
         ,"unmeteredConnectedFlag unmeteredConnectedFlag"     
         ,"unmeteredConstructionFlag unmeteredConstructionFlag"
+        ,"consumptionKLMonth consumptionQuantity"
+        
     ]
     df = df.selectExpr(
         _.Transforms
