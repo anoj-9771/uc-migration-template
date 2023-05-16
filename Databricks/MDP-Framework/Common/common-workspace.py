@@ -17,8 +17,8 @@ def CurrentNotebookPath():
 
 # COMMAND ----------
 
-def GetAuthenticationHeader():
-    pat = dbutils.secrets.get(scope = SECRET_SCOPE, key = DATABRICKS_PAT_SECRET_NAME)
+def GetAuthenticationHeader(key=DATABRICKS_PAT_SECRET_NAME):
+    pat = dbutils.secrets.get(scope = SECRET_SCOPE, key = key)
     headers = {
         'Authorization': f'Bearer {pat}',
     }
@@ -522,7 +522,7 @@ def GetFirstWarehouse():
 
 def StartFirstWarehouse():
     StartWarehouse(GetFirstWarehouse())
-StartFirstWarehouse()
+#StartFirstWarehouse()
 
 # COMMAND ----------
 
