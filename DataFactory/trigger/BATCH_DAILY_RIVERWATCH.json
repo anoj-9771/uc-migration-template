@@ -23,7 +23,7 @@
                 "startTime": "2022-11-19T07:40:00",
                 "timeZone": "AUS Eastern Standard Time",
                 "schedule": {                    
-                    "hours": [1,7,13,19],
+                    "hours": [1,8,13,19],
                     "minutes": [40]
                 }
             }
