@@ -12,32 +12,32 @@ def Transform():
     # ------------- TABLES ----------------- #
 
     # ------------- JOINS ------------------ #
-    
-    df = spark.sql(f"select * from ( Select * EXCEPT (latestRecordRanking) from ( select  row_number() over (partition by waterNetworkSK,deliverySystem,distributionSystem,supplyZone, \
-    pressureArea, unmeteredConnectedFlag,unmeteredConstructionFlag order by reportDate desc) latestRecordRanking \
-    ,waterNetworkSK,deliverySystem,distributionSystem,supplyZone,pressureArea, count(distinct propertyNumber) as propertyCount, sum(consumptionKLMonth) as consumptionKLMonth, \
-    reportDate,unmeteredConnectedFlag,unmeteredConstructionFlag \
-    from {DEFAULT_TARGET}.factUnmeteredConsumption where unmeteredConnectedFlag = 'Y' \
-    group by waterNetworkSK,deliverySystem,distributionSystem,supplyZone,pressureArea, reportDate,unmeteredConnectedFlag,unmeteredConstructionFlag ) where latestRecordRanking = 1 \
-    union \
-    Select * EXCEPT (latestRecordRanking) from ( select  row_number() over (partition by waterNetworkSK,deliverySystem,distributionSystem,supplyZone,pressureArea,unmeteredConnectedFlag, \
+
+    df = spark.sql(f"select * from ( Select * EXCEPT (latestRecordRanking) from ( select  row_number() over (partition by waterNetworkSK,unmeteredConnectedFlag, \
     unmeteredConstructionFlag order by reportDate desc) latestRecordRanking \
-    ,waterNetworkSK,deliverySystem,distributionSystem,supplyZone,pressureArea, count(distinct propertyNumber) as propertyCount, sum(consumptionKLMonth) as consumptionKLMonth, \
+    ,waterNetworkSK, count(distinct propertyNumber) as propertyCount, sum(consumptionQuantity) as consumptionQuantity, \
     reportDate,unmeteredConnectedFlag,unmeteredConstructionFlag \
-    from {DEFAULT_TARGET}.factUnmeteredConsumption where unmeteredConstructionFlag = 'Y' \
-    group by waterNetworkSK,deliverySystem,distributionSystem,supplyZone,pressureArea, reportDate,unmeteredConnectedFlag,unmeteredConstructionFlag ) where latestRecordRanking = 1 \
-    ) as c order by unmeteredConnectedFlag desc,unmeteredConstructionFlag desc,deliverySystem,distributionSystem,supplyZone,pressureArea")
+    from curated_v3.factUnmeteredConsumption where unmeteredConnectedFlag = 'Y' \
+    group by waterNetworkSK,reportDate,unmeteredConnectedFlag,unmeteredConstructionFlag ) where latestRecordRanking = 1 \
+    union \
+    Select * EXCEPT (latestRecordRanking) from ( select  row_number() over (partition by waterNetworkSK,unmeteredConnectedFlag, \
+    unmeteredConstructionFlag order by reportDate desc) latestRecordRanking \
+    ,waterNetworkSK, count(distinct propertyNumber) as propertyCount, sum(consumptionQuantity) as consumptionQuantity, \
+    reportDate,unmeteredConnectedFlag,unmeteredConstructionFlag \
+    from curated_v3.factUnmeteredConsumption where unmeteredConstructionFlag = 'Y' \
+    group by waterNetworkSK,reportDate,unmeteredConnectedFlag,unmeteredConstructionFlag ) where latestRecordRanking = 1 \
+    ) as c order by unmeteredConnectedFlag desc,unmeteredConstructionFlag desc")
           
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
-        f"supplyZone||'|'||pressureArea||'|'||unmeteredConnectedFlag||'|'||unmeteredConstructionFlag||'|'||reportDate {BK}"
+        f"waterNetworkSK||'|'||unmeteredConnectedFlag||'|'||unmeteredConstructionFlag||'|'||reportDate {BK}"
         ,"waterNetworkSK waterNetworkSK"
         ,"reportDate reportDate"        
         ,"unmeteredConnectedFlag unmeteredConnectedFlag"     
         ,"unmeteredConstructionFlag unmeteredConstructionFlag"
         ,"propertyCount propertyCount"
-        ,"consumptionKLMonth consumptionQuantity"
+        ,"consumptionQuantity consumptionQuantity"
         
     ]
     df = df.selectExpr(
