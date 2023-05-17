@@ -3,35 +3,6 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "get-successive-cleansed",
-				"description": "",
-				"type": "Lookup",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "AzureSqlSource",
-						"sqlReaderQuery": {
-							"value": "SELECT COUNT(*) [SuccessiveCleansed]\nFROM [dbo].[Config]\nWHERE [KeyGroup] = 'SuccessiveCleansed'\nAND [Key] = 'SystemCode'\nAND [Value] = '@{pipeline().parameters.SystemCode}'",
-							"type": "Expression"
-						},
-						"partitionOption": "None"
-					},
-					"dataset": {
-						"referenceName": "SQL_ControlDB",
-						"type": "DatasetReference"
-					},
-					"firstRowOnly": false
-				}
-			},
-			{
 				"name": "get-tasks",
 				"description": "",
 				"type": "Lookup",
@@ -105,12 +76,6 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
-					},
-					{
-						"activity": "get-successive-cleansed",
-						"dependencyConditions": [
-							"Succeeded"
-						]
 					}
 				],
 				"userProperties": [],
@@ -139,46 +104,6 @@
 										"type": "Expression"
 									}
 								}
-							}
-						},
-						{
-							"name": "if-direct-cleansed-after-raw",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "execute-raw",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@variables('SuccessiveCleansed')",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "execute-cleansed-direct",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "Cleansed",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"task": {
-													"value": "@item()",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
 							}
 						}
 					]
@@ -211,7 +136,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@if(variables('SuccessiveCleansed'), activity('get-tasks').output.value, take(activity('get-tasks').output.value, 0))",
+						"value": "@activity('get-tasks').output.value",
 						"type": "Expression"
 					},
 					"isSequential": false,
@@ -598,9 +523,6 @@
 			},
 			"PoolId": {
 				"type": "String"
-			},
-			"SuccessiveCleansed": {
-				"type": "Boolean"
 			}
 		},
 		"folder": {
