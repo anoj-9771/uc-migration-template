@@ -335,3 +335,74 @@ def SaveSCDFromSource(sourceDataFrame):
     EndNotebook(sourceDataFrame)
     return 
     
+
+# COMMAND ----------
+
+####Mags#### to load/alter/modify drop columns without changing the existing content of the table
+###################Drops and recreates entire table to retain onlyt the new schema ##Write Intensive ############
+from functools import reduce
+def filter_columns(df, columns_to_match=None):
+    if columns_to_match:
+        return [col for col in df.columns if not (col.endswith('SK') or col.startswith('_')) and col in columns_to_match]
+    else:
+        return [col for col in df.columns if not (col.endswith('SK') or col.startswith('_'))]
+
+def get_column_types(df):
+    return {col: dtype for col, dtype in df.dtypes}
+
+
+def joinAdditionalColumns(oldDf, newDf, joinColumns, toAddColumns):
+    ##should be a list
+    if isinstance(joinColumns, str):
+        joinColumns = [joinColumns]
+    if isinstance(toAddColumns, str):
+        toAddColumns = [toAddColumns]
+    newDf= newDf.select([col(c).alias(f"joinDf_{c}") for c in joinColumns] + [col(c) for c in toAddColumns])
+    joinExpr = [col(c1) == col(f"joinDf_{c2}") for c1, c2 in zip(joinColumns, joinColumns)]   
+    joinExpr = reduce(lambda x, y: x & y, joinExpr)
+    print(joinExpr)   
+    joinedDf = oldDf.join(newDf, on = joinExpr, how = "full")
+    joinedDf = joinedDf.select([col for col in joinedDf.columns if not (col.startswith("joinDf_") and col in [f"joinDf_{c}" for c in joinColumns])])    
+    return joinedDf
+
+
+def arrangeColumns(pdf):
+    columns = pdf.columns
+    underscoreColumns = [col for col in columns if col.startswith('_')]
+    underscoreNonColumns = [col for col in columns if not col.startswith('_')]
+    finalColumns = underscoreNonColumns + underscoreColumns
+    adf = pdf.select(*finalColumns)    
+    return adf 
+
+def isSchemaChanged(currentDataFrame):
+    targetTableFqn = f"{_.Destination}"
+    if (not(TableExists(targetTableFqn))):
+        return False
+    existingDataframe = spark.sql(f"select * from {_.Destination}")        
+    columnsCurrent = filter_columns(currentDataFrame)    
+    columnsExist = filter_columns(existingDataframe, columnsCurrent)   
+    typesCurrent = get_column_types(currentDataFrame.select(columnsCurrent))    
+    typesExist = get_column_types(existingDataframe.select(columnsExist))    
+    if len(columnsCurrent) == len(columnsExist) and all(typesCurrent[col] == typesExist[col] for col in columnsCurrent):
+        return False
+    else:
+        return True
+
+
+#######Call this in place of regular Save // if there is delta while conversion.. this has to handled seperately in main Transform logic notebooks.
+def saveSchemaAndData(currentDataFrame, joinColumns, maintainSchemaEvolution = False):    
+    if (not(isSchemaChanged(currentDataFrame))):
+        save(currentDataFrame)
+        return
+    else:
+        columnsCurrent = filter_columns(currentDataFrame)
+        existingDataframe = spark.sql(f"select * from {_.Destination}")
+        columnsExist = filter_columns(existingDataframe, columnsCurrent)
+        addColumns = [col for col in columnsCurrent if col not in columnsExist]
+        insertDF = joinAdditionalColumns(existingDataframe, currentDataFrame, joinColumns, addColumns)
+        createDF = arrangeColumns(insertDF)
+        createDF.createOrReplaceTempView("adfTemp")
+        spark.sql(f"CREATE OR REPLACE TABLE {_.Destination}  USING DELTA AS SELECT * from adfTemp")
+        spark.sql(f"DROP VIEW IF EXISTS adfTemp")
+        EndNotebook(createDF)
+        return

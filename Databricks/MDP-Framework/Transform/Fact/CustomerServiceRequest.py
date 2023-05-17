@@ -48,6 +48,8 @@ from pyspark.sql.functions import col
 def Transform():
     global df
     global publicHolidaysPD
+    dummyDimPartnerSK = '60e35f602481e8c37d48f6a3e3d7c30d'
+    
     # ------------- TABLES ----------------- #
     df = GetTable(f"{SOURCE}.crm_0crm_srv_req_inci_h") \
     .withColumn("received_BK",expr("concat(coherentAspectIdD,'|',coherentCategoryIdD)")) \
@@ -112,24 +114,41 @@ def Transform():
 
     ####FetchDummyBusinessPartner
 
-    dummyDimPartnerSKD = spark.sql(f""" Select businessPartnerSK from {DEFAULT_TARGET}.dimbusinesspartner where _businessKey = '-1' """)
+    # dummyDimPartnerSKD = spark.sql(f""" Select businessPartnerSK from {DEFAULT_TARGET}.dimbusinesspartner where _businessKey = '-1' """)
 
-    first_row = dummyDimPartnerSKD.first()    
-    if first_row:
-        dummyDimPartnerSK   = first_row["businessPartnerSK"]    
+    # first_row = dummyDimPartnerSKD.first()    
+    # if first_row:
+    #     dummyDimPartnerSK   = first_row["businessPartnerSK"]    
 
 
 ################################ 
 
-    aurion_df = spark.sql(f"""select concat('HR8', RIGHT(concat('000000',ED.personnumber),7)) as personNumber, ED.dateEffective, ED.dateTo, 
-                                CASE WHEN BPM.businessPartnerSK IS NULL THEN (Select businessPartnerSK from {DEFAULT_TARGET}.dimbusinesspartner where _businessKey = '-1') ELSE BPM.businessPartnerSK END as reportToManagerFK, 
-                                CASE WHEN BPO.businessPartnerSK IS NULL THEN (Select businessPartnerSK from {DEFAULT_TARGET}.dimbusinesspartner where _businessKey = '-1') ELSE BPO.businessPartnerSK END as organisationUnitFK 
-                                FROM {SOURCE}.vw_aurion_employee_details ED
-                                LEFT JOIN {SOURCE}.vw_aurion_employee_details MA on ED.ReportstoPosition = MA.PositionNumber
-                                LEFT JOIN {DEFAULT_TARGET}.dimbusinesspartner BPM on BPM.businessPartnerNumber = CASE WHEN MA.businessPartnerNumber IS NULL THEN '-1' ELSE MA.businessPartnerNumber  END
-                                                                                                               and ED.dateEffective between BPM._RecordStart and BPM._RecordEnd                               
-                                LEFT JOIN {DEFAULT_TARGET}.dimbusinesspartner BPO on BPO.businessPartnerNumber = CASE WHEN ED.OrganisationUnitNumber IS NULL THEN '-1' ELSE concat('OU6', RIGHT(concat('000000',ED.OrganisationUnitNumber ),7)) END
-                                                                                                                and ED.dateEffective between BPO._RecordStart and BPO._RecordEnd""")
+    aurion_df = spark.sql(f"""With Aurion AS (
+                                   Select E.*, 
+                                        M.businessPartnerNumber M_businessPartnerNumber, 
+                                        M.dateEffective M_dateEffective, M.dateTo M_dateTo ,row_number() over(PARTITION BY E.businessPartnerNumber, E.dateEffective order by
+                                    CASE UPPER(E.Aurionfilename) WHEN 'ACTIVE' THEN 1 WHEN 'TERMINATED' THEN 2 WHEN 'HISTORY' THEN 3 END, E.dateEffective ) as rkn
+                                From {SOURCE}.vw_aurion_employee_details E
+                                LEFT JOIN (Select distinct businessPartnerNumber,
+                                                            positionNumber, 
+                                                            dateEffective, 
+                                                            dateTo 
+                                                    From {SOURCE}.vw_aurion_employee_details) M 
+                                                      on E.reportstoPosition = M.positionNumber
+                                 AND ( CAST(E.dateEffective as DATE) between CAST(M.dateEffective as DATE) and CAST(M.dateTo AS DATE)
+                                AND CAST(E.dateTo as DATE) between CAST(M.dateEffective as DATE) and CAST(M.dateTo AS DATE))),
+mainAurion as(
+Select mainaa.*,
+       CASE WHEN mainaa.OrganisationUnitNumber IS NULL THEN '-1' ELSE concat('OU6', RIGHT(concat('000000',mainaa.OrganisationUnitNumber ),7)) END as oFK
+       from Aurion mainaa where rkn = 1)
+                    Select aa.*
+                    ,bb.businessPartnerSK as reportToManagerFK
+                    ,cc.businessPartnerSK as organisationUnitFK  
+                    from  mainAurion aa 
+                    left join {DEFAULT_TARGET}.dimBusinessPartner bb on aa.M_businessPartnerNumber = bb.businessPartnerNumber
+                                                              and bb._recordCurrent = 1
+                    left join {DEFAULT_TARGET}.dimBusinessPartner cc on aa.oFK= cc.businessPartnerNumber 
+                         and cc._recordCurrent = 1""")
 
     createdBy_username_df = spark.sql(f"""select userid, givenNames as createdBy_givenName, surname as createdBy_surname from {SOURCE}.vw_aurion_employee_details""").drop_duplicates()
     changedBy_username_df = spark.sql(f"""select userid, givenNames as changedBy_givenName, surname as changedBy_surname from {SOURCE}.vw_aurion_employee_details""").drop_duplicates()
@@ -138,7 +157,8 @@ def Transform():
     
     date_df = GetTable(f"{DEFAULT_TARGET}.dimdate").select("dateSK","calendarDate")
     
-    response_df = spark.sql(f"""select F.serviceRequestGUID,
+    response_df = spark.sql(f"""select F.serviceRequestGUID as serviceRequestGUIDR,
+                            CAST(f.lastChangedDateTime as TIMESTAMP) as lastChangedDateTimeR,                            
                             S.apptStartDatetime respondByDateTime,
                             F.requestStartDate startDate, 
                             S2.apptStartDatetime respondedDateTime,                           
@@ -154,20 +174,20 @@ def Transform():
                             LEFT JOIN {SOURCE}.crm_scapptseg S3 on S3.ApplicationGUID = L.setGUID and S3.apptType in ('ZCLOSEDATE', 'SRV_RREADY')
                             where L.setObjectType = '30'""") 
 
-    workingcalc_df = response_df.select("serviceRequestGUID", "startDate", "endDate")
+    workingcalc_df = response_df.select(col("serviceRequestGUIDR").alias("serviceRequestGUIDW"), col("startDate"), col("endDate"), col("lastChangedDateTimeR").alias("lastChangedDateTimeW"))
     publicHolidaysPD = GetTable(f"{SOURCE}.datagov_australiapublicholidays").filter(col('jurisdiction').rlike("NSW|NAT")) \
                                                                             .filter(upper(col('holidayName')) != "BANK HOLIDAY") \
                                                                         .select('date').withColumnRenamed("date","holidayDate").toPandas()
                                                                         
     workingcalc_df = workingcalc_df.withColumn('interimResponseWorkingDays', workingDaysNSWVectorizedUDF(workingcalc_df['startDate'], workingcalc_df['endDate'])) \
-                                     .select("serviceRequestGUID", "interimResponseWorkingDays")
+                                     .select("serviceRequestGUIDW","lastChangedDateTimeW", "interimResponseWorkingDays")
 
     # ------------- JOINS ------------------ #
     # ------------- JOINS ------------------ #
     df = df.join(received_category_df,(df.received_BK == received_category_df.sourceBusinessKey) & (df.lastChangedDateTime.between (received_category_df.sourceValidFromDatetime,received_category_df.sourceValidToDatetime)),"left") \
     .drop("received_category_df._BusinessKey", "df._recordStart","received_category_df._recordStart", "df._recordEnd", "received_category_df._recordEnd", "df.received_BK") \
     .join(resolution_category_df,(df.resolution_BK == resolution_category_df.sourceBusinessKey) & (df.lastChangedDateTime.between (resolution_category_df.sourceValidFromDatetime,resolution_category_df.sourceValidToDatetime)),"left") \
-    .drop("resolution_category_df._BusinessKey","resolution_category_df._recordStart","resolution_category_df._recordEnd","df.resolution_BK", "df._recordStart", "df._recordEnd") \
+     .drop("resolution_category_df._BusinessKey","resolution_category_df._recordStart","resolution_category_df._recordEnd","df.resolution_BK", "df._recordStart", "df._recordEnd") \
     .join(contact_person_df,(df.contactPersonNumber_BK == contact_person_df.businessPartnerNumber) & (df.lastChangedDateTime.between (contact_person_df._recordStart,contact_person_df._recordEnd)),"left") \
     .drop("contact_person_df.businessPartnerNumber","contact_person_df._recordStart","contact_person_df._recordEnd", "df._recordStart", "df._recordEnd") \
     .join(report_by_person_df,(df.reportedByPersonNumber_BK == report_by_person_df.businessPartnerNumber) & (df.lastChangedDateTime.between (report_by_person_df._recordStart,report_by_person_df._recordEnd)),"left") \
@@ -189,20 +209,20 @@ def Transform():
     .join(date_df, to_date(df.requestStartDate) == date_df.calendarDate,"left").withColumnRenamed('dateSK','serviceRequestStartDateFK').drop("calendarDate") \
     .join(date_df, to_date(df.requestEndDate) == date_df.calendarDate,"left").withColumnRenamed('dateSK','serviceRequestEndDateFK').drop("calendarDate") \
     .join(date_df, to_date(df.lastChangedDate) == date_df.calendarDate,"left").withColumnRenamed('dateSK','snapshotDateFK').drop("calendarDate") \
-    .join(response_df,"serviceRequestGUID","inner") \
-    .join(workingcalc_df, "serviceRequestGUID","inner") \
-    .join(aurion_df, (df.responsibleEmployeeNumber == aurion_df.personNumber) & (df.lastChangedDateTime.between (aurion_df.dateEffective,aurion_df.dateTo)),"left") \
+    .join(response_df, (df.serviceRequestGUID == response_df.serviceRequestGUIDR) & (df.lastChangedDateTime == response_df.lastChangedDateTimeR),  "left").drop("response_df.serviceRequestGUIDR")  \
+    .join(workingcalc_df, (df.serviceRequestGUID == workingcalc_df.serviceRequestGUIDW) & (df.lastChangedDateTime == workingcalc_df.lastChangedDateTimeW), "left").drop("workingcalc_df.serviceRequestGUIDW") \
+    .join(aurion_df, (df.responsibleEmployeeNumber == aurion_df.personNumber) & (df.lastChangedDateTime.between (aurion_df.DateEffective,aurion_df.DateTo)),"left") \
     .join(createdBy_username_df,df.createdBy == createdBy_username_df.userid, "left").drop("userid") \
     .join(changedBy_username_df,df.changedBy == changedBy_username_df.userid, "left").drop("userid") \
-    .join(channel_df,(df.ChannelCode_BK == channel_df._BusinessKey) & (channel_df._recordCurrent == 1),"left") \    
+    .join(channel_df,(df.ChannelCode_BK == channel_df._BusinessKey) & (channel_df._recordCurrent == 1),"left") \
     .withColumn("CreatedByName",concat_ws(" ","createdBy_givenName","createdBy_surname")) \
     .withColumn("changedByName",concat_ws(" ","changedBy_givenName","changedBy_surname"))
 
     
 #     Logic to pick only first record for ServiceRequestGUID. Aurion Data in Test env produces duplicates 
 #     Aurion attributes are "reportToManagerFK","organisationUnitFK","CreatedByName","changedByName"
-    windowSpec1  = Window.partitionBy("serviceRequestGUID") 
-    df = df.withColumn("row_number",row_number().over(windowSpec1.orderBy(lit(1)))).filter("row_number == 1").drop("row_number")
+    # windowSpec1  = Window.partitionBy("serviceRequestGUID") 
+    # df = df.withColumn("row_number",row_number().over(windowSpec1.orderBy(lit(1)))).filter("row_number == 1").drop("row_number")
     
 
     # ------------- TRANSFORMS ------------- #
@@ -275,6 +295,7 @@ def Transform():
     # ------------- SAVE ------------------- #
     # display(df)
     #CleanSelf()
+    #print(df.count())
     Save(df)
     #DisplaySelf()
 pass

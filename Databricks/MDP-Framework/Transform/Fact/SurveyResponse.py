@@ -2,7 +2,7 @@
 # MAGIC %md 
 # MAGIC Vno| Date      | Who         |Purpose
 # MAGIC ---|:---------:|:-----------:|:--------:
-# MAGIC 1  |05/05/2023 |Mag          |Initial
+# MAGIC 1  |17/05/2023 |Mag          |Initial
 
 # COMMAND ----------
 
@@ -283,7 +283,7 @@ billpaid_df = billpaid_df.join(dsv.filter(dsv._recordCurrent == 1), (billpaid_df
                          .withColumn("sourceSystem", lit('Qualtrics'))
 
 businessXconn_df = transpose_df(df_businessXconn, df_dimQues, duplicate_columns)
-businessXconn_df = businessXconn_df.join(dbp.filter(dbp._RecordCurrent == 1), (businessXconn_df["assignedTo"] == dbp["businessPartnerNumber"]), how = 'left') \
+businessXconn_df = businessXconn_df.join(dbp.filter(dbp._recordCurrent == 1), (businessXconn_df["assignedTo"] == dbp["businessPartnerNumber"]), how = 'left') \
                                    .select(businessXconn_df["*"], dbp["businessPartnerSK"]) \
                                    .withColumn("surveyParticipantSK", lit('-1'))\
                                    .withColumn("surveyResponseInformationSK", lit('-1'))\
