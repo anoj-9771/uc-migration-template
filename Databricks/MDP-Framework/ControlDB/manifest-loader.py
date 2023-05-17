@@ -10,9 +10,10 @@ def RunAllConfigs():
     for i in df.collect():
         path = i.o.path
         try:
-            r = dbutils.notebook.run(path, 0, {})
-        except:
-            print(f"Notebook path \"{path}\" failed!")
+            print(f"Running: \"{path}\"")
+            r = dbutils.notebook.run(path, 300, {})
+        except Exception as e: 
+            print(f"Notebook path \"{path}\" failed! - {str(e)}")
 
 RunAllConfigs()
 
