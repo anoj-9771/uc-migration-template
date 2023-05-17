@@ -3,6 +3,11 @@
 #<p>
 #This function will allow you to verify that the structure definition in the code matches the table definition. 
 #If it doesn't it will generate and execute ALTER statements to update the table schema
+#
+#Fix 1.1 :- The schema output is different between DBR10.4 and DBR12.2, to accommodate the changed schema output this function had to be fixed
+#Schema output in DBR10.4 : [StructField(<col1>,<datatype>,<true/false>), StructField(<col2>,<datatype>,<true/false>)]
+#Schema output in DBR12.2 : [StructField('<col1>', <datatype>(), <True/False>), StructField('<col2>', <datatype>(), <True/False>)]
+#
 
 # COMMAND ----------
 
@@ -15,7 +20,7 @@ def verifyTableSchema(table, newSchema):
     from pyspark.sql.types import StructType, StructField, IntegerType, StringType, TimestampType, BooleanType, FloatType, DecimalType, DateType, LongType
     
     #This function is not relevant for tables in the raw layer or the staged step of the cleansed layer
-    if table.split('.')[0] == 'raw' or (table.split('.')[0] == 'cleansed' and table.split('.')[1][:5] == 'stg_'):
+    if table.split('.')[0] == 'raw' or (table.split('.')[0] == 'cleansed' and table.split('.')[1][:4] == 'stg_'):
         return
     
     dfStruct = []
@@ -25,10 +30,12 @@ def verifyTableSchema(table, newSchema):
     #build list of struture type elements
     def buildStruct(schema):
         struct = []
-        for ix, fld in enumerate(str(schema).split('StructField')):
+        # for ix, fld in enumerate(str(schema).split('StructField')): #commented as part of Fix1.1
+        for ix, fld in enumerate(str(schema.fields).split('StructField')):
             if ix == 0:
                 continue
-            flds = fld.strip('(').strip('),').split(',')
+            # flds = fld.strip('(').strip('),').split(',') #commented as part of Fix1.1
+            flds = fld.replace("'", "").replace("()", "").replace(" ", "").lower().strip("(").strip("),").split(",")
             if flds[1][:11] == 'DecimalType':
                 flds[1] += ',' + flds[2]
                 flds[2] = flds[3]
