@@ -117,6 +117,9 @@ SELECT DISTINCT
 ,licnc.commentsToExternalStakeholders as commentsToExternalStakeholders
 ,licnc.mitigationActionsActionsTakenToLessenTheEffect as mitigationActionsActionsTakenToLessenTheEffect
 ,licnc.preventionActions as preventionActions
+,lic.systemLicenceNumber as licenceNumber
+,lic.licenceType as licenceType
+,concat_ws(',',lic.systemLicenceNumber,lic.licenceType,lic.licenceTitle) as licenceDetails 
 FROM cleansed.swirl_incident inc
 INNER JOIN cleansed.swirl_licence_noncompliance licnc on inc.id = licnc.incident_FK 
 LEFT JOIN cleansed.swirl_licence lic on lic.id = licnc.licence_FK  
