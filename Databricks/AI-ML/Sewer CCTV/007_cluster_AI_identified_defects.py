@@ -133,6 +133,7 @@ df_cctv_defect_series = (df_grouped_defects
 
 df_ai = df_cctv_defect_series.alias("df_defects_ai")
 df_st_text = (spark.table("stage.cctv_ocr_extract_cleansed")
+              .where(psf.col("video_id") == _VIDEO_ID)
               .withColumn("hour", psf.floor(psf.col("timestamp")/1000/60/60))
               .withColumn("minute", psf.floor(psf.col("timestamp")/1000/60%60))
               .withColumn("second", psf.floor(psf.col("timestamp")/1000%60))
