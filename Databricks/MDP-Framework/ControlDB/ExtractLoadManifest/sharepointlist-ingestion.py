@@ -3,15 +3,24 @@
 
 # COMMAND ----------
 
+from pyspark.sql.functions import lit, when, lower, expr
 df = spark.sql("""
 WITH _Base AS 
 (
-    SELECT 'SharepointList' SystemCode, 'SharepointList' SourceSchema, '' SourceKeyVaultSecret, 'sharepointlist-load' SourceHandler, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, '' RawFileExtension, '' WatermarkColumn
-    ,'' ExtendedProperties
-    ,'https://sydneywatercorporation-my.sharepoint.com/personal/63p_sydneywater_com_au' SourceQuery
+    SELECT 'SharepointList' SystemCode, 'SharepointList' SourceSchema, '' SourceKeyVaultSecret, 'sharepointlist-load' SourceHandler, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, '' RawFileExtension, "Modified" WatermarkColumn
+    ,'{"CleansedQuery" : "select * except(dummy) from {tableFqn} where Id is not null and _DLRawZoneTimeStamp > \\'\\'{lastLoadTimeStamp}\\'\\'"}'  ExtendedProperties
+    ,'https://sydneywatercorporation.sharepoint.com/sites/EnterpriseDataPlatform-Adjustments' SourceQuery
 )
-SELECT 'SharePointListDesign' SourceTableName, * FROM _Base
+SELECT 'DemandCalculationAdjustment' SourceTableName, * FROM _Base
 """)
+appendTables = ['DemandCalculationAdjustment']
+df = (
+    df.withColumn('ExtendedProperties', expr('trim("{}" FROM ExtendedProperties)'))
+      .withColumn('ExtendedProperties', when(df.SourceTableName.isin(appendTables)
+                                        ,expr('ltrim(",",ExtendedProperties ||", "||\'\"LoadType\" : \"Append\"\')')) 
+                                        .otherwise(expr('ExtendedProperties')))
+      .withColumn('ExtendedProperties', expr('if(ExtendedProperties<>"","{"||ExtendedProperties ||"}","")')) 
+)
 display(df)
 
 # COMMAND ----------
@@ -22,7 +31,7 @@ def ConfigureManifest(dataFrameConfig):
     ShowQuery(df)
 
     # ------------- SAVE ----------------- #
-    AddIngestion(df, True)
+    AddIngestion(df)
     
     # ------------- ShowConfig ----------------- #
     ShowConfig()
@@ -35,7 +44,7 @@ for system_code in ['SharepointList']:
 # #ADD BUSINESS KEY
 # ExecuteStatement("""
 # update dbo.extractLoadManifest set
-# businessKeyColumn = ''
+# businessKeyColumn = 'ID'
 # where systemCode in ('SharepointList')
 # """)
 

@@ -57,7 +57,9 @@ sourceDataFrame = sourceDataFrame.toDF(*(c.replace(' ', '_') for c in sourceData
 if(extendedProperties):
     cleansedPath = extendedProperties.get("CleansedQuery")
     if(cleansedPath):
-        sourceDataFrame = spark.sql(cleansedPath.replace("{tableFqn}", sourceTableName))
+        sourceDataFrame = spark.sql(cleansedPath.replace("{tableFqn}", sourceTableName)
+                                                .replace("{lastLoadTimeStamp}", lastLoadTimeStamp)
+                                    )
     
 # APPLY CLEANSED FRAMEWORK
 cleanseDataFrame = CleansedTransform(sourceDataFrame, sourceTableName.lower(), systemCode)
