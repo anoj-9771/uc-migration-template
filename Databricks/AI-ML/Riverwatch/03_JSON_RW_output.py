@@ -153,6 +153,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                                  .withColumn("elements",psf.explode(psf.col("available_days_data")["element"]))
                                  .withColumn("types",psf.col("elements")["_type"])
                                  .withColumn("types_value",psf.col("elements")["_VALUE"])
+                                 .withColumn("types_value",psf.col("types_value").cast(StringType()))
                                 )
 
         forecast_icon_code=(forecast_icon_airtemp
