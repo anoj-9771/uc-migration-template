@@ -83,12 +83,13 @@ LEFT JOIN cleansed.swirl_asset_information Assetin on inc.id = Assetin.incident_
 LEFT JOIN cleansed.swirl_maximo_work_order_details Maxio on inc.id = Maxio.incident_FK  
 LEFT JOIN cleansed.swirl_system sys on sys.id = Net.sydneyWaterSystemWhereIncidentOccurred_FK
 LEFT JOIN cleansed.swirl_stakeholder_notification StakeHolder on Net.id = StakeHolder.networkIncident_FK
-LEFT JOIN ( SELECT DISTINCT ref.headId,ref.childId, w.waterSource 
+LEFT JOIN ( SELECT DISTINCT ref.headId, array_join(collect_set(w.waterSource),',') as waterSource
             FROM cleansed.vw_swirl_ref_nfcomponents ref
             INNER JOIN cleansed.swirl_water_source w
             ON ref.childId = w.id 
             WHERE UPPER(ref.headTable) = UPPER('Incident - Network') 
-            AND UPPER(ref.childDescription) = UPPER('Waterways Affected')
+            AND UPPER(ref.childDescription) = UPPER('Waterways Affected') 
+            GROUP BY ref.headId
           ) waterwaysAffected ON Net.id = waterwaysAffected.headId
 WHERE inc.incidentNumber IS NOT NULL 
 """)
