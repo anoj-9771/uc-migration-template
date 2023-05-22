@@ -46,7 +46,7 @@
 								"value": "@concat(variables('SourceFilePath'),'*')",
 								"type": "Expression"
 							},
-							"deleteFilesAfterCompletion": false
+							"deleteFilesAfterCompletion": true
 						},
 						"formatSettings": {
 							"type": "BinaryReadSettings"
