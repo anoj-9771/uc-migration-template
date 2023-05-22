@@ -69,7 +69,7 @@ raw.aurion_employee_history,cleansed.aurion_employee_history,PreferredName,prefe
 raw.aurion_employee_history,cleansed.aurion_employee_history,EmployeeStatus,employeeStatus,string,,,
 raw.aurion_employee_history,cleansed.aurion_employee_history,DateCommenced,dateCommenced,date,str-dd-MMM-yyyy-to-date,,
 raw.aurion_employee_history,cleansed.aurion_employee_history,DateEffective,dateEffective,date,str-dd-MMM-yyyy-to-date,,
-raw.aurion_employee_history,cleansed.aurion_employee_history,DateTo,dateTo,date,str-dd-MMM-yyyy-to-date,,
+raw.aurion_employee_history,cleansed.aurion_employee_history,DateTo,dateTo,date,,"nvl(to_date(right(concat('0',DateTo),11),'dd-MMM-yyyy') ,to_date('31-dec-9999','dd-MMM-yyyy'))",
 raw.aurion_employee_history,cleansed.aurion_employee_history,DateTerminated,dateTerminated,date,str-dd-MMM-yyyy-to-date,,
 raw.aurion_employee_history,cleansed.aurion_employee_history,PositionNumber,positionNumber,string,,,
 raw.aurion_employee_history,cleansed.aurion_employee_history,PositionTitle,positionTitle,string,,,
