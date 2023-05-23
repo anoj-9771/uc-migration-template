@@ -181,9 +181,12 @@ def LookupValue(sourceDataFrame, lookupTag, columnName):
     # USE SYSTEM WIDE UNKNOWN RETURN
     emptyDefault = "'(Unknown)'" if returnNull == "U" else "NULL"
 
+    db_name = table.split(".")[1].split("_")[0]
+    table_name = "_".join(table.split(".")[1].split("_")[1:])
+
     df = (sourceDataFrame
                 .join(
-                        spark.table(table)
+                        spark.table(get_table_name(table.split(".")[0], db_name, table_name))
                         .where(whereClause)
                         .selectExpr(f"{key} Key", f"{value} Value")
                     ,expr(f"CAST({columnName} AS STRING) == CAST(Key AS STRING)"), "left")

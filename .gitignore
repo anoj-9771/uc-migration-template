@@ -16,3 +16,4 @@ Deploy-AzureResourceGroup.ps1
 /.vs
 /*/obj/Debug
 /*/bin/Debug
+.vscode

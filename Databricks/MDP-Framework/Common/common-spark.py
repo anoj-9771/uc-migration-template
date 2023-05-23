@@ -1,7 +1,14 @@
 # Databricks notebook source
 def TableExists(tableFqn):
-  return spark._jsparkSession.catalog().tableExists(tableFqn.split(".")[0], tableFqn.split(".")[1])
-
+    if is_uc():
+        return (
+            spark.table(f'{tableFqn.split(".")[0]}.information_schema.tables')
+            .filter(f"""table_name = '{tableFqn.split('.')[-1]}'""")
+            .count () > 0
+        )
+    else:
+        return spark._jsparkSession.catalog().tableExists(tableFqn.split(".")[0], tableFqn.split(".")[1])
+        
 # COMMAND ----------
 
 def GetDeltaTablePath(tableFqn):
@@ -10,25 +17,54 @@ def GetDeltaTablePath(tableFqn):
 
 # COMMAND ----------
 
+def is_uc():
+    """check if the current databricks environemnt is Unity Catalog enabled"""
+    try:
+        dbutils.secrets.get('ADS', 'databricks-env')
+        return True
+    except Exception as e:
+        return False
+    
 def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints=True):
-    dataFrame.write \
-             .format("delta") \
-             .option("mergeSchema", "true") \
-             .mode("overwrite") \
-             .save(dataLakePath)
-    CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints)
+    if is_uc():
+        # write to table directly post UC migration
+        dataFrame.write \
+            .option("mergeSchema", "true") \
+            .mode("overwrite") \
+            .saveAsTable(targetTableFqn)
+        CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints) 
+    else:
+        # continue existing workflow (write to a path)
+        dataFrame.write \
+                .format("delta") \
+                .option("mergeSchema", "true") \
+                .mode("overwrite") \
+                .save(dataLakePath)
+        CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints) 
 
 # COMMAND ----------
 
 def CreateDeltaTableR1W4(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints=True):
-    dataFrame.write \
-             .format("delta") \
-             .option("delta.minReaderVersion", "1") \
-             .option("delta.minWriterVersion", "4") \
-             .option("mergeSchema", "true") \
-             .mode("overwrite") \
-             .save(dataLakePath)
-    CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints)
+    if is_uc():
+    # write to table directly post UC migration
+        dataFrame.write \
+                .format("delta") \
+                .option("delta.minReaderVersion", "1") \
+                .option("delta.minWriterVersion", "4") \
+                .option("mergeSchema", "true") \
+                .mode("overwrite") \
+                .saveAsTable(targetTableFqn)
+        CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints)
+    else:
+    # continue existing workflow            
+        dataFrame.write \
+                .format("delta") \
+                .option("delta.minReaderVersion", "1") \
+                .option("delta.minWriterVersion", "4") \
+                .option("mergeSchema", "true") \
+                .mode("overwrite") \
+                .save(dataLakePath)
+        CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints)
 
 # COMMAND ----------
 
@@ -53,7 +89,7 @@ def AppendDeltaTableStream(dataFrame, targetTableFqn, dataLakePath, businessKeys
         .trigger(**kwArgs)
         .table(targetTableFqn)
     )
-    #Unable to use "CreateDeltaTableConstraints" functio as above code automatically creates the raw table. Below code checks if the business keys columns are nullable on the table. If so they're set to not null
+    #Unable to use "CreateDeltaTableConstraints" function as above code automatically creates the raw table. Below code checks if the business keys columns are nullable on the table. If so they're set to not null
     if (businessKeys):
         columnSchema = StructType([
             StructField('name', StringType(), True)
@@ -68,19 +104,27 @@ def AppendDeltaTableStream(dataFrame, targetTableFqn, dataLakePath, businessKeys
         for businessKey in businessKeys.split(","):
             if df.where(f"name = '{businessKey}' and nullable = 'true'").count() > 0:
                 spark.sql(f"ALTER TABLE {targetTableFqn} ALTER COLUMN {businessKey} SET NOT NULL")
-                
     return query
 
 # COMMAND ----------
 
 def AppendDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None):
-    dataFrame.write \
-             .format("delta") \
-             .option("mergeSchema", "true") \
-             .mode("append") \
-             .save(dataLakePath)
-    if (not(TableExists(targetTableFqn))):
-        CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys)
+    if is_uc():
+        dataFrame.write \
+                .format("delta") \
+                .option("mergeSchema", "true") \
+                .mode("append") \
+                .saveAsTable(targetTableFqn)
+        if (not(TableExists(targetTableFqn))):
+            CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys)
+    else:
+        dataFrame.write \
+                .format("delta") \
+                .option("mergeSchema", "true") \
+                .mode("append") \
+                .save(dataLakePath)
+        if (not(TableExists(targetTableFqn))):
+            CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys)
 
 # COMMAND ----------
 
@@ -96,7 +140,10 @@ def delete_files_recursive(file_path: str) -> None:
 # COMMAND ----------
 
 def CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints = True):
-    spark.sql(f"CREATE TABLE IF NOT EXISTS {targetTableFqn} USING DELTA LOCATION \'{dataLakePath}\'")
+    if is_uc():
+        spark.sql(f"CREATE TABLE IF NOT EXISTS {targetTableFqn}") 
+    else:
+        spark.sql(f"CREATE TABLE IF NOT EXISTS {targetTableFqn} USING DELTA LOCATION \'{dataLakePath}\'") 
     if businessKeys is not None and createTableConstraints:
         for businessKey in businessKeys.split(","):
             spark.sql(f"ALTER TABLE {targetTableFqn} ALTER COLUMN {businessKey} SET NOT NULL")
@@ -129,12 +176,6 @@ def CleanTable(tableNameFqn):
         spark.sql(f"DROP TABLE {tableNameFqn}")
     except:
         pass
-
-
-# COMMAND ----------
-
-def TableExists(tableFqn):
-  return spark._jsparkSession.catalog().tableExists(tableFqn.split(".")[0], tableFqn.split(".")[1])
 
 # COMMAND ----------
 
