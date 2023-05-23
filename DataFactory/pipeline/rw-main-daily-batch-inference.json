@@ -389,7 +389,7 @@
 							"value": "@variables('JobPoolId')",
 							"type": "Expression"
 						},
-						"DatabricksVersion": "10.4.x-cpu-ml-scala2.12",
+						"DatabricksVersion": "12.2.x-cpu-ml-scala2.12",
 						"newClusterNumOfWorker": "1:4"
 					}
 				}
@@ -708,7 +708,7 @@
 					},
 					"waitOnCompletion": true,
 					"parameters": {
-						"SystemCodes": "beachwatch,bom,iicats_rw"
+						"SystemCodes": "beachwatch,bom"
 					}
 				}
 			},
@@ -768,7 +768,7 @@
 			},
 			"BatchPoolName": {
 				"type": "string",
-				"defaultValue": "RIVERWATCH_POOL"
+				"defaultValue": "RIVERWATCH_POOL_12"
 			}
 		},
 		"variables": {

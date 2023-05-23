@@ -41,36 +41,27 @@ table_names_in_datalab_db = [t.name for t in spark.catalog.listTables("datalab")
 
 
 #----- Load IICATS Hierarchy Configuration table -----
-if "iicats_rw_hierarchy_cnfgn" in table_names_in_cleansed_db:
-    df_hierarchy_cnfgn = spark.table("cleansed.iicats_rw_hierarchy_cnfgn").alias("hcnfg")
+if "iicats_hierarchy_cnfgn" in table_names_in_cleansed_db:
+    df_hierarchy_cnfgn = spark.table("cleansed.iicats_hierarchy_cnfgn").alias("hcnfg")
     print("IICATS Hierarchy Config loaded from cleansed")
-elif "iicats_hierarchy_cnfgn_riverwatch_2022" in table_names_in_datalab_db:
-    df_hierarchy_cnfgn = spark.table("datalab.iicats_hierarchy_cnfgn_riverwatch_2022").alias("hcnfg")
-    print("IICATS Hierarchy Config loaded from datalab")
 else:
-    print("Cleansed & Datalab tables for IICATS Hierarchy Config do not exist.")
+    print("Cleansed tables for IICATS Hierarchy Config do not exist.")
 
     
 #----- Load IICATS TSV Point Configuration table -----    
-if "iicats_rw_tsv_point_cnfgn" in table_names_in_cleansed_db:
-    df_time_series_values_cnfgn = spark.table("cleansed.iicats_rw_tsv_point_cnfgn").alias("tsvptcnfg")
+if "iicats_tsv_point_cnfgn" in table_names_in_cleansed_db:
+    df_time_series_values_cnfgn = spark.table("cleansed.iicats_tsv_point_cnfgn").alias("tsvptcnfg")
     print("IICATS TSV Point Config loaded from cleansed")
-elif "iicats_tsv_point_cnfgn_riverwatch_2022" in table_names_in_datalab_db:
-    df_time_series_values_cnfgn = spark.table("datalab.iicats_tsv_point_cnfgn_riverwatch_2022").alias("tsvptcnfg")
-    print("IICATS TSV Config loaded from datalab")
 else:
-    print("Cleansed & Datalab tables for IICATS TSV Config do not exist.")
+    print("Cleansed tables for IICATS TSV Config do not exist.")
     
     
 #----- Load IICATS TSV table -----        
-if "iicats_rw_tsv" in table_names_in_cleansed_db:
-    df_time_series_values = spark.table("cleansed.iicats_rw_tsv").alias("tsv")
+if "iicats_tsv" in table_names_in_cleansed_db:
+    df_time_series_values = spark.table("cleansed.iicats_tsv").alias("tsv")
     print("IICATS TSV loaded from cleansed")
-elif "iicats_tsv_riverwatch_2022" in table_names_in_datalab_db:
-    df_time_series_values = spark.table("datalab.iicats_tsv_riverwatch_2022").alias("tsv")
-    print("IICATS TSV loaded from datalab")
 else:
-    print("Cleansed & Datalab tables for IICATS TSV do not exist.")
+    print("Cleansed tables for IICATS TSV do not exist.")
     
     
 #----- Load BoM Daily Weather Observations - Sydney Airport -----        
@@ -120,12 +111,12 @@ EPOCH_TIMESTAMP_2d=3600*24*2
 # COMMAND ----------
 
 df_time_series_values = (df_time_series_values
-                          .withColumn("TSV_AEST_DT",psf.col("TSV_AEST_DT") - psf.expr("INTERVAL 10 HOURS"))
+                          .withColumn("measurementResultAESTDateTime",psf.col("measurementResultAESTDateTime") - psf.expr("INTERVAL 10 HOURS"))
                           .withColumn("epoch_LAST_RUNTIME",psf.unix_timestamp(psf.date_trunc("hour",psf.lit(LAST_MODEL_RUNTIME)).cast("timestamp")))
                           .withColumn("epoch_CURRENT_RUNTIME",psf.unix_timestamp(psf.date_trunc("hour",psf.lit(CURRENT_MODEL_RUNTIME)).cast("timestamp")))
-                          .withColumn("epoch_TSV_AEST_DT",psf.unix_timestamp(psf.col("TSV_AEST_DT")))
-                          .where(psf.col("epoch_TSV_AEST_DT")<=psf.col("epoch_CURRENT_RUNTIME"))
-                          .where(psf.col("epoch_TSV_AEST_DT")>=(psf.col("epoch_LAST_RUNTIME")-EPOCH_TIMESTAMP_8d))
+                          .withColumn("epochMeasurementResultAESTDateTime",psf.unix_timestamp(psf.col("measurementResultAESTDateTime")))
+                          .where(psf.col("epochMeasurementResultAESTDateTime")<=psf.col("epoch_CURRENT_RUNTIME"))
+                          .where(psf.col("epochMeasurementResultAESTDateTime")>=(psf.col("epoch_LAST_RUNTIME")-EPOCH_TIMESTAMP_8d))
                          )
 
 df_sun=(df_sun
@@ -153,12 +144,11 @@ df_solar=(df_solar
 
 df_time_series_values = (df_time_series_values
                          .distinct()
-                         .withColumn("timestamp", psf.unix_timestamp(psf.col("TSV_AEST_DT")) - psf.unix_timestamp(psf.col("TSV_AEST_DT"))%3600)
-                         .groupBy("CDB_OBJ_ID", "timestamp")
-                         .agg(psf.sum(psf.col("TSV_RSLT_VAL")).alias("TSV_RSLT_VAL"))
+                         .withColumn("timestamp", psf.unix_timestamp(psf.col("measurementResultAESTDateTime")) - psf.unix_timestamp(psf.col("measurementResultAESTDateTime"))%3600)
+                         .groupBy("objectInternalId", "timestamp")
+                         .agg(psf.sum(psf.col("measurementResultValue")).alias("measurementResultValue"))
                          .alias("tsv")
                          .orderBy("timestamp")
-#                          .where(psf.col("CDB_OBJ_ID")==557525)
                         )
 
 # COMMAND ----------
@@ -179,27 +169,27 @@ getHourlyIntervalsUDF = psf.udf(lambda a,b,c: getHourlyIntervals(a,b,c), t.Array
 # COMMAND ----------
 
 df_iicats_rainfall = (df_hierarchy_cnfgn
-                      .where((psf.col("SITE_CD") == "GG0022") |
-                             (psf.col("SITE_CD") == "GG0064") |
-                             (psf.col("SITE_CD") == "GG0020") |
-                             (psf.col("SITE_CD") == "GG0008") |
-                             (psf.col("SITE_CD") == "GG0019") |
-                             (psf.col("SITE_CD") == "GG0047") |
-                             (psf.col("SITE_CD") == "GG0016")
+                      .where((psf.col("siteCd") == "GG0022") |
+                             (psf.col("siteCd") == "GG0064") |
+                             (psf.col("siteCd") == "GG0020") |
+                             (psf.col("siteCd") == "GG0008") |
+                             (psf.col("siteCd") == "GG0019") |
+                             (psf.col("siteCd") == "GG0047") |
+                             (psf.col("siteCd") == "GG0016")
                             )
                       
-                      .where(psf.col("OBJ_NM") == "Rainfall 15M Total")
-                      .orderBy(psf.col("EFF_FROM_DT").desc())
+                      .where(psf.col("pointName") == "Rainfall 15M Total")
+                      .orderBy(psf.col("effectiveFromDateTime").desc())
                       .join(df_time_series_values_cnfgn,
-                            on=df_hierarchy_cnfgn.CDB_OBJ_ID==df_time_series_values_cnfgn.CDB_OBJ_ID,
+                            on=df_hierarchy_cnfgn.objectInternalId==df_time_series_values_cnfgn.objectInternalId,
                             how='left'
                            )
-                      .groupBy("hcnfg.CDB_OBJ_ID", "SITE_CD", "SITE_NM",  "tsvptcnfg.CDB_OBJ_ID", "PNT_CDB_OBJ_ID", "TM_BASE_CD", "STAT_TYP_CD")
-                      .agg(psf.max(psf.col("tsvptcnfg.HT_CRT_DT")).alias("HT_CRT_DT"))
-                      .where(psf.col("TM_BASE_CD") == 15)
-                      .where(psf.col("STAT_TYP_CD") == "SN")
+                      .groupBy("hcnfg.objectInternalId", "siteCd", "siteName",  "tsvptcnfg.objectInternalId", "pointInternalId", "timeBaseCd","pointStatisticTypeCd")
+                      .agg(psf.max(psf.col("tsvptcnfg.sourceRecordCreationDateTime")).alias("HT_CRT_DT"))
+                      .where(psf.col("timeBaseCd") == 15)
+                      .where(psf.col("pointStatisticTypeCd") == "SN")
                       .join(df_time_series_values,
-                            on=df_time_series_values_cnfgn.PNT_CDB_OBJ_ID==df_time_series_values.CDB_OBJ_ID,
+                            on=df_time_series_values_cnfgn.pointInternalId==df_time_series_values.objectInternalId,
                             how='left'
                            )
                        )
@@ -214,7 +204,7 @@ window = W.partitionBy("SITE_NM").orderBy(psf.unix_timestamp("timestamp"))
 
 print(LAST_MODEL_RUNTIME)
 df = (df_iicats_rainfall
-      .groupBy("SITE_NM", "PNT_CDB_OBJ_ID")
+      .groupBy("siteName", "pointInternalId")
       .agg(psf.min(psf.col("timestamp")).alias("first_timestamp"),
 #            psf.max(psf.col("timestamp")).alias("last_timestamp")
           )
@@ -236,7 +226,7 @@ realtime_ref  = (df
                                                                psf.unix_timestamp(psf.date_trunc("hour",psf.lit(CURRENT_MODEL_RUNTIME)).cast("timestamp")), psf.lit(3600)))
         .withColumn("epoch_timestamp", psf.explode(psf.col("hourly_timestamps")))
         .withColumn("timestamp", psf.to_timestamp(psf.from_unixtime(psf.col("epoch_timestamp"))))
-        .select("SITE_NM", "PNT_CDB_OBJ_ID", "epoch_timestamp","timestamp")
+        .select("siteName", "pointInternalId", "epoch_timestamp","timestamp")
          .alias("ref")
        )
 
@@ -249,11 +239,11 @@ realtime_ref  = (df
 realtime_missing_hourly_filled=(realtime_ref
         .join(df_time_series_values,
               on=((psf.col("ref.epoch_timestamp")==psf.col("tsv.timestamp")) &
-                  (psf.col("ref.PNT_CDB_OBJ_ID")==psf.col("tsv.CDB_OBJ_ID"))
+                  (psf.col("ref.pointInternalId")==psf.col("tsv.objectInternalId"))
                  ),
               how='left'
              )
-      .withColumn("TSV_RSLT_VAL", psf.when(psf.col("TSV_RSLT_VAL").isNull(), 0).otherwise(psf.col("TSV_RSLT_VAL")))
+      .withColumn("measurementResultValue", psf.when(psf.col("measurementResultValue").isNull(), 0).otherwise(psf.col("measurementResultValue")))
        )
 
 # COMMAND ----------
@@ -264,15 +254,15 @@ realtime_missing_hourly_filled=(realtime_ref
 
 swim_site_specific_rainfall = (realtime_missing_hourly_filled
                                .withColumn("siteName", 
-                                           psf.when(((psf.col("SITE_NM") == "GG0019 CONCORD") |
-                                                     (psf.col("SITE_NM") == "GG0020 FIVEDOCK") |
-                                                     (psf.col("SITE_NM") == "GG0064 GLADESVILLE") 
+                                           psf.when(((psf.col("siteName") == "GG0019 CONCORD") |
+                                                     (psf.col("siteName") == "GG0020 FIVEDOCK") |
+                                                     (psf.col("siteName") == "GG0064 GLADESVILLE") 
                                                     ), "Bayview"
                                                    )
-                                               .when(((psf.col("SITE_NM") == "GG0047 RYDE") |
-                                                      (psf.col("SITE_NM") == "GG0016 HOMEBUSH") |
-                                                      (psf.col("SITE_NM") == "GG0064 GLADESVILLE") | 
-                                                      (psf.col("SITE_NM") == "GG0019 CONCORD")
+                                               .when(((psf.col("siteName") == "GG0047 RYDE") |
+                                                      (psf.col("siteName") == "GG0016 HOMEBUSH") |
+                                                      (psf.col("siteName") == "GG0064 GLADESVILLE") | 
+                                                      (psf.col("siteName") == "GG0019 CONCORD")
                                                      ), "Putney Park"
                                                     )
                                                 .otherwise(None)
@@ -290,8 +280,8 @@ w24=W.partitionBy("siteName").orderBy("epoch_timestamp").rowsBetween(RAIN_24_FIL
 
 rain_24=(swim_site_specific_rainfall
          .groupBy("ref.timestamp", "epoch_timestamp", "siteName")
-         .mean("TSV_RSLT_VAL")
-         .withColumn("rain_24", psf.sum(psf.col("avg(TSV_RSLT_VAL)")).over(w24))
+         .mean("measurementResultValue")
+         .withColumn("rain_24", psf.sum(psf.col("avg(measurementResultValue)")).over(w24))
          .where(psf.col("ref.timestamp") == psf.to_timestamp(psf.lit(CURRENT_MODEL_RUNTIME)))
          .alias("past_rain_hours")
          )
@@ -308,8 +298,8 @@ w48=W.partitionBy("siteName").orderBy("epoch_timestamp").rowsBetween(RAIN_48_FIL
 rain_48=(swim_site_specific_rainfall
          .withColumn("date", psf.to_date(psf.col("ref.timestamp")))
          .groupBy("ref.timestamp", "epoch_timestamp", "siteName")
-         .mean("TSV_RSLT_VAL")
-         .withColumn("rain_48", psf.sum(psf.col("avg(TSV_RSLT_VAL)")).over(w48))
+         .mean("measurementResultValue")
+         .withColumn("rain_48", psf.sum(psf.col("avg(measurementResultValue)")).over(w48))
          .where(psf.col("ref.timestamp") == psf.to_timestamp(psf.lit(CURRENT_MODEL_RUNTIME)))
          .orderBy("epoch_timestamp")
          .alias("past_rain_hours")
@@ -327,8 +317,8 @@ w72=W.partitionBy("siteName").orderBy("epoch_timestamp").rowsBetween(RAIN_72_FIL
 rain_72=(swim_site_specific_rainfall
        .withColumn("date", psf.to_date(psf.col("ref.timestamp")))
                 .groupBy("ref.timestamp", "epoch_timestamp", "siteName")
-                .mean("TSV_RSLT_VAL")
-                .withColumn("rain_72", psf.sum(psf.col("avg(TSV_RSLT_VAL)")).over(w72))
+                .mean("measurementResultValue")
+                .withColumn("rain_72", psf.sum(psf.col("avg(measurementResultValue)")).over(w72))
               .where(psf.col("ref.timestamp") == psf.to_timestamp(psf.lit(CURRENT_MODEL_RUNTIME)))
                .orderBy("epoch_timestamp")
                   .alias("past_rain_hours")
@@ -346,8 +336,8 @@ w7d=W.partitionBy("siteName").orderBy("epoch_timestamp").rowsBetween(RAIN_7d_FIL
 rain_7d=(swim_site_specific_rainfall
        .withColumn("date", psf.to_date(psf.col("ref.timestamp")))
                 .groupBy("ref.timestamp", "epoch_timestamp", "siteName")
-                .mean("TSV_RSLT_VAL")
-                .withColumn("rain_7d", psf.sum(psf.col("avg(TSV_RSLT_VAL)")).over(w7d))
+                .mean("measurementResultValue")
+                .withColumn("rain_7d", psf.sum(psf.col("avg(measurementResultValue)")).over(w7d))
                 .where(psf.col("ref.timestamp") == psf.to_timestamp(psf.lit(CURRENT_MODEL_RUNTIME)))
                .orderBy("epoch_timestamp")
                   .alias("past_rain_hours")
@@ -366,8 +356,8 @@ w48=W.partitionBy("siteName").orderBy("epoch_timestamp").rowsBetween(RAIN_48_FIL
 Rintensity=(swim_site_specific_rainfall
             .withColumn("date", psf.to_date(psf.col("ref.timestamp")))
             .groupBy("ref.timestamp", "epoch_timestamp", "siteName")
-            .mean("TSV_RSLT_VAL")
-            .withColumn("rain_int", psf.mean(psf.col("avg(TSV_RSLT_VAL)")).over(w3))
+            .mean("measurementResultValue")
+            .withColumn("rain_int", psf.mean(psf.col("avg(measurementResultValue)")).over(w3))
             .withColumn("Rintensity", psf.max(psf.col("rain_int")).over(w48))
             .where(psf.col("ref.timestamp") == psf.to_timestamp(psf.lit(CURRENT_MODEL_RUNTIME)))
             .orderBy("epoch_timestamp")
@@ -387,8 +377,8 @@ w48=W.partitionBy("siteName").orderBy("epoch_timestamp").rowsBetween(RAIN_48_FIL
 Rduration=(swim_site_specific_rainfall
            .withColumn("date", psf.to_date(psf.col("ref.timestamp")))
            .groupBy("ref.timestamp", "epoch_timestamp", "siteName")
-           .mean("TSV_RSLT_VAL")
-           .withColumn("rain_dur", psf.when(psf.col('avg(TSV_RSLT_VAL)') >= 2., 1).otherwise(0))
+           .mean("measurementResultValue")
+           .withColumn("rain_dur", psf.when(psf.col('avg(measurementResultValue)') >= 2., 1).otherwise(0))
            .withColumn("Rduration", psf.sum(psf.col("rain_dur")).over(w48))
            .where(psf.col("ref.timestamp") == psf.to_timestamp(psf.lit(CURRENT_MODEL_RUNTIME)))
            .orderBy("epoch_timestamp")
@@ -403,10 +393,10 @@ display(Rduration)
 
 # COMMAND ----------
 
-w48partNM = W.partitionBy("SITE_NM").orderBy("epoch_timestamp").rowsBetween(RAIN_48_FILTER, -1)
+w48partNM = W.partitionBy("siteName").orderBy("epoch_timestamp").rowsBetween(RAIN_48_FILTER, -1)
 
 Rdistribution = (swim_site_specific_rainfall
-                    .withColumn("rain_48_ES",psf.sum(psf.col("TSV_RSLT_VAL")).over(w48partNM))
+                    .withColumn("rain_48_ES",psf.sum(psf.col("measurementResultValue")).over(w48partNM))
                     .withColumn("flag:rain_48>=2mm",psf.when(psf.col("rain_48_ES") >= 2., 1).otherwise(0))
                     .groupBy("ref.timestamp", "epoch_timestamp","siteName")
                     .sum("flag:rain_48>=2mm")
@@ -429,8 +419,8 @@ daily_seconds=3600*24
 wdaily = W.orderBy("epoch_timestamp")
 days_after_rain_20mm = (swim_site_specific_rainfall
                         .groupBy("ref.timestamp", "epoch_timestamp", "siteName")
-                        .mean("TSV_RSLT_VAL")
-                        .withColumn("rain_24", psf.sum(psf.col("avg(TSV_RSLT_VAL)")).over(w24))
+                        .mean("measurementResultValue")
+                        .withColumn("rain_24", psf.sum(psf.col("avg(measurementResultValue)")).over(w24))
                         .withColumnRenamed("rain_24", "rain_daily")
                         .withColumn("timestamp", psf.to_timestamp(psf.from_unixtime(psf.col("epoch_timestamp"))))
                         .orderBy("epoch_timestamp")
@@ -547,7 +537,7 @@ display(model_realtime_input)
 # COMMAND ----------
 
 # MAGIC %md ## Categorise preprocessed data for inferencing
-# MAGIC 
+# MAGIC
 # MAGIC This does not include enterocci, Salinity(EC) and Stormwatep_pct data
 
 # COMMAND ----------
@@ -713,7 +703,7 @@ display(infer_input_cato)
 # MAGIC )
 # MAGIC USING DELTA 
 # MAGIC LOCATION 'dbfs:/mnt/datalake-cleansed/urbanplunge/urbanplunge_water_quality_features'
-# MAGIC 
+# MAGIC
 # MAGIC -- df_model_output.write.mode("append").insertInto('cleansed.urbanplunge_water_quality_predictions')
 
 # COMMAND ----------
