@@ -45,7 +45,7 @@ def GenerateRbacCommands():
         _grants.append({ "Group" : groupName, "Child" : parentGroup, "Type" : "ScimAssignGroup", "Command" : f"AssignGroupWildcard,{parentGroup},{groupName}"}) if parentGroup is not None else ()
         _grants.extend([{ "Group" : groupName, "Child" : i, "Type" : "ScimAssignGroup", "Command" : f"AssignGroupWildcard,{groupName},{i}"} for i in aadGroup]) if aadGroup is not None else ()
         _grants.extend([{ "Group" : groupName, "Child" : i, "Type" : "ScimAddGroup", "Command" : f"AddUsersToGroup,{groupName},{i}@sydneywater.com.au"} for i in users]) if users is not None else ()
-        _grants.extend([{ "Group" : groupName, "Child" : i, "Type" : "SqlSchemaGrant", "Command" : f"GRANT USAGE ON SCHEMA `{i}` TO `{groupName}`;"} for i in set([i.split(".")[0] for i in tableFilter])]) if tableFilter is not None else ()
+        _grants.extend([{ "Group" : groupName, "Child" : i, "Type" : "SqlSchemaGrant", "Command" : f"GRANT USAGE ON SCHEMA `{i}` TO `{groupName}`;"} for i in set([i.split(".")[0] for i in tableFilter])]) if tableFilter is not None and (level or 1) == 1 else ()
         _grants.extend([{ "Group" : groupName, "Child" : i, "Type" : "SqlOtherCommand", "Command" : i} for i in set([i for i in otherCommands])]) if otherCommands is not None else ()
 
         if tableFilter is not None:
@@ -59,6 +59,9 @@ def GenerateRbacCommands():
                     [_grants.remove(i) for i in _grants if i["Type"] == "SqlTableGrant" and i["Group"] == "L1-Official" if i["Child"] in [i["Child"] for i in _grants if i["Type"] == "SqlTableGrant" and i["Group"] == groupName ]]
                     _grants.extend([{ "Group" : groupName, "Child" : f"`{i.database}`.`{i.tableName}`",  "Type" : "SqlTableGrant", "Command" : f"REVOKE ALL PRIVILEGES ON TABLE `{i.database}`.`{i.tableName}` FROM `L1-Official`;"} for i in spark.sql(f"SHOW TABLES FROM {schema} LIKE '{table}'").collect()])
  
+    sql = "\n".join([i["Command"] for i in _grants])
+    print(sql)
+
     # PERSIST TABLE
     (spark.read.json(sc.parallelize(_grants))
     .withColumn("CreatedDTS", expr("CURRENT_TIMESTAMP()"))
