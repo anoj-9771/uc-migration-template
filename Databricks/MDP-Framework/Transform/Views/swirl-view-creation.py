@@ -50,8 +50,8 @@ SELECT DISTINCT
 ,Net.communityImpact
 ,Net.swcBusinessOperationsImpact
 ,Sys.systemName as network
-,Net.incidentLocation as scamp
-,Net.incidentSubType
+,Sys.systemName as scamp
+,Net.networkIncidentSubType as networkIncidentSubType
 ,Net.impactType
 ,Net.waterwaysAffected
 ,waterwaysAffected.waterSource as waterways
