@@ -17,7 +17,7 @@ UNION ALL
 WITH _Base AS 
 (
     SELECT 'SharepointListref' SystemCode, 'SharepointListEDP' SourceSchema, '' SourceKeyVaultSecret, 'sharepointlist-load' SourceHandler, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, '' RawFileExtension, '' WatermarkColumn
-    ,'{"CleansedQuery" : "select * except(dummy) from {tableFqn} where Id is not null"}'  ExtendedProperties
+    ,'{"CleansedQuery" : "select * except(dummy) from {tableFqn} where Id is not null and _DLRawZoneTimeStamp > \\'\\'{lastLoadTimeStamp}\\'\\'"}'  ExtendedProperties
     ,'https://sydneywatercorporation.sharepoint.com/sites/EnterpriseDataPlatform-Adjustments' SourceQuery
 )
 SELECT 'UserInformationList' SourceTableName, * FROM _Base
