@@ -5,24 +5,14 @@
 
 from pyspark.sql.functions import lit, when, lower, expr
 df = spark.sql("""
---WITH _Base AS 
---(
---  SELECT 'isuref' SystemCode, 'isu' SourceSchema, 'daf-sa-blob-sastoken' SourceKeyVaultSecret, 'isu' DestinationSchema, 'bods-load' SourceHandler, 'json' RawFileExtension, 'raw-load-bods' RawHandler, --'{ "DeleteSourceFiles" : "True" }' ExtendedProperties,
---    'cleansed-load-bods-slt' CleansedHandler, '' SystemPath
---)
---SELECT '' SourceTableName, 'xxx/xxx' SourceQuery, '' WatermarkColumn, * FROM _Base
---UNION 
---(
 WITH _Base AS 
 (
-  SELECT 'isudata' SystemCode, 'isu' SourceSchema, 'daf-sa-blob-sastoken' SourceKeyVaultSecret, 'isu' DestinationSchema, 'bods-load' SourceHandler, 'json' RawFileExtension, 'raw-load-bods' RawHandler, --'{ "DeleteSourceFiles" : "True" }' ExtendedProperties,
+  SELECT 'isu' SourceSchema, 'daf-sa-blob-sastoken' SourceKeyVaultSecret, 'isu' DestinationSchema, 'bods-load' SourceHandler, 'json' RawFileExtension, 'raw-load-bods' RawHandler, --'{ "DeleteSourceFiles" : "True" }' ExtendedProperties,
   'cleansed-load-bods-slt' CleansedHandler, '' SystemPath
 )
-SELECT 'ZBLT_REDRESS' SourceTableName, 'isudata/ZBLT_REDRESS' SourceQuery, '' WatermarkColumn, * FROM _Base
---UNION
---Start of tables that may get converted to SLT later
---End of tables that may get converted to SLT later
---)    
+SELECT 'isudata' SystemCode, 'ZBLT_REDRESS' SourceTableName, 'isudata/ZBLT_REDRESS' SourceQuery, '' WatermarkColumn, * FROM _Base
+UNION
+SELECT 'isuref' SystemCode, 'ZDMT_RATE_TYPE' SourceTableName, 'isuref/ZDMT_RATE_TYPE' SourceQuery, '' WatermarkColumn, * FROM _Base
 ORDER BY SourceSchema, SourceTableName
 """)
 
@@ -66,14 +56,11 @@ ExecuteStatement("""
 update dbo.extractLoadManifest set
 businessKeyColumn = case sourceTableName
 when 'ZBLT_REDRESS' then 'incidentDate,jobNumber,propertyNumber,taskID'
+when 'ZDMT_RATE_TYPE' then 'functionClassText,deviceSize,billingClassCode,sopaFlag'
 else businessKeyColumn
 end
 where systemCode in ('isuref','isudata')
 """)
-
-# COMMAND ----------
-
-#Delete all cells below once this goes to Production
 
 # COMMAND ----------
 
@@ -83,16 +70,3 @@ where systemCode in ('isuref','isudata')
 
 df_c = spark.table("controldb.dbo_extractloadmanifest")
 display(df_c.where("SystemCode in ('isuref','isudata')"))
-
-# COMMAND ----------
-
-# for z in ["raw", "cleansed"]:
-for z in ["cleansed"]:
-    for t in df_c.where("SystemCode in ('isuref','isudata')").collect():
-        tableFqn = f"{z}.{t.DestinationSchema}_{t.SourceTableName}"
-        print(tableFqn)
-#         CleanTable(tableFqn)
-
-# COMMAND ----------
-
-# CleanTable('cleaned.ppm_0RPM_DECISION_GUID_ID_TEXT')

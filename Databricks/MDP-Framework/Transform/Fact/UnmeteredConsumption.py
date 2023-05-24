@@ -107,23 +107,3 @@ def Transform():
     #DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-# DBTITLE 1,Unmetered Connected Properties at property type
-spark.sql(f"CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewUnmeteredConnectedByPropertyType as Select * EXCEPT (latestRecordRanking) from (select row_number() over (partition by \
-superiorPropertyTypeCode,superiorPropertyType,inferiorPropertyTypeCode,inferiorPropertyType,unmeteredConnectedFlag,unmeteredConstructionFlag order by reportDate desc) latestRecordRanking, \
-unmeteredConnectedFlag, unmeteredConstructionFlag,superiorPropertyTypeCode,superiorPropertyType,inferiorPropertyTypeCode,inferiorPropertyType, count(distinct propertyNumber) as propertyCount, \
-sum(consumptionKLMonth) as consumptionKLMonth, reportDate \
-from {DEFAULT_TARGET}.factUnmeteredConsumption group by superiorPropertyTypeCode,superiorPropertyType,inferiorPropertyTypeCode,inferiorPropertyType,reportDate, \
-unmeteredConnectedFlag,unmeteredConstructionFlag \
-ORDER BY unmeteredConnectedFlag, unmeteredConstructionFlag, superiorPropertyTypeCode, inferiorPropertyTypeCode ) where latestRecordRanking = 1")
-
-# COMMAND ----------
-
-# DBTITLE 1,Unmetered Consumption (kL/Month) at different network zones
-spark.sql(f"CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewUnmeteredConnectedByNetwork as Select * EXCEPT (latestRecordRanking) from ( select  row_number() over (partition by deliverySystem,distributionSystem,supplyZone,pressureArea,unmeteredConnectedFlag,unmeteredConstructionFlag order by reportDate desc) latestRecordRanking \
-,deliverySystem,distributionSystem,supplyZone,pressureArea, count(distinct propertyNumber) as propertyCount, sum(consumptionKLMonth) as consumptionKLMonth, reportDate \
-,unmeteredConnectedFlag,unmeteredConstructionFlag \
-from {DEFAULT_TARGET}.factUnmeteredConsumption group by deliverySystem,distributionSystem,supplyZone,pressureArea, reportDate,unmeteredConnectedFlag,unmeteredConstructionFlag \
-ORDER BY deliverySystem,distributionSystem,supplyZone,pressureArea) where latestRecordRanking = 1")
