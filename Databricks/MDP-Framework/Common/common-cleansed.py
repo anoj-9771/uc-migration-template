@@ -65,7 +65,13 @@ defaultSystemTransformTags = {
             "dataType" : TimestampType
             ,"transform": "sydneyts-to-utcts"
         }
-    ],     
+    ],    
+    "sharepointlist": [
+        {
+            "dataType" : TimestampType
+            ,"transform": "sydneyts-to-utcts"
+        }
+    ],          
 } 
 
 # COMMAND ----------
