@@ -147,7 +147,7 @@ SELECT DISTINCT Dept.businessArea AS businessArea ,
        act.actionStatus as actionStatus , 
        inc.incidentShortDescription AS incidentShortDescription ,
        act.actionDescription AS actionDescription ,
-       inc.initialActionTaken AS actionTaken ,
+       act.bms_21858878 AS actionTaken ,
        act.completionDate AS dateClosed ,
        concat_ws(',',per.Lastname,per.Firstname,per.userName) AS actionsAsAssignedToPerson ,
        Imp.consequenceRating AS consequenceRatingWord ,
@@ -194,12 +194,12 @@ LEFT JOIN (SELECT DISTINCT incidentId
            GROUP BY incidentId
           ) eventType ON inc.id = eventType.incidentId
 WHERE inc.incidentNumber IS NOT NULL 
-AND EXISTS (SELECT 1 
-            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
-            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
-            AND lookupItemId <> '0'
-            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
-            AND inner_tbl.incidentId = inc.id)
+--AND EXISTS (SELECT 1 
+--            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
+--            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+--            AND lookupItemId <> '0'
+--            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+--            AND inner_tbl.incidentId = inc.id)
 """)
 
 # COMMAND ----------
@@ -218,7 +218,7 @@ SELECT DISTINCT Dept.businessArea AS businessArea ,
        act.actionStatus as actionStatus , 
        inc.incidentShortDescription AS incidentShortDescription ,
        act.actionDescription AS actionDescription ,
-       inc.initialActionTaken AS actionTaken ,
+       act.bms_21858878 AS actionTaken ,
        act.completionDate AS dateClosed ,
        concat_ws(',',per.Lastname,per.Firstname,per.userName) AS actionsAsAssignedToPerson ,
        Imp.consequenceRating AS consequenceRatingWord ,
@@ -318,12 +318,12 @@ LEFT JOIN (SELECT DISTINCT incidentId
            GROUP BY incidentId
           ) eventType ON inc.id = eventType.incidentId
 WHERE inc.incidentNumber IS NOT NULL 
-AND EXISTS (SELECT 1 
-            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
-            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
-            AND lookupItemId <> '0'
-            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
-            AND inner_tbl.incidentId = inc.id)
+--AND EXISTS (SELECT 1 
+--            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
+--            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+--            AND lookupItemId <> '0'
+--            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+--            AND inner_tbl.incidentId = inc.id)
 """)
 
 # COMMAND ----------
@@ -510,12 +510,12 @@ LEFT JOIN (SELECT DISTINCT incidentId
            GROUP BY incidentId
           ) eventType ON inc.id = eventType.incidentId
 WHERE inc.incidentNumber IS NOT NULL 
-AND EXISTS (SELECT 1 
-            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
-            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
-            AND lookupItemId <> '0'
-            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
-            AND inner_tbl.incidentId = inc.id)
+--AND EXISTS (SELECT 1 
+--            FROM cleansed.vw_swirl_ref_lookup as inner_tbl
+--            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
+--            AND lookupItemId <> '0'
+--            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
+--            AND inner_tbl.incidentId = inc.id)
  """)
 
 # COMMAND ----------
