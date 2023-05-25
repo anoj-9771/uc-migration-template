@@ -79,11 +79,11 @@ tables15Mins = ['event','iicats_work_orders','tsv','qlty_config','wfp_daily_dema
 df = (
     df.withColumn('SystemCode', when(lower(df.SourceTableName).isin(tables15Mins),lit('iicats|15min')) 
                                         .otherwise(expr('SystemCode')))
-      .withColumn('ExtendedProperties', expr('trim("{}" FROM ExtendedProperties)'))
-      .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tables15Mins)
-                                        ,expr('ltrim(",",ExtendedProperties ||", "||\'\"OverrideClusterName\" : \"interactive\"\')')) 
-                                        .otherwise(expr('ExtendedProperties')))
-      .withColumn('ExtendedProperties', expr('if(ExtendedProperties<>"","{"||ExtendedProperties ||"}","")'))                                         
+    #   .withColumn('ExtendedProperties', expr('trim("{}" FROM ExtendedProperties)'))
+    #   .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tables15Mins)
+    #                                     ,expr('ltrim(",",ExtendedProperties ||", "||\'\"OverrideClusterName\" : \"interactive\"\')')) 
+    #                                     .otherwise(expr('ExtendedProperties')))
+    #   .withColumn('ExtendedProperties', expr('if(ExtendedProperties<>"","{"||ExtendedProperties ||"}","")'))                                         
 )
 appendTables = ['tsv','event']
 df = (
