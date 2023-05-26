@@ -650,4 +650,9 @@ def ListExternalLocations():
 
 # COMMAND ----------
 
-
+def UpdatePermission(securable_type, full_name, grants):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.1/unity-catalog/permissions/{securable_type}/{full_name}'
+    permissions = { "changes": [ *grants ] }
+    response = requests.patch(url, json=permissions, headers=headers)
+    return response.json()
