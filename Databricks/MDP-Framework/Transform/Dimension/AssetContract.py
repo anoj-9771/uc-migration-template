@@ -3,49 +3,79 @@
 
 # COMMAND ----------
 
+# CleanSelf()
+
+# COMMAND ----------
+
 def Transform():
     global df
     # ------------- TABLES ----------------- #
-    df = GetTable(f"{SOURCE}.maximo_contract").withColumn("assetContractTypeFK",lit(''))
-   
+    business_date = "changedDate"
+    target_date = "assetContractChangedTimestamp"
+    df = get_recent_cleansed_records(f"{SOURCE}","maximo","contract",business_date, target_date)
+    df = df \
+    .withColumn("sourceBusinessKey",concat_ws('|', df.contract, df.revision)) \
+    .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \
+    .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)")) 
+    df = load_sourceValidFromTimeStamp(df,business_date)
+    
     # ------------- JOINS ------------------ #
 
     # ------------- TRANSFORMS ------------- #
+   
     _.Transforms = [
-        f"contract {BK}"
-        ,"contractManager contractManagerFK"
-        ,"changedBy changedByFK"
-        ,"assetContractTypeFK assetContractTypeFK"
-        ,"contract contractNumber"
-        ,"description contractDescription"
-        ,"status contractStatus"
-        ,"statusDate contractStatusDate"
-        ,"startDate contractStartDate"
-        ,"endDate contractEndDate"
-        ,"latestContractAmount latestContractAmount"
-        ,"contractOriginalAmount contractOriginalAmount"
-        ,"vendor vendor"
-        ,"revision revision"
-        ,"revisionComments revisionComments"
-        ,"renewalDate renewalDate"
-        ,"totalExpenditureToDate totalExpenditureToDate"
-        ,"primaryVendorPerson primaryVendorPerson"
-        ,"totalBaseCost totalBaseCost"
-        ,"totalCost totalCost"
-        ,"vendorTermAllowed vendorTermAllowed"
-        ,"inspectionRequired inspectionRequired"
-#         ,"changeDate changeDate"
-        ,"rowStamp rowStamp"
+        f"sourceBusinessKey {BK}"
+        ,"contract assetContractNumber"
+        ,"revision assetContractRevisionNumber"
+        ,"contractManager assetContractManagerCode"
+        ,"changedBy assetContractChangedByUserName"
+        ,"description assetContractDescription"
+        ,"status assetContractStatusCode"
+        ,"statusDate assetContractStatusDate"
+        ,"startDate assetContractStartDate"
+        ,"endDate assetContractEndDate"
+        ,"latestContractAmount assetContractLatestContractAmount"
+        ,"contractOriginalAmount assetContractOriginalAmount"
+        ,"vendor assetContractVendorCode"
+        ,"revisionComments assetContractRevisionCommentDescription"
+        ,"renewalDate assetContractRenewalDate"
+        ,"totalExpenditureToDate assetContractTotalExpenditureToDate"
+        ,"primaryVendorPerson assetContractPrimaryVendorName"
+        ,"totalBaseCost assetContractTotalBaseAmount"
+        ,"totalCost assetContractTotalAmount"
+        ,"vendorTermAllowed assetContractVendorTermAllowedCode"
+        ,"inspectionRequired assetContractInspectionRequiredIndicator"
+        ,"rowStamp assetContractRowSequenceNumber"
+        ,"changedDate assetContractChangedTimestamp"
+        ,"sourceValidFromTimestamp"
+        ,"sourceValidToTimestamp"
+        ,"sourceRecordCurrent"
+        ,"sourceBusinessKey"
         
     ]
     df = df.selectExpr(
         _.Transforms
     )
     # ------------- CLAUSES ---------------- #
+    df.schema['assetContractNumber'].nullable = False 
+    df.schema['assetContractRevisionNumber'].nullable = False 
+
+    # Updating Business SCD columns for existing records
+    try:
+        # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
+        existing_data = spark.sql(f"""select * from {DEFAULT_TARGET}.{TableName}""") 
+        matched_df = existing_data.join(df.select("assetContractNumber", "assetContractRevisionNumber",col("sourceValidFromTimestamp").alias("new_changed_date")),["assetContractNumber", "assetContractRevisionNumber"],"inner")\
+        .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
+
+        matched_df =matched_df.withColumn("sourceValidToTimestamp",expr("new_changed_date - INTERVAL 1 SECOND")) \
+        .withColumn("sourceRecordCurrent",expr("CAST(0 AS INT)"))
+
+        df = df.unionByName(matched_df.selectExpr(df.columns))
+    except Exception as exp:
+        print(exp)
 
     # ------------- SAVE ------------------- #
 #     display(df)
-    # CleanSelf()
     Save(df)
     #DisplaySelf()
 pass
@@ -54,7 +84,17 @@ Transform()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from curated_v2.dimAssetContract
+# MAGIC Select assetContractSK, count(1) from curated.dimAssetContract group by assetContractSK having count(1) >1
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC drop view if exists curated_v3.dimAssetContract
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC create or replace view curated_v3.dimAssetContract As (select * from curated.dimAssetContract)
 
 # COMMAND ----------
 

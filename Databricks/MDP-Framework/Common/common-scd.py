@@ -46,7 +46,7 @@ def BasicMergeNoUpdate(sourceDataFrame, targetTableFqn, businessKey=None):
 
 # COMMAND ----------
 
-def MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource, BK, SK):
+def MergeSCDTable(sourceDataFrame, targetTableFqn, BK, SK):
     targetTable = spark.table(targetTableFqn)
     # _exclude = {f"{_.SK}", f"{_.BK}", '_recordStart', '_recordEnd', '_Current', "_Batch_SK"}
     #Question - _recordCurrent, and _recordDeleted are not excluded, agree?    
@@ -82,7 +82,7 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource, BK, SK):
         "_recordDeleted": "s._recordDeleted",
         # "_Batch_SK": expr(f"DATE_FORMAT(s._Created, 'yyMMddHHmmss') || COALESCE(DATE_FORMAT({DEFAULT_END_DATE}, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 1")
     }
-    insertValues["_recordCurrent"]  = "s._recordCurrent" if scdFromSource else "1"
+    insertValues["_recordCurrent"]  = "1"
        
     for c in [i for i in targetTable.columns if i not in _exclude]:
         insertValues[f"{c}"] = f"s.{c}"

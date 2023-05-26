@@ -7,6 +7,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./common-helpers
+
+# COMMAND ----------
+
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
 from pyspark.sql.window import *
@@ -17,7 +21,7 @@ import pytz
 # COMMAND ----------
 
 DEFAULT_SOURCE = "cleansed"
-DEFAULT_TARGET = "curated_v3"
+DEFAULT_TARGET = "curated"
 DEFAULT_START_DATE = "NOW()"
 DEFAULT_END_DATE = "9999-12-31"
 BATCH_END_CODE = "000000000000"
@@ -72,6 +76,7 @@ class CuratedTransform( BlankClass ):
 _ = CuratedTransform()
 
 BK = _.BK
+TableName = _.EntityName 
 SOURCE = DEFAULT_SOURCE
 
 # COMMAND ----------
@@ -98,10 +103,7 @@ def IsDimension():
 
 # COMMAND ----------
 
-def _WrapSystemColumns(dataFrame,scdFromSource):  
-  if scdFromSource:
-    return _InjectSK(_AddSCDFromSource(dataFrame))
-  else:
+def _WrapSystemColumns(dataFrame):  
     return _InjectSK(_AddSCD(dataFrame))
 
 # COMMAND ----------
@@ -220,9 +222,9 @@ def _AddSCD(dataFrame):
     df = df.select(cols)
 
     df = df.withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
-    if "_recordStart" in [c.lower() for c in cols]:
+    if "_recordStart" in [c for c in cols]:
         df = df.withColumn("_recordStart", expr(f"COALESCE(_recordStart, CAST({DEFAULT_START_DATE} AS TIMESTAMP))"))
-    else:    
+    else:  
         df = df.withColumn("_recordStart", expr(f"CAST({DEFAULT_START_DATE} AS TIMESTAMP)"))
     # df = df.withColumn("_recordEnd", expr("CAST(NULL AS TIMESTAMP)" if DEFAULT_END_DATE == "NULL" else f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP) + INTERVAL 1 DAY - INTERVAL 1 SECOND"))
     df = df.withColumn("_recordEnd", 
@@ -246,64 +248,35 @@ def _AddSCD(dataFrame):
 
     return df
 
-# COMMAND ----------
-
-def _AddSCDFromSource(dataFrame):
-    cols = dataFrame.columns
-    df = dataFrame
-    
-    #Move BK to the end
-    if _.BK in cols:
-        cols.remove(_.BK)
-        cols.append(_.BK)
-    df = df.select(cols)
-
-    df = df.withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
-    df = df.withColumn("_recordStart",expr(f"CAST(ifnull(validFromDatetime,{DEFAULT_START_DATE}) as timestamp)"))
-    df = df.withColumn("_recordEnd", expr(f"CAST(ifnull(validToDatetime,'{DEFAULT_END_DATE}') as timestamp) - INTERVAL 1 SECOND"))
-   
-    if "_recordcurrent" in [c.lower() for c in cols]:
-        df = df.withColumn("_recordCurrent", expr("COALESCE(_recordCurrent, CAST(1 AS INT))"))
-    else:    
-        df = df.withColumn("_recordCurrent", when(df.validToDatetime > parser.parse(f'{DEFAULT_END_DATE}'), 1).otherwise(0))
-
-    if "_recorddeleted" in [c.lower() for c in cols]:
-        df = df.withColumn("_recordDeleted", expr("COALESCE(_recordDeleted, CAST(0 AS INT))"))
-    else:    
-        df = df.withColumn("_recordDeleted", expr("CAST(0 AS INT)"))
-
-    return df
 
 # COMMAND ----------
 
 def Save(sourceDataFrame):
-    scdFromSource = False
     targetTableFqn = f"{_.Destination}"
     print(f"Saving {targetTableFqn}...")
     if (not(TableExists(targetTableFqn))):
         print(f"Creating {targetTableFqn}...")
         # Adjust _RecordStart date for first load
         sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
-        sourceDataFrame = _WrapSystemColumns(sourceDataFrame, scdFromSource) if sourceDataFrame is not None else None
+        sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
         CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
         EndNotebook(sourceDataFrame)
         return
-    sourceDataFrame = _WrapSystemColumns(sourceDataFrame, scdFromSource) if sourceDataFrame is not None else None
-    MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource,_.BK,_.SK)
+    sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
+    MergeSCDTable(sourceDataFrame, targetTableFqn,_.BK,_.SK)
     EndNotebook(sourceDataFrame)
     return 
 
 # COMMAND ----------
 
 def SaveDefaultSource(sourceDataFrame):
-    scdFromSource = False
     targetTableFqn = f"{_.Destination}"
     print(f"Saving {targetTableFqn}...")
     if (not(TableExists(targetTableFqn))):
         print(f"Creating {targetTableFqn}...")
         # Adjust _RecordStart date for first load
         sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
-        sourceDataFrame = _WrapSystemColumns(sourceDataFrame, scdFromSource) if sourceDataFrame is not None else None
+        sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
 
         if all(colName in sourceDataFrame.columns for colName in ["sourceValidFromDateTime", "sourceValidToDateTime"]):
             sourceDataFrame = sourceDataFrame.withColumn("sourceValidFromDateTime", when(col("sourceValidFromDateTime").isNull(), col("_recordStart")).otherwise(col("sourceValidFromDateTime"))) \
@@ -313,28 +286,11 @@ def SaveDefaultSource(sourceDataFrame):
         CreateDeltaTableR1W4(sourceDataFrame, targetTableFqn, _.DataLakePath)  
         EndNotebook(sourceDataFrame)
         return
-    sourceDataFrame = _WrapSystemColumns(sourceDataFrame, scdFromSource) if sourceDataFrame is not None else None
-    MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource,_.BK,_.SK)
+    sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
+    MergeSCDTable(sourceDataFrame, targetTableFqn,_.BK,_.SK)
     EndNotebook(sourceDataFrame)
     return
 
-# COMMAND ----------
-
-def SaveSCDFromSource(sourceDataFrame):
-    scdFromSource = True
-    sourceDataFrame = _WrapSystemColumns(sourceDataFrame, scdFromSource) if sourceDataFrame is not None else None
-    targetTableFqn = f"{_.Destination}"
-    print(f"Saving SCD from source {targetTableFqn}...")
-    if (not(TableExists(targetTableFqn))):
-        print(f"Creating SCD from source {targetTableFqn}...")
-        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
-        EndNotebook(sourceDataFrame)
-        return
-
-    MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource,_.BK,_.SK) 
-    EndNotebook(sourceDataFrame)
-    return 
-    
 
 # COMMAND ----------
 
@@ -406,3 +362,36 @@ def saveSchemaAndData(currentDataFrame, joinColumns, maintainSchemaEvolution = F
         spark.sql(f"DROP VIEW IF EXISTS adfTemp")
         EndNotebook(createDF)
         return
+    
+
+# COMMAND ----------
+
+def get_recent_cleansed_records(catalog, schema, table, business_date, target_date):
+    cleansed_table_name = get_table_name(catalog,schema,table)
+    target_table_name = f"{DEFAULT_TARGET}.{TableName}"
+     # target_table_name = get_table_name(f"{DEFAULT_TARGET}","","{TableName}")
+    try:
+        latest_date = spark.sql(f"""select date_format(max({target_date}),'MM/dd/yyyy hh:mm:ss') from {target_table_name}""").first()[0]
+        df = spark.sql(f"""select * from {cleansed_table_name} where {business_date} > '{latest_date}'""")
+    except Exception as e:
+        print(f"{target_table_name} table does not exist.This is first load")
+        df = spark.sql(f"""select * from {cleansed_table_name}""")
+    return df
+
+# COMMAND ----------
+
+def load_sourceValidFromTimeStamp(dataFrame,business_date=None):
+    df = dataFrame
+    try:
+        # table_name = get_table_name(f"{DEFAULT_TARGET}","","{TableName}")
+        table_name = f"{DEFAULT_TARGET}.{TableName}"
+        spark.sql(f"DESCRIBE {table_name}")
+        if business_date:
+            df = df.withColumn("sourceValidFromTimestamp",col(business_date))
+        else:
+            df = df.withColumn("sourceValidFromTimestamp",expr(f"CAST({DEFAULT_START_DATE}) as timestamp)"))
+    except:
+        # First load
+        df = df.withColumn("sourceValidFromTimestamp", expr("CAST('1900-01-01' AS TIMESTAMP)"))
+    return df
+
