@@ -1,12 +1,15 @@
 # Databricks notebook source
-# DBTITLE 1,Note: Please call ClearCache() after running the ATF Script
+# DBTITLE 0,Note: Please call ClearCache() after running the ATF Script
 # MAGIC %run ./common-atf-methods
+
+# COMMAND ----------
+
+# MAGIC %run /Users/o0dc@sydneywater.com.au/ATF/extensions/helper_functions
 
 # COMMAND ----------
 
 TABLE_FQN = ''
 LOAD_MAPPING_FLAG = False
-DO_ST_TESTS = False
 
 # COMMAND ----------
 
@@ -41,10 +44,10 @@ def GetNotebookName():
     if not TABLE_FQN:
         list = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
         count=len(list)
-        database = list[count-1]
+        notebookName = list[count-1]
     else:
-        database = TABLE_FQN.split(".")[1]
-    return database
+        notebookName = TABLE_FQN.split(".")[1]
+    return notebookName
 
 # COMMAND ----------
 
@@ -123,7 +126,7 @@ def GetTimestamp():
 def _LogResults(inputValue : str, outputValue : str, passed : str, error : str):
      _results.append({
         "Object" : f"{GetSelfFqn()}",
-        "Type" : "Automated" if _currentTestCase in _automatedMethods[GetDatabaseName()] else "Manaul",
+        "Type" : "Automated" if _currentTestCase in _automatedMethods[GetDatabaseName()] else "Manual",
         "Case" : _currentTestCase,
         "Input" : str(inputValue),
         "Output" : str(outputValue),
@@ -155,21 +158,38 @@ def RunTests():
         print("No tests!")
         return
     
-    global MAPPING_DOC, TAG_SHEET, LOAD_MAPPING_FLAG, UNIQUE_KEYS, SRC_DF, TGT_DF
+    global MAPPING_DOC, TAG_SHEET, LOAD_MAPPING_FLAG, UNIQUE_KEYS, MANDATORY_COLS, ALL_COLS, SRC_DF, TGT_DF
     if not MAPPING_DOC and LOAD_MAPPING_FLAG == False:
         if GetDatabaseName().upper() == 'CLEANSED':
-            MAPPING_DOC = loadCleansedMapping().cache()
-            TAG_SHEET = loadCleansedMapping('TAG').cache()
-            TAG_SHEET.count()
+            try:
+                MAPPING_DOC = loadCleansedMapping().cache()
+                TAG_SHEET = loadCleansedMapping('TAG').cache()
+                TAG_SHEET.count()
+            except:
+                MAPPING_DOC = loadCleansedMapping().cache()
         else:
             MAPPING_DOC = loadCuratedMapping().cache()
         MAPPING_DOC.count()
         LOAD_MAPPING_FLAG = True
-    
+        
     UNIQUE_KEYS = GetUniqueKeys()
     
-    if DO_ST_TESTS == True or (GetNotebookName().find('_') != -1):
-        SRC_DF, TGT_DF = GetSrcTgtDfs(TABLE_FQN)
+    if GetDatabaseName().upper() != 'CLEANSED':
+        MANDATORY_COLS = GetMandatoryCols()
+        ALL_COLS = GetColumns()
+    
+    if DO_ST_TESTS == True: 
+        if GetDatabaseName().upper() == 'CLEANSED':
+            SRC_DF, TGT_DF = GetSrcTgtDfs(TABLE_FQN)
+        else: # curated table - S-T all recs
+            SRC_DF = spark.sql(SOURCE_QUERY)
+            SRC_DF.createOrReplaceTempView("sourceView")
+            SRC_DF = spark.sql(f"SELECT {ALL_COLS} FROM sourceView")
+            TGT_DF = spark.sql(AutomatedTargetQuery())
+        SRC_DF.cache()
+        TGT_DF.cache()
+        SRC_DF.count()
+        TGT_DF.count()
     
     for key, value in globals().items():
         if ((callable(value) 
@@ -186,6 +206,14 @@ def RunTests():
                 except Exception as e:
                     _LogResults(0, 0, 0, str(e).split(";")[0])
                     pass
+    
+    UNIQUE_KEYS = ''
+    MANDATORY_COLS = ''
+    ALL_COLS = ''
+    if DO_ST_TESTS == True and GetDatabaseName().upper() == 'CLEANSED':
+        SRC_DF.unpersist()
+        TGT_DF.unpersist()
+    
     _TestingEnd()
     del _results[0:len(_results)]
 
@@ -193,9 +221,14 @@ def RunTests():
 
 def ClearCache():
     global MAPPING_DOC, TAG_SHEET
-    MAPPING_DOC.unpersist()
-    if GetDatabaseName().upper() == 'CLEANSED':
+    try:
+        MAPPING_DOC.unpersist()
+    except:
+        pass
+    try:
         TAG_SHEET.unpersist()
+    except:
+        pass
 
 # COMMAND ----------
 
