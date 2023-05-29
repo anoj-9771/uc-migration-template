@@ -11,7 +11,7 @@ def GetEnvironmentTag():
 
 def Run():
     env = GetEnvironmentTag().lower()
-    df = ListWorkspaces(CurrentNotebookPath() + f"/predeploy-{env}")
+    df = JsonToDataFrame(ListWorkspaces(CurrentNotebookPath() + f"/predeploy-{env}"))
     df = df.selectExpr(f"explode({df.columns[0]}) o").where("o.object_type != 'DIRECTORY'")
     
     for i in df.collect():
