@@ -22,3 +22,7 @@ def Run():
             print(f"Notebook path \"{path}\" failed!")
 
 Run()
+
+# COMMAND ----------
+
+dbutils.notebook.run("../../Transform/Views/curated_uc2_reference_views", 0, {})
