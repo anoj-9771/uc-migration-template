@@ -307,18 +307,20 @@ def get_column_types(df):
     return {col: dtype for col, dtype in df.dtypes}
 
 
-def joinAdditionalColumns(oldDf, newDf, joinColumns, toAddColumns):
+def joinAdditionalColumns(oldDf, newDf, joinColumnsO, joinColumnsN, toAddColumns):
     ##should be a list
-    if isinstance(joinColumns, str):
-        joinColumns = [joinColumns]
+    if isinstance(joinColumnsO, str):
+        joinColumnsO = [joinColumnsO]
+    if isinstance(joinColumnsN, str):
+        joinColumnsN = [joinColumnsN]
     if isinstance(toAddColumns, str):
         toAddColumns = [toAddColumns]
-    newDf= newDf.select([col(c).alias(f"joinDf_{c}") for c in joinColumns] + [col(c) for c in toAddColumns])
-    joinExpr = [col(c1) == col(f"joinDf_{c2}") for c1, c2 in zip(joinColumns, joinColumns)]   
+    newDf= newDf.select([col(c).alias(f"joinDf_{c}") for c in joinColumnsN] + [col(c) for c in toAddColumns])
+    joinExpr = [col(c1) == col(f"joinDf_{c2}") for c1, c2 in zip(joinColumnsO, joinColumnsN)]   
     joinExpr = reduce(lambda x, y: x & y, joinExpr)
     print(joinExpr)   
-    joinedDf = oldDf.join(newDf, on = joinExpr, how = "full")
-    joinedDf = joinedDf.select([col for col in joinedDf.columns if not (col.startswith("joinDf_") and col in [f"joinDf_{c}" for c in joinColumns])])    
+    joinedDf = oldDf.join(newDf, on = joinExpr, how = "inner")
+    joinedDf = joinedDf.select([col for col in joinedDf.columns if not (col.startswith("joinDf_") and col in [f"joinDf_{c}" for c in joinColumnsN])])    
     return joinedDf
 
 
@@ -346,7 +348,7 @@ def isSchemaChanged(currentDataFrame):
 
 
 #######Call this in place of regular Save // if there is delta while conversion.. this has to handled seperately in main Transform logic notebooks.
-def saveSchemaAndData(currentDataFrame, joinColumns, maintainSchemaEvolution = False):    
+def saveSchemaAndData(currentDataFrame, joinColumnsO, joinColumnsN):    
     if (not(isSchemaChanged(currentDataFrame))):
         save(currentDataFrame)
         return
@@ -355,9 +357,10 @@ def saveSchemaAndData(currentDataFrame, joinColumns, maintainSchemaEvolution = F
         existingDataframe = spark.sql(f"select * from {_.Destination}")
         columnsExist = filter_columns(existingDataframe, columnsCurrent)
         addColumns = [col for col in columnsCurrent if col not in columnsExist]
-        insertDF = joinAdditionalColumns(existingDataframe, currentDataFrame, joinColumns, addColumns)
+        insertDF = joinAdditionalColumns(existingDataframe, currentDataFrame, joinColumnsO, joinColumnsN, addColumns)
         createDF = arrangeColumns(insertDF)
         createDF.createOrReplaceTempView("adfTemp")
+        #CleanTable(_.Destination)
         spark.sql(f"CREATE OR REPLACE TABLE {_.Destination}  USING DELTA AS SELECT * from adfTemp")
         spark.sql(f"DROP VIEW IF EXISTS adfTemp")
         EndNotebook(createDF)

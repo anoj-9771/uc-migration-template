@@ -9,6 +9,7 @@ def TableExists(tableFqn):
     else:
         return spark._jsparkSession.catalog().tableExists(tableFqn.split(".")[0], tableFqn.split(".")[1])
         
+
 # COMMAND ----------
 
 def GetDeltaTablePath(tableFqn):
@@ -30,6 +31,8 @@ def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = Non
         # write to table directly post UC migration
         dataFrame.write \
             .option("mergeSchema", "true") \
+            .option("delta.minReaderVersion", "1") \
+            .option("delta.minWriterVersion", "4") \
             .mode("overwrite") \
             .saveAsTable(targetTableFqn)
         CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints) 
@@ -37,6 +40,8 @@ def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = Non
         # continue existing workflow (write to a path)
         dataFrame.write \
                 .format("delta") \
+                .option("delta.minReaderVersion", "1") \
+                .option("delta.minWriterVersion", "4") \
                 .option("mergeSchema", "true") \
                 .mode("overwrite") \
                 .save(dataLakePath)

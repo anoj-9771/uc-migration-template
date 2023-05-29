@@ -3,8 +3,9 @@
 
 # COMMAND ----------
 
-from pyspark.sql.types import FloatType
-from pyspark.sql.functions import pandas_udf, PandasUDFType
+from pyspark.sql.types import FloatType, DecimalType
+from pyspark.sql.functions import pandas_udf, PandasUDFType, unix_timestamp, concat, lit, col, when, regexp_replace, to_timestamp, row_number
+from pyspark.sql.window import Window 
 import pandas as pd
 import numpy as np
 import datetime
@@ -12,7 +13,7 @@ from dateutil import tz
 
 def NSWWorkingDaysWithinRange(fromDates: pd.Series, toDates: pd.Series) -> pd.Series:
     fromDates = pd.to_datetime(fromDates, format='%Y-%m-%dT%H:%M:%S.%f%z')
-    toDates = pd.to_datetime(toDates, format='%Y-%m-%dT%H:%M:%S.%f%z') 
+    toDates = pd.to_datetime(toDates, format='%Y-%m-%dT%H:%M:%S.%f%z')
     publicHolidays = pd.to_datetime(publicHolidaysPD['holidayDate'])
 
     workingSeconds = []
@@ -32,8 +33,7 @@ def NSWWorkingDaysWithinRange(fromDates: pd.Series, toDates: pd.Series) -> pd.Se
             f = f.replace(tzinfo=None) + (t - t.to_pydatetime().replace(tzinfo=None))
         workingSeconds.append(totalSeconds)
 
-    
-    workingDays = np.array(workingSeconds) / (3600 * 24)
+    workingDays = np.array(workingSeconds) 
     return pd.Series(workingDays)
 
 @pandas_udf(returnType=FloatType())
@@ -41,262 +41,611 @@ def workingDaysNSWVectorizedUDF(fromDates: pd.Series, toDates: pd.Series) -> pd.
     return NSWWorkingDaysWithinRange(fromDates, toDates)
 
 
+def dataDiffTimeStamp(start, end, dtFormat):
+     fromDates = to_timestamp(start)
+     toDates = to_timestamp(end) 
+     return (unix_timestamp(toDates) - unix_timestamp(fromDates)) / dtFormat
+
 # COMMAND ----------
 
-from pyspark.sql.functions import col
+###Variables ############################
+dummyDimPartnerSK = '60e35f602481e8c37d48f6a3e3d7c30d' ##Derived by hashing -1 and recordStart
+global publicHolidaysPD
+###################CONFIG / REFERENCE DF#################################
+
+publicHolidaysPD = (GetTable(f"{SOURCE}.datagov_australiapublicholidays")
+                             .filter(col('jurisdiction').rlike("NSW|NAT")) 
+                             .filter(upper(col('holidayName')) != "BANK HOLIDAY") 
+                            .select('date').withColumnRenamed("date","holidayDate")
+                   ).toPandas() 
+
+# COMMAND ----------
+
+#####-----------DIRECT DATAFRAMES CRM--------------------------###############
+coreDF =(( GetTable(f"{SOURCE}.crm_0crm_srv_req_inci_h")
+           .withColumn("sourceSystemCode",lit("CRM"))
+           .withColumn("receivedBK", concat(col("coherentAspectIdD"),lit("|"),col("coherentCategoryIdD")))
+           .withColumn("resolutionBK", concat(col("coherentAspectIdC"),lit("|"),col("coherentCategoryIdC")))
+           .withColumn("processTypeBK", concat(trim(col("processTypeCode")),lit("|"),lit("CRM")))
+           .withColumn("statusBK", concat(col("statusProfile"),lit("|"),col("statusCode")))
+           .withColumn("reportedByPersonNoBK", when(col("reportedByPersonNumber").isNull(), lit('-1')).otherwise(regexp_replace(col("reportedByPersonNumber"), "^0*", "")))
+           .withColumn("contactPersonNoBK", when(col("contactPersonNumber").isNull(), lit('-1')).otherwise(regexp_replace(col("contactPersonNumber"), "^0*", "")))
+           .withColumn("salesEmployeeNoBK", when(col("salesEmployeeNumber").isNull(), lit('-1')).otherwise(regexp_replace(col("salesEmployeeNumber"), "^0*", "")))
+           .withColumn("responsibleEmployeeNoBK", when(col("responsibleEmployeeNumber").isNull(), lit('-1')).otherwise(regexp_replace(col("responsibleEmployeeNumber"), "^0*", "")))
+           .withColumn("propertyNoBK", when(col("propertyNumber").isNull(), lit('-1')).otherwise(col("propertyNumber")))
+           .withColumn("contractBK", when(col("contractID").isNull(), lit('-1')).otherwise(col("contractID")))
+           .withColumn("channelCodeBK", concat(trim(col("communicationChannelCode")),lit("|"),lit("CRM")))
+           .withColumn("ID", monotonically_increasing_id())
+           .withColumn("customerServiceRequestTotalDurationSecondQuantity", (dataDiffTimeStamp(col("requestStartDate"), col("requestEndDate"), lit("1").cast("int")))) 
+           .withColumn('customerServiceRequestWorkDurationSecondQuantity', (workingDaysNSWVectorizedUDF(col("requestStartDate"), col("requestEndDate")))))
+           .select(col("sourceSystemCode")
+                  ,col("serviceRequestID")
+                  ,col("serviceRequestGUID")
+                  ,col("lastChangedDateTime")
+                  ,col("customerServiceRequestTotalDurationSecondQuantity")
+                  ,col("customerServiceRequestWorkDurationSecondQuantity")  
+                  ,col("source")
+                  ,col("sourceCode")
+                  ,col("serviceTeamCode").alias("serviceTeamCodeBK")
+                  ,col("issueResponsibility")
+                  ,col("issueResponsibilityCode")
+                  ,col("postingDate")
+                  ,col("requestStartDate")
+                  ,col("requestEndDate")
+                  ,col("numberOfInteractionRecords")
+                  ,col("notificationNumber")
+                  ,col("transactionDescription")
+                  ,col("direction")
+                  ,col("directionCode")
+                  ,col("maximoWorkOrderNumber")
+                  ,col("projectID")
+                  ,col("processTypeCode")
+                  ,col("agreementNumber")
+                  ,col("responsibleEmployeeNumber")                  
+                  ,col("recommendedPriority").cast("int").alias("recommendedPriority")
+                  ,col("impact").cast("int").alias("impact")
+                  ,col("urgency").cast("int").alias("urgency")
+                  ,col("serviceLifeCycle")
+                  ,col("serviceLifeCycleUnit")
+                  ,col("activityPriorityCode")
+                  ,col("createdDateTime")
+                  ,col("createdBy")
+                  ,col("changedBy")        
+                  ,col("receivedBK")
+                  ,col("resolutionBK")
+                  ,col("processTypeBK")
+                  ,col("statusBK")
+                  ,col("reportedByPersonNoBK")
+                  ,col("contactPersonNoBK")
+                  ,col("salesEmployeeNoBK")
+                  ,col("responsibleEmployeeNoBK")
+                  ,col("propertyNoBK")
+                  ,col("contractBK")
+                  ,col("channelCodeBK")
+                  ,col("di_Sequence_Number").alias("seqNo")
+                  ,col("ID")
+                  )                 
+        )
+    
+servCatDF =  ( GetTable(f"{DEFAULT_TARGET}.dimcustomerservicecategory")
+                             .select( col("customerServiceCategorySK").alias("resolutionCategoryFK")
+                                     ,col("customerServiceCategorySK").alias("receivedCategoryFK")
+                                     ,col("sourceBusinessKey")                                  
+                                     ,col("sourceValidFromDatetime")
+                                     ,col("sourceValidToDatetime")
+                             )
+            )
+    
+busPartDF = ( GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner")
+                             .select( col("businessPartnerSK")
+                                     ,col("businessPartnerNumber")
+                                     ,col("_recordStart")
+                                     ,col("_recordEnd")
+                      ) 
+                 
+            )
+    
+
+contractDF = ( GetTable(f"{DEFAULT_TARGET}.dimContract").filter(col("_recordCurrent") == lit("1"))
+                           .select( col("contractSK").alias("contractFK")
+                                   ,col("_BusinessKey")
+                                  ) 
+             )
+    
+procTypeDF = ( GetTable(f"{DEFAULT_TARGET}.dimcustomerserviceprocesstype")
+                                          .filter(col("_recordCurrent") == lit("1"))
+                           .select( col("customerServiceProcessTypeSK").alias("processTypeFK")
+                                     ,col("_BusinessKey")
+                                  ) 
+             )
+    
+propertyDF = ( GetTable(f"{DEFAULT_TARGET}.dimProperty")
+                           .select( col("propertySK").alias("propertyFK")
+                                     ,col("_BusinessKey")
+                                     ,col("_recordStart")
+                                     ,col("_recordEnd")                                  
+                              ) 
+                 
+            )
+    
+statusDF = ( GetTable(f"{DEFAULT_TARGET}.dimcustomerservicerequestStatus")
+                                        .filter(col("_recordCurrent") == lit("1"))
+                           .select( col("customerServiceRequestStatusSK").alias("StatusFK")
+                                     ,col("_BusinessKey")
+                                   ) 
+            )
+    
+    
+channelDF = ( GetTable(f"{DEFAULT_TARGET}.dimCommunicationChannel")
+                     .filter(col("_recordCurrent") == lit("1"))
+                     .select( col("communicationChannelSK").alias("communicationChannelFK")
+                              ,col("_BusinessKey")
+                      ) 
+                 
+           )
+
+crmLinkDF = ( GetTable(f"{SOURCE}.crm_crmd_link")
+                           .select( col("hiGUID")
+                                   ,col("setGUID")).filter(col("setObjectType") == lit("30"))
+             
+            )
+
+crmSappSegDF = (GetTable(f"{SOURCE}.crm_scapptseg").filter(col("apptType").isin(['ZCLOSEDATE', 'SRV_RREADY', 'SRV_RFIRST', 'VALIDTO','ZRESPONDED']))                                                   
+                                                   .select(col("applicationGUID"), col("apptType"), col("apptStartDatetime"))
+                                                   .groupBy("applicationGUID")
+                                                   .pivot("apptType", ['ZCLOSEDATE', 'SRV_RREADY', 'SRV_RFIRST', 'VALIDTO','ZRESPONDED'])
+                                                   .agg(max("apptStartDatetime"))
+               ) 
+
+aurion_df =  (GetTable(f"{SOURCE}.vw_aurion_employee_details")
+                  .withColumn("OrganisationUnitNumberF", when(col("OrganisationUnitNumber").isNull(), lit("-1"))
+                                                         .otherwise(concat(lit("OU6"),lpad(col("OrganisationUnitNumber"), 7, "0"))))
+            )
+
+auDistDF  = (GetTable(f"{SOURCE}.vw_aurion_employee_details")
+                  .select(col("businessPartnerNumber").alias("businessPartnerNumberM")
+                         ,col("positionNumber").alias("positionNumberM")
+                         ,col("dateEffective").alias("dateEffectiveM")
+                         ,col("dateTo").alias("dateToM")).distinct()
+            )
+
+ebpDF =    (  GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner")
+                   .filter(col("_recordCurrent") == 1)
+                   .select(col("businessPartnerSK"), col("businessPartnerNumber"))
+            )
+                   
+
+aurUserDF = (GetTable(f"{SOURCE}.vw_aurion_employee_details")
+               .select(col("userid")
+                      ,concat_ws(" ",col("givenNames"), col("surname")).alias("createdByName")
+                      ,concat_ws(" ",col("givenNames"), col("surname")).alias("ChangedByName")
+                      ).drop_duplicates()
+            )
+
+
+locationDF = (GetTable(f"{DEFAULT_TARGET}.dimlocation")
+                   .select(col("locationSK").alias("locationFK"),
+                           col("locationID"),                           
+                           col("_RecordStart"),
+                           col("_RecordEnd"))
+            )
+
+dateDF = (GetTable(f"{DEFAULT_TARGET}.dimDate")
+                   .select(col("dateSK").alias("serviceRequestStartDateFK"),
+                           col("dateSK").alias("serviceRequestEndDateFK"), 
+                           col("dateSK").alias("snapshotDateFK"),
+                           col("calendarDate"))
+            )
+
+# COMMAND ----------
+
+#derived Dataframes ##############
+#### (1)     Transpose BusinessPartner to join with coreDF  ################################
+busPartDict = {  "contactPersonNoBK": "contactPersonFK", 
+                 "reportedByPersonNoBK": "reportByPersonFK", 
+                 "serviceTeamCodeBK": "serviceTeamFK",
+                 "responsibleEmployeeNoBK": "responsibleEmployeeFK", 
+                 "salesEmployeeNoBK": "salesEmployeeFK" 
+              }
+
+unionBusPartDF = None
+for colName, role in busPartDict.items():
+    tempDF =  ( coreDF.select("ID", col(colName).alias("businessPartnerNo"), lit(role).alias("role"), col("lastChangedDateTime")).alias("tc") 
+                      .join(busPartDF.alias("sbp") , on = (col("tc.businessPartnerNo") == col("sbp.businessPartnerNumber")) &  
+                                                          (col("tc.lastChangedDateTime").between(col("sbp._recordStart"), col("sbp._recordEnd")))
+                                                   , how = 'inner')
+                      .select( col("tc.ID").alias("ID")
+                              ,col("tc.role").alias("role")
+                              ,col("sbp.businessPartnerSK").alias("businessPartnerSK")
+                             )
+               
+              )
+    if unionBusPartDF is None:
+        unionBusPartDF =  tempDF
+    else:
+        unionBusPartDF = unionBusPartDF.union(tempDF)
+
+pivotBusPartDF = unionBusPartDF.groupBy("ID").pivot("role").agg(first("businessPartnerSK")).alias("pbp")
+busDF = coreDF.alias("mn").join(pivotBusPartDF, (col("mn.ID") == col("pbp.ID")), how="inner").drop("mn.ID", 
+                                                                                                       "pbp.ID", 
+                                                                                                       "mn.contactPersonNoBK", 
+                                                                                                       "mn.reportedByPersonNoBK", 
+                                                                                                       "mn.serviceTeamCodeBK", 
+                                                                                                       "mn.responsibleEmployeeNoBK", 
+                                                                                                       "mn.salesEmployeeNoBK").cache()
+
+# COMMAND ----------
+
+###############derived Dataframes ##### (2) Aurion Logic ###################
+window_spec = ( Window.partitionBy(col("auE.businessPartnerNumber")).orderBy( col("auE.dateEffective"),
+        when(col("auE.EmployeeStatus") == "ACTIVE", 1) 
+        .when(col("auE.EmployeeStatus") == "TERMINATED", 2) 
+        .when(col("auE.EmployeeStatus") == "HISTORY", 3) 
+        .otherwise(4)  # Handle other cases 
+    ) )
+
+aurionDF = ( (((
+  aurion_df.alias("auE").join(auDistDF.alias("auM"), 
+    ((col("auE.ReportstoPosition") == col("auM.PositionNumberM")) &
+    (col("auE.dateEffective").between(col("auM.dateEffectiveM"), col("auM.dateToM")))),"left") 
+  .withColumn("rownumber", row_number().over(window_spec)).filter(col("rownumber") == 1))
+  .select(col("*")).filter(col("auM.dateEffectiveM").isNotNull()))  
+  .join(ebpDF.alias("ebp"), 
+        col("auM.businessPartnerNumberM") == col("ebp.businessPartnerNumber"), "left")
+  .join(ebpDF.alias("obp"), 
+         col("auE.OrganisationUnitNumberF") == col("obp.businessPartnerNumber"), "left"))
+  .withColumn("reportToManagerFK", col("ebp.businessPartnerSK"))
+  .withColumn("organisationUnitFK", col("obp.businessPartnerSK"))
+  .drop(col("ebp.businessPartnerNumber"), 
+        col("ebp.businessPartnerSK"),
+        col("obp.businessPartnerNumber"),
+        col("obp.businessPartnerSK"))
+   .select(col("businessPartnerNumber"), col("reportToManagerFK"), col("organisationUnitFK"), col("DateEffective"), col("DateTo"))
+)  
+
+# COMMAND ----------
+
+##############################Main DATAFRAME / Join FOR CRM ###############################
+finalCRMDF = (((busDF.alias("core")           
+ .join(crmLinkDF.alias("cl"), (col("core.serviceRequestGUID") == col("cl.hiGUID")), how= "left")  
+ .join(crmSappSegDF.alias("css"), (col("cl.setGUID") == col("css.applicationGUID")), how= "left").drop("cl.setGUID", "cl.hiGUID", "css.applicationGUID")
+ .withColumn("endDate", coalesce(when(col("core.processTypeCode") == lit("ZCMP"), 
+                         col("css.VALIDTO")).otherwise(col("css.ZRESPONDED")), 
+                                                     col("core.requestEndDate"))))  
+ .join(contractDF.alias("sv"), (col("core.contractBK") == col("sv._BusinessKey")), "left").drop("core.contractBK", "sv._BusinessKey")
+ .join(procTypeDF.alias("pc"), (col("core.processTypeBK") == col("pc._BusinessKey")), "left").drop("core.processTypeBK","pc._BusinessKey") 
+ .join(channelDF.alias("ch"), (col("core.channelCodeBK") == col("ch._BusinessKey")), "left").drop("core.channelCodeBK", "ch._BusinessKey")
+ .join(dateDF.alias("dt1"), (to_date(col("core.requestStartDate")) == col("dt1.calendarDate")), "left").drop("dt1.calendarDate", "dt1.serviceRequestEndDateFK", "dt1.snapshotDateFK")
+ .join(dateDF.alias("dt2"), (to_date(col("core.requestEndDate")) == col("dt2.calendarDate")), "left").drop("dt2.calendarDate", "dt2.serviceRequestStartDateFK", "dt2.snapshotDateFK") 
+ .join(dateDF.alias("dt3"), (to_date(col("core.lastChangedDateTime")) == col("dt3.calendarDate")), "left").drop("dt3.calendarDate", "dt3.serviceRequestStartDateFK","dt3.serviceRequestEndDateFK") 
+ .join(aurUserDF.alias("au1"), (col("core.createdBy") == col("au1.userid")), "left").drop("au1.userid", "au1.changedByName")
+ .join(aurUserDF.alias("au2"), (col("core.changedBy") == col("au2.userid")), "left").drop("au2.userid", "au2.createdByName")
+ .join(aurionDF.alias("au"), 
+       ((col("core.responsibleEmployeeNumber") == col("au.businessPartnerNumber")) &
+           (col("core.lastChangedDateTime").between(col("au.DateEffective"), 
+                                                          col("au.DateTo")))), "left").drop("au.businessPartnerNumber", "au.DateEffective", "au.DateTo")  
+ .join(propertyDF.alias("pr"), ((col("core.propertyNoBK") == col("pr._BusinessKey")) &  
+                 (col("core.lastChangedDateTime").between(col("pr._recordStart"), 
+                                                          col("pr._recordEnd")))), "left").drop("pr._BusinessKey", "pr._recordStart", "pr._recordEnd") 
+ .join(locationDF.alias("lo"), ((col("core.propertyNoBK") == col("lo.locationID")) &  
+                 (col("core.lastChangedDateTime").between(col("lo._recordStart"), 
+                                                          col("lo._recordEnd")))),"left").drop("lo.locationID", "lo._recordStart", "lo._recordEnd") 
+ .join(servCatDF.alias("sc1"), ((col("core.receivedBK") == col("sc1.sourceBusinessKey")) &
+           (col("core.lastChangedDateTime").between(col("sc1.sourceValidFromDatetime"), 
+                                                          col("sc1.sourceValidToDatetime")))), "left").drop("sc1.sourceBusinessKey", "sc1.sourceValidFromDatetime", "sc1.sourceValidToDatetime", "sc1.resolutionCategoryFK") 
+ .join(servCatDF.alias("sc2"), ((col("core.resolutionBK") == col("sc2.sourceBusinessKey")) &
+           (col("core.lastChangedDateTime").between(col("sc2.sourceValidFromDatetime"), 
+                                                          col("sc2.sourceValidToDatetime")))), "left").drop("sc2.sourceBusinessKey", "sc2.sourceValidFromDatetime", "sc2.sourceValidToDatetime","sc2.receivedCategoryFK")  
+ .join(statusDF.alias("st"), (col("core.statusBK") == col("st._BusinessKey")), "left").drop("core.statusBK", "st._BusinessKey")
+ .withColumn("BusinessKey", concat_ws("|", col("serviceRequestGUID").cast("string"), col("lastChangedDateTime").cast("string")
+                                          ,when(col("seqNo").isNull(), lit('')).otherwise(col("seqNo"))))
+ .withColumn("respondByDateTime", col("css.SRV_RFIRST")) 
+ .withColumn("respondedDateTime", when(col("core.processTypeCode") == lit("ZCMP"), 
+                                  col("css.VALIDTO")).otherwise(col("css.ZRESPONDED"))) 
+ .withColumn("serviceRequestClosedDateTime", col("css.ZCLOSEDATE")) 
+ .withColumn("toDoByDateTime", col("css.SRV_RREADY")) 
+ .withColumn("interimResponseDays", 
+                                 dataDiffTimeStamp( col("core.requestStartDate")
+                                 ,col("endDate")
+                                 ,lit("86400").cast("int"))
+                            )
+ .withColumn("metInterimResponseFlag", 
+                         when(dataDiffTimeStamp(col("css.SRV_RFIRST")
+                                            ,col("endDate")
+                                            ,lit("86400").cast("int")) <= 0, "Yes").otherwise("No")
+                            )
+ .withColumn('interimResponseWorkingDays', 
+            (workingDaysNSWVectorizedUDF( col("core.requestStartDate")
+                                         ,col("endDate")) / lit("86400").cast("int"))
+                            )
+         ).select(col("BusinessKey").alias(f"{BK}")
+                 ,col("sourceSystemCode")
+                 ,col("serviceRequestID").alias("customerServiceRequestId")
+                 ,col("serviceRequestGUID").alias("customerServiceRequestGUID")
+                 ,when(col("receivedCategoryFK").isNull(), lit('-1')).otherwise(col("receivedCategoryFK")).alias("customerServiceRequestReceivedCategoryFK")
+                 ,when(col("resolutionCategoryFK").isNull(), lit('-1')).otherwise(col("resolutionCategoryFK")).alias("customerServiceRequestResolutionCategoryFK")
+                 ,when(col("communicationChannelFK").isNull(), lit('-1')).otherwise(col("communicationChannelFK")).alias("communicationChannelFK") 
+                 ,when(col("contactPersonFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("contactPersonFK")).alias("contactPersonFK")
+                 ,col("reportByPersonFK")
+                 ,col("serviceTeamFK")
+                 ,col("contractFK")
+                 ,col("responsibleEmployeeFK")
+                 ,col("reportToManagerFK")
+                 ,col("organisationUnitFK")
+                 ,when(col("processTypeFK").isNull(), lit('-1')).otherwise(col("processTypeFK")).alias("customerServiceProcessTypeFK")
+                 ,col("propertyFK")
+                 ,col("locationFK")
+                 ,when(col("statusFK").isNull(), lit('-1')).otherwise(col("statusFK")).alias("customerServiceRequestStatusFK")
+                 ,col("salesEmployeeFK")
+                 ,col("serviceRequestStartDateFK").alias("customerServiceRequestStartDateFK")
+                 ,col("serviceRequestEndDateFK").alias("customerServiceRequestEndDateFK")
+                 ,col("snapshotDateFK").alias("customerServiceRequestSnapshotDateFK")
+                 ,col("customerServiceRequestTotalDurationSecondQuantity")
+                 ,col("customerServiceRequestWorkDurationSecondQuantity")
+                 ,col("source").alias("customerServiceRequestSourceName")
+                 ,col("sourceCode").alias("customerServiceRequestSourceCode")
+                 ,col("issueResponsibility").alias("customerServiceRequestIssueResponsibilityName")
+                 ,col("issueResponsibilityCode").alias("customerServiceRequestIssueResponsibilityCode")
+                 ,col("postingDate").alias("customerServiceRequestPostingDate")
+                 ,col("requestStartDate").alias("customerServiceRequestStartTimestamp")
+                 ,col("requestEndDate").alias("customerServiceRequestEndTimestamp")
+                 ,col("numberOfInteractionRecords").alias("customerServiceRequestInteractionsCount")
+                 ,col("notificationNumber").alias("customerServiceRequestNotificationNumber")
+                 ,col("transactionDescription").alias("customerServiceRequestDescription")
+                 ,col("direction").alias("customerServiceRequestDirectionIdentifier")
+                 ,col("directionCode").alias("customerServiceRequestDirectionCode")
+                 ,col("maximoWorkOrderNumber").alias("customerServiceRequestMaximoWorkOrderNumber")
+                 ,col("projectId").alias("customerServiceRequestProjectId")
+                 ,col("agreementNumber").alias("customerServiceRequestAgreementNumber")
+                 ,col("recommendedPriority").alias("customerServiceRequestRecommendedPriorityNumber")
+                 ,col("impact").alias("customerServiceRequestImpactScoreNumber")
+                 ,col("urgency").alias("customerServiceRequestUrgencyNumber")
+                 ,col("serviceLifeCycle").alias("customerServiceRequestServiceLifeCycleUnitHourQuantity")
+                 ,col("serviceLifeCycleUnit").alias("customerServiceRequestServiceLifeCycleUnitName")
+                 ,col("activityPriorityCode").alias("customerServiceRequestActivityPriorityCode")
+                 ,col("respondByDateTime").alias("customerServiceRequestRespondByTimestamp")
+                 ,col("respondedDateTime").alias("customerServiceRequestRespondedTimestamp")
+                 ,col("serviceRequestClosedDateTime").alias("customerServiceRequestClosedTimestamp")
+                 ,col("toDoByDateTime").alias("customerServiceRequestToDoByTimestamp")
+                 ,col("interimResponseDays").cast(DecimalType(15,2)).alias("customerServiceRequestInterimResponseDaysQuantity")
+                 ,col("interimResponseWorkingDays").cast(DecimalType(15,2)).alias("customerServiceRequestInterimResponseWorkingDaysQuantity")
+                 ,col("metInterimResponseFlag").alias("customerServiceRequestMetInterimResponseIndicator")
+                 ,col("CreatedDateTime").alias("customerServiceRequestCreatedTimestamp")
+                 ,col("CreatedBy").alias("customerServiceRequestCreatedByUserId")
+                 ,coalesce(col("createdByName"), col("CreatedBy")).alias("customerServiceRequestCreatedByUserName")
+                 ,col("lastChangedDateTime").alias("customerServiceRequestSnapshotTimestamp")
+                 ,col("lastChangedDateTime").alias("customerServiceRequestLastChangeTimestamp")
+                 ,col("changedBy").alias("customerServiceRequestChangedByUserId")
+                 ,coalesce(col("changedByName"), col("changedBy")).alias("customerServiceRequestChangedByUserName")
+                )
+)
+
+# COMMAND ----------
+
+##############################Main DATAFRAME / Join FOR MAXIMO ###############################
+df2 = spark.sql(f""" WITH MAXIMO AS (SELECT 
+                        'MAXIMO' as sourceSystemCode,
+                        'ZCMP' as processTypeCode,
+                        'Complaint' as processType,
+                         CAST(WO.reportedDateTime as DATE ) as calendarDate,
+                         WO.reportedDateTime as calendarDatetime,
+                         WO.statusDate as lastChangedDateTime,
+                         SR.serviceRequest as serviceRequestGUID,
+                         WO.workOrder as maximoWorkOrderNumber,
+                         SR.serviceRequest as serviceRequestId,
+                         SR.propertyNumber,
+                         WO.status workOrderStatus,
+                         Concat('Product : ' , CASE WHEN LOC.product IS NULL THEN '' ELSE LOC.product END , CHAR(10),CHAR(13),
+                                'Problem Type : ' , CASE WHEN PT.description IS NULL THEN '' ELSE PT.description END , CHAR(10),CHAR(13),
+                                'Service Type : ' , CASE WHEN WO.serviceType IS NULL THEN '' ELSE WO.serviceType END , CHAR(10),CHAR(13),
+                                'Job Plan : ' , CASE WHEN WO.jobPlan IS NULL THEN '' ELSE CAST(WO.jobPlan as string) END, CHAR(10),CHAR(13),
+                                'Task Code : ' , CASE WHEN WO.taskCode IS NULL THEN '' ELSE CAST(WO.taskCode as string) END, CHAR(10),CHAR(13),
+                                'Job Plan ID : ' , CASE WHEN JP.jobPlanId IS NULL THEN '' ELSE CAST(JP.jobPlanId as string) END, CHAR(10),CHAR(13),
+                                'Call Type : ' , CASE WHEN SR.callType IS NULL THEN '' ELSE CAST(SR.callType as string) END, CHAR(10),CHAR(13),
+                                'Word Order Description : ', CASE WHEN WO.description IS NULL THEN '' ELSE WO.description END 
+                               ) as transactionDescription,
+                        WO.reportedDateTime as createdDatetime,
+                        WO.actualStart      as requestStartDate,
+                        CASE WHEN ((WO.actualFinish IS NULL OR YEAR(WO.actualFinish) = 9999) AND WO.status = 'FINISHED') THEN WO.statusDate ELSE WO.actualFinish END as requestEndDate,
+                        'ZSERVREQ' as statusProfile,
+                        CASE WO.status WHEN 'FINISHED' THEN 'E0012' WHEN 'CAN' THEN 'E0003'END as statusCode,
+                        'ZSW_SERV_REQ' as coherentAspectIDD,  
+                        'ZSW_SERV_REQ_RES_CAT' as  coherentAspectIDC,
+                        CASE WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply' THEN 'WK_12'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Bad Smell' THEN 'WK_15'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Bad Taste' THEN 'WK_16'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Brown' THEN 'WK_12'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Particles' THEN 'WK_12'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Yellow' THEN 'WK_12'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Red' THEN 'WK_12'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Orange' THEN 'WK_12'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Green' THEN 'WK_12'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Black' THEN 'WK_12'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - White' THEN 'WK_12'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Blue' THEN 'WK_12'
+                             WHEN LOC.product = 'WasteWater' AND    PT.description = 'Odour Enquiry' THEN 'OD_15'    
+                             WHEN LOC.product = 'StormWater' AND    PT.description = 'Flooding' THEN 'SD_12'    
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply' THEN 'WZ_11'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Bad Smell' THEN 'WZ_14'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Bad Taste' THEN 'WZ_13' -- other
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Brown' THEN 'WZ_11'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Particles' THEN 'WZ_11'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Yellow' THEN 'WZ_11'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Red' THEN 'WZ_11'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Orange' THEN 'WZ_11'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Green' THEN 'WZ_11'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Black' THEN 'WZ_11'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - White' THEN 'WZ_11'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Blue' THEN 'WZ_11'  
+                             ELSE '' END as coherentCategoryIDD,
+   
+                        CASE WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply' THEN 'WK_12'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Bad Smell' THEN 'WK_143'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Bad Taste' THEN 'WK_150'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Brown' THEN 'WK_115'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Particles' THEN 'WK_137'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Yellow' THEN 'WK_117'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Red' THEN 'WK_115'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Orange' THEN 'WK_117'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Green' THEN 'WK_114'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Black' THEN 'WK_113'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - White' THEN 'WK_116'
+                             WHEN LOC.product = 'Water' AND PT.description = 'Discoloured Supply - Blue' THEN 'WK_114'
+                             WHEN LOC.product = 'WasteWater' AND    PT.description = 'Odour Enquiry' THEN 'OD_16'    
+                             WHEN LOC.product = 'StormWater' AND    PT.description = 'Flooding'                      THEN 'SD_12'    
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply'             THEN 'WZ_11'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Bad Smell'                      THEN 'WZ_126'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Bad Taste'                      THEN 'WZ_13' -- other
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Brown'     THEN 'WZ_111'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Particles' THEN 'WZ_11'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Yellow' THEN 'WZ_116'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Red'    THEN 'WZ_116'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Orange' THEN 'WZ_116'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Green'  THEN 'WZ_112'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Black'  THEN 'WZ_111'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - White'  THEN 'WZ_113'
+                             WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Blue'   THEN 'WZ_112'  
+                             ELSE '' END as coherentCategoryIDC ,
+                        CASE WHEN WO.taskCode = 'IVA1'   THEN 'Sydney Water'
+                             WHEN WO.taskCode like 'WR%' THEN 'Sydney Water Contractor' ELSE '' END as issueResponsibility,
+                        CASE WHEN WO.taskCode = 'IVA1'   THEN '10'
+                             WHEN WO.taskCode like 'WR%' THEN '11' ELSE '' END as issueResponsibilityCode,
+                        row_number() Over(partition by WO.workOrder order by CAST(WO.rowStamp as BIGINT) desc)  as rkn          
+                    FROM cleansed.maximo_workorder WO
+                    LEFT JOIN cleansed.maximo_swcproblemtype PT on WO.problemType = PT.problemType
+                    LEFT JOIN cleansed.maximo_jobplan JP on WO.jobTaskId = jp.jobPlanId
+                    LEFT JOIN cleansed.maximo_locoper LOC on WO.location =  LOC.location  
+                    LEFT JOIN cleansed.maximo_relatedrecord REL on WO.workOrder = REL.recordKey
+                    LEFT JOIN cleansed.maximo_ticket SR on   SR.serviceRequest = REL.relatedRecordKey
+                    LEFT JOIN cleansed.maximo_failurereport FR on WO.workOrder = FR.workOrder AND FR.type = 'REMEDY'
+                    WHERE WO.status in ('FINISHED','CAN') 
+                      AND WO.serviceType != 'R' 
+                      AND SR.callType = 'J'
+                      AND ( (     LOC.product IN('Water','RecycledWater') and PT.description in ('Discoloured Supply',
+                                              'Bad Smell',
+                                              'Bad Taste',
+                                              'Discoloured Supply - Brown',
+                                              'Discoloured Supply - Particles',
+                                              'Discoloured Supply - Yellow',
+                                              'Discoloured Supply - Red',
+                                              'Discoloured Supply - Orange',
+                                              'Discoloured Supply - Green',
+                                              'Discoloured Supply - Black',
+                                              'Discoloured Supply - White',
+                                              'Discoloured Supply - Blue' ))
+                              OR (LOC.product = 'StormWater' and PT.description in ('Flooding')) 
+                              OR (LOC.product = 'WasteWater' and WO.parentWo IS NULL AND FR.failureCode = 'RWW-SR2H') 
+                          )
+                      AND WO.reportedDateTime>='2019-06-01' ) SELECT * from MAXIMO where rkn = 1 """) 
+
+
+# ------------- JOINS ------------------ #
+
+df2 = ( df2.withColumn("receivedBK",expr("concat(coherentAspectIdD,'|',coherentCategoryIdD)")) 
+             .withColumn("resolutionBK",expr("concat(coherentAspectIdC,'|',coherentCategoryIdC)")) 
+             .withColumn("processTypeBK",expr("concat(trim(processTypeCode),'|','CRM')")) 
+             .withColumn("statusBK",expr("concat(statusProfile, '|', statusCode)")) 
+             .withColumn("propertyNoBK", expr("CASE WHEN propertyNumber IS NULL THEN '-1' ELSE propertyNumber END" ))                      
+             .withColumn("customerServiceRequestTotalDurationSecondQuantity", (dataDiffTimeStamp(col("requestStartDate"), col("requestEndDate"), lit("1").cast("int")))) #, lit("3600").cast("int")
+             .withColumn("customerServiceRequestWorkDurationSecondQuantity", when(col("workOrderStatus") == lit("FINISHED"), 
+                                            (workingDaysNSWVectorizedUDF(col("requestStartDate"), col("requestEndDate")) )).otherwise(lit("0")) #/ 3600
+                        )
+        )
+
+finalMAXDF = ((df2.alias("core")           
+      .join(procTypeDF.alias("pc"), (col("core.processTypeBK") == col("pc._BusinessKey")), "left").drop("core.processTypeBK","pc._BusinessKey") 
+      .join(statusDF.alias("st"), (col("core.statusBK") == col("st._BusinessKey")), "left").drop("core.statusBK", "st._BusinessKey")
+      .join(dateDF.alias("dt1"), (to_date(col("core.requestStartDate")) == col("dt1.calendarDate")), "left").drop("dt1.calendarDate", "dt1.serviceRequestEndDateFK", "dt1.snapshotDateFK")
+      .join(dateDF.alias("dt2"), (to_date(col("core.requestEndDate")) == col("dt2.calendarDate")), "left").drop("dt2.calendarDate", "dt2.serviceRequestStartDateFK", "dt2.snapshotDateFK") 
+      .join(dateDF.alias("dt3"), (to_date(col("core.lastChangedDateTime")) == col("dt3.calendarDate")), "left").drop("dt3.calendarDate", "dt3.serviceRequestStartDateFK","dt3.serviceRequestEndDateFK") 
+      .join(propertyDF.alias("pr"), ((col("core.propertyNoBK") == col("pr._BusinessKey")) &  
+                 (col("core.lastChangedDateTime").between(col("pr._recordStart"), 
+                                                          col("pr._recordEnd")))), "left").drop("pr._BusinessKey", "pr._recordStart", "pr._recordEnd") 
+      .join(locationDF.alias("lo"), ((col("core.propertyNoBK") == col("lo.locationID")) &  
+                 (col("core.lastChangedDateTime").between(col("lo._recordStart"), 
+                                                          col("lo._recordEnd")))),"left").drop("lo.locationID", "lo._recordStart", "lo._recordEnd") 
+      .join(servCatDF.alias("sc1"), ((col("core.receivedBK") == col("sc1.sourceBusinessKey")) &
+           (col("core.lastChangedDateTime").between(col("sc1.sourceValidFromDatetime"), 
+                                                          col("sc1.sourceValidToDatetime")))), "left").drop("sc1.sourceBusinessKey", "sc1.sourceValidFromDatetime", "sc1.sourceValidToDatetime", "sc1.resolutionCategoryFK") 
+      .join(servCatDF.alias("sc2"), ((col("core.resolutionBK") == col("sc2.sourceBusinessKey")) &
+           (col("core.lastChangedDateTime").between(col("sc2.sourceValidFromDatetime"), 
+                                                          col("sc2.sourceValidToDatetime")))), "left").drop("sc2.sourceBusinessKey", "sc2.sourceValidFromDatetime", "sc2.sourceValidToDatetime","sc2.receivedCategoryFK") 
+       .withColumn("BusinessKey", concat_ws("|", col("core.serviceRequestGUID").cast("string"), col("core.lastChangedDateTime").cast("string"),lit('')))
+      ).select(col("BusinessKey").alias(f"{BK}")
+                 ,col("sourceSystemCode")
+                 ,col("serviceRequestId").alias("customerServiceRequestId")
+                 ,col("serviceRequestGUID").alias("customerServiceRequestGUID")
+                 ,when(col("receivedCategoryFK").isNull(), lit('-1')).otherwise(col("receivedCategoryFK")).alias("customerServiceRequestReceivedCategoryFK")
+                 ,when(col("resolutionCategoryFK").isNull(), lit('-1')).otherwise(col("resolutionCategoryFK")).alias("customerServiceRequestResolutionCategoryFK")
+                 ,lit("-1").alias("communicationChannelFK")  
+                 ,lit(f"{dummyDimPartnerSK}").alias("contactPersonFK")
+                 ,lit(f"{dummyDimPartnerSK}").alias("reportByPersonFK")
+                 ,lit(f"{dummyDimPartnerSK}").alias("serviceTeamFK")
+                 ,lit(f"{dummyDimPartnerSK}").alias("contractFK")
+                 ,lit(f"{dummyDimPartnerSK}").alias("responsibleEmployeeFK")
+                 ,lit(f"{dummyDimPartnerSK}").alias("reportToManagerFK")
+                 ,lit(f"{dummyDimPartnerSK}").alias("organisationUnitFK")
+                 ,when(col("processTypeFK").isNull(), lit('-1')).otherwise(col("processTypeFK")).alias("customerServiceProcessTypeFK")
+                 ,col("propertyFK")
+                 ,col("locationFK")
+                 ,when(col("statusFK").isNull(), lit('-1')).otherwise(col("statusFK")).alias("customerServiceRequestStatusFK")
+                 ,lit(f"{dummyDimPartnerSK}").alias("salesEmployeeFK")
+                 ,col("serviceRequestStartDateFK").alias("customerServiceRequestStartDateFK")
+                 ,col("serviceRequestEndDateFK").alias("customerServiceRequestEndDateFK")
+                 ,col("snapshotDateFK").alias("customerServiceRequestSnapshotDateFK")
+                 ,col("customerServiceRequestTotalDurationSecondQuantity")
+                 ,col("customerServiceRequestWorkDurationSecondQuantity")
+                 ,lit("MAXIMO").alias("customerServiceRequestSourceName")
+                 ,lit("MAXIMO").alias("customerServiceRequestSourceCode")
+                 ,col("issueResponsibility").alias("customerServiceRequestIssueResponsibilityName")
+                 ,col("issueResponsibilityCode").alias("customerServiceRequestIssueResponsibilityCode")
+                 ,lit(None).alias("customerServiceRequestPostingDate")
+                 ,col("requestStartDate").alias("customerServiceRequestStartTimestamp")
+                 ,col("requestEndDate").alias("customerServiceRequestEndTimestamp")
+                 ,lit(None).alias("customerServiceRequestInteractionsCount")
+                 ,lit(None).alias("customerServiceRequestNotificationNumber")
+                 ,col("transactionDescription").alias("customerServiceRequestDescription")
+                 ,lit(None).alias("customerServiceRequestDirectionIdentifier")
+                 ,lit(None).alias("customerServiceRequestDirectionCode")
+                 ,col("maximoWorkOrderNumber").alias("customerServiceRequestMaximoWorkOrderNumber")
+                 ,lit(None).alias("customerServiceRequestProjectId")
+                 ,lit(None).alias("customerServiceRequestAgreementNumber")
+                 ,lit(None).alias("customerServiceRequestRecommendedPriorityNumber")
+                 ,lit(None).alias("customerServiceRequestImpactScoreNumber")
+                 ,lit(None).alias("customerServiceRequestUrgencyNumber")
+                 ,lit(None).alias("customerServiceRequestServiceLifeCycleUnitHourQuantity")
+                 ,lit(None).alias("customerServiceRequestServiceLifeCycleUnitName")
+                 ,lit(None).alias("customerServiceRequestActivityPriorityCode")
+                 ,lit(None).alias("customerServiceRequestRespondByTimestamp")
+                 ,lit(None).alias("customerServiceRequestRespondedTimestamp")
+                 ,lit(None).alias("customerServiceRequestClosedTimestamp")
+                 ,lit(None).alias("customerServiceRequestToDoByTimestamp")
+                 ,lit('0').cast(DecimalType(15,2)).alias("customerServiceRequestInterimResponseDaysQuantity")
+                 ,lit('0').cast(DecimalType(15,2)).alias("customerServiceRequestInterimResponseWorkingDaysQuantity")
+                 ,lit("Yes").alias("customerServiceRequestMetInterimResponseIndicator")
+                 ,col("requestStartDate").alias("customerServiceRequestCreatedTimestamp")
+                 ,lit(None).alias("customerServiceRequestCreatedByUserId")
+                 ,lit(None).alias("customerServiceRequestCreatedByUserName")
+                 ,lit(None).alias("customerServiceRequestSnapshotTimestamp")
+                 ,lit(None).alias("customerServiceRequestLastChangeTimestamp")
+                 ,lit(None).alias("customerServiceRequestChangedByUserId")
+                 ,lit(None).alias("customerServiceRequestChangedByUserName")
+                )
+)
+
+#finalMAXDF.display()    
+finaldf = finalCRMDF.unionByName(finalMAXDF)                 
+
+# COMMAND ----------
 
 def Transform():
-    global df
-    global publicHolidaysPD
-    dummyDimPartnerSK = '60e35f602481e8c37d48f6a3e3d7c30d'
-    
-    # ------------- TABLES ----------------- #
-    df = GetTable(f"{SOURCE}.crm_0crm_srv_req_inci_h") \
-    .withColumn("received_BK",expr("concat(coherentAspectIdD,'|',coherentCategoryIdD)")) \
-    .withColumn("resolution_BK",expr("concat(coherentAspectIdC,'|',coherentCategoryIdC)")) \
-    .withColumn("processType_BK",expr("concat(trim(processTypeCode),'|','CRM')")) \
-    .withColumn("status_BK",expr("concat(statusProfile, '|', statusCode)")) \
-    .withColumn("reportedByPersonNumber_BK", expr("CASE WHEN reportedByPersonNumber IS NULL THEN '-1' ELSE ltrim('0',reportedByPersonNumber) END" )) \
-    .withColumn("contactPersonNumber_BK", expr("CASE WHEN contactPersonNumber IS NULL THEN '-1' ELSE ltrim('0',contactPersonNumber) END")) \
-    .withColumn("salesEmployeeNumber_BK", expr("CASE WHEN salesEmployeeNumber IS NULL THEN '-1' ELSE ltrim('0',salesEmployeeNumber) END")) \
-    .withColumn("responsibleEmployeeNumber_BK", expr("CASE WHEN responsibleEmployeeNumber IS NULL THEN '-1' ELSE ltrim('0',responsibleEmployeeNumber) END")) \
-    .withColumn("salesEmployeeNumber_BK", expr("CASE WHEN salesEmployeeNumber IS NULL THEN '-1' ELSE ltrim('0',salesEmployeeNumber) END")) \
-    .withColumn("propertyNumber_BK", expr("CASE WHEN propertyNumber IS NULL THEN '-1' ELSE propertyNumber END" )) \
-    .withColumn("contract_BK", expr("CASE WHEN contractID IS NULL THEN '-1' ELSE contractID END" )) \
-    .withColumn("ChannelCode_BK", expr("concat(trim(communicationChannelCode),'|','CRM')"))
-
-    received_category_df = GetTable(f"{DEFAULT_TARGET}.dimcustomerservicecategory") \
-    .select("customerServiceCategorySK","_BusinessKey","_recordStart","_recordEnd","sourceBusinessKey","sourceRecordCurrent","sourceValidFromDatetime","sourceValidToDatetime") \
-    .withColumnRenamed("customerServiceCategorySK","receivedCategoryFK")
-
-    resolution_category_df = GetTable(f"{DEFAULT_TARGET}.dimcustomerservicecategory") \
-    .select("customerServiceCategorySK","_BusinessKey","_recordStart","_recordEnd","sourceBusinessKey","sourceRecordCurrent","sourceValidFromDatetime","sourceValidToDatetime") \
-    .withColumnRenamed("customerServiceCategorySK","resolutionCategoryFK")
-
-    contact_person_df = GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner") \
-    .select("businessPartnerSK","businessPartnerNumber","_BusinessKey","_recordStart","_recordEnd","_recordCurrent") \
-    .withColumnRenamed("businessPartnerSK","contactPersonFK")
-
-    report_by_person_df = GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner") \
-    .select("businessPartnerSK","businessPartnerNumber","_BusinessKey","_recordStart","_recordEnd","_recordCurrent") \
-    .withColumnRenamed("businessPartnerSK","reportByPersonFK")
-
-    service_team_df = GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner") \
-    .select("businessPartnerSK","businessPartnerNumber","_BusinessKey","_recordStart","_recordEnd","_recordCurrent") \
-    .withColumnRenamed("businessPartnerSK","serviceTeamFK")
-
-    responsible_employee_team_df = GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner") \
-    .select("businessPartnerSK","businessPartnerNumber","_BusinessKey","_recordStart","_recordEnd","_recordCurrent") \
-    .withColumnRenamed("businessPartnerSK","responsibleEmployeeFK")
-
-    sales_employee_df = GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner") \
-    .select("businessPartnerSK","businessPartnerNumber","_BusinessKey","_recordStart","_recordEnd","_recordCurrent") \
-    .withColumnRenamed("businessPartnerSK","salesEmployeeFK")
-
-    contract_df = GetTable(f"{DEFAULT_TARGET}.dimContract") \
-    .select("contractSK","_BusinessKey","_recordStart","_recordEnd","_recordCurrent") \
-    .withColumnRenamed("contractSK","contractFK")
-
-    process_type_df = GetTable(f"{DEFAULT_TARGET}.dimcustomerserviceprocesstype") \
-    .select("customerServiceProcessTypeSK","_BusinessKey","_recordStart","_recordEnd","_recordCurrent") \
-    .withColumnRenamed("customerServiceProcessTypeSK","processTypeFK")
-
-    property_df = GetTable(f"{DEFAULT_TARGET}.dimProperty") \
-    .select("propertySK","_BusinessKey","_recordStart","_recordEnd","_recordCurrent") \
-    .withColumnRenamed("propertySK","propertyFK")
-
-    status_df = GetTable(f"{DEFAULT_TARGET}.dimcustomerservicerequestStatus") \
-    .select("customerServiceRequestStatusSK","_BusinessKey","_recordStart","_recordEnd","_recordCurrent") \
-    .withColumnRenamed("customerServiceRequestStatusSK","StatusFK")
-    
-    channel_df = GetTable(f"{DEFAULT_TARGET}.dimCommunicationChannel") \
-    .select("customerServiceChannelCode","communicationChannelSK","_recordCurrent","_BusinessKey")
-
-    ####FetchDummyBusinessPartner
-
-    # dummyDimPartnerSKD = spark.sql(f""" Select businessPartnerSK from {DEFAULT_TARGET}.dimbusinesspartner where _businessKey = '-1' """)
-
-    # first_row = dummyDimPartnerSKD.first()    
-    # if first_row:
-    #     dummyDimPartnerSK   = first_row["businessPartnerSK"]    
-
-
-################################ 
-
-    aurion_df = spark.sql(f"""With Aurion AS (
-                                   Select E.*, 
-                                        M.businessPartnerNumber M_businessPartnerNumber, 
-                                        M.dateEffective M_dateEffective, M.dateTo M_dateTo ,row_number() over(PARTITION BY E.businessPartnerNumber, E.dateEffective order by
-                                    CASE UPPER(E.Aurionfilename) WHEN 'ACTIVE' THEN 1 WHEN 'TERMINATED' THEN 2 WHEN 'HISTORY' THEN 3 END, E.dateEffective ) as rkn
-                                From {SOURCE}.vw_aurion_employee_details E
-                                LEFT JOIN (Select distinct businessPartnerNumber,
-                                                            positionNumber, 
-                                                            dateEffective, 
-                                                            dateTo 
-                                                    From {SOURCE}.vw_aurion_employee_details) M 
-                                                      on E.reportstoPosition = M.positionNumber
-                                 AND ( CAST(E.dateEffective as DATE) between CAST(M.dateEffective as DATE) and CAST(M.dateTo AS DATE)
-                                AND CAST(E.dateTo as DATE) between CAST(M.dateEffective as DATE) and CAST(M.dateTo AS DATE))),
-mainAurion as(
-Select mainaa.*,
-       CASE WHEN mainaa.OrganisationUnitNumber IS NULL THEN '-1' ELSE concat('OU6', RIGHT(concat('000000',mainaa.OrganisationUnitNumber ),7)) END as oFK
-       from Aurion mainaa where rkn = 1)
-                    Select aa.*
-                    ,bb.businessPartnerSK as reportToManagerFK
-                    ,cc.businessPartnerSK as organisationUnitFK  
-                    from  mainAurion aa 
-                    left join {DEFAULT_TARGET}.dimBusinessPartner bb on aa.M_businessPartnerNumber = bb.businessPartnerNumber
-                                                              and bb._recordCurrent = 1
-                    left join {DEFAULT_TARGET}.dimBusinessPartner cc on aa.oFK= cc.businessPartnerNumber 
-                         and cc._recordCurrent = 1""")
-
-    createdBy_username_df = spark.sql(f"""select userid, givenNames as createdBy_givenName, surname as createdBy_surname from {SOURCE}.vw_aurion_employee_details""").drop_duplicates()
-    changedBy_username_df = spark.sql(f"""select userid, givenNames as changedBy_givenName, surname as changedBy_surname from {SOURCE}.vw_aurion_employee_details""").drop_duplicates()
-
-    location_df = GetTable(f"{DEFAULT_TARGET}.dimlocation").select("locationSK","locationID","_BusinessKey","_RecordStart","_RecordEnd","_recordCurrent")
-    
-    date_df = GetTable(f"{DEFAULT_TARGET}.dimdate").select("dateSK","calendarDate")
-    
-    response_df = spark.sql(f"""select F.serviceRequestGUID as serviceRequestGUIDR,
-                            CAST(f.lastChangedDateTime as TIMESTAMP) as lastChangedDateTimeR,                            
-                            S.apptStartDatetime respondByDateTime,
-                            F.requestStartDate startDate, 
-                            S2.apptStartDatetime respondedDateTime,                           
-                            COALESCE(S2.apptStartDatetime, F.requestEndDate) endDate,
-                            CASE WHEN S3.apptType = 'ZCLOSEDATE' THEN S3.apptStartDatetime ELSE NULL END as serviceRequestClosedDateTime,
-                            CASE WHEN S3.apptType = 'SRV_RREADY' THEN S3.apptStartDatetime ELSE NULL END as toDoByDateTime,                            
-                            DateDiff(second,F.requestStartDate,COALESCE(S2.apptStartDatetime, F.requestEndDate))/(3600*24) as interimResponseDays,
-                            case when (DateDiff(second,S.apptStartDatetime,COALESCE(S2.apptStartDatetime, F.requestEndDate))/(3600*24)) <= 0 THEN 'Yes' else 'No' END as metInterimResponseFlag
-                            from {SOURCE}.crm_0crm_srv_req_inci_h F
-                            LEFT JOIN {SOURCE}.crm_crmd_link L on F.serviceRequestGUID = L.hiGUID
-                            LEFT JOIN {SOURCE}.crm_scapptseg S on S.ApplicationGUID = L.setGUID and S.apptTypeDescription = 'First Response By'
-                            LEFT JOIN {SOURCE}.crm_scapptseg S2 on S2.ApplicationGUID = L.setGUID and S2.apptType = (CASE WHEN F.processTypeCode = 'ZCMP' THEN 'VALIDTO' ELSE 'ZRESPONDED' END)
-                            LEFT JOIN {SOURCE}.crm_scapptseg S3 on S3.ApplicationGUID = L.setGUID and S3.apptType in ('ZCLOSEDATE', 'SRV_RREADY')
-                            where L.setObjectType = '30'""") 
-
-    workingcalc_df = response_df.select(col("serviceRequestGUIDR").alias("serviceRequestGUIDW"), col("startDate"), col("endDate"), col("lastChangedDateTimeR").alias("lastChangedDateTimeW"))
-    publicHolidaysPD = GetTable(f"{SOURCE}.datagov_australiapublicholidays").filter(col('jurisdiction').rlike("NSW|NAT")) \
-                                                                            .filter(upper(col('holidayName')) != "BANK HOLIDAY") \
-                                                                        .select('date').withColumnRenamed("date","holidayDate").toPandas()
-                                                                        
-    workingcalc_df = workingcalc_df.withColumn('interimResponseWorkingDays', workingDaysNSWVectorizedUDF(workingcalc_df['startDate'], workingcalc_df['endDate'])) \
-                                     .select("serviceRequestGUIDW","lastChangedDateTimeW", "interimResponseWorkingDays")
-
-    # ------------- JOINS ------------------ #
-    # ------------- JOINS ------------------ #
-    df = df.join(received_category_df,(df.received_BK == received_category_df.sourceBusinessKey) & (df.lastChangedDateTime.between (received_category_df.sourceValidFromDatetime,received_category_df.sourceValidToDatetime)),"left") \
-    .drop("received_category_df._BusinessKey", "df._recordStart","received_category_df._recordStart", "df._recordEnd", "received_category_df._recordEnd", "df.received_BK") \
-    .join(resolution_category_df,(df.resolution_BK == resolution_category_df.sourceBusinessKey) & (df.lastChangedDateTime.between (resolution_category_df.sourceValidFromDatetime,resolution_category_df.sourceValidToDatetime)),"left") \
-     .drop("resolution_category_df._BusinessKey","resolution_category_df._recordStart","resolution_category_df._recordEnd","df.resolution_BK", "df._recordStart", "df._recordEnd") \
-    .join(contact_person_df,(df.contactPersonNumber_BK == contact_person_df.businessPartnerNumber) & (df.lastChangedDateTime.between (contact_person_df._recordStart,contact_person_df._recordEnd)),"left") \
-    .drop("contact_person_df.businessPartnerNumber","contact_person_df._recordStart","contact_person_df._recordEnd", "df._recordStart", "df._recordEnd") \
-    .join(report_by_person_df,(df.reportedByPersonNumber_BK == report_by_person_df.businessPartnerNumber) & (df.lastChangedDateTime.between (report_by_person_df._recordStart,report_by_person_df._recordEnd)),"left") \
-    .drop("contact_person_df.businessPartnerNumber","contact_person_df._recordStart","contact_person_df._recordEnd", "df._recordStart", "df._recordEnd") \
-    .join(service_team_df,(df.serviceTeamCode == service_team_df.businessPartnerNumber) & (df.lastChangedDateTime.between (service_team_df._recordStart,service_team_df._recordEnd)),"left") \
-    .drop("service_team_df.businessPartnerNumber","service_team_df._recordStart","service_team_df._recordEnd", "df._recordStart", "df._recordEnd") \
-    .join(responsible_employee_team_df,(df.responsibleEmployeeNumber_BK == responsible_employee_team_df.businessPartnerNumber) & (df.lastChangedDateTime.between (responsible_employee_team_df._recordStart,responsible_employee_team_df._recordEnd)),"left") \
-    .join(sales_employee_df,(df.salesEmployeeNumber_BK == sales_employee_df.businessPartnerNumber) & (df.lastChangedDateTime.between (sales_employee_df._recordStart,sales_employee_df._recordEnd)),"left") \
-    .drop("sales_employee_df.businessPartnerNumber",  "sales_employee_df._recordStart","sales_employee_df._recordEnd", "df._recordStart", "df._recordEnd") \
-    .join(contract_df,(df.contract_BK == contract_df._BusinessKey) & (contract_df._recordCurrent == 1),"left") \
-    .drop("contract_df._BusinessKey","contract_df._recordStart","contract_df._recordEnd", "df._recordStart", "df._recordEnd") \
-    .join(process_type_df,(df.processType_BK == process_type_df._BusinessKey) & (process_type_df._recordCurrent == 1),"left") \
-    .drop("process_type_df._BusinessKey","process_type_df._recordStart","process_type_df._recordEnd", "df._recordStart", "df._recordEnd") \
-    .join(property_df,(df.propertyNumber_BK == property_df._BusinessKey) & (df.lastChangedDateTime.between (property_df._recordStart,property_df._recordEnd)),"left") \
-    .drop("property_df._BusinessKey","property_df._recordStart","property_df._recordEnd", "df._recordStart", "df._recordEnd") \
-    .join(status_df,(df.status_BK == status_df._BusinessKey) & (status_df._recordCurrent == 1),"left") \
-    .join(location_df,(df.propertyNumber_BK == location_df.locationID) & (df.lastChangedDateTime.between (location_df._RecordStart,location_df._RecordEnd)),"left") \
-    .drop("location_df._BusinessKey","location_df._recordStart","location_df._recordEnd", "df._recordStart", "df._recordEnd") \
-    .join(date_df, to_date(df.requestStartDate) == date_df.calendarDate,"left").withColumnRenamed('dateSK','serviceRequestStartDateFK').drop("calendarDate") \
-    .join(date_df, to_date(df.requestEndDate) == date_df.calendarDate,"left").withColumnRenamed('dateSK','serviceRequestEndDateFK').drop("calendarDate") \
-    .join(date_df, to_date(df.lastChangedDate) == date_df.calendarDate,"left").withColumnRenamed('dateSK','snapshotDateFK').drop("calendarDate") \
-    .join(response_df, (df.serviceRequestGUID == response_df.serviceRequestGUIDR) & (df.lastChangedDateTime == response_df.lastChangedDateTimeR),  "left").drop("response_df.serviceRequestGUIDR")  \
-    .join(workingcalc_df, (df.serviceRequestGUID == workingcalc_df.serviceRequestGUIDW) & (df.lastChangedDateTime == workingcalc_df.lastChangedDateTimeW), "left").drop("workingcalc_df.serviceRequestGUIDW") \
-    .join(aurion_df, (df.responsibleEmployeeNumber == aurion_df.personNumber) & (df.lastChangedDateTime.between (aurion_df.DateEffective,aurion_df.DateTo)),"left") \
-    .join(createdBy_username_df,df.createdBy == createdBy_username_df.userid, "left").drop("userid") \
-    .join(changedBy_username_df,df.changedBy == changedBy_username_df.userid, "left").drop("userid") \
-    .join(channel_df,(df.ChannelCode_BK == channel_df._BusinessKey) & (channel_df._recordCurrent == 1),"left") \
-    .withColumn("CreatedByName",concat_ws(" ","createdBy_givenName","createdBy_surname")) \
-    .withColumn("changedByName",concat_ws(" ","changedBy_givenName","changedBy_surname"))
-
-    
-#     Logic to pick only first record for ServiceRequestGUID. Aurion Data in Test env produces duplicates 
-#     Aurion attributes are "reportToManagerFK","organisationUnitFK","CreatedByName","changedByName"
-    # windowSpec1  = Window.partitionBy("serviceRequestGUID") 
-    # df = df.withColumn("row_number",row_number().over(windowSpec1.orderBy(lit(1)))).filter("row_number == 1").drop("row_number")
-    
-
+    global df    
+    df = finaldf
     # ------------- TRANSFORMS ------------- #
-    _.Transforms = [
-        f"serviceRequestGUID||'|'||lastChangedDateTime {BK}"
-        ,"serviceRequestID customerServiceRequestId"
-        ,"serviceRequestGUID customerServiceRequestGUID"
-        ,"CASE WHEN receivedCategoryFK IS NULL THEN '-1' ELSE receivedCategoryFK END  customerServiceRequestReceivedCategoryFK"      
-        ,"CASE WHEN resolutionCategoryFK IS NULL THEN '-1' ELSE resolutionCategoryFK END customerServiceRequestResolutionCategoryFK" 
-        ,"CASE WHEN communicationChannelSK IS NULL THEN '-1' ELSE communicationChannelSK END communicationChannelFK"        
-        ,f"CASE WHEN contactPersonFK IS NULL THEN '{dummyDimPartnerSK}' ELSE contactPersonFK END contactPersonFK"
-        ,"reportByPersonFK reportByPersonFK"
-        ,"serviceTeamFK serviceTeamFK"
-        ,"contractFK contractFK"
-        ,"responsibleEmployeeFK responsibleEmployeeFK" 
-        ,"reportToManagerFK  reportToManagerFK"  
-        ,"organisationUnitFK organisationUnitFK" 
-        ,"CASE WHEN processTypeFK IS NULL THEN '-1' ELSE processTypeFK END customerServiceProcessTypeFK" 
-        ,"propertyFK propertyFK"
-        ,"locationSK locationFK"
-        ,"CASE WHEN statusFK IS NULL THEN '-1' ELSE statusFK END customerServiceRequestStatusFK"  
-        ,"salesEmployeeFK salesEmployeeFK"
-        ,"serviceRequestStartDateFK customerServiceRequestStartDateFK"
-        ,"serviceRequestEndDateFK customerServiceRequestEndDateFK"
-        ,"snapshotDateFK customerServiceRequestSnapshotDateFK"        
-        ,"totalDuration customerServiceRequestTotalDurationHourQuantity"
-        ,"workDuration customerServiceRequestWorkDurationHourQuantity" 
-        ,"source customerServiceRequestSourceName"
-        ,"sourceCode customerServiceRequestSourceCode"
-        ,"issueResponsibility customerServiceRequestIssueResponsibilityName"
-        ,"issueResponsibilityCode customerServiceRequestIssueResponsibilityCode"
-        ,"postingDate customerServiceRequestPostingDate"
-        ,"requestStartDate customerServiceRequestStartTimestamp"
-        ,"requestEndDate customerServiceRequestEndTimestamp"
-        ,"numberOfInteractionRecords customerServiceRequestInteractionsCount"
-        ,"notificationNumber  customerServiceRequestNotificationNumber"
-        ,"transactionDescription customerServiceRequestDescription"
-        ,"direction customerServiceRequestDirectionIdentifier"
-        ,"directionCode customerServiceRequestDirectionCode"
-        ,"maximoWorkOrderNumber customerServiceRequestMaximoWorkOrderNumber"
-        ,"projectId customerServiceRequestProjectId"
-        ,"agreementNumber customerServiceRequestAgreementNumber"
-        ,"CAST( recommendedPriority AS INTEGER) customerServiceRequestRecommendedPriorityNumber"
-        ,"CAST(impact AS INTEGER) customerServiceRequestImpactScoreNumber"
-        ,"CAST(urgency AS INTEGER) customerServiceRequestUrgencyNumber"
-        ,"serviceLifeCycle customerServiceRequestServiceLifeCycleUnitHourQuantity"
-        ,"serviceLifeCycleUnit customerServiceRequestServiceLifeCycleUnitName"
-        ,"activityPriorityCode customerServiceRequestActivityPriorityCode"
-        ,"respondByDateTime customerServiceRequestRespondByTimestamp"
-        ,"respondedDateTime customerServiceRequestRespondedTimestamp"
-        ,"serviceRequestClosedDateTime customerServiceRequestClosedTimestamp"
-        ,"toDoByDateTime customerServiceRequestToDoByTimestamp"
-        ,"CAST(interimResponseDays        as DECIMAL(15,2)) customerServiceRequestInterimResponseDaysQuantity"
-        ,"CAST(interimResponseWorkingDays as DECIMAL(15,2)) customerServiceRequestInterimResponseWorkingDaysQuantity"
-        ,"metInterimResponseFlag customerServiceRequestMetInterimResponseIndicator"
-        ,"CreatedDateTime customerServiceRequestCreatedTimestamp"
-        ,"CreatedBy customerServiceRequestCreatedByUserId" 
-        ,"coalesce(CreatedByName, CreatedBy) customerServiceRequestCreatedByUserName" 
-        ,"lastChangedDateTime customerServiceRequestSnapshotTimestamp"
-        ,"lastChangedDateTime customerServiceRequestLastChangeTimestamp"
-        ,"changedBy customerServiceRequestChangedByUserId"
-        ,"coalesce(changedByName, changedBy) customerServiceRequestChangedByUserName" 
-
-    ]
-    df = df.selectExpr(
-        _.Transforms
-    ).dropDuplicates()
-    # ------------- CLAUSES ---------------- #
-
-    # ------------- SAVE ------------------- #
-    # display(df)
+    _.Transforms = ['*']
+    df = df.selectExpr(_.Transforms)
+    #display(df)
     #CleanSelf()
-    #print(df.count())
     Save(df)
-    #DisplaySelf()
-pass
+    busDF.unpersist()
 Transform()
