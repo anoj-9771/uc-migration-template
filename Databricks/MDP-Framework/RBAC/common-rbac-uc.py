@@ -141,6 +141,16 @@ def GetTable(namespace):
 
 # COMMAND ----------
 
+def ConvertTableName(tableFqn):
+    catalog = GetCatalog(tableFqn)
+    schema = GetSchema(tableFqn)
+    table = GetTable(tableFqn)
+    return f"{catalog}.{schema}.{table}"
+#print(ConvertTableName("cleansed.maximo_abc"))
+print(ConvertTableName("cleansed.iicats_abc_sdf_sdf"))
+
+# COMMAND ----------
+
 def GenerateRbacCommands():
     _grants = []
     prefix = GetCatalogPrefix()

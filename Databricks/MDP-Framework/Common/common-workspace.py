@@ -71,8 +71,46 @@ def ListWorkspaces(path="/"):
     url = f'{INSTANCE_NAME}/api/2.0/workspace/list'
     data_path = '{{"path": "{0}"}}'.format(path)
     response = requests.get(url, headers=headers, data=data_path)
-    jsonResponse = response.json()
-    return JsonToDataFrame(jsonResponse)
+    return response.json()
+
+# COMMAND ----------
+
+def GetWorkspacePath(path):
+    root = "/".join(path.split("/")[:-1])
+    folder = "/".join(path.split("/")[-1:])
+    for i in ListWorkspaces(root)["objects"]:
+        if i["path"] == path:
+            return i
+
+# COMMAND ----------
+
+def GetWorkspaceStatus(path):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/workspace/list'
+    data_path = '{{"path": "{0}"}}'.format(path)
+    response = requests.get(url, headers=headers, data=data_path)
+    return response.json()
+
+# COMMAND ----------
+
+def GetWorkspacePathId(path):
+    return GetWorkspaceStatus(path)["objects"][0]["object_id"]
+
+# COMMAND ----------
+
+def RecursiveListWorkspacePath(path, list = None):
+    list = [] if list is None else list
+    c = GetWorkspacePath(path)
+    list.extend([{ "path" : c["path"] , "id" : c["object_id"] }])
+    pathListing = ListWorkspaces(path)
+    for p in (JsonToDataFrame(pathListing).selectExpr("explode(objects) o")
+        .select("o.*", "o.path").collect()):
+        #print(p.path)
+        list.extend([{ "path" : p.path , "id" : p.object_id}])
+
+        if (p.object_type == "DIRECTORY"):
+            RecursiveListWorkspacePath(p.path, list)
+    return list
 
 # COMMAND ----------
 
@@ -655,4 +693,23 @@ def UpdatePermission(securable_type, full_name, grants):
     url = f'{INSTANCE_NAME}/api/2.1/unity-catalog/permissions/{securable_type}/{full_name}'
     permissions = { "changes": [ *grants ] }
     response = requests.patch(url, json=permissions, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
+def GetObjectPermissions(type, id):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/permissions/{type}/{id}'
+    jsonData = {
+    }
+    response = requests.get(url, json=jsonData, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
+def PutObjectPermissions(type, id, aclList):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/permissions/{type}/{id}'
+    jsonData = { "access_control_list": [ *aclList] }
+    response = requests.put(url, json=jsonData, headers=headers)
     return response.json()
