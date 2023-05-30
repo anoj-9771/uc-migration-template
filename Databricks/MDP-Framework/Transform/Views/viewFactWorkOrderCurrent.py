@@ -4,7 +4,7 @@
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewFactWorkOrder_latest AS
+CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewFactWorkOrderCurrent AS
 (
    select 
       	workOrderSK

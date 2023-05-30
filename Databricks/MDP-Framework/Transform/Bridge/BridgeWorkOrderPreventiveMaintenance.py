@@ -15,7 +15,7 @@ def Transform():
                     inner join {get_table_name(f"{SOURCE}","maximo","workOrder")} wo on fwo.workOrderCreationId = wo.workOrder
                     inner join {get_table_name(f"{SOURCE}","maximo","pM")} pm on wo.pM = pm.pM
                     inner join {TARGET}.factpreventivemaintenance fpm on fpm.preventiveMaintenanceID = pm.pM
-                   """)
+                   """).drop_duplicates()
       
                                 
     # ------------- JOINS ------------------ #
@@ -39,11 +39,21 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-    # CleanSelf()
+    CleanSelf()
     Save(df)
 #     DisplaySelf()
 pass
 Transform()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select workOrderFK, preventiveMaintenanceFK, count(1) from curated.bridgeworkorderpreventivemaintenance group by workOrderFK, preventiveMaintenanceFK having count(1) > 1
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC create or replace view curated_v3.bridgeworkorderpreventivemaintenance as select * from curated.bridgeworkorderpreventivemaintenance
 
 # COMMAND ----------
 

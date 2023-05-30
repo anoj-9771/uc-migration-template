@@ -7,7 +7,7 @@ TARGET = DEFAULT_TARGET
 
 # COMMAND ----------
 
-# CleanSelf()
+CleanSelf()
 
 # COMMAND ----------
 
@@ -19,24 +19,24 @@ def create_temp_table(dataframe):
     asset_location_df = GetTable(f"{TARGET}.dimAssetLocation").select(col("assetLocationName").alias("location"),"assetLocationSK","assetLocationTypeCode","assetLocationFacilityShortCode")
     class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure")).select("classStructure","classification",col("description").alias("classificationPath"))
     classification_df = GetTable(get_table_name(f"{SOURCE}","maximo","classification")).select("classification",col("description").alias("classificationDescription"))
-    astmeter_df = GetTable(get_table_name(f"{SOURCE}","maximo","assetMeter")).filter("meter = 'CAG_ROMP'").select("asset", "lastReading")
+    astmeter_df = GetTable(get_table_name(f"{SOURCE}","maximo","assetMeter")).filter("meter in ('CAG_ROMP','EXPTOTALLIFE')").select("asset","meter", "lastReading")
+
+    pivot_meter_df = astmeter_df.groupBy("asset").pivot("meter").agg(min(col("lastReading")))
     
     locspc_df = spark.sql("""select lsp.location, lsp.numericValue as loc_numericValue from {0} lsp where lsp.attribute = 'COF_SCORE'""".format(get_table_name(f"{SOURCE}","maximo","locationspec"))).select("location","loc_numericValue")
     
-    asset_spec_df =spark.sql("""select * except(rownumb) from (
-select asset, alphanumericValue,attribute, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from {0} where attribute in ("MAIN_TYPE","SEWER_FUNCTION","PURPOSE","PIPE_SIZE","VALVE_SIZE","HORIZONTAL_LENGTH","SEWER_MATERIAL","WATER_TYPE","LATESTREHABTYPE","CROSS_SECTION","MAINTENANCE_STRATEGY","EXPTOTALLIFE","WATERMAIN_PIPETYPE","COF_SCORE")
-)dt where rownumb = 1""".format(get_table_name(f"{SOURCE}","maximo","assetspec")))
+    asset_spec_df =spark.sql("""select * except(rownumb) from ((select asset, attribute, alphanumericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from cleansed.maximo_assetspec where attribute in ("MAIN_TYPE","SEWER_FUNCTION","PURPOSE","PIPE_SIZE","VALVE_SIZE","HORIZONTAL_LENGTH","SEWER_MATERIAL","WATER_TYPE","LATESTREHABTYPE","CROSS_SECTION","MAINTENANCE_STRATEGY","WATERMAIN_PIPETYPE"))
+    UNION
+    (select asset, attribute, numericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from cleansed.maximo_assetspec where attribute = "COF_SCORE")
+    )dt where rownumb = 1""".format(get_table_name(f"{SOURCE}","maximo","assetspec")))
+    pivot_df = asset_spec_df.groupBy("asset").pivot("attribute").agg(min(col("val")))
     
-    pivot_df = asset_spec_df.groupBy("asset").pivot("attribute").agg(min(col("alphanumericValue")))
-    
-    
-
     # ------------- JOINS ------------------ #    
     temp_df = temp_df.join(asset_location_df,"location","left") \
     .join(locspc_df,"location","left") \
     .join(class_structure_df,"classStructure","left") \
     .join(classification_df,"classification","left") \
-    .join(astmeter_df,"asset","left") \
+    .join(pivot_meter_df,"asset","left") \
     .join(pivot_df,"asset","left") \
     .withColumn("linearFlag",when(temp_df.masteredInGis == 'Y','Y').when(asset_location_df.assetLocationTypeCode == "SYSAREA",'Y').otherwise('N'))
     
@@ -55,16 +55,12 @@ select asset, alphanumericValue,attribute, row_number() over(partition by asset,
     .withColumn("asp_numericValue",temp_df.COF_SCORE).alias("asset") 
 
     temp_df = temp_df \
-    .withColumn("assetConsequenceOfFailureScoreCode",expr("case when asset.assetLocationTypeCode in ('facility','process','funcloc') then nvl(asset.loc_numericValue,0) \
-    when asset.assetLocationTypeCode = 'sysarea' \
+    .withColumn("assetConsequenceOfFailureScoreCode",expr("case when asset.assetLocationTypeCode in ('FACILITY', 'PROCESS','FUNCLOC') then nvl(asset.loc_numericValue,0) \
+    when asset.assetLocationTypeCode = 'SYSAREA' \
     then nvl(asset.asp_numericValue,0) end").cast('decimal(38,18)')) \
     .withColumn("assetNetworkLengthPerKilometerValue",expr("case when asset.assetHorizontalLengthValue is null then 0 else asset.assetHorizontalLengthValue/1000 end")) \
-    .withColumn("assetConditionalGradeAssessmentValue",expr("NVL(asset.lastReading, 0)"))
-
-    if 'EXPTOTALLIFE' in temp_df.schema.simpleString():
-        temp_df = temp_df.withColumn("assetExpectedServiceLifeCode",df.EXPTOTALLIFE)
-    else:
-        temp_df = temp_df.withColumn("assetExpectedServiceLifeCode",lit(None).cast(StringType()))
+    .withColumn("assetConditionalGradeAssessmentValue",expr("NVL(asset.CAG_ROMP, 0)")) \
+    .withColumn("assetExpectedServiceLifeCode",temp_df.EXPTOTALLIFE)
     
     temp_df = temp_df.withColumn("ref_join", expr("COALESCE(asset.assetLocationFacilityShortCode,'null')||COALESCE(asset.assetWaterMainPipeTypeCode,'null')||COALESCE(asset.assetSewerFunctionName,'null')||COALESCE(asset.assetSewerPurposeValue,'null')"))
     temp_df.write.saveAsTable("temp.dimAsset_temp")
@@ -80,15 +76,15 @@ def Transform():
     windowSpec  = Window.partitionBy("asset")
     create_temp_table(get_recent_cleansed_records(f"{SOURCE}","maximo","asset",business_date,target_date).withColumn("rank",rank().over(windowSpec.orderBy(col(business_date).desc()))).filter("rank == 1").drop("rank"))
     df = spark.sql(f"""select
-        da.*, COALESCE(rrc.return1Code,rrc2.return1Code) as assetTypeGroupDescription
+        da.*, COALESCE(rrc.return1Code,rrc2.return1Code,"Other") as assetTypeGroupDescription
         from temp.dimAsset_temp da
-        left join curated_v3.refReportConfiguration rrc
+        left join {TARGET}.refReportConfiguration rrc
         on rrc.mapTypeCode = 'Asset Type'
         and trim((coalesce(da.assetLocationFacilityShortCode,''))||trim(coalesce(da.assetSpecMainTypeName,''))
         ||trim(coalesce(da.assetSewerFunctionName,''))||trim(coalesce(da.assetSewerPurposeValue,'')))=
         trim(COALESCE(rrc.lookup1Code, da.assetLocationFacilityShortCode,''))||trim(COALESCE(rrc.lookup2Code, da.assetSpecMainTypeName,''))
         ||trim(COALESCE(rrc.lookup3Code, da.assetSewerFunctionName,''))||trim(COALESCE(rrc.lookup4Code, da.assetSewerPurposeValue,''))
-        left join curated_v3.refReportConfiguration rrc2
+        left join  {TARGET}.refReportConfiguration rrc2
         on rrc2.mapTypeCode = 'Asset Type 2'
         and rrc2.lookup4Code = da.assetSewerPurposeValue
         and rrc.return1Code is NULL""")

@@ -1,0 +1,117 @@
+# Databricks notebook source
+# MAGIC %run ../../Common/common-transform
+
+# COMMAND ----------
+
+spark.sql(f"""
+CREATE OR REPLACE VIEW semantic.viewAssetKeyPerformanceMeasures AS
+(
+   SELECT
+fwo.workorderWorkTypeCode,
+fwo.workOrderClassDescription,
+fwo.workOrderStatusDescription,
+fwo.workOrderCompliantIndicator,
+dal.assetLocationFacilityCode,
+dal.assetLocationFacilityDescription,
+loc_hier.assetLocationAncestorLevel83Description as processName,
+dac.assetContractNumber,
+dac.assetContractDescription,
+rst.serviceTypeGroup,
+dd.calendarYear,
+dd.monthOfYear,
+COUNT (DISTINCT workOrderCreationId) breakdownMaintenanceTotalWorkOrderCount,
+CASE
+  WHEN fwo.workOrderCompliantIndicator = 'YES'
+  THEN COUNT (DISTINCT workOrderCreationId)
+END compliantBreakdownMaintenanceWorkOrderCount,
+(
+try_divide(
+CASE
+  WHEN fwo.workOrderCompliantIndicator = 'YES'
+  THEN COUNT (DISTINCT workOrderCreationId)
+END, COUNT (DISTINCT workOrderCreationId)
+)
+) breakdownMaintenanceWorkorderReponseRate,
+CASE
+  WHEN fwo.workOrderCompliantIndicator = 'YES'
+  THEN SUM ( fwo.breakdownMaintenanceWorkOrderTargetHour)
+END breakdownMaintenanceWorkOrderTotalTargetHour,
+SUM(fwo.breakdownMaintenanceWorkOrderRepairHour) breakdownMaintenanceWorkOrderTotalRepairHourQuantity,
+try_divide(SUM ( fwo.breakdownMaintenanceWorkOrderRepairHour),COUNT (DISTINCT workOrderCreationId)) mttrBMHours,
+CASE  
+  WHEN (fwo.breakdownMaintenanceWorkOrderTargetHour is NULL or fwo.breakdownMaintenanceWorkOrderTargetHour = 0) or fwo.workOrderFinishedDate is NULL then NULL
+  ELSE try_divide(sum((fwo.breakdownMaintenanceWorkOrderRepairHour - fwo.breakdownMaintenanceWorkOrderTargetHour)),sum(fwo.breakdownMaintenanceWorkOrderTargetHour))
+END breakdownMaintenanceWorkOrderChangeRepairHourPercent,
+CASE 
+WHEN fwo.workOrderStatusDescription NOT in ('CAN', 'CANDUP', 'DRAFT')
+THEN SUM(nvl(fwo.actualWorkOrderLaborCostAmount,0)+
+nvl(fwo.actualWorkOrderMaterialCostAmount,0)+
+nvl(fwo.actualWorkOrderServiceCostAmount,0)+
+nvl(fwo.actualWorkOrderLaborCostFromActivityAmount,0)+
+nvl(fwo.actualWorkOrderMaterialCostFromActivityAmount,0)+
+nvl(fwo.actualWorkOrderServiceCostFromActivityAmount,0))
+END breakdownMaintenanceWorkOrderTotalCostAmount,
+CASE 
+  WHEN fwo.workOrderStatusDescription NOT in ('CAN', 'CANDUP', 'DRAFT')
+  THEN count( DISTINCT fwo.workOrderCreationId) 
+END breakdownMaintenanceTotalWorkOrderRaisedCount,
+CASE
+  WHEN fwo.workOrderStatusDescription not in ('CAN', 'CANDUP', 'DRAFT')
+  THEN SUM(da.assetNetworkLengthPerKilometerValue) 
+END breakdownMaintenanceWorkOrderFailedLengthValue
+
+from hive_metastore.curated.viewfactWorkOrder fwo
+
+left join hive_metastore.curated.dimAsset da
+on fwo.assetFK = da.assetSK
+and da.sourceRecordCurrent = 1
+
+left join hive_metastore.curated.dimAssetLocation dal
+on da.assetLocationFK = dal.assetLocationSK
+and dal.sourceRecordCurrent = 1
+
+left join hive_metastore.curated.dimassetcontract dac
+on dac.assetContractSK = fwo.assetContractFK
+and dac.sourceRecordCurrent = 1
+
+inner join hive_metastore.curated_v2.dimdate dd
+on to_date(fwo.workOrderFinishedDate) = dd.calendardate
+
+left join curated.viewancestorlocationhierarchypivot loc_hier
+on dal.assetLocationSK = loc_hier.assetLocationFK
+
+left join curated.viewRefAssetPerformanceServiceType rst
+on rst.serviceTypeCode = fwo.workOrderServiceTypeCode
+
+where 1=1
+and da.assetStatusDescription = 'EXISTING'
+and dal.assetLocationStatusDescription = 'OPERATING'
+and loc_hier.assetLocationAncestorHierarchySystemName = 'PRIMARY'
+and fwo.finishDate >= to_date('2018-07-01')
+and fwo._recordCurrent = 1
+and fwo.workorderWorkTypeCode = 'BM' 
+AND fwo.workOrderClassDescription = 'WORKORDER'
+
+group by
+fwo.workorderWorkTypeCode,
+fwo.workOrderStatusDescription,
+fwo.workOrderClassDescription,
+dal.assetLocationFacilityCode,
+dal.assetLocationFacilityDescription,
+loc_hier.assetLocationAncestorLevel83Description,
+dac.assetContractNumber,
+dac.assetContractDescription,
+rst.serviceTypeGroup,
+dd.calendarDate,
+fwo.workOrderCompliantIndicator,
+fwo.breakdownMaintenanceWorkOrderTargetHour,
+fwo.workOrderFinishedDate,
+dd.calendarYear,
+dd.monthOfYear
+)
+""")
+
+
+# COMMAND ----------
+
+
