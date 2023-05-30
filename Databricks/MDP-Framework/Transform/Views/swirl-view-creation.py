@@ -135,7 +135,7 @@ WHERE inc.incidentNumber IS NOT NULL
 
 #Curated view SWIRL open action report -personal
 spark.sql("""
-CREATE OR REPLACE VIEW curated.viewswirlopenactionpersonal AS
+CREATE OR REPLACE VIEW curated.viewswirlopenaction AS
 SELECT DISTINCT Dept.businessArea AS businessArea ,
        Dept.subDivision AS subDivision ,
        act.actionNumber AS actionNumber ,
@@ -206,7 +206,7 @@ WHERE inc.incidentNumber IS NOT NULL
 
 #Curated view SWIRL open action report -non personal
 spark.sql("""
-CREATE OR REPLACE VIEW curated.viewswirlopenactionnonpersonal AS
+CREATE OR REPLACE VIEW curated.viewswirlopenactionexcludepersonal AS
 SELECT DISTINCT Dept.businessArea AS businessArea ,
        Dept.subDivision AS subDivision ,
        act.actionNumber AS actionNumber ,
@@ -277,7 +277,7 @@ AND NOT EXISTS (SELECT 1
 
 #Curated view SWIRL open incident report-personal
 spark.sql("""
-CREATE OR REPLACE VIEW curated.viewswirlopenincidentpersonal AS
+CREATE OR REPLACE VIEW curated.viewswirlopenincident AS
 SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
      inc.incidentStatus AS incidentStatus ,
      eventType.incidentEventType as incidentEventType,
@@ -330,7 +330,7 @@ WHERE inc.incidentNumber IS NOT NULL
 
 #Curated view SWIRL open incident report-non personal
 spark.sql("""
-CREATE OR REPLACE VIEW curated.viewswirlopenincidentnonpersonal AS
+CREATE OR REPLACE VIEW curated.viewswirlopenincidentexcludepersonal AS
 SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
      inc.incidentStatus AS incidentStatus ,
      eventType.incidentEventType as incidentEventType,
@@ -449,7 +449,7 @@ AND NOT EXISTS (SELECT 1
 
 #All incidents and events -personal
 spark.sql("""
-CREATE OR REPLACE VIEW curated.viewswirlallincidentsandeventspersonal AS 
+CREATE OR REPLACE VIEW curated.viewswirlallincidentsandevents AS 
 SELECT DISTINCT inc.id,
 inc.incidentNumber
 ,cast(incidentDate as date) as incidentDate
@@ -522,7 +522,7 @@ WHERE inc.incidentNumber IS NOT NULL
 
 #All incidents and events -non personal
 spark.sql("""
-CREATE OR REPLACE VIEW curated.viewswirlallincidentsandeventsnonpersonal AS 
+CREATE OR REPLACE VIEW curated.viewswirlallincidentsandeventsexcludepersonal AS 
 SELECT DISTINCT inc.id,
 inc.incidentNumber
 ,cast(incidentDate as date) as incidentDate
