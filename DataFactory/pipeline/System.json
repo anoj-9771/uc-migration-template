@@ -120,7 +120,7 @@
 						"type": "Expression"
 					},
 					"isSequential": false,
-					"batchCount": 6,
+					"batchCount": 12,
 					"activities": [
 						{
 							"name": "execute-raw",
@@ -215,7 +215,7 @@
 						"type": "Expression"
 					},
 					"isSequential": false,
-					"batchCount": 6,
+					"batchCount": 12,
 					"activities": [
 						{
 							"name": "execute-cleansed",
