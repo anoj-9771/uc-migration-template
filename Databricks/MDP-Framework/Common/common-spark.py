@@ -2,13 +2,13 @@
 def TableExists(tableFqn):
     if is_uc():
         return (
-            spark.table(f'{tableFqn.split(".")[0]}.information_schema.tables')
-            .filter(f"""table_name = '{tableFqn.split('.')[-1]}'""")
-            .count () > 0
+            spark.sql(f"show tables in {tableFqn.split('.')[0]}.{tableFqn.split('.')[1]} like '{tableFqn.split('.')[2]}'")
+            .count () == 1
         )
     else:
-        return spark._jsparkSession.catalog().tableExists(tableFqn.split(".")[0], tableFqn.split(".")[1])
-        
+        return (spark.sql(f"show tables in {tableFqn.split('.')[0]} like '{tableFqn.split('.')[1]}'")
+                .count() == 1
+        )
 
 # COMMAND ----------
 

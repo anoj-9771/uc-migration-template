@@ -1,10 +1,14 @@
 # Databricks notebook source
+# MAGIC %run ../../Common/common-helpers
+
+# COMMAND ----------
+
 # MAGIC %run ../../Common/common-transform
 
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewFactWorkOrder AS
+CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewFactWorkOrder')} AS
 (
    select 
       	workOrderSK
@@ -105,7 +109,7 @@ CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewFactWorkOrder AS
 ,	_recordCurrent
 ,	_recordDeleted  
     from (
-            select * from {DEFAULT_TARGET}.factWorkOrder where _recordCurrent=1
+            select * from {get_table_namespace(f'{DEFAULT_TARGET}', 'factWorkOrder')} where _recordCurrent=1
             )
 )
 """)

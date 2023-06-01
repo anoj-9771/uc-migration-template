@@ -1,8 +1,5 @@
 # Databricks notebook source
-# DBTITLE 1,Delete this once this is defined in common-helpers
-def get_table_namespace(layer:str, table: str) -> str:
-    """gets correct table namespace based on the UC migration/databricks-env secret being available in keyvault, used primarily for pipelines other than raw and cleansed ETL"""
-    return f"{layer}.{table}"
+# MAGIC %run ../../Common/common-helpers
 
 # COMMAND ----------
 

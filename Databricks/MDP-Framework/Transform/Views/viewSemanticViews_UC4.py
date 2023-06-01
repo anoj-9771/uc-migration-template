@@ -1,4 +1,8 @@
 # Databricks notebook source
+# MAGIC %run ../../Common/common-helpers
+
+# COMMAND ----------
+
 # MAGIC %run ../../Common/common-transform
 
 # COMMAND ----------
@@ -60,27 +64,27 @@ CASE
   THEN SUM(da.assetNetworkLengthPerKilometerValue) 
 END breakdownMaintenanceWorkOrderFailedLengthValue
 
-from hive_metastore.curated.viewfactWorkOrder fwo
+from {get_table_namespace('curated', 'viewfactWorkOrder')} fwo
 
-left join hive_metastore.curated.dimAsset da
+left join {get_table_namespace('curated', 'dimAsset')} da
 on fwo.assetFK = da.assetSK
 and da.sourceRecordCurrent = 1
 
-left join hive_metastore.curated.dimAssetLocation dal
+left join {get_table_namespace('curated', 'dimAssetLocation')} dal
 on da.assetLocationFK = dal.assetLocationSK
 and dal.sourceRecordCurrent = 1
 
-left join hive_metastore.curated.dimassetcontract dac
+left join {get_table_namespace('curated', 'dimassetcontract')} dac
 on dac.assetContractSK = fwo.assetContractFK
 and dac.sourceRecordCurrent = 1
 
-inner join hive_metastore.curated_v2.dimdate dd
+inner join curated_v2.dimdate dd
 on to_date(fwo.workOrderFinishedDate) = dd.calendardate
 
-left join curated.viewancestorlocationhierarchypivot loc_hier
+left join {get_table_namespace('curated', 'viewancestorlocationhierarchypivot')} loc_hier
 on dal.assetLocationSK = loc_hier.assetLocationFK
 
-left join curated.viewRefAssetPerformanceServiceType rst
+left join {get_table_namespace('curated', 'viewRefAssetPerformanceServiceType')} rst
 on rst.serviceTypeCode = fwo.workOrderServiceTypeCode
 
 where 1=1

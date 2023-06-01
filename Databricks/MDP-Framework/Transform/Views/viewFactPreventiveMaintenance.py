@@ -1,10 +1,14 @@
 # Databricks notebook source
+# MAGIC %run ../../Common/common-helpers
+
+# COMMAND ----------
+
 # MAGIC %run ../../Common/common-transform
 
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewFactpreventiveMaintenance AS
+CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewFactpreventiveMaintenance')} AS
 (
     select 
     preventiveMaintenanceSK
@@ -53,7 +57,7 @@ CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewFactpreventiveMaintenance AS
 ,	_recordEnd
 ,	_recordCurrent
 ,	_recordDeleted
- from {DEFAULT_TARGET}.factPreventiveMaintenance where _recordCurrent=1)
+ from {get_table_namespace(f'{DEFAULT_TARGET}', 'factPreventiveMaintenance')} where _recordCurrent=1)
 """)
 
 

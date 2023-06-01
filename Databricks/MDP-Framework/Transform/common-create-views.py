@@ -30,7 +30,7 @@ print(systemCodeCleaned)
 basePath = "/MDP-Framework/Transform/Views/"
 notebookName = f"{systemCodeCleaned}-view-creation"
 notebookPath = f"{basePath}{notebookName}"
-df = ListWorkspaces(basePath)
+df = JsonToDataFrame(ListWorkspaces(basePath))
 df = ExpandTable(df)
 
 #if exists run notebook otherwise return

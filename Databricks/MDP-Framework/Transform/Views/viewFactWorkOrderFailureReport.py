@@ -1,10 +1,14 @@
 # Databricks notebook source
+# MAGIC %run ../../Common/common-helpers
+
+# COMMAND ----------
+
 # MAGIC %run ../../Common/common-transform
 
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewFactWorkOrderFailureReport AS
+CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewFactWorkOrderFailureReport')} AS
 (
     select 	workOrderFailureReportSK
 ,	workOrderFailureReportId
@@ -25,7 +29,7 @@ CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewFactWorkOrderFailureReport AS
 ,	_recordEnd
 ,	_recordCurrent
 ,	_recordDeleted
- from {DEFAULT_TARGET}.factWorkOrderFailureReport where _recordCurrent=1)
+ from {get_table_namespace(f'{DEFAULT_TARGET}', 'factWorkOrderFailureReport')} where _recordCurrent=1)
 """)
 
 

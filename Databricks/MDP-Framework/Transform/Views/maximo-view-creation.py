@@ -1,5 +1,9 @@
 # Databricks notebook source
 # DBTITLE 1,Input system code if run manually. sequence is cleansed views followed by curated views
+# MAGIC %run ../../Common/common-helpers
+
+# COMMAND ----------
+
 from pyspark.sql.functions import *
 dbutils.widgets.text("system_code","maximo")
 
@@ -94,10 +98,10 @@ for i in df.collect():
     if dedupeList.count(i.SourceTableName) > 0:
         whereClause = 'where dedupe = 1'
         sql = (f"""
-        create or replace view curated.view{i.DestinationSchema}{i.DestinationTableName} as
+        create or replace view {get_table_namespace('cleansed', f'{i.DestinationSchema}_{i.DestinationTableName}_current')} as
         with cteDedup as(
           select *, row_number() over (partition by {partitionKey} order by {i.WatermarkColumnMapped} desc) dedupe
-          from cleansed.{i.DestinationSchema}_{i.DestinationTableName}
+          from {get_table_namespace('cleansed', f'{i.DestinationSchema}_{i.DestinationTableName}')}
         )
         select * EXCEPT ({excludedColumns})
         from cteDedup 

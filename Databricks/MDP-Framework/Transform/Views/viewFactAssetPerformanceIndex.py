@@ -1,10 +1,14 @@
 # Databricks notebook source
+# MAGIC %run ../../Common/common-helpers
+
+# COMMAND ----------
+
 # MAGIC %run ../../Common/common-transform
 
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW curated_v3.viewFactAssetPerformanceIndex AS
+CREATE OR REPLACE VIEW {get_table_namespace('curated_v3', 'viewFactAssetPerformanceIndex')} AS
 (
     select 	assetPerformanceIndexSK
 ,	assetNumber
@@ -28,7 +32,7 @@ CREATE OR REPLACE VIEW curated_v3.viewFactAssetPerformanceIndex AS
 ,	_recordEnd
 ,	_recordCurrent
 ,	_recordDeleted
- from {DEFAULT_TARGET}.factAssetPerformanceIndex where _recordCurrent=1)
+ from {get_table_namespace(f'{DEFAULT_TARGET}', 'factAssetPerformanceIndex')} where _recordCurrent=1)
 """)
 
 

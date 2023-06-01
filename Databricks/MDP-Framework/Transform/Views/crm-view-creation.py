@@ -1,4 +1,8 @@
 # Databricks notebook source
+# MAGIC %run ../../Common/common-helpers
+
+# COMMAND ----------
+
 ####Curated viewServiceRequestReceivedCategory
 spark.sql("""
 CREATE OR REPLACE VIEW curated_v3.viewServiceRequestReceivedCategory
@@ -22,7 +26,7 @@ categorySK
 ,sourceRecordCurrent
 ,sourceBusinessKey
 FROM
-  curated_v3.dimCategory
+  {get_table_namespace('curated_v3', 'dimCategory')}
 WHERE categoryUsage = 'Service Request'
   AND categoryType = 'Received Category'
 """)
@@ -52,7 +56,7 @@ categorySK
 ,sourceRecordCurrent
 ,sourceBusinessKey
 FROM
-  curated_v3.dimCategory
+  {get_table_namespace('curated_v3', 'dimCategory')}
 WHERE categoryUsage = 'Service Request'
   AND categoryType = 'Resolution Category'
 """)

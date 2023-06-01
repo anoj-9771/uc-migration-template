@@ -1,6 +1,10 @@
 # Databricks notebook source
- spark.sql("""
-CREATE OR REPLACE VIEW cleansed.vw_swirl_ref_lookup AS 
+ # MAGIC %run ../../Common/common-helpers
+
+# COMMAND ----------
+
+spark.sql(f"""
+CREATE OR REPLACE VIEW {get_table_namespace('cleansed', 'swirl_ref_lookup')} AS 
 SELECT DISTINCT 
    mli.lookupItemId as lookupItemId,
    li.lookupId as lookupId,

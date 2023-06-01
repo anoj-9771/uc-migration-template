@@ -1,10 +1,14 @@
 # Databricks notebook source
+# MAGIC %run ../../Common/common-helpers
+
+# COMMAND ----------
+
 # MAGIC %run ../../Common/common-transform
 
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewAncestorLocationHierarchyPivot AS
+CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewAncestorLocationHierarchyPivot')} AS
 (
     SELECT
     assetLocationIdentifier,
@@ -120,7 +124,7 @@ CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewAncestorLocationHierarchyPivot AS
     max(case
     when assetLocationAncestorLevelCode = 93 then assetLocationAncestorDescription end
     ) as assetLocationAncestorLevel93Description
-    from {DEFAULT_TARGET}.dimAssetLocationAncestor
+    from {get_table_namespace(f'{DEFAULT_TARGET}', 'dimAssetLocationAncestor')}
     where sourceRecordCurrent = 1
     group by assetLocationIdentifier, assetLocationFK, assetLocationAncestorHierarchySystemName
     ) DT
@@ -131,7 +135,7 @@ CREATE OR REPLACE VIEW {DEFAULT_TARGET}.viewAncestorLocationHierarchyPivot AS
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from  curated_v3.viewAncestorLocationHierarchyPivot limit 10
+# MAGIC select * from  {get_table_namespace('curated_v3', 'viewAncestorLocationHierarchyPivot')} limit 10
 
 # COMMAND ----------
 
