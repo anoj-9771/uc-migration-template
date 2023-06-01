@@ -251,7 +251,7 @@ def _AddSCD(dataFrame):
 
 # COMMAND ----------
 
-def Save(sourceDataFrame):
+def Save(sourceDataFrame,append=False):
     targetTableFqn = f"{_.Destination}"
     print(f"Saving {targetTableFqn}...")
     if (not(TableExists(targetTableFqn))):
@@ -263,7 +263,10 @@ def Save(sourceDataFrame):
         EndNotebook(sourceDataFrame)
         return
     sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
-    MergeSCDTable(sourceDataFrame, targetTableFqn,_.BK,_.SK)
+    if append:
+        AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+    else:    
+        MergeSCDTable(sourceDataFrame, targetTableFqn,_.BK,_.SK)
     EndNotebook(sourceDataFrame)
     return 
 
