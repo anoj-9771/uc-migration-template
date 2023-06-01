@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ../Common/common-unity-catalog-helper
+
+# COMMAND ----------
+
 def ListUserSqlQueries():
     headers = GetAuthenticationHeader()
     url = f"{INSTANCE_NAME}/api/2.0/preview/sql/queries?page_size=9999"
@@ -71,7 +75,7 @@ def SetUserSqlQueryPermission(id, email):
 
 # COMMAND ----------
 
-def CreateUserQuery(name, query, schema, parent, owner):
+def CreateUserQuery(name, query, catalog, schema, parent, owner):
     j = CreateUserSqlQuery(
     json.dumps( {
         "parent": parent,
@@ -79,7 +83,7 @@ def CreateUserQuery(name, query, schema, parent, owner):
         "query": query,
         "run_as_role": "viewer",
         "options": {
-            "catalog": "hive_metastore",
+            "catalog": catalog,
             "schema": schema,
         },
     })
@@ -140,6 +144,7 @@ def GetUserQueriesExploded(oMethod):
             ,"name"
             ,"query"
             ,"options.parent"
+            ,"options.catalog"
             ,"options.schema"
             ,"user.email"
         )
@@ -148,47 +153,59 @@ def GetUserQueriesExploded(oMethod):
 # COMMAND ----------
 
 def ReplaceUserQueries():
-    list = GetUserQueriesExploded(ListUserSqlQueries).where("lower(query) like '%curated_v2%' or options.schema = 'curated_v2'")
-
+    import re
+    list = GetUserQueriesExploded(ListUserSqlQueriesTarget).where("options.schema IN ('curated')")
+    #list = GetUserQueriesExploded(ListUserSqlQueriesTarget)
+    #list = GetUserQueriesExploded(ListUserSqlQueries)
+    #tables = []
     for i in list.collect():
-        import re
-        break
-        # BACKUP
-        CreateUserQuery(i.name + "-old", sql, i.schema, i.parent, i.email)
+        tables = []
         # REPLACE
-        replacedSql = re.compile(re.escape(i.schema), re.IGNORECASE).sub(targetSchema, i.query)
+        repalcedSql = i.query
+        for m in re.finditer("(?i)[ |\r|\n](from|join)[ |\r|\n]*[a-zA-Z0-9_.]+", i.query, re.S):
+            table = re.split("[ |\r|\n]", m.group(0))[-1:][0]
+            if len(table) <= 7 or "datalab" in table:
+                continue
+            tables.append(table)
+            repalcedSql = repalcedSql.replace(table, ConvertTableName(table))
+
+        if len(tables) == 0:
+            continue
+        targetCatalog = GetCatalogPrefix()+i.schema
+        targetSchema = GetSchema(tables[0])
+
+        # BACKUP
+        #CreateUserQuery(i.name + "-old", sql, i.schema, i.parent, i.email)
         # DELETE 
-        DeleteUserSqlQuery(i.id)
-        # UPLOAD
-        CreateUserQuery(i.name, replacedSql, targetSchema, i.parent, i.email)
-#ReplaceUserQueries()
+        #DeleteUserSqlQuery(i.id)
+        # CREATE
+        #CreateUserQuery(i.name, repalcedSql, targetCatalog, targetSchema, i.parent, i.email)
+        print(f"Creating {i.name}... from {i.email}")
+        #CreateUserQuery(i.name, repalcedSql, targetCatalog, targetSchema, "folders/3666611353204640", "o3bj@sydneywater.com.au")
+    #for t in sorted(set(tables)):
+        #print(t + "," + ConvertTableName(t))
+ReplaceUserQueries()
 
 # COMMAND ----------
 
 def MigrateUserQueries(targetParent):
-    list = GetUserQueriesExploded(ListUserSqlQueries).where("lower(user.email) like '%3bj%' and lower(name) not like '%old%'")
+    list = GetUserQueriesExploded(ListUserSqlQueries)
     
     for i in list.collect():
-        import re
-
+        print(i)
         j = json.dumps( {
-                #TODO: FIND HOW TO GET THIS ID
+                #TODO: FIND HOW TO GET THIS ON TARGET
                 "parent": targetParent,
                 "name": i.name,
                 "query": i.query,
                 "run_as_role": "viewer",
                 "options": {
-                    "catalog": "hive_metastore",
+                    "catalog": i.catalog,
                     "schema": i.schema,
                 },
             })
         # CREATE
-        j = CreateUserSqlQueryTarget(j)
+        #j = CreateUserSqlQueryTarget(j)
         # TRANSFER OWNER
-        TransferUserSqlQueryOwnerTarget(j["id"], i.email)
+        #TransferUserSqlQueryOwnerTarget(j["id"], i.email)
 #MigrateUserQueries("folders/2317656478667114")
-
-# COMMAND ----------
-
- #GetUserQueriesExploded(ListUserSqlQueries).where("lower(user.email) like '3bj%' and name not like '%-old'").display()
- #GetUserQueriesExploded(ListUserSqlQueriesTarget).where("lower(user.email) like '%3bj%'").display()
