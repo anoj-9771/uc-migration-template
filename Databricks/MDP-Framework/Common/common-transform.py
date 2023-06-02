@@ -322,7 +322,7 @@ def joinAdditionalColumns(oldDf, newDf, joinColumnsO, joinColumnsN, toAddColumns
     joinExpr = [col(c1) == col(f"joinDf_{c2}") for c1, c2 in zip(joinColumnsO, joinColumnsN)]   
     joinExpr = reduce(lambda x, y: x & y, joinExpr)
     print(joinExpr)   
-    joinedDf = oldDf.join(newDf, on = joinExpr, how = "inner")
+    joinedDf = oldDf.join(newDf, on = joinExpr, how = "left")
     joinedDf = joinedDf.select([col for col in joinedDf.columns if not (col.startswith("joinDf_") and col in [f"joinDf_{c}" for c in joinColumnsN])])    
     return joinedDf
 
@@ -344,7 +344,7 @@ def isSchemaChanged(currentDataFrame):
     columnsExist = filter_columns(existingDataframe, columnsCurrent)   
     typesCurrent = get_column_types(currentDataFrame.select(columnsCurrent))    
     typesExist = get_column_types(existingDataframe.select(columnsExist))    
-    if len(columnsCurrent) == len(columnsExist) and all(typesCurrent[col] == typesExist[col] for col in columnsCurrent):
+    if len(columnsCurrent) == len(columnsExist): # and all(typesCurrent[col] == typesExist[col] for col in columnsCurrent):
         return False
     else:
         return True
@@ -368,7 +368,6 @@ def saveSchemaAndData(currentDataFrame, joinColumnsO, joinColumnsN):
         spark.sql(f"DROP VIEW IF EXISTS adfTemp")
         EndNotebook(createDF)
         return
-    
 
 # COMMAND ----------
 

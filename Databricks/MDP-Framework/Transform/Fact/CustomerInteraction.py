@@ -45,18 +45,18 @@ def Transform():
     
     # ------------- JOINS ------------------ #
     df = df.join(process_type_df,(df.processType_BK == process_type_df._BusinessKey) & (process_type_df._recordCurrent == 1),"left") \
-    .drop("_BusinessKey","_recordStart","_recordEnd","processType_BK") \
+    .drop("process_type_df._BusinessKey","process_type_df._recordStart","process_type_df._recordEnd", "df._recordStart","df._recordEnd","processType_BK") \
     .join(status_df,(df.status_BK == status_df._BusinessKey) & (status_df._recordCurrent == 1),"left") \
-    .drop("_BusinessKey","_recordStart","_recordEnd","status_BK") \
+    .drop("status_df._BusinessKey","status_df._recordStart","status_df._recordEnd", "df._recordStart","df._recordEnd","status_BK") \
     .join(responsible_employee_df,(df.employeeResponsibleNumber_BK == responsible_employee_df._businessKey) & (df.createdDate.between (responsible_employee_df._recordStart,responsible_employee_df._recordEnd)),"left") \
-    .drop("businessPartnerNumber","_recordStart","_recordEnd") \
+    .drop("businessPartnerNumber","responsible_employee_df._recordStart","responsible_employee_df._recordEnd", "df._recordStart","df._recordEnd") \
     .join(contact_person_df,(df.contactPersonNumber_BK == contact_person_df._businessKey) & (df.createdDate.between (contact_person_df._recordStart,contact_person_df._recordEnd)),"left") \
-    .drop("businessPartnerNumber","_recordStart","_recordEnd") \
+    .drop("businessPartnerNumber","contact_person_df._recordStart","contact_person_df._recordEnd", "df._recordStart","df._recordEnd") \
     .join(property_df,(df.propertyNumber_BK == property_df._BusinessKey) & (df.createdDate.between (property_df._recordStart,property_df._recordEnd)),"left") \
-    .drop("_BusinessKey","_recordStart","_recordEnd") \
+    .drop("property_df._BusinessKey","property_df._recordStart","property_df._recordEnd", "df._recordStart","df._recordEnd") \
     .join(date_df,to_date(df.createdDate) == date_df.calendarDate,"inner") \
     .join(channel_df,(df.channel_BK == channel_df._businessKey) & (channel_df._recordCurrent == 1 ),"left") \
-    .drop("customerServiceChannelCode","_recordStart","_recordEnd","_recordCurrent")     
+    .drop("customerServiceChannelCode","channel_df._recordStart","channel_df._recordEnd", "df._recordStart", "df._recordEnd", "channel_df._recordCurrent", "df._recordCurrent")     
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
@@ -93,7 +93,3 @@ def Transform():
     #DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-

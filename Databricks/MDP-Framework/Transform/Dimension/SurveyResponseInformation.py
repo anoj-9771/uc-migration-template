@@ -27,23 +27,53 @@ table_name = ["qualtrics_billpaidsuccessfullyresponses", "qualtrics_businessConn
               "qualtrics_p4sonlinefeedbackResponses", "qualtrics_s73surveyResponses", "qualtrics_waterfixpostinteractionfeedbackResponses",
               "qualtrics_websitegoliveResponses", "qualtrics_wscs73experiencesurveyResponses", "qualtrics_feedbacktabgoliveResponses"]
 
-required_columns = ["surveyName","surveyID", "recordId", "startDate", "endDate", "finished", "status", "recordedDate"]
+required_columns = ["surveyID", "recordId", "startDate", "endDate", "finished", "status", "recordedDate"]
 
-union_df = None
+qualtricsDF = None
 
 for table in table_name:
     df = GetTable(f"{SOURCE}.{table}")
-    df = add_missing_columns(df, required_columns) 
+    df = add_missing_columns(df, required_columns)
+    df = ( df.select(col("surveyID").alias("surveyId")
+                     ,col("recordId").alias("surveyResponseId")
+                     ,col("startDate").alias("surveyResponseStartTimestamp")
+                     ,col("endDate").alias("surveyResponseEndTimestamp")
+                     ,col("finished").alias("surveyFinishedIndicator")
+                     ,col("status").alias("surveyResponseStatusIndicator")
+                     ,col("recordedDate").alias("surveyResponseRecordedTimestamp")
+                     ,lit('Qualtrics').cast("string").alias("sourceSystemCode")
+
+    )) 
     
-    if union_df is None:
-        union_df = df
+    if qualtricsDF is None:
+        qualtricsDF = df
     else:
-        union_df = union_df.unionByName(df)
-        
+        qualtricsDF = qualtricsDF.unionByName(df)                
 
-finaldf = union_df.withColumn("sourceSystem", lit('Qualtrics').cast("string")) 
-        
+# COMMAND ----------
 
+###################CRM Response #####################################
+crmDF = spark.sql(f""" Select distinct R.surveyID surveyId,
+                                      SV.surveyValuesGUID as surveyResponseId,
+                                    CAST(NULL as timestamp) as surveyResponseStartTimestamp,
+                                    CAST(NULL as timestamp) as surveyResponseEndTimestamp,
+                                    CAST(NULL as string)    as surveyFinishedIndicator,
+                                    CAST(NULL as string)    as surveyResponseStatusIndicator,
+                                    CAST(NULL as timestamp) as surveyResponseRecordedTimestamp,
+                                    'CRM' as sourceSystemCode
+                                    FROM  cleansed.crm_0crm_srv_req_inci_h I  
+                                    INNER JOIN cleansed.crm_crmd_link L on I.serviceRequestGUID = L.hiGUID and setobjecttype = 58
+                                    INNER JOIN cleansed.crm_crmd_survey S on S.setGUID = L.setGUID
+                                    INNER JOIN (Select * , split_part(surveyValueKeyAttribute, '/',1) as questionID from cleansed.crm_crm_svy_db_sv SV1 where surveyValuesVersion = (Select max(surveyValuesVersion) from cleansed.crm_crm_svy_db_sv where surveyValuesGUID = SV1.surveyValuesGUID )) SV on SV.surveyValuesGUID = S.surveyValuesGuid
+                                    INNER JOIN cleansed.crm_crm_svy_re_quest R ON R.questionID = SV.questionID and SV.surveyValuesVersion = R.surveyVersion  
+                                    INNER JOIN cleansed.crm_crm_svy_db_s SDB on R.surveyID = SDB.surveyID and R.surveyVersion = SDB.surveyVersion 
+                                    INNER JOIN cleansed.crm_0svy_qstnnr_text Q on  Q.questionnaireId = R.questionnaire
+                                    INNER JOIN cleansed.crm_0svy_quest_text QT on QT.questionnaireId = Q.questionnaireId AND QT.surveyQuestionId = R.questionId 
+                                    WHERE R.surveyID != 'Z_BILLASSIST_SURVEY'  """)
+
+
+
+finaldf = qualtricsDF.unionByName(crmDF)
 
 # COMMAND ----------
 
@@ -52,17 +82,7 @@ def Transform():
     df_final = finaldf
 
     # ------------- TRANSFORMS ------------- # 
-    _.Transforms = [
-        f"sourceSystem||'|'||surveyID||'|'||recordId {BK}"   
-        ,"surveyID surveyId"
-        ,"recordId surveyResponseId"
-        ,"startDate surveyResponseStartDate" 
-        ,"endDate surveyResponseEndDate"
-        ,"finished surveyFinishedIndicator"
-        ,"status surveyResponseStatusIndicator"
-        ,"recordedDate surveyResponseRecordedDate"      
-        ,"sourceSystem sourceSystemCode"
-    ]
+    _.Transforms = [f"sourceSystemCode||'|'||surveyId||'|'||surveyResponseId {BK}" ,'*']
     
     df_final = df_final.selectExpr(
         _.Transforms

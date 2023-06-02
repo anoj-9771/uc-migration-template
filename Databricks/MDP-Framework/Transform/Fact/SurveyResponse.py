@@ -283,7 +283,7 @@ billpaid_df = billpaid_df.join(dsv.filter(dsv._recordCurrent == 1), (billpaid_df
                          .withColumn("sourceSystem", lit('Qualtrics'))
 
 businessXconn_df = transpose_df(df_businessXconn, df_dimQues, duplicate_columns)
-businessXconn_df = businessXconn_df.join(dbp.filter(dbp._recordCurrent == 1), (businessXconn_df["assignedTo"] == dbp["businessPartnerNumber"]), how = 'left') \
+businessXconn_df = businessXconn_df.join(dbp.filter(dbp._RecordCurrent == 1), (businessXconn_df["assignedTo"] == dbp["businessPartnerNumber"]), how = 'left') \
                                    .select(businessXconn_df["*"], dbp["businessPartnerSK"]) \
                                    .withColumn("surveyParticipantSK", lit('-1'))\
                                    .withColumn("surveyResponseInformationSK", lit('-1'))\
@@ -434,6 +434,8 @@ joined_df = (crm_0crm_srv_req_inci_h_df.alias("I")
     .join(dimQuestion_df.alias("DQ"), (col("R.surveyId") == col("DQ.surveyId")) & (col("R.questionId") == col("DQ.surveyQuestionId")) 
                                                                                 & (col("R.surveyVersion") == col("DQ.surveyVersionNumber")) 
                                                                                 & (col("DQ.sourceSystemCode") == lit("CRM")), how = 'left')
+    .join(dsr.alias("d"), (col("R.surveyId") == col("d.surveyId")) & (col("SV.surveyValuesGUID") == col("d.surveyResponseId")) ,how = 'left')
+    .filter(col("d._recordCurrent") ==1)
 )
 
 
@@ -450,7 +452,8 @@ joined_df = (joined_df.select (col("R.surveyId").alias("surveyId"),
                                col("QT.surveyQuestionId").alias("questionId"),
                                col("SV.surveyValueAttribute").alias("responseText"),
                                col("DQ.surveyQuestionSK").alias("surveyQuestionSK"),
-                               col("DQ.surveyFK").alias("surveyFK")                                
+                               col("DQ.surveyFK").alias("surveyFK"), 
+                               col("d.surveyResponseInformationSK").alias("surveyResponseInformationSK")                                
                               ).withColumn("questionPartId", lit(None).cast("string"))
                                 .withColumn("questionText", lit(None).cast("string"))
                                 .withColumn("responseCode", lit(None).cast("string"))
@@ -467,7 +470,7 @@ joined_df = (joined_df.select (col("R.surveyId").alias("surveyId"),
                                 .withColumn("propertyNumber", lit(None).cast("string"))
                                 .withColumn("assignedTo", lit(None).cast("string"))
                                 .withColumn("businessPartnerSK", lit(uc1DefaultSK)) 
-                                .withColumn("surveyResponseInformationSK", lit('-1')) 
+                                # .withColumn("surveyResponseInformationSK", lit('-1')) 
                                 .withColumn("propertySK", lit(uc1DefaultSK)) 
                                 .withColumn("sourceSystem", lit('CRM')) 
                                 .withColumn("surveyParticipantSK", lit('-1'))

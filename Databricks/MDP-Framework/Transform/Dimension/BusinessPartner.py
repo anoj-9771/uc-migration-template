@@ -39,7 +39,9 @@ isuDF = (GetTable(f"{SOURCE}.isu_0bpartner_attr")
                                                     ,col("validToDate")                                           
                                                     ,col("personNumber")                                          
                                                     ,col("personnelNumber")                                        
-                                                    ,col("organizationName")                                     
+                                                    ,col("organizationName") 
+                                                    ,col("organizationName1")
+                                                    ,col("organizationName2")                                     
                                                     ,col("organizationFoundedDate")               
                                                     ,col("createdDateTime")                                  
                                                     ,col("createdBy") 
@@ -77,7 +79,9 @@ crmDF = (GetTable(f"{SOURCE}.crm_0bpartner_attr")
                                                     ,col("validToDate")                                           
                                                     ,col("personNumber")                                          
                                                     ,col("personnelNumber")                                        
-                                                    ,col("organizationName")                                     
+                                                    ,col("organizationName")
+                                                    ,col("organizationName1")
+                                                    ,col("organizationName2")                                     
                                                     ,col("organizationFoundedDate")                
                                                     ,col("createdDateTime")                                  
                                                     ,col("createdBy")                                            
@@ -161,7 +165,8 @@ isuCrmdf = ((isuDF.alias("isu").join(
 # COMMAND ----------
 
 #Aurion pick single record in priority (active/terminated/history) as of now
-auriondf = aurion_df.withColumn("selectInd", row_number().over(windowSpec))
+windowSpec = Window.partitionBy("businessPartnerNumber").orderBy("priority")
+auriondf = aurDF.withColumn("selectInd", row_number().over(windowSpec))
 auriondf = auriondf.filter(col("selectInd") == 1).drop("selectInd", "priority")
 mainCols = set(isuCrmdf.columns)
 aurCols  = set(auriondf.columns)
@@ -207,10 +212,10 @@ def Transform():
 
     # ------------- SAVE ------------------- #
     #display(df)
-    #CleanSelf()
-    if isSchemaChanged(currentDataFrame):
-        saveSchemaAndData(finaldf, 'businessPartnerNumber', 'businessPartnerNumber')
+    #CleanSelf()    
+    if isSchemaChanged(df):
+        saveSchemaAndData(df, 'businessPartnerNumber', 'businessPartnerNumber')
     else:
         Save(df)
-    #DisplaySelf()
+        #DisplaySelf()
 Transform()

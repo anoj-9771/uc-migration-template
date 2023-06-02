@@ -144,6 +144,15 @@ busPartDF = ( GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner")
                       ) 
                  
             )
+
+busPartGrpDF = ( GetTable(f"{DEFAULT_TARGET}.dimBusinessPartnerGroup")
+                             .select( col("businessPartnerGroupSK").alias("businessPartnerGroupFK")
+                                     ,col("businessPartnerGroupNumber")
+                                     ,col("_recordStart")
+                                     ,col("_recordEnd")
+                      ) 
+                 
+            )
     
 
 contractDF = ( GetTable(f"{DEFAULT_TARGET}.dimContract").filter(col("_recordCurrent") == lit("1"))
@@ -306,8 +315,8 @@ aurionDF = ( (((
 # COMMAND ----------
 
 ##############################Main DATAFRAME / Join FOR CRM ###############################
-finalCRMDF = (((busDF.alias("core")           
- .join(crmLinkDF.alias("cl"), (col("core.serviceRequestGUID") == col("cl.hiGUID")), how= "left")  
+finalCRMDF = (((busDF.alias("core") 
+  .join(crmLinkDF.alias("cl"), (col("core.serviceRequestGUID") == col("cl.hiGUID")), how= "left")  
  .join(crmSappSegDF.alias("css"), (col("cl.setGUID") == col("css.applicationGUID")), how= "left").drop("cl.setGUID", "cl.hiGUID", "css.applicationGUID")
  .withColumn("endDate", coalesce(when(col("core.processTypeCode") == lit("ZCMP"), 
                          col("css.VALIDTO")).otherwise(col("css.ZRESPONDED")), 
@@ -326,10 +335,13 @@ finalCRMDF = (((busDF.alias("core")
                                                           col("au.DateTo")))), "left").drop("au.businessPartnerNumber", "au.DateEffective", "au.DateTo")  
  .join(propertyDF.alias("pr"), ((col("core.propertyNoBK") == col("pr._BusinessKey")) &  
                  (col("core.lastChangedDateTime").between(col("pr._recordStart"), 
-                                                          col("pr._recordEnd")))), "left").drop("pr._BusinessKey", "pr._recordStart", "pr._recordEnd") 
+                                                          col("pr._recordEnd")))), "left").drop("pr._BusinessKey", "pr._recordStart", "pr._recordEnd")  
  .join(locationDF.alias("lo"), ((col("core.propertyNoBK") == col("lo.locationID")) &  
                  (col("core.lastChangedDateTime").between(col("lo._recordStart"), 
                                                           col("lo._recordEnd")))),"left").drop("lo.locationID", "lo._recordStart", "lo._recordEnd") 
+ .join(busPartGrpDF.alias("bgp"), ((col("core.propertyNoBK") == col("bgp.businessPartnerGroupNumber")) &  
+                 (col("core.lastChangedDateTime").between(col("bgp._recordStart"), 
+                                                col("bgp._recordEnd")))), "left").drop("bgp.businessPartnerGroupNumber", "bgp._recordStart", "bgp._recordEnd")
  .join(servCatDF.alias("sc1"), ((col("core.receivedBK") == col("sc1.sourceBusinessKey")) &
            (col("core.lastChangedDateTime").between(col("sc1.sourceValidFromDatetime"), 
                                                           col("sc1.sourceValidToDatetime")))), "left").drop("sc1.sourceBusinessKey", "sc1.sourceValidFromDatetime", "sc1.sourceValidToDatetime", "sc1.resolutionCategoryFK") 
@@ -375,6 +387,7 @@ finalCRMDF = (((busDF.alias("core")
                  ,when(col("processTypeFK").isNull(), lit('-1')).otherwise(col("processTypeFK")).alias("customerServiceProcessTypeFK")
                  ,col("propertyFK")
                  ,col("locationFK")
+                 ,col("businessPartnerGroupFK")
                  ,when(col("statusFK").isNull(), lit('-1')).otherwise(col("statusFK")).alias("customerServiceRequestStatusFK")
                  ,col("salesEmployeeFK")
                  ,col("serviceRequestStartDateFK").alias("customerServiceRequestStartDateFK")
@@ -564,6 +577,9 @@ finalMAXDF = ((df2.alias("core")
       .join(locationDF.alias("lo"), ((col("core.propertyNoBK") == col("lo.locationID")) &  
                  (col("core.lastChangedDateTime").between(col("lo._recordStart"), 
                                                           col("lo._recordEnd")))),"left").drop("lo.locationID", "lo._recordStart", "lo._recordEnd") 
+      .join(busPartGrpDF.alias("bgp"), ((col("core.propertyNoBK") == col("bgp.businessPartnerGroupNumber")) &  
+                 (col("core.lastChangedDateTime").between(col("bgp._recordStart"), 
+                                                col("bgp._recordEnd")))), "left").drop("bgp.businessPartnerGroupNumber", "bgp._recordStart", "bgp._recordEnd")
       .join(servCatDF.alias("sc1"), ((col("core.receivedBK") == col("sc1.sourceBusinessKey")) &
            (col("core.lastChangedDateTime").between(col("sc1.sourceValidFromDatetime"), 
                                                           col("sc1.sourceValidToDatetime")))), "left").drop("sc1.sourceBusinessKey", "sc1.sourceValidFromDatetime", "sc1.sourceValidToDatetime", "sc1.resolutionCategoryFK") 
@@ -588,6 +604,7 @@ finalMAXDF = ((df2.alias("core")
                  ,when(col("processTypeFK").isNull(), lit('-1')).otherwise(col("processTypeFK")).alias("customerServiceProcessTypeFK")
                  ,col("propertyFK")
                  ,col("locationFK")
+                 ,col("businessPartnerGroupFK")
                  ,when(col("statusFK").isNull(), lit('-1')).otherwise(col("statusFK")).alias("customerServiceRequestStatusFK")
                  ,lit(f"{dummyDimPartnerSK}").alias("salesEmployeeFK")
                  ,col("serviceRequestStartDateFK").alias("customerServiceRequestStartDateFK")
@@ -634,7 +651,7 @@ finalMAXDF = ((df2.alias("core")
 )
 
 #finalMAXDF.display()    
-finaldf = finalCRMDF.unionByName(finalMAXDF)                 
+finaldf = finalCRMDF.unionByName(finalMAXDF) 
 
 # COMMAND ----------
 
