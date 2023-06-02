@@ -111,7 +111,7 @@ EPOCH_TIMESTAMP_2d=3600*24*2
 # COMMAND ----------
 
 df_time_series_values = (df_time_series_values
-                          .withColumn("measurementResultAESTDateTime",psf.col("measurementResultAESTDateTime") - psf.expr("INTERVAL 10 HOURS"))
+#                          .withColumn("measurementResultAESTDateTime",psf.col("measurementResultAESTDateTime") - psf.expr("INTERVAL 10 HOURS"))
                           .withColumn("epoch_LAST_RUNTIME",psf.unix_timestamp(psf.date_trunc("hour",psf.lit(LAST_MODEL_RUNTIME)).cast("timestamp")))
                           .withColumn("epoch_CURRENT_RUNTIME",psf.unix_timestamp(psf.date_trunc("hour",psf.lit(CURRENT_MODEL_RUNTIME)).cast("timestamp")))
                           .withColumn("epochMeasurementResultAESTDateTime",psf.unix_timestamp(psf.col("measurementResultAESTDateTime")))
@@ -142,7 +142,9 @@ df_solar=(df_solar
 
 # COMMAND ----------
 
+list_object_internal_id = [557525,563912,564020,564074,564371,585597,585649]
 df_time_series_values = (df_time_series_values
+                         .where(psf.col('objectInternalId').isin(list_object_internal_id))
                          .distinct()
                          .withColumn("timestamp", psf.unix_timestamp(psf.col("measurementResultAESTDateTime")) - psf.unix_timestamp(psf.col("measurementResultAESTDateTime"))%3600)
                          .groupBy("objectInternalId", "timestamp")
@@ -285,7 +287,7 @@ rain_24=(swim_site_specific_rainfall
          .where(psf.col("ref.timestamp") == psf.to_timestamp(psf.lit(CURRENT_MODEL_RUNTIME)))
          .alias("past_rain_hours")
          )
-display(rain_24)
+#display(rain_24)
 
 # COMMAND ----------
 
@@ -304,7 +306,7 @@ rain_48=(swim_site_specific_rainfall
          .orderBy("epoch_timestamp")
          .alias("past_rain_hours")
         )
-display(rain_48)
+#display(rain_48)
 
 # COMMAND ----------
 
@@ -323,7 +325,7 @@ rain_72=(swim_site_specific_rainfall
                .orderBy("epoch_timestamp")
                   .alias("past_rain_hours")
       )
-display(rain_72)
+#display(rain_72)
 
 # COMMAND ----------
 
@@ -342,7 +344,7 @@ rain_7d=(swim_site_specific_rainfall
                .orderBy("epoch_timestamp")
                   .alias("past_rain_hours")
       )
-display(rain_7d)
+#display(rain_7d)
 
 # COMMAND ----------
 
@@ -364,7 +366,7 @@ Rintensity=(swim_site_specific_rainfall
             .alias("past_rain_hours")
           )
 
-display(Rintensity)
+#display(Rintensity)
 
 # COMMAND ----------
 
@@ -385,7 +387,7 @@ Rduration=(swim_site_specific_rainfall
            .alias("past_rain_hours")
           )
 
-display(Rduration)
+#display(Rduration)
 
 # COMMAND ----------
 
@@ -406,7 +408,7 @@ Rdistribution = (swim_site_specific_rainfall
                     .select("ref.timestamp", "epoch_timestamp","Rdistribution","siteName")
                    )
 
-display(Rdistribution)
+#display(Rdistribution)
 
 # COMMAND ----------
 
@@ -431,7 +433,7 @@ days_after_rain_20mm = (swim_site_specific_rainfall
 #                         .alias("drydays20mm")
 #                      .select("timestamp","epoch_timestamp", "siteName", "days_after_rain_20mm")
                       )
-display(days_after_rain_20mm)
+#display(days_after_rain_20mm)
 
 # COMMAND ----------
 
@@ -450,7 +452,7 @@ sun_24=(df_sun
         .select("timestamp", "Sunshine_hours", "sun_24")
         
        )
-display(sun_24)
+#display(sun_24)
 
 # COMMAND ----------
 
@@ -467,7 +469,7 @@ solar_24=(df_solar
 #         .withColumn("solar_24", psf.lag("Daily global solar exposure (MJ/m*m)",1).over(wsolor24).cast("double"))
 #         .select("date", "Daily global solar exposure (MJ/m*m)", "solar_24")
        )
-display(solar_24)
+#display(solar_24)
 
 # COMMAND ----------
 
@@ -532,7 +534,7 @@ model_realtime_input = (max_timestamp
                         .drop("maxSiteName")
                         )
 
-display(model_realtime_input)
+#display(model_realtime_input)
 
 # COMMAND ----------
 
@@ -664,7 +666,7 @@ infer_input_cato= (model_realtime_input
                           )
                
                 )
-display(infer_input_cato)
+#display(infer_input_cato)
 
 # COMMAND ----------
 

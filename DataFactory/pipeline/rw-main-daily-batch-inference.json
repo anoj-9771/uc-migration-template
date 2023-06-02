@@ -768,7 +768,7 @@
 			},
 			"BatchPoolName": {
 				"type": "string",
-				"defaultValue": "RIVERWATCH_POOL_12"
+				"defaultValue": "pool-small-v3"
 			}
 		},
 		"variables": {
