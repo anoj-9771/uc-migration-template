@@ -262,7 +262,11 @@ def SystemDefaultTransform(sourceDataFrame, transformTags, columnName):
 
 from pyspark.sql.functions import expr, col
 def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False, source_table_name_nonuc=None):
-    tableFqn = tableFqn.lower()
+    if len(tableFqn.split('.')) > 2:
+        tableFqn = f"raw.{tableFqn.split('.')[1]}_{tableFqn.split('.')[2]}".lower()
+    else:
+        tableFqn = tableFqn.lower()
+
     dataFrame = spark.table(tableFqn) if dataFrame is None else dataFrame
     systemCode = systemCode.lower()
     

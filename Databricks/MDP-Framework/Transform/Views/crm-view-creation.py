@@ -4,8 +4,8 @@
 # COMMAND ----------
 
 ####Curated viewServiceRequestReceivedCategory
-spark.sql("""
-CREATE OR REPLACE VIEW curated_v3.viewServiceRequestReceivedCategory
+spark.sql(f"""
+CREATE OR REPLACE VIEW {get_table_namespace('curated_v3', 'viewservicerequestreceivedcategory')}
 AS
 SELECT
 categorySK
@@ -34,8 +34,8 @@ WHERE categoryUsage = 'Service Request'
 # COMMAND ----------
 
 #Curated viewServiceRequestResolutionCategory
-spark.sql("""
-CREATE OR REPLACE VIEW curated_v3.viewServiceResolutionCategory
+spark.sql(f"""
+CREATE OR REPLACE VIEW {get_table_namespace('curated_v3', 'viewserviceresolutioncategory')}
 AS
 SELECT
 categorySK

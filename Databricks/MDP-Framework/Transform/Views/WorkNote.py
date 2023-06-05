@@ -64,8 +64,8 @@ def Transform():
     
 
     
-    df1 = GetTable(f"cleansed.crm_zpstxhwithcguid").select("noteID","noteGUID","noteTypeCode","CreatedDateTime","CreatedBy","changeBy","changedDatetime","noteLineNum")
-    aurion_employee_df = spark.sql("""Select userid, givenNames, surname from cleansed.aurion_active_employees union Select userid, givenNames, surname from cleansed.aurion_terminated_employees""")
+    df1 = GetTable(f"{get_table_namespace('cleansed', 'crm_zpstxhwithcguid')}").select("noteID","noteGUID","noteTypeCode","CreatedDateTime","CreatedBy","changeBy","changedDatetime","noteLineNum")
+    aurion_employee_df = spark.sql(f"""Select userid, givenNames, surname from {get_table_namespace('cleansed', 'aurion_active_employees')} union Select userid, givenNames, surname from {get_table_namespace('cleansed', 'aurion_terminated_employees')}""")
     windowSpec2  = Window.partitionBy("noteGUID","CreatedDateTime","noteTypeCode")
     df1 = df1.withColumn("rank",rank().over(windowSpec2.orderBy(col("noteID"))))
     windowSpec3  = Window.partitionBy("noteGUID","noteTypeCode")

@@ -1,14 +1,19 @@
 # Databricks notebook source
+def is_uc():
+    """check if the current databricks environemnt is Unity Catalog enabled"""
+    try:
+        dbutils.secrets.get('ADS', 'databricks-env')
+        return True
+    except Exception as e:
+        return False
+
+# COMMAND ----------
+
+
 def TableExists(tableFqn):
-    if is_uc():
-        return (
-            spark.sql(f"show tables in {tableFqn.split('.')[0]}.{tableFqn.split('.')[1]} like '{tableFqn.split('.')[2]}'")
-            .count () == 1
-        )
-    else:
-        return (spark.sql(f"show tables in {tableFqn.split('.')[0]} like '{tableFqn.split('.')[1]}'")
-                .count() == 1
-        )
+    return (
+        spark.sql(f"show tables in {'.'.join(tableFqn.split('.')[:-1])} like '{tableFqn.split('.')[-1]}'").count() == 1
+    )
 
 # COMMAND ----------
 
@@ -17,14 +22,6 @@ def GetDeltaTablePath(tableFqn):
   return df.collect()[0].data_type
 
 # COMMAND ----------
-
-def is_uc():
-    """check if the current databricks environemnt is Unity Catalog enabled"""
-    try:
-        dbutils.secrets.get('ADS', 'databricks-env')
-        return True
-    except Exception as e:
-        return False
     
 def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints=True):
     if is_uc():

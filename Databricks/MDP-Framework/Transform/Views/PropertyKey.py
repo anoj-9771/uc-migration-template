@@ -3,8 +3,8 @@
 
 # COMMAND ----------
 
-spark.sql("""
-CREATE OR REPLACE VIEW curated_v3.viewPropertyKey AS
+spark.sql(f"""
+CREATE OR REPLACE VIEW {get_table_namespace('curated_v3', 'viewpropertykey')} AS
 
 With dimPropertyDateRanges AS
 (

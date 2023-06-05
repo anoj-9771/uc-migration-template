@@ -57,7 +57,7 @@ class CuratedTransform( BlankClass ):
       self.BK = "_BusinessKey"
     #   self.EntityName = f"{self.EntityType[0:1]}_{self.Name}"
       self.EntityName = f"{'dim' if self.EntityType == 'Dimension' else 'fact' if self.EntityType == 'Fact' else ''}{self.Name}"
-      self.Destination = f"{DEFAULT_TARGET}.{self.EntityName}"
+      self.Destination = get_table_namespace(DEFAULT_TARGET, self.EntityName)
       self.DataLakePath = f"/mnt/datalake-{DEFAULT_TARGET}/{self.EntityType}/{self.EntityName}"
       self.Tables = []
       #self.Joins = []
@@ -373,8 +373,8 @@ def saveSchemaAndData(currentDataFrame, joinColumnsO, joinColumnsN):
 
 def get_recent_cleansed_records(catalog, schema, table, business_date, target_date):
     cleansed_table_name = get_table_name(catalog,schema,table)
-    target_table_name = f"{DEFAULT_TARGET}.{TableName}"
-     # target_table_name = get_table_name(f"{DEFAULT_TARGET}","","{TableName}")
+    # target_table_name = f"{DEFAULT_TARGET}.{TableName}"
+    target_table_name = get_table_namespace(f"{DEFAULT_TARGET}", f"{TableName}")
     try:
         latest_date = spark.sql(f"""select date_format(max({target_date}),'MM/dd/yyyy hh:mm:ss') from {target_table_name}""").first()[0]
         df = spark.sql(f"""select * from {cleansed_table_name} where {business_date} > '{latest_date}'""")
@@ -388,8 +388,8 @@ def get_recent_cleansed_records(catalog, schema, table, business_date, target_da
 def load_sourceValidFromTimeStamp(dataFrame,business_date=None):
     df = dataFrame
     try:
-        # table_name = get_table_name(f"{DEFAULT_TARGET}","","{TableName}")
-        table_name = f"{DEFAULT_TARGET}.{TableName}"
+        table_name = get_table_namespace(f"{DEFAULT_TARGET}", f"{TableName}")
+        # table_name = f"{DEFAULT_TARGET}.{TableName}"
         spark.sql(f"DESCRIBE {table_name}")
         if business_date:
             df = df.withColumn("sourceValidFromTimestamp",col(business_date))

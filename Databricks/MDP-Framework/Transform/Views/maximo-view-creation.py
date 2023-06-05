@@ -18,18 +18,18 @@ dedupeList = ('RELATEDRECORD', 'PM', 'PERSONGROUP', 'PERSONGROUPTEAM', 'WORKORDE
 # COMMAND ----------
 
 #Cleansed view SR
-spark.sql("""
-CREATE OR REPLACE VIEW cleansed.viewmaximosr AS
+spark.sql(f"""
+CREATE OR REPLACE VIEW {get_table_namespace('cleansed', 'maximo_viewmaximosr')} AS
 SELECT
   *
 FROM
-  cleansed.maximo_ticket
+  {get_table_namespace('cleansed', 'maximo_ticket')}
 WHERE
   ticketClass IN (
     SELECT
       synonymdomainValue
     FROM
-      cleansed.maximo_synonymdomain
+      {get_table_namespace('cleansed', 'maximo_synonymdomain')}
     WHERE
       synonymdomainDomain = 'TKCLASS'
       AND internalValue = 'SR'
@@ -39,18 +39,18 @@ WHERE
 # COMMAND ----------
 
 #Cleansed view WOACTIVITY
-spark.sql("""
-CREATE OR REPLACE VIEW cleansed.viewmaximowoactivity AS
+spark.sql(f"""
+CREATE OR REPLACE VIEW {get_table_namespace('cleansed', 'maximo_viewmaximowoactivity')} AS
 SELECT
   *
 FROM
-  cleansed.maximo_workorder
+  {get_table_namespace('cleansed', 'maximo_workorder')}
 WHERE
   workorderClass IN (
     SELECT
       synonymdomainValue
     from
-      cleansed.maximo_synonymdomain
+      {get_table_namespace('cleansed', 'maximo_synonymdomain')}
     WHERE
       synonymdomainDomain = 'WOCLASS'
       AND internalValue = 'ACTIVITY'
@@ -60,11 +60,11 @@ WHERE
 # COMMAND ----------
 
 #Curated view WOACTIVITY
-spark.sql("""
-CREATE OR REPLACE VIEW curated.viewmaximowoactivity as
+spark.sql(f"""
+CREATE OR REPLACE VIEW {get_table_namespace('curated', 'viewmaximowoactivity')} as
         with cteDedup as(
           select *, row_number() over (partition by site,workOrder order by rowStamp desc) dedupe
-          from cleansed.viewmaximowoactivity
+          from {get_table_namespace('cleansed', 'maximo_viewmaximowoactivity')}
         )
         select * EXCEPT (dedupe)
         from cteDedup 
