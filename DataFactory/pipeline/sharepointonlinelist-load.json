@@ -332,7 +332,7 @@
 				"typeProperties": {
 					"variableName": "IsDelta",
 					"value": {
-						"value": "@not(empty(pipeline().parameters.task.LowWatermark))",
+						"value": "@not(empty(pipeline().parameters.task.WatermarkColumn))",
 						"type": "Expression"
 					}
 				}
