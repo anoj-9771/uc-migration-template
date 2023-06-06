@@ -146,8 +146,6 @@ def ConvertTableName(tableFqn):
     schema = GetSchema(tableFqn)
     table = GetTable(tableFqn)
     return f"{catalog}.{schema}.{table}"
-#print(ConvertTableName("cleansed.maximo_abc"))
-print(ConvertTableName("cleansed.iicats_abc_sdf_sdf"))
 
 # COMMAND ----------
 
@@ -187,8 +185,12 @@ def GenerateRbacCommands():
     for g in _grants:
         print(g)
         #UpdatePermission(g["Type"], g["Child"], [ {"principal" : g["Group"], g["Operation"] : [ g["Command"] ]} ])
-        UpdatePermission(g["Type"], g["Child"], [ {"principal" : g["Group"], "remove" : [ g["Command"] ]} ])
+        #UpdatePermission(g["Type"], g["Child"], [ {"principal" : g["Group"], "remove" : [ g["Command"] ]} ])
 GenerateRbacCommands()
+
+# COMMAND ----------
+
+#UpdatePermission("CATALOG", "dev_raw", [ {"principal" : "dev-Admins", "add" : [ "ALL_PRIVILEGES" ]} ])
 
 # COMMAND ----------
 

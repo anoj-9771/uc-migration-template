@@ -1,5 +1,6 @@
 # Databricks notebook source
 import json
+import re
 
 # COMMAND ----------
 
@@ -14,16 +15,19 @@ def GetCatalogPrefix():
 _CURATED_MAP = {}
 def LoadCuratedMap():
     global _CURATED_MAP
-    path = "dbfs:/FileStore/uc/curated_map.csv"
-    df = (spark.read.format("csv")
-            .option("header", "true")
-            .option("inferSchema", "true")
-            .option("multiline", "true")
-            .option("quote", "\"") 
-            .load(path))
-    prefix = GetCatalogPrefix()
-    for i in df.collect():
-        _CURATED_MAP[f"{i.current_database_name}.{i.current_table_name}"] = f"{prefix}curated.{i.future_database_name}.{i.future_table_name}"
+    try:
+        path = "dbfs:/FileStore/uc/curated_map.csv"
+        df = (spark.read.format("csv")
+                .option("header", "true")
+                .option("inferSchema", "true")
+                .option("multiline", "true")
+                .option("quote", "\"") 
+                .load(path))
+        prefix = GetCatalogPrefix()
+        for i in df.collect():
+            _CURATED_MAP[f"{i.current_database_name}.{i.current_table_name}"] = f"{prefix}curated.{i.future_database_name}.{i.future_table_name}"
+    except:
+        pass
 LoadCuratedMap()
 
 # COMMAND ----------
@@ -87,4 +91,30 @@ def ConvertTableName(tableFqn):
 
 # COMMAND ----------
 
+def ReplaceQuery(sql):
+    repalcedSql = sql
+    for m in re.finditer("(?i)[ |\r|\n](from|join)[ |\r|\n]*[a-zA-Z0-9_.]+", repalcedSql, re.S | re.IGNORECASE):
+            operation = re.split("[ |\r|\n]", m.group(0))[1]
+            table = re.split("[ |\r|\n]", m.group(0))[-1]
+            if len(table) <= 7 or "datalab" in table:
+                continue
+            repalcedSql = re.sub(m.group(0), f" {operation} " + ConvertTableName(table), repalcedSql, re.IGNORECASE)
+    return repalcedSql
 
+# COMMAND ----------
+
+def CreateView(sql, newOwner="dev-Admins", preview=False):
+    viewFqn = [re.split("[ |\r|\n]", m.group(0))[-1:][0] for m in re.finditer("(?i)[ |\r|\n](create)*(or)*(replace)*(view)[ |\r|\n]*[a-zA-Z0-9_.`]*", sql, re.S)][-1]
+    db = viewFqn.split(".")[:-1][0].replace("`", "")
+    table = viewFqn.split(".")[-1:][0].replace("`", "")
+    count = spark.sql(f"SHOW VIEWS FROM {db} LIKE '{table}'").count()
+    sql = ReplaceQuery(sql)
+
+    # ALTER
+    if count == 1:
+        sql = re.sub("(?i)create\s*.*?view","alter view", sql, re.DOTALL | re.IGNORECASE)
+    
+    print(sql) if preview else spark.sql(sql)
+
+    # OWNER ASSIGN
+    spark.sql(f"ALTER VIEW {viewFqn} OWNER TO `{newOwner}`") if count == 0 and not(preview) else ()
