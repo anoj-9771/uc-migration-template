@@ -235,7 +235,7 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 
 # MAGIC %sql
 # MAGIC select *
-# MAGIC from cleansed.access_z309_thmastrataplan
+# MAGIC from {ADS_DATABASE_CLEANSED}.access.z309_thmastrataplan
 
 # COMMAND ----------
 

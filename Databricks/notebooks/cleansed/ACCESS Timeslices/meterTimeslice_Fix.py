@@ -20,7 +20,7 @@ def getmeterTimesliceAccess():
         #t7: collapse adjoining date ranges
         #at the end perform the meter change code change from ACCESS values to ISU values. The code tables have already been verified to carry the same descriptions
 #         where exists (select 1 \
-#                                     from cleansed.access_z309_tpropmeter_cleansed pm \
+#                                     from {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter_cleansed pm \
 #                                     where pm.propertyNumber = hpm.propertyNumber and pm.propertyMeterNumber = hpm.propertyMeterNumber and pm.meterMakerNumber = hpm.meterMakerNumber) \
     df = spark.sql(" \
             with history as( \
@@ -30,17 +30,17 @@ def getmeterTimesliceAccess():
                               hpm.isMasterMeter, hpm.isCheckMeter, hpm.allowAlso, hpm.waterMeterType, hpm.propertyMeterUpdatedDate, hpm.rowSupersededDate, \
                               row_number() over (partition by hpm.propertyNumber, hpm.propertyMeterNumber, hpm.meterSize, hpm.meterFittedDate, hpm.meterMakerNumber, hpm.meterChangeReasonCode, hpm.meterExchangeReason, \
                               hpm.meterClass, hpm.meterCategory, hpm.meterGroup, hpm.isMasterMeter, hpm.isCheckMeter, hpm.waterMeterType, hpm.rowSupersededDate order by hpm.rowSupersededTime desc) as rn_latestUpdate \
-                      FROM cleansed.access_Z309_thpropmeter hpm \
-                           left outer join cleansed.access_z309_tpropmeter_cleansed pm on hpm.propertyNumber = pm.propertyNumber and hpm.propertyMeterNumber = pm.propertyMeterNumber and hpm.meterMakerNumber = pm.meterMakerNumber \
+                      FROM {ADS_DATABASE_CLEANSED}.access.Z309_thpropmeter hpm \
+                           left outer join {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter_cleansed pm on hpm.propertyNumber = pm.propertyNumber and hpm.propertyMeterNumber = pm.propertyMeterNumber and hpm.meterMakerNumber = pm.meterMakerNumber \
                       ), \
                  nextMeterFitted as( \
                      select distinct propertyNumber, propertyMeterNumber, meterMakerNumber, meterfittedDate, \
                             max(meterFittedDate) over (partition by propertyNumber, propertyMeterNumber order by meterFittedDate rows between 1 following and 1 following) as nextMeterFitted \
                      from   (select propertyNumber, propertyMeterNumber, meterMakerNumber, meterFittedDate \
-                             from   cleansed.access_Z309_thpropmeter \
+                             from   {ADS_DATABASE_CLEANSED}.access.Z309_thpropmeter \
                              union \
                              select propertyNumber, propertyMeterNumber, meterMakerNumber, meterFittedDate \
-                             from   cleansed.access_Z309_tpropmeter \
+                             from   {ADS_DATABASE_CLEANSED}.access.Z309_tpropmeter \
                              ) as t \
                      ), \
                  bestRemovalDates as( \
@@ -53,7 +53,7 @@ def getmeterTimesliceAccess():
                                                                                                     and    b.meterMakerNumber = a.meterMakerNumber)) as newMeterRemovedDate \
                       from   history a, nextMeterFitted mf \
                       where  not exists (select 1 \
-                                         from   cleansed.access_z309_tpropmeter_cleansed pm \
+                                         from   {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter_cleansed pm \
                                          where  pm.propertyNumber = a.propertyNumber \
                                          and    pm.propertyMeterNumber = a.propertyMeterNumber \
                                          and    pm.meterMakerNumber = a.meterMakerNumber) \
@@ -67,7 +67,7 @@ def getmeterTimesliceAccess():
                              pm.meterMakerNumber, pm.meterChangeReasonCode, pm.meterExchangeReason, meterClassCode, meterClass, meterCategoryCode, meterCategory, meterGroupCode, \
                              meterGroup, isMasterMeter, isCheckMeter, allowAlso, waterMeterType, propertyMeterUpdatedDate, \
                              row_number() over (partition by pm.propertyNumber, pm.propertyMeterNumber, pm.meterFittedDate order by dataSource) as rn_source \
-                      from   cleansed.access_z309_tpropmeter pm, \
+                      from   {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter pm, \
                              nextMeterFitted mf \
                       where  mf.propertyNumber = pm.propertyNumber \
                       and    mf.propertyMeterNumber = pm.propertyMeterNumber \

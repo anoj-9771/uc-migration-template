@@ -44,8 +44,8 @@ def getContractHistory():
                                             ,ch.lastChangedBy
                                             ,ch._RecordDeleted
                                             ,ch._DLCleansedZoneTimeStamp 
-                                      from {ADS_DATABASE_CLEANSED}.isu_0uccontracth_attr_2 ch
-                                      left outer join {ADS_DATABASE_CLEANSED}.crm_utilitiescontract uc
+                                      from {ADS_DATABASE_CLEANSED}.isu.0uccontracth_attr_2 ch
+                                      left outer join {ADS_DATABASE_CLEANSED}.crm.utilitiescontract uc
                                           on ch.contractId = uc.utilitiesContract and ch.validToDate = uc.contractEndDateE
                                           and uc._RecordCurrent = 1
                                       where ch._RecordCurrent = 1 and ch._RecordDeleted <> -1
@@ -90,7 +90,7 @@ def getContractHistory():
 # COMMAND ----------
 
 df, schema = getContractHistory()
-TemplateTimeSliceEtlSCD(df, entity="dimContractHistory", businessKey="contractId,validToDate", schema=schema)
+TemplateTimeSliceEtlSCD(df, entity="dim.contractHistory", businessKey="contractId,validToDate", schema=schema)
 
 # COMMAND ----------
 

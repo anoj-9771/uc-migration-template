@@ -301,11 +301,11 @@ WITH stage AS (
         '1'                                                      as _RecordCurrent, 
         cast('{CurrentTimeStamp}' as TimeStamp)                  as _DLCleansedZoneTimeStamp 
     from stage ADDR 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_t005t t005t ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.t005t t005t ON 
         ADDR.COUNTRY = t005t.countryCode 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_tsad3t tsad3t ON
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.tsad3t tsad3t ON
         ADDR.TITLE = tsad3t.titleCode
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_t005u t005u ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.t005u t005u ON 
         ADDR.REGION = t005u.stateCode and 
         ADDR.COUNTRY = t005u.countryCode
     where ADDR._RecordVersion = 1

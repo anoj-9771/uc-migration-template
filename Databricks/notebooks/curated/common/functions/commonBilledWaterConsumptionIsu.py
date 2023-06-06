@@ -43,8 +43,8 @@ def getBilledWaterConsumptionIsu():
                              erch.erchcExistFlag,
                              erch.billingDocumentWithoutInvoicingCode,
                              erch.newBillingDocumentNumberForReversedInvoicing
-                         from {ADS_DATABASE_CLEANSED}.isu_erch erch
-                         left outer join {ADS_DATABASE_CLEANSED}.isu_0uccontracth_attr_2 conth on conth.contractid = erch.contractid
+                         from {ADS_DATABASE_CLEANSED}.isu.erch erch
+                         left outer join {ADS_DATABASE_CLEANSED}.isu.0uccontracth_attr_2 conth on conth.contractid = erch.contractid
                                         and erch.endbillingperiod between conth.validFromDate and conth.validToDate and conth._recordDeleted = 0
                          where trim(billingSimulationIndicator) = '' """)
 
@@ -56,7 +56,7 @@ def getBilledWaterConsumptionIsu():
                                 ,statisticalAnalysisRateType as statisticalAnalysisRateTypeCode, statisticalAnalysisRateTypeDescription as statisticalAnalysisRateType
                                 ,validFromDate as meterActiveStartDate, validToDate as meterActiveEndDate
                                 ,billingQuantityPlaceBeforeDecimalPoint
-                             from {ADS_DATABASE_CLEANSED}.isu_dberchz1 left outer join cleansed.isu_zcd_tinfprty_tx infprty on infprty.inferiorPropertyTypeCode = isu_dberchz1.industryCode
+                             from {ADS_DATABASE_CLEANSED}.isu.dberchz1 left outer join cleansed.isu.zcd_tinfprty_tx infprty on infprty.inferiorPropertyTypeCode = isu_dberchz1.industryCode
                              where lineItemTypeCode in ('ZDQUAN', 'ZRQUAN') """)
   
     dberchz2Df = spark.sql(f"""select billingDocumentNumber, billingDocumentLineItemId
@@ -70,14 +70,14 @@ def getBilledWaterConsumptionIsu():
                                 ,registerRelationshipConsecutiveNumber, meterReadingAllocationDate
                                 ,registerRelationshipSortHelpCode
                                 ,meterReaderNoteText, quantityDeterminationProcedureCode, meterReadingDocumentId
-                             from {ADS_DATABASE_CLEANSED}.isu_dberchz2
+                             from {ADS_DATABASE_CLEANSED}.isu.dberchz2
                              where trim(suppressedMeterReadingDocumentId) <> '' """)
     
     erchcDf = spark.sql(f"""select * from (select billingDocumentNumber, postingDate as invoicePostingDate
                                             , documentNotReleasedFlag as invoiceNotReleasedIndicator
                                             , invoiceReversalPostingDate, sequenceNumber as invoiceMaxSequenceNumber
                                             , row_number() over (partition by billingDocumentNumber order by sequenceNumber desc) rnk
-                                         from {ADS_DATABASE_CLEANSED}.isu_erchc
+                                         from {ADS_DATABASE_CLEANSED}.isu.erchc
                                        ) as erchc where erchc.rnk=1""")
   
     #3.JOIN TABLES

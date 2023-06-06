@@ -104,8 +104,8 @@ DATA_LAKE_MOUNT_POINT = DataLakeGetMountPoint(ADS_CONTAINER_RAW)
 #Variable 'source_table'has been replaced by 'raw_table'
 source_group = Params["SourceGroup"]
 target_table = Params["TargetName"]
-source_system = target_table.split('_')[0]
-raw_table = get_table_name(target_table)
+source_system = target_table.split('.')[0] if is_uc() else target_table.split('_')[0]
+raw_table = target_table
 #Source
 #The below code is commented as part of this fix
 #source_system = file_object.split('/')[0]

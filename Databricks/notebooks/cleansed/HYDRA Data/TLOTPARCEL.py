@@ -189,7 +189,7 @@ df = spark.sql(f"WITH stage AS \
                                   coalesce(level60,'n/a')  as pressureArea, \
                                   case when product = 'Water'  then 'Y' else 'N' end as isPotableWaterNetwork, \
                                   case when product = 'RecycledWater'  then 'Y' else 'N' end as isRecycledWaterNetwork \
-                           from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA \
+                           from {ADS_DATABASE_CLEANSED}.hydra.TSYSTEMAREA \
                            where product in ('Water','RecycledWater') \
                            and   _RecordDeleted = 0 \
                            and   _RecordCurrent = 1), \
@@ -197,14 +197,14 @@ df = spark.sql(f"WITH stage AS \
                            (select level30 as sewerNetwork, \
                                    level40 as sewerCatchment, \
                                    level50 as SCAMP \
-                            from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA \
+                            from {ADS_DATABASE_CLEANSED}.hydra.TSYSTEMAREA \
                             where product = 'WasteWater' \
                             and   _RecordDeleted = 0 \
                             and   _RecordCurrent = 1), \
                        stormWaterNetwork as \
                            (select level30 as stormWaterNetwork, \
                                    level40 as stormWaterCatchment \
-                            from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA \
+                            from {ADS_DATABASE_CLEANSED}.hydra.TSYSTEMAREA \
                             where product = 'StormWater' \
                             and   _RecordDeleted = 0 \
                             and   _RecordCurrent = 1) \

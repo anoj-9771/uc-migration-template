@@ -318,13 +318,13 @@ df = spark.sql(f"""
             '1'                                        as _RecordCurrent, 
             CAST('{CurrentTimeStamp}' as TimeStamp)    as _DLCleansedZoneTimeStamp 
         FROM stage ADDR
-        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_t005t t005t ON 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.t005t t005t ON 
             ADDR.COUNTRY = t005t.countryCode
-        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tsad3t tsad3t ON
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.tsad3t tsad3t ON
             ADDR.TITLE = tsad3t.titleCode
-        LEFT JOIN cleansed.isu_addrc_deli_servt SERVT ON
+        LEFT JOIN {ADS_DATABASE_CLEANSED}.isu.addrc_deli_servt SERVT ON
             ADDR.DELI_SERV_TYPE = SERVT.deliveryServiceTypeCode
-        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_t005u t005u ON 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.t005u t005u ON 
             ADDR.REGION = t005u.stateCode and 
             ADDR.COUNTRY = t005u.countryCode
         WHERE ADDR._RecordVersion = 1 

@@ -200,9 +200,9 @@ Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,AB,BIS ORDER BY _FileDa
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage dev \
-                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_PRICCLA_TEXT ip ON dev.PREISKLA = ip.priceClassCode \
+                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_PRICCLA_TEXT ip ON dev.PREISKLA = ip.priceClassCode \
                                                                                                     and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
-                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT sp ON dev.TARIFART = sp.rateTypeCode \
+                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_STATTART_TEXT sp ON dev.TARIFART = sp.rateTypeCode \
                                                                                                     and sp._RecordDeleted = 0 and sp._RecordCurrent = 1 \
                         ").cache()
 
@@ -251,7 +251,7 @@ DeltaSaveDataFrameToDeltaTable(cleansed_df.filter("_RecordDeleted = '0'"), targe
 # Load deleted records to replace the existing Deleted records implementation logic
 cleansed_df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_devinst_deleted_records")
 spark.sql(f" \
-    MERGE INTO cleansed.isu_0UC_DEVINST_ATTR \
+    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.0UC_DEVINST_ATTR isu_0UC_DEVINST_ATTR \
     using isu_devinst_deleted_records \
     on isu_0UC_DEVINST_ATTR.installationNumber = isu_devinst_deleted_records.installationNumber \
     and isu_0UC_DEVINST_ATTR.logicalDeviceNumber = isu_devinst_deleted_records.logicalDeviceNumber \

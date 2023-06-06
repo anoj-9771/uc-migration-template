@@ -12,9 +12,17 @@
 
 # COMMAND ----------
 
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
+
+table_name_fq  = f"{ADS_DATABASE_CURATED}.fact.billedWaterConsumption"
+
+# COMMAND ----------
+
 # %sql
 # FOLLOWING TABLE TO BE CREATED MANUALLY FIRST TIME LOADING AFTER THE TABLE CLEANUP
-# CREATE TABLE `curated`.`factBilledWaterConsumption` (
+# CREATE TABLE `curated`.`fact`.`BilledWaterConsumption` (
 #   `sourceSystemCode` STRING NOT NULL,
 #   `meterConsumptionBillingDocumentSK` STRING NOT NULL,
 #   `billingDocumentNumber` STRING NOT NULL,
@@ -52,16 +60,11 @@
 #   `_RecordCurrent` INT NOT NULL)
 # USING delta
 # PARTITIONED BY (sourceSystemCode)
-# LOCATION 'dbfs:/mnt/datalake-curated/factbilledwaterconsumption/delta'
 
 # COMMAND ----------
 
 # FOLLOWING COMMAND TO BE RUN MANUALLY FIRST TIME LOADING AFTER THE TABLE CLEANUP. THIS COMMAND WILL CREATE A VIEW stage.access_property_hist
 # %run ../common/functions/commonAccessPropertyHistory
-
-# COMMAND ----------
-
-# MAGIC %run ../common/common-curated-includeMain
 
 # COMMAND ----------
 
@@ -170,84 +173,84 @@ def getBilledWaterConsumption():
     #4.Load dimension tables into dataframe
     dimPropertyDf = spark.sql(f"""
         SELECT sourceSystemCode, propertySK, propertyNumber, _RecordStart, _RecordEnd
-        FROM {ADS_DATABASE_CURATED}.dimProperty
+        FROM {ADS_DATABASE_CURATED}.dim.property
         """
     )
 
     dimLocationDf = spark.sql(f"""
         SELECT sourceSystemCode, locationSK, locationId, _RecordStart, _RecordEnd 
-        FROM {ADS_DATABASE_CURATED}.dimLocation
+        FROM {ADS_DATABASE_CURATED}.dim.location
         """
     )
 
     dimDeviceDf = spark.sql(f"""
         SELECT sourceSystemCode, deviceSK, deviceNumber, _RecordStart, _RecordEnd 
-        FROM {ADS_DATABASE_CURATED}.dimDevice
+        FROM {ADS_DATABASE_CURATED}.dim.device
         """
     )
     
     dimBillDocDf = spark.sql(f"""
         SELECT sourceSystemCode, meterConsumptionBillingDocumentSK, billingDocumentNumber, _RecordStart, _RecordEnd
-        FROM {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingDocument
+        FROM {ADS_DATABASE_CURATED}.dim.meterConsumptionBillingDocument
         """
     )
     
     dimBillLineItemDf = spark.sql(f"""
         SELECT sourceSystemCode, meterConsumptionBillingLineItemSK, billingDocumentNumber, billingDocumentLineItemId, _RecordStart, _RecordEnd
-        FROM {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem
+        FROM {ADS_DATABASE_CURATED}.dim.meterConsumptionBillingLineItem
         """
     )
 
     dimBusinessPartnerGroupDf = spark.sql(f"""
         SELECT sourceSystemCode, businessPartnerGroupSK, businessPartnerGroupNumber, _RecordStart, _RecordEnd 
-        FROM {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup
+        FROM {ADS_DATABASE_CURATED}.dim.businessPartnerGroup
         """
     )
 
     dimContractDf = spark.sql(f"""
         SELECT sourceSystemCode, contractSK, contractId, _RecordStart, _RecordEnd 
-        FROM {ADS_DATABASE_CURATED}.dimContract 
+        FROM {ADS_DATABASE_CURATED}.dim.contract 
         """
     )
 
     dimInstallationDf = spark.sql(f"""
         SELECT sourceSystemCode, installationSK, installationNumber, _RecordStart, _RecordEnd
-        FROM {ADS_DATABASE_CURATED}.dimInstallation
+        FROM {ADS_DATABASE_CURATED}.dim.installation
         """
     )
     
     dummyDimRecDf = spark.sql(f"""
     /* Union All Dimensions 'dummy' Records */
     SELECT PropertySk as dummyDimSK, PropertyNumber as dummyDimNumber, 'dimProperty' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimProperty 
+    FROM {ADS_DATABASE_CURATED}.dim.property 
     WHERE propertyNumber = '-1' UNION
      
     SELECT LocationSk as dummyDimSK, LocationId as dummyDimNumber, 'dimLocation' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimLocation 
+    FROM {ADS_DATABASE_CURATED}.dim.location 
     WHERE LocationId = '-1' UNION
      
     SELECT deviceSK as dummyDimSK, deviceNumber as dummyDimNumber, 'dimDevice' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimDevice 
+    FROM {ADS_DATABASE_CURATED}.dim.device 
     WHERE deviceNumber = '-1' UNION
      
     SELECT meterConsumptionBillingDocumentSK as dummyDimSK, billingDocumentNumber as dummyDimNumber, 'dimMeterConsumptionBillingDocument' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingDocument 
+    FROM {ADS_DATABASE_CURATED}.dim.meterConsumptionBillingDocument 
     WHERE billingDocumentNumber = '-1' UNION
      
     SELECT meterConsumptionBillingLineItemSK as dummyDimSK, billingDocumentLineItemId as dummyDimNumber, 'dimMeterConsumptionBillingLineItem' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem 
+    FROM {ADS_DATABASE_CURATED}.dim.meterConsumptionBillingLineItem 
     WHERE billingDocumentLineItemId = '-1' UNION
      
     SELECT businessPartnerGroupSK as dummyDimSK, businessPartnerGroupNumber as dummyDimNumber, 'dimBusinessPartnerGroup' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup 
+    FROM {ADS_DATABASE_CURATED}.dim.businessPartnerGroup 
     WHERE BusinessPartnerGroupNumber = '-1' UNION
      
     SELECT contractSK as dummyDimSK, contractId as dummyDimNumber, 'dimContract' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimContract 
+    FROM {ADS_DATABASE_CURATED}.dim.contract 
     WHERE contractId = '-1'  UNION
 
     SELECT installationSK as dummyDimSK, installationNumber as dummyDimNumber, 'dimInstallation' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimInstallation 
+    FROM {ADS_DATABASE_CURATED}.dim.installation 
     WHERE installationNumber = '-1'
     """
     )
@@ -603,7 +606,7 @@ def getBilledWaterConsumption():
 # COMMAND ----------
 
 df, schema = getBilledWaterConsumption()
-# TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,billingPeriodStartDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+# TemplateEtl(df, entity="fact.BilledWaterConsumption", businessKey="meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,billingPeriodStartDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 
@@ -622,41 +625,44 @@ if loadConsumption:
       .format("delta") \
       .mode("overwrite") \
       .option("replaceWhere", "sourceSystemCode = 'ACCESS'") \
-      .option("overwriteSchema","true").saveAsTable("curated.factBilledWaterConsumption")
+      .option("overwriteSchema","true").saveAsTable(table_name_fq)
     
     dfISU = df.filter("sourceSystemCode='ISU'")
     dfISU.write \
       .format("delta") \
       .mode("overwrite") \
       .option("replaceWhere", "sourceSystemCode = 'ISU'") \
-      .option("overwriteSchema","true").saveAsTable("curated.factBilledWaterConsumption")
+      .option("overwriteSchema","true").saveAsTable(table_name_fq)
 else:
     df.write \
       .format("delta") \
       .mode("overwrite") \
       .option("replaceWhere", f"sourceSystemCode = '{source_system}'") \
-      .option("overwriteSchema","true").saveAsTable("curated.factBilledWaterConsumption")
+      .option("overwriteSchema","true").saveAsTable(table_name_fq)
     
-verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
+verifyTableSchema(table_name_fq, schema)
+
+# COMMAND ----------
+
+dbutils.widgets.text("table_name", f"{table_name_fq}")
 
 # COMMAND ----------
 
 # %sql
 # --THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
-# OPTIMIZE curated.factBilledWaterConsumption
+# OPTIMIZE ${table_name}
 # WHERE sourceSystemCode = 'ACCESS'
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC OPTIMIZE curated.factBilledWaterConsumption
-# MAGIC WHERE sourceSystemCode = 'ISU'
+# MAGIC OPTIMIZE ${table_name} WHERE sourceSystemCode = 'ISU'
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
-# MAGIC VACUUM curated.factBilledWaterConsumption RETAIN 0 HOURS;
+# MAGIC VACUUM ${table_name} RETAIN 0 HOURS;
 # MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
 
 # COMMAND ----------

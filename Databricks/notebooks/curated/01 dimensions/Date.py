@@ -165,7 +165,7 @@ def getDate():
                       ,fiscalDates_Int(calendarDate,'month') as monthOfFinancialYear \
                       ,fiscalDates_Int(calendarDate,'quarter') as quarterOfFinancialYear \
                       ,case when fiscalDates_Int(calendarDate,'quarter') < 3 then 1 else 2 end as halfOfFinancialYear \
-                      from {ADS_DATABASE_CLEANSED}.isu_scal_tt_date where calendardate <='9999-06-30'\
+                      from {ADS_DATABASE_CLEANSED}.isu.scal_tt_date where calendardate <='9999-06-30'\
                       union \
                       SELECT  \
                       calendarDate \
@@ -199,7 +199,7 @@ def getDate():
                       ,null as monthOfFinancialYear \
                       ,null as quarterOfFinancialYear \
                       ,null as halfOfFinancialYear \
-                      from {ADS_DATABASE_CLEANSED}.isu_scal_tt_date where calendardate >'9999-06-30'\
+                      from {ADS_DATABASE_CLEANSED}.isu.scal_tt_date where calendardate >'9999-06-30'\
                    ")
 
     #2.Apply schema definition
@@ -244,8 +244,8 @@ def getDate():
 # COMMAND ----------
 
 df, schema = getDate()
-# TemplateEtl(df, entity="dimDate", businessKey="calendarDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimDate", businessKey="calendarDate", schema=schema)
+# TemplateEtl(df, entity="dim.date", businessKey="calendarDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+TemplateEtlSCD(df, entity="dim.date", businessKey="calendarDate", schema=schema)
 
 # COMMAND ----------
 

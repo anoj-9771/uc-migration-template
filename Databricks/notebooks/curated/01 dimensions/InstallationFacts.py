@@ -44,7 +44,7 @@ df_installation_fact = spark.sql(f"""
         currencyKey                       AS currencyKey,
         _RecordDeleted,
         _DLCleansedZoneTimeStamp 
-    FROM {ADS_DATABASE_CLEANSED}.isu_ettifn
+    FROM {ADS_DATABASE_CLEANSED}.isu.ettifn
     WHERE 
         _RecordCurrent = 1 
 """    
@@ -113,7 +113,7 @@ schema = StructType([
 
 TemplateTimeSliceEtlSCD(
     df_installation_fact, 
-    entity="dimInstallationFacts", 
+    entity="dim.installationFacts", 
     businessKey="installationNumber,operandCode,validFromDate,consecutiveDaysFromDate", 
     schema=schema
 )

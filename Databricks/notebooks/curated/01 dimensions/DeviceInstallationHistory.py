@@ -28,7 +28,7 @@ def getDeviceInstallationHistory():
                                               payRentalPrice,
                                               dih._RecordDeleted,
                                               dih._DLCleansedZoneTimeStamp 
-                                          from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVINST_ATTR dih
+                                          from {ADS_DATABASE_CLEANSED}.isu.0UC_DEVINST_ATTR dih
                                           where dih._RecordCurrent = 1 
                                       """)
     
@@ -56,7 +56,7 @@ def getDeviceInstallationHistory():
 # COMMAND ----------
 
 df, schema = getDeviceInstallationHistory()
-TemplateTimeSliceEtlSCD(df, entity="dimDeviceInstallationHistory", businessKey="installationNumber,logicalDeviceNumber,validToDate", schema=schema)
+TemplateTimeSliceEtlSCD(df, entity="dim.deviceInstallationHistory", businessKey="installationNumber,logicalDeviceNumber,validToDate", schema=schema)
 
 # COMMAND ----------
 

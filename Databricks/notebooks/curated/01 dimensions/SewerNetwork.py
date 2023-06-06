@@ -23,7 +23,7 @@ def getSewerNetwork():
                                 level40 as sewerCatchment, 
                                 level50 as SCAMP,
                                 _RecordDeleted 
-                        from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA 
+                        from {ADS_DATABASE_CLEANSED}.hydra.TSYSTEMAREA 
                         where product = 'WasteWater' 
                         and   _RecordCurrent = 1 
                         """)
@@ -58,5 +58,5 @@ def getSewerNetwork():
 # COMMAND ----------
 
 df, schema = getSewerNetwork()
-#TemplateEtl(df, entity="dimSewerNetwork", businessKey="SCAMP", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimSewerNetwork", businessKey="SCAMP", schema=schema)
+#TemplateEtl(df, entity="dim.sewerNetwork", businessKey="SCAMP", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+TemplateEtlSCD(df, entity="dim.sewerNetwork", businessKey="SCAMP", schema=schema)

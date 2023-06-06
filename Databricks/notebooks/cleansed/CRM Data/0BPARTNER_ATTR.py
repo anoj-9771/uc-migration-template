@@ -388,40 +388,40 @@ df = (
         '1'                                                             as _RecordCurrent, 
         cast('{CurrentTimeStamp}' as TimeStamp)                         as _DLCleansedZoneTimeStamp 
     FROM stage  BP
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_CAT_TEXT BP_TXT ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.0BP_CAT_TEXT BP_TXT ON 
         BP.TYPE =BP_TXT.businessPartnerCategoryCode 
         AND BP_TXT._RecordDeleted = 0 
         AND BP_TXT._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BPTYPE_TEXT BPTYPE ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.0BPTYPE_TEXT BPTYPE ON 
         BP.BPKIND = BPTYPE.businessPartnerTypeCode 
         AND BPTYPE._RecordDeleted = 0 
         AND BPTYPE._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_GROUP_TEXT BPGRP ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.0BP_GROUP_TEXT BPGRP ON 
         BP.BU_GROUP = BPGRP.businessPartnerGroupCode 
         AND BPGRP._RecordDeleted = 0 
         AND BPGRP._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T TITLE ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.TSAD3T TITLE ON 
         BP.TITLE = TITLE.titlecode 
         AND TITLE._RecordDeleted = 0 
         AND TITLE._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T ZZTITLE ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.TSAD3T ZZTITLE ON 
         BP.ZZTITLE = ZZTITLE.titlecode 
         AND ZZTITLE._RecordDeleted = 0 
         AND ZZTITLE._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T TITLE_ACA1 ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.TSAD3T TITLE_ACA1 ON 
         BP.TITLE_ACA1 = TITLE_ACA1.titlecode 
         AND TITLE_ACA1._RecordDeleted = 0 
         AND TITLE_ACA1._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_dd07t dd07t_HOSP ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.dd07t dd07t_HOSP ON 
         BP.ZZHOSP_NAME = dd07t_HOSP.domainValueSingleUpperLimit  
         AND dd07t_HOSP.domainName = 'ZZ_HOSP_NAME' 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_dd07t dd07t_MACH ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.dd07t dd07t_MACH ON 
         BP.ZZMACH_TYPE = dd07t_MACH.domainValueSingleUpperLimit  
         AND dd07t_MACH.domainName = 'ZZ_MACH_TYPE' 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_dd07t dd07t_OFF ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.dd07t dd07t_OFF ON 
         BP.ZZOFF_REAS = dd07t_OFF.domainValueSingleUpperLimit  
         AND dd07t_OFF.domainName = 'ZZ_OFF_REAS' 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_t005t t005t ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.t005t t005t ON 
         BP.NAMCOUNTRY = t005t.countryCode 
     WHERE BP._RecordVersion = 1 
     """
@@ -523,18 +523,18 @@ df = (
 # 	BP._RecordDeleted, \
 # 	BP._RecordCurrent \
 # 	FROM {ADS_DATABASE_STAGE}.{source_object}  BP \
-#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BPARTNER_TEXT BP_TXT \
+#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.0BPARTNER_TEXT BP_TXT \
 #                                  ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
 #                                                                               AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
-#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
+#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
 #                                                                               AND BPTYPE._RecordDeleted = 0 AND BPTYPE._RecordCurrent = 1 \
-#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
+#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
 #                                                                               AND BPGRP._RecordDeleted = 0 AND BPGRP._RecordCurrent = 1 \
-#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode \
+#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.TSAD3T TITLE ON BP.TITLE = TITLE.titlecode \
 #                                                                               AND TITLE._RecordDeleted = 0 AND TITLE._RecordCurrent = 1 \
-#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T ZZTITLE ON BP.ZZTITLE = ZZTITLE.titlecode \
+#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.TSAD3T ZZTITLE ON BP.ZZTITLE = ZZTITLE.titlecode \
 #                                                                               AND ZZTITLE._RecordDeleted = 0 AND ZZTITLE._RecordCurrent = 1 \
-#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T TITLE_ACA1 ON BP.TITLE_ACA1 = TITLE_ACA1.titlecode \
+#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.TSAD3T TITLE_ACA1 ON BP.TITLE_ACA1 = TITLE_ACA1.titlecode \
 #                                                                               AND TITLE_ACA1._RecordDeleted = 0 AND TITLE_ACA1._RecordCurrent = 1")
 
 # print(f'Number of rows: {df_cleansed.count()}')

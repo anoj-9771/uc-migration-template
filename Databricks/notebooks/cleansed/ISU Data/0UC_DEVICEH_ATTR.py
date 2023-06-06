@@ -215,8 +215,8 @@ Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,AB,BIS ORDER BY _FileDateTimeSta
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage dev \
-                            left outer join {ADS_DATABASE_CLEANSED}.isu_0UC_GERWECHS_TEXT b on dev.GERWECHS = b.activityReasonCode \
-                            left outer join {ADS_DATABASE_CLEANSED}.isu_0UC_REGGRP_TEXT c on dev.ZWGRUPPE = c.registerGroupCode \
+                            left outer join {ADS_DATABASE_CLEANSED}.isu.0UC_GERWECHS_TEXT b on dev.GERWECHS = b.activityReasonCode \
+                            left outer join {ADS_DATABASE_CLEANSED}.isu.0UC_REGGRP_TEXT c on dev.ZWGRUPPE = c.registerGroupCode \
                         ").cache()
 
 print(f'Number of rows: {df.count()}')
@@ -279,7 +279,7 @@ DeltaSaveDataFrameToDeltaTable(cleansed_df.filter("_RecordDeleted = '0'"), targe
 # Load deleted records to replace the existing Deleted records implementation logic
 cleansed_df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_device_deleted_records")
 spark.sql(f" \
-    MERGE INTO cleansed.isu_0UC_DEVICEH_ATTR \
+    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.0UC_DEVICEH_ATTR isu_0UC_DEVICEH_ATTR \
     using isu_device_deleted_records \
     on isu_0UC_DEVICEH_ATTR.equipmentNumber = isu_device_deleted_records.equipmentNumber \
     and isu_0UC_DEVICEH_ATTR.validFromDate = isu_device_deleted_records.validFromDate \

@@ -19,7 +19,7 @@ def getPropertyService():
                         isu_vibdcharact.supplementInfo,
                         isu_vibdcharact._RecordDeleted,
                         isu_vibdcharact._DLCleansedZoneTimeStamp 
-                        from {ADS_DATABASE_CLEANSED}.isu_vibdcharact isu_vibdcharact inner join {ADS_DATABASE_CLEANSED}.isu_vibdnode isu_vibdnode 
+                        from {ADS_DATABASE_CLEANSED}.isu.vibdcharact isu_vibdcharact inner join {ADS_DATABASE_CLEANSED}.isu.vibdnode isu_vibdnode 
                         on isu_vibdcharact.architecturalObjectInternalId = isu_vibdnode.architecturalObjectInternalId 
                         where isu_vibdcharact._RecordCurrent = 1 
                         and  isu_vibdnode._RecordCurrent = 1  """)
@@ -47,8 +47,8 @@ def getPropertyService():
 # COMMAND ----------
 
 df, schema = getPropertyService()
-#TemplateEtl(df, entity="dimPropertyService", businessKey="propertyNumber,fixtureAndFittingCharacteristicCode,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateTimeSliceEtlSCD(df, entity="dimPropertyService", businessKey="propertyNumber,fixtureAndFittingCharacteristicCode,validToDate", schema=schema)
+#TemplateEtl(df, entity="dim.propertyService", businessKey="propertyNumber,fixtureAndFittingCharacteristicCode,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+TemplateTimeSliceEtlSCD(df, entity="dim.propertyService", businessKey="propertyNumber,fixtureAndFittingCharacteristicCode,validToDate", schema=schema)
 
 # COMMAND ----------
 

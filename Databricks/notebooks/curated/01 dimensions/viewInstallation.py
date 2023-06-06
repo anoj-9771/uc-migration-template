@@ -1,14 +1,20 @@
 # Databricks notebook source
-notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
-view = notebookPath[-1:][0]
-db = notebookPath[-3:][0]
+# MAGIC %run ../common/common-curated-includeMain
 
-spark.sql("""
+# COMMAND ----------
+
+# notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+# view = notebookPath[-1:][0]
+# db = notebookPath[-3:][0]
+schema_name = 'consumption'
+view_name = 'viewinstallation'
+view_fqn = f"{ADS_DATABASE_CURATED}.{schema_name}.{view_name}"
+
+spark.sql(f"""
 -- View: viewInstallation
 -- Description: viewInstallation
 
-CREATE OR REPLACE VIEW curated.viewInstallation
-as
+CREATE OR REPLACE VIEW {view_fqn} AS
 
 With dimInstallationRanges AS
 (
@@ -18,7 +24,7 @@ With dimInstallationRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY installationNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimInstallation
+                FROM {ADS_DATABASE_CURATED}.dim.installation
                 --WHERE _recordDeleted = 0
 ),
 
@@ -30,7 +36,7 @@ dimInstallationHistoryRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY installationNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimInstallationHistory
+                FROM {ADS_DATABASE_CURATED}.dim.installationHistory
                 WHERE _recordDeleted = 0
 ),
 
@@ -127,17 +133,17 @@ SELECT * FROM
         END AS currentFlag,
         if(dimInstallation._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
     FROM effectiveDateRanges as effectiveDateRanges
-    LEFT OUTER JOIN curated.dimInstallation dimInstallation
+    LEFT OUTER JOIN {ADS_DATABASE_CURATED}.dim.installation dimInstallation
         ON dimInstallation.installationNumber = effectiveDateRanges.installationNumber
         AND dimInstallation._recordEnd >= effectiveDateRanges._effectiveFrom 
         AND dimInstallation._recordStart <= effectiveDateRanges._effectiveTo
         --AND dimInstallation._recordDeleted = 0
-    LEFT OUTER JOIN curated.dimInstallationHistory dimInstallationHistory 
+    LEFT OUTER JOIN {ADS_DATABASE_CURATED}.dim.installationHistory dimInstallationHistory 
         ON dimInstallationHistory.installationNumber = effectiveDateRanges.installationNumber 
         AND dimInstallationHistory._recordEnd >= effectiveDateRanges._effectiveFrom 
         AND dimInstallationHistory._recordStart <= effectiveDateRanges._effectiveTo
         AND dimInstallationHistory._recordDeleted = 0
-    LEFT OUTER JOIN curated.dimDisconnectionDocument dimDisconnectionDocument 
+    LEFT OUTER JOIN {ADS_DATABASE_CURATED}.dim.disconnectionDocument dimDisconnectionDocument 
         ON dimDisconnectionDocument.installationNumber = effectiveDateRanges.installationNumber 
         AND dimDisconnectionDocument.referenceObjectTypeCode = 'INSTLN'
         AND dimDisconnectionDocument.disconnectionActivityTypeCode = '02'
@@ -146,4 +152,4 @@ SELECT * FROM
         AND dimInstallationHistory.validtodate = '9999-12-31' 
    )
 ORDER BY _effectiveFrom
-""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 1 else "CREATE OR REPLACE VIEW"))
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewExists(view_fqn) else "CREATE OR REPLACE VIEW"))

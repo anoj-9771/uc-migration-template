@@ -39,7 +39,7 @@
 # MAGIC   buildingName2,
 # MAGIC   modifiedTimestamp, 
 # MAGIC   row_number() over (partition by propertyNumber, modifiedTimestamp order by modifiedTimestamp) as rn 
-# MAGIC   from cleansed.access_z309_thpropertyaddress 
+# MAGIC   from {ADS_DATABASE_CLEANSED}.access.z309_thpropertyaddress 
 # MAGIC ),
 # MAGIC 
 # MAGIC -- get validFrom, validTo from modifiedTimestamp 
@@ -150,7 +150,7 @@
 # MAGIC   ca.buildingName2,
 # MAGIC   timestamp(ca.modifiedTimestamp) as validFrom,
 # MAGIC   timestamp("9999-12-31") as validTo 
-# MAGIC   from cleansed.access_z309_tpropertyaddress ca left join  cleansed.access_z309_thpropertyaddress ha 
+# MAGIC   from {ADS_DATABASE_CLEANSED}.access.z309_tpropertyaddress ca left join  {ADS_DATABASE_CLEANSED}.access.z309_thpropertyaddress ha 
 # MAGIC   on ca.propertyNumber = ha.propertyNumber 
 # MAGIC   where ha.propertyNumber is null 
 # MAGIC )
@@ -185,7 +185,7 @@
 # MAGIC   suburb,
 # MAGIC   streetGuideEffectiveDate, 
 # MAGIC   row_number() over (partition by streetGuideCode, streetGuideEffectiveDate order by streetGuideEffectiveDate) as rn 
-# MAGIC   from cleansed.access_z309_thstreetguide 
+# MAGIC   from {ADS_DATABASE_CLEANSED}.access.z309_thstreetguide 
 # MAGIC ),
 # MAGIC 
 # MAGIC -- get validFrom, validTo from rowSupersededTimestamp
@@ -261,7 +261,7 @@
 # MAGIC   streetGuideEffectiveDate,
 # MAGIC   timestamp(streetGuideEffectiveDate) as validFrom,
 # MAGIC   timestamp('9999-12-31') as validTo 
-# MAGIC   from cleansed.access_z309_tstreetguide where streetGuideCode not in (select distinct streetGuideCode from cleansed.access_z309_thstreetguide)
+# MAGIC   from {ADS_DATABASE_CLEANSED}.access.z309_tstreetguide where streetGuideCode not in (select distinct streetGuideCode from {ADS_DATABASE_CLEANSED}.access.z309_thstreetguide)
 # MAGIC )
 # MAGIC 
 # MAGIC select * from cntStreetGuideCode
@@ -296,7 +296,7 @@
 # MAGIC   superiorPropertyType,
 # MAGIC   rowSupersededTimestamp, 
 # MAGIC   row_number() over (partition by propertyNumber, rowSupersededTimestamp order by rowSupersededTimestamp) as rn 
-# MAGIC   from cleansed.access_z309_thproperty 
+# MAGIC   from {ADS_DATABASE_CLEANSED}.access.z309_thproperty 
 # MAGIC ),
 # MAGIC 
 # MAGIC -- get validFrom, validTo from rowSupersededTimestamp
@@ -370,7 +370,7 @@
 # MAGIC   cp.superiorPropertyType,
 # MAGIC   timestamp(cp.propertyUpdatedDate) as validFrom,
 # MAGIC   timestamp('9999-12-31') as validTo 
-# MAGIC   from cleansed.access_z309_tproperty cp left join  cleansed.access_z309_thproperty hp 
+# MAGIC   from {ADS_DATABASE_CLEANSED}.access.z309_tproperty cp left join  {ADS_DATABASE_CLEANSED}.access.z309_thproperty hp 
 # MAGIC   on cp.propertyNumber = hp.propertyNumber 
 # MAGIC   where hp.propertyNumber is null 
 # MAGIC )
@@ -402,7 +402,7 @@
 # MAGIC   strataPlanNumber,
 # MAGIC   rowSupersededTimestamp, 
 # MAGIC   row_number() over (partition by propertyNumber, rowSupersededTimestamp order by rowSupersededTimestamp) as rn 
-# MAGIC   from cleansed.access_z309_thstrataunits 
+# MAGIC   from {ADS_DATABASE_CLEANSED}.access.z309_thstrataunits 
 # MAGIC ),
 # MAGIC 
 # MAGIC -- get validFrom, validTo from rowSupersededTimestamp
@@ -461,7 +461,7 @@
 # MAGIC   cs.strataPlanNumber,
 # MAGIC   timestamp(cs.strataUnitUpdatedDate) as validFrom,
 # MAGIC   timestamp('9999-12-31') as validTo 
-# MAGIC   from cleansed.access_z309_tstrataunits cs left join  cleansed.access_z309_thstrataunits hs 
+# MAGIC   from {ADS_DATABASE_CLEANSED}.access.z309_tstrataunits cs left join  {ADS_DATABASE_CLEANSED}.access.z309_thstrataunits hs 
 # MAGIC   on cs.propertyNumber = hs.propertyNumber 
 # MAGIC   where hs.propertyNumber is null 
 # MAGIC )
@@ -493,7 +493,7 @@
 # MAGIC   strataPlanNumber,
 # MAGIC   masterStrataUpdatedDate, 
 # MAGIC   row_number() over (partition by strataPlanNumber,masterStrataUpdatedDate order by masterStrataUpdatedDate) as rn 
-# MAGIC   from cleansed.access_z309_thmastrataplan 
+# MAGIC   from {ADS_DATABASE_CLEANSED}.access.z309_thmastrataplan 
 # MAGIC ),
 # MAGIC 
 # MAGIC -- get validFrom, validTo from rowSupersededTimestamp
@@ -553,7 +553,7 @@
 # MAGIC   cm.strataPlanNumber,
 # MAGIC   timestamp(cm.masterStrataUpdatedDate) as validFrom,
 # MAGIC   timestamp("9999-12-31") as validTo 
-# MAGIC   from cleansed.access_z309_tmastrataplan cm left join  cleansed.access_z309_thmastrataplan hm 
+# MAGIC   from {ADS_DATABASE_CLEANSED}.access.z309_tmastrataplan cm left join  {ADS_DATABASE_CLEANSED}.access.z309_thmastrataplan hm 
 # MAGIC   on cm.strataPlanNumber = hm.strataPlanNumber 
 # MAGIC   where hm.strataPlanNumber is null 
 # MAGIC )
@@ -589,7 +589,7 @@
 # MAGIC   row_number() over (partition by propertyNumber,
 # MAGIC     coalesce(if(relationshipUpdatedDate="9999-12-31",rowSupersededTimestamp,relationshipUpdatedDate),rowSupersededTimestamp) 
 # MAGIC     order by coalesce(if(relationshipUpdatedDate="9999-12-31",rowSupersededTimestamp,relationshipUpdatedDate),rowSupersededTimestamp), rowSupersededTimestamp desc) as rn 
-# MAGIC   from cleansed.access_z309_threlatedProps 
+# MAGIC   from {ADS_DATABASE_CLEANSED}.access.z309_threlatedProps 
 # MAGIC ),
 # MAGIC 
 # MAGIC -- get validFrom, validTo from rowSupersededTimestamp
@@ -655,7 +655,7 @@
 # MAGIC   cr.relationshipType,
 # MAGIC   timestamp(cr.relationshipUpdatedDate) as validFrom,
 # MAGIC   timestamp("9999-12-31")as validTo 
-# MAGIC   from cleansed.access_z309_trelatedProps cr left join  cleansed.access_z309_threlatedProps hr 
+# MAGIC   from {ADS_DATABASE_CLEANSED}.access.z309_trelatedProps cr left join  {ADS_DATABASE_CLEANSED}.access.z309_threlatedProps hr 
 # MAGIC   on cr.propertyNumber = hr.propertyNumber 
 # MAGIC   where hr.propertyNumber is null
 # MAGIC )

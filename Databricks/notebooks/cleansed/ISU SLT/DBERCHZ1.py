@@ -242,11 +242,11 @@ df = spark.sql(f"WITH stage AS \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                          FROM stage stg \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_te835t li on li.lineItemTypeCode = stg.BELZART \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text rc on rc.TARIFTYP = stg.TARIFTYP \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tarifnr_text rd on rd.rateId = stg.TARIFNR \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_stattart_text srd on srd.rateTypeCode = stg.STATTART \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu.te835t li on li.lineItemTypeCode = stg.BELZART \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu.0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu.0uc_tariftyp_text rc on rc.TARIFTYP = stg.TARIFTYP \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu.0uc_tarifnr_text rd on rd.rateId = stg.TARIFNR \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu.0uc_stattart_text srd on srd.rateTypeCode = stg.STATTART \
                          where stg._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')

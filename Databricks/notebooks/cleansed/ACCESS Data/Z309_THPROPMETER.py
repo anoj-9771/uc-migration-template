@@ -239,16 +239,16 @@ df_cleansed = spark.sql(f"SELECT \
 	tbl._RecordDeleted, \
 	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-        left outer join cleansed.access_Z309_TMETERTYPE ref1 on tbl.C_METE_TYPE = ref1.meterTypeCode \
-        left outer join cleansed.access_Z309_TMETEREADFREQ ref2 on tbl.C_METE_READ_FREQ = ref2.meterReadingFrequencyCode \
-        left outer join cleansed.access_Z309_TMETERGRIDLOCA ref3 on tbl.C_METE_GRID_LOCA = ref3.meterGridLocationCode \
-        left outer join cleansed.access_Z309_TMETEREADINST ref4 on tbl.C_READ_INST_NUM1 = ref4.meterReadingInstructionCode \
-        left outer join cleansed.access_Z309_TMETEREADINST ref5 on tbl.C_READ_INST_NUM2 = ref5.meterReadingInstructionCode \
-        left outer join cleansed.access_Z309_TMETERCHANGEREAS ref6 on tbl.C_METE_CHAN_REAS = ref6.meterExchangeReasonCode \
-        left outer join cleansed.access_Z309_TMETERCLASS ref7 on tbl.C_METE_CLAS = ref7.meterClassCode \
-        left outer join cleansed.access_Z309_TMETERCATEGORY ref8 on tbl.C_METE_CATE = ref8.meterCategoryCode \
-        left outer join cleansed.access_Z309_TMETERGROUP ref9 on tbl.C_METE_GROU = ref9.meterGroupCode \
-        left outer join cleansed.access_Z309_TMETERGRIDLOCA ref10 on tbl.C_METE_READ_LOCA = ref10.meterGridLocationCode \
+        left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERTYPE ref1 on tbl.C_METE_TYPE = ref1.meterTypeCode \
+        left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETEREADFREQ ref2 on tbl.C_METE_READ_FREQ = ref2.meterReadingFrequencyCode \
+        left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERGRIDLOCA ref3 on tbl.C_METE_GRID_LOCA = ref3.meterGridLocationCode \
+        left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETEREADINST ref4 on tbl.C_READ_INST_NUM1 = ref4.meterReadingInstructionCode \
+        left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETEREADINST ref5 on tbl.C_READ_INST_NUM2 = ref5.meterReadingInstructionCode \
+        left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERCHANGEREAS ref6 on tbl.C_METE_CHAN_REAS = ref6.meterExchangeReasonCode \
+        left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERCLASS ref7 on tbl.C_METE_CLAS = ref7.meterClassCode \
+        left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERCATEGORY ref8 on tbl.C_METE_CATE = ref8.meterCategoryCode \
+        left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERGROUP ref9 on tbl.C_METE_GROU = ref9.meterGroupCode \
+        left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERGRIDLOCA ref10 on tbl.C_METE_READ_LOCA = ref10.meterGridLocationCode \
                                 ")
 
 # COMMAND ----------
@@ -313,8 +313,8 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select count(*) from cleansed.access_z309_tpropmeter pm 
-# MAGIC where exists (select 1 from cleansed.access_z309_thpropmeter hpm 
+# MAGIC select count(*) from {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter pm 
+# MAGIC where exists (select 1 from {ADS_DATABASE_CLEANSED}.access.z309_thpropmeter hpm 
 # MAGIC               where pm.propertyNumber = hpm.propertyNumber 
 # MAGIC               and pm.propertyMeterNumber = hpm.propertyMeterNumber 
 # MAGIC               and pm.meterMakerNumber = hpm.meterMakerNumber)
@@ -324,8 +324,8 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 
 # DBTITLE 1,TPropMeter contains rows from BI but we only want to keep these where there are no meter details in ACCESS
 # MAGIC %sql
-# MAGIC delete from cleansed.access_z309_tpropmeter pm 
-# MAGIC where exists (select 1 from cleansed.access_z309_thpropmeter hpm 
+# MAGIC delete from {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter pm 
+# MAGIC where exists (select 1 from {ADS_DATABASE_CLEANSED}.access.z309_thpropmeter hpm 
 # MAGIC               where pm.propertyNumber = hpm.propertyNumber 
 # MAGIC               and pm.propertyMeterNumber = hpm.propertyMeterNumber 
 # MAGIC               and pm.meterMakerNumber = hpm.meterMakerNumber)
@@ -340,7 +340,7 @@ dbutils.notebook.exit("1")
 
 # MAGIC %sql
 # MAGIC select * 
-# MAGIC from cleansed.access_Z309_thpropmeter
+# MAGIC from {ADS_DATABASE_CLEANSED}.access.Z309_thpropmeter
 # MAGIC where propertyNumber = 5568937
 
 # COMMAND ----------

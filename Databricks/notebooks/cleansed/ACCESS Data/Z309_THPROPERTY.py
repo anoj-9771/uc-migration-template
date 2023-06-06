@@ -280,13 +280,13 @@ df_cleansed = spark.sql(f"SELECT \
         tbl._RecordDeleted, \
         tbl._RecordCurrent \
         FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-                  left outer join cleansed.access_Z309_TLOCALGOVT ref1 on tbl.C_LGA = ref1.LGACode and ref1._RecordCurrent = 1 \
-                  left outer join cleansed.access_Z309_TPROPTYPE ref3 on tbl.C_PROP_TYPE = ref3.propertyTypeCode and ref3._RecordCurrent = 1 \
-                  left outer join cleansed.access_Z309_TPropType ref3a on ref3.superiorPropertyTypeCode = ref3a.propertyTypeCode and ref3a._RecordCurrent = 1 \
-                  left outer join cleansed.access_Z309_TRATATYPE ref4 on tbl.C_RATA_TYPE = ref4.rateabilityTypeCode and ref4._RecordCurrent = 1 \
-                  left outer join cleansed.access_Z309_TSEWEUSAGETYPE ref5 on tbl.C_SEWE_USAG_TYPE = ref5.sewerUsageTypeCode and ref5._RecordCurrent = 1 \
-                  left outer join cleansed.access_Z309_TPROPAREATYPE ref6 on tbl.C_PROP_AREA_TYPE = ref6.propertyAreaTypeCode and ref6._RecordCurrent = 1 \
-                  left outer join cleansed.access_Z309_TEXTRACTLOT ref7 on tbl.C_EXTR_LOT = ref7.extractLotCode and ref7._RecordCurrent = 1 \
+                  left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TLOCALGOVT ref1 on tbl.C_LGA = ref1.LGACode and ref1._RecordCurrent = 1 \
+                  left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TPROPTYPE ref3 on tbl.C_PROP_TYPE = ref3.propertyTypeCode and ref3._RecordCurrent = 1 \
+                  left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TPropType ref3a on ref3.superiorPropertyTypeCode = ref3a.propertyTypeCode and ref3a._RecordCurrent = 1 \
+                  left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TRATATYPE ref4 on tbl.C_RATA_TYPE = ref4.rateabilityTypeCode and ref4._RecordCurrent = 1 \
+                  left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TSEWEUSAGETYPE ref5 on tbl.C_SEWE_USAG_TYPE = ref5.sewerUsageTypeCode and ref5._RecordCurrent = 1 \
+                  left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TPROPAREATYPE ref6 on tbl.C_PROP_AREA_TYPE = ref6.propertyAreaTypeCode and ref6._RecordCurrent = 1 \
+                  left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TEXTRACTLOT ref7 on tbl.C_EXTR_LOT = ref7.extractLotCode and ref7._RecordCurrent = 1 \
                                   ")
 
 # COMMAND ----------

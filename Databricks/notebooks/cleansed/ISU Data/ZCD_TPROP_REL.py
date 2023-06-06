@@ -191,9 +191,9 @@ df = spark.sql(f"WITH stage AS \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage stg\
-                            left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_vireltyptx rtyp1 on stg.REL_TYPE1 = rtyp1.relationshipTypeCode \
+                            left outer join {ADS_DATABASE_CLEANSED}.isu.zcd_vireltyptx rtyp1 on stg.REL_TYPE1 = rtyp1.relationshipTypeCode \
                                                                                     and rtyp1._RecordCurrent = 1 and rtyp1._RecordDeleted = 0 \
-                            left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_vireltyp2tx rtyp2 on stg.REL_TYPE2 = rtyp2.relationshipTypeCode \
+                            left outer join {ADS_DATABASE_CLEANSED}.isu.zcd_vireltyp2tx rtyp2 on stg.REL_TYPE2 = rtyp2.relationshipTypeCode \
                                                                                     and rtyp2._RecordCurrent = 1 and rtyp2._RecordDeleted = 0 \
                         where stg._RecordVersion = 1 ").cache()
 

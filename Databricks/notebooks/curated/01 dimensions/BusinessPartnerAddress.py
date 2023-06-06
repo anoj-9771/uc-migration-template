@@ -106,7 +106,7 @@ df_isu_addr_attr = (
                 )
             END                                                                 AS addressFullText,  -- TRANSFORMATION
             _RecordDeleted 
-        FROM {ADS_DATABASE_CLEANSED}.isu_0bp_def_address_attr 
+        FROM {ADS_DATABASE_CLEANSED}.isu.0bp_def_address_attr 
         WHERE 
             _RecordCurrent = 1 
             AND addressNumber IS NOT NULL
@@ -203,7 +203,7 @@ df_crm_addr_attr = (
                 )
             END                                                                 AS addressFullText, -- TRANSFORMATION
             _RecordDeleted 
-        FROM {ADS_DATABASE_CLEANSED}.crm_0bp_def_address_attr 
+        FROM {ADS_DATABASE_CLEANSED}.crm.0bp_def_address_attr 
         WHERE 
             _RecordCurrent = 1 
             AND addressNumber IS NOT NULL
@@ -378,7 +378,7 @@ schema = StructType([
 # ---- Load Data with SCD --- #
 TemplateEtlSCD(
     df_bp_addr_master, 
-    entity="dimBusinessPartnerAddress", 
+    entity="dim.businessPartnerAddress", 
     businessKey="businessPartnerNumber",
     schema=schema
 )

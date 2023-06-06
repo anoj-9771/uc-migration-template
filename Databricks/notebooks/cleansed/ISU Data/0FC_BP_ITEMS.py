@@ -244,14 +244,14 @@ df = spark.sql(f"WITH stage AS \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                          FROM stage bp \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT cc ON bp.BUKRS = cc.companyCode and cc._RecordDeleted = 0 and cc._RecordCurrent = 1 \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_HVORG_TEXT ho ON bp.APPLK = ho.applicationArea and bp.HVORG = ho.mainTransactionLineItemCode \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0COMP_CODE_TEXT cc ON bp.BUKRS = cc.companyCode and cc._RecordDeleted = 0 and cc._RecordCurrent = 1 \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_HVORG_TEXT ho ON bp.APPLK = ho.applicationArea and bp.HVORG = ho.mainTransactionLineItemCode \
                                                                                              and ho._RecordDeleted = 0 and ho._RecordCurrent = 1 \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_TVORG_TEXT to ON bp.APPLK = to.applicationArea and bp.HVORG = to.mainTransactionLineItemCode \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_TVORG_TEXT to ON bp.APPLK = to.applicationArea and bp.HVORG = to.mainTransactionLineItemCode \
                                                                                              and bp.TVORG = to.subtransactionLineItemCode and to._RecordDeleted = 0 and to._RecordCurrent = 1 \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_BLART_TEXT bl ON bp.APPLK = bl.applicationArea and bp.BLART = bl.documentTypeCode \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0FC_BLART_TEXT bl ON bp.APPLK = bl.applicationArea and bp.BLART = bl.documentTypeCode \
                                                                                              and bl._RecordDeleted = 0 and bl._RecordCurrent = 1 \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FCACTDETID_TEXT fc ON bp.KOFIZ = fc.accountDeterminationCode and fc._RecordDeleted = 0 and fc._RecordCurrent = 1 \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0FCACTDETID_TEXT fc ON bp.KOFIZ = fc.accountDeterminationCode and fc._RecordDeleted = 0 and fc._RecordCurrent = 1 \
                          where bp._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
@@ -331,14 +331,14 @@ df = spark.sql(f"WITH stage AS \
 #                                 bp._RecordDeleted, \
 #                                 bp._RecordCurrent \
 #                         FROM {ADS_DATABASE_STAGE}.{source_object} bp \
-#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT cc ON bp.BUKRS = cc.companyCode and cc._RecordDeleted = 0 and cc._RecordCurrent = 1 \
-#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_HVORG_TEXT ho ON bp.APPLK = ho.applicationArea and bp.HVORG = ho.mainTransactionLineItemCode \
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0COMP_CODE_TEXT cc ON bp.BUKRS = cc.companyCode and cc._RecordDeleted = 0 and cc._RecordCurrent = 1 \
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_HVORG_TEXT ho ON bp.APPLK = ho.applicationArea and bp.HVORG = ho.mainTransactionLineItemCode \
 #                                                                                          and ho._RecordDeleted = 0 and ho._RecordCurrent = 1 \
-#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_TVORG_TEXT to ON bp.APPLK = to.applicationArea and bp.HVORG = to.mainTransactionLineItemCode \
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_TVORG_TEXT to ON bp.APPLK = to.applicationArea and bp.HVORG = to.mainTransactionLineItemCode \
 #                                                                                          and bp.TVORG = to.subtransactionLineItemCode and to._RecordDeleted = 0 and to._RecordCurrent = 1 \
-#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_BLART_TEXT bl ON bp.APPLK = bl.applicationArea and bp.BLART = bl.documentTypeCode \
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0FC_BLART_TEXT bl ON bp.APPLK = bl.applicationArea and bp.BLART = bl.documentTypeCode \
 #                                                                                          and bl._RecordDeleted = 0 and bl._RecordCurrent = 1 \
-#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FCACTDETID_TEXT fc ON bp.KOFIZ = fc.accountDeterminationCode and fc._RecordDeleted = 0 and fc._RecordCurrent = 1")
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0FCACTDETID_TEXT fc ON bp.KOFIZ = fc.accountDeterminationCode and fc._RecordDeleted = 0 and fc._RecordCurrent = 1")
                         
 # print(f'Number of rows: {df_cleansed.count()}')
 

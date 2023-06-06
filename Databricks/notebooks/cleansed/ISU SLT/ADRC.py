@@ -216,7 +216,7 @@ df = spark.sql(f"WITH stage AS \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                          FROM stage stg \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu.0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE \
                          where stg._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')

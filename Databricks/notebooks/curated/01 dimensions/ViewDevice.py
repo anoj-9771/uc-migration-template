@@ -1,12 +1,19 @@
 # Databricks notebook source
-notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
-view = notebookPath[-1:][0]
-db = notebookPath[-3:][0]
+# MAGIC %run ../common/common-curated-includeMain
 
-spark.sql("""
+# COMMAND ----------
+
+# notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+# view = notebookPath[-1:][0]
+# db = notebookPath[-3:][0]
+schema_name = 'consumption'
+view_name = 'viewdevice'
+view_fqn = f"{ADS_DATABASE_CURATED}.{schema_name}.{view_name}"
+
+spark.sql(f"""
 -- View: viewDevice
 -- Description: viewDevice
-CREATE OR REPLACE VIEW curated.viewDevice AS
+CREATE OR REPLACE VIEW {view_fqn} AS
 
 With dimDeviceRanges AS
 (
@@ -16,7 +23,7 @@ With dimDeviceRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY deviceNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimDevice
+                FROM {ADS_DATABASE_CURATED}.dim.device
                 --WHERE _recordDeleted = 0
 ),
 
@@ -28,7 +35,7 @@ dimDeviceHistoryRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY deviceNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimDeviceHistory
+                FROM {ADS_DATABASE_CURATED}.dim.deviceHistory
                 WHERE _recordDeleted = 0
 ),
 
@@ -139,37 +146,37 @@ SELECT
       END AS currentFlag 
     ,if(dimdevice._RecordDeleted = 0,'Y','N') AS currentRecordFlag
 FROM effectiveDateRanges as effectiveDateRanges
-LEFT OUTER JOIN curated.dimDevice dimdevice
+LEFT OUTER JOIN {ADS_DATABASE_CURATED}.dim.device dimdevice
     ON dimdevice.deviceNumber = effectiveDateRanges.deviceNumber 
         AND dimdevice._recordEnd >= effectiveDateRanges._effectiveFrom 
         AND dimdevice._recordStart <= effectiveDateRanges._effectiveTo
         --AND dimdevice._recordDeleted = 0
-LEFT OUTER JOIN curated.dimDeviceHistory dimdevicehistory
+LEFT OUTER JOIN {ADS_DATABASE_CURATED}.dim.deviceHistory dimdevicehistory
     ON dimdevicehistory.deviceNumber = effectiveDateRanges.deviceNumber 
         AND dimdevicehistory._recordEnd >= effectiveDateRanges._effectiveFrom 
         AND dimdevicehistory._recordStart <= effectiveDateRanges._effectiveTo
         AND dimdevicehistory._recordDeleted = 0
-LEFT OUTER JOIN curated.dimDeviceInstallationHistory dimdeviceinstallationhistory
+LEFT OUTER JOIN {ADS_DATABASE_CURATED}.dim.deviceInstallationHistory dimdeviceinstallationhistory
     ON dimdeviceinstallationhistory.logicalDeviceNumber = dimdevicehistory.logicalDeviceNumber
         AND dimdevicehistory._recordStart >= dimdeviceinstallationhistory._recordStart
         AND dimdevicehistory._recordEnd <= dimdeviceinstallationhistory._recordEnd
         AND dimdeviceinstallationhistory._recordDeleted = 0
-LEFT OUTER JOIN curated.dimRegisterHistory dimregisterhistory
+LEFT OUTER JOIN {ADS_DATABASE_CURATED}.dim.registerHistory dimregisterhistory
     ON dimregisterhistory.deviceNumber = dimdevice.deviceNumber
       AND dimDeviceHistory._recordStart >= dimregisterhistory._recordStart
       AND dimDeviceHistory._recordStart <= dimregisterhistory._recordEnd
       AND dimregisterhistory._recordDeleted = 0
-LEFT OUTER JOIN curated.dimRegisterInstallationHistory dimregisterinstallationhistory
+LEFT OUTER JOIN {ADS_DATABASE_CURATED}.dim.registerInstallationHistory dimregisterinstallationhistory
     ON dimregisterinstallationhistory.installationNumber = dimdeviceinstallationhistory.installationNumber
       AND dimregisterhistory.logicalRegisterNumber = dimregisterinstallationhistory.logicalRegisterNumber
       AND dimDeviceHistory._recordStart >= dimregisterinstallationhistory._recordStart
       AND dimDeviceHistory._recordStart <= dimregisterinstallationhistory._recordEnd
       AND dimregisterinstallationhistory._recordDeleted = 0
-LEFT OUTER JOIN cleansed.isu_0UCINSTALLA_ATTR_2 installAttr
+LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UCINSTALLA_ATTR_2 installAttr
     ON installAttr.installationNumber = dimdeviceinstallationhistory.installationNumber
     AND installAttr._recordDeleted = 0
 WHERE dimregisterinstallationhistory.registerNotRelevantToBilling = 'N' or dimdevicehistory.logicalDeviceNumber = 0 or dimdevicehistory.logicalDeviceNumber is null or dimregisterinstallationhistory.registerNotRelevantToBilling is null 
 
 )
 ORDER BY _effectiveFrom
-""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 1 else "CREATE OR REPLACE VIEW"))
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewExists(view_fqn) else "CREATE OR REPLACE VIEW"))

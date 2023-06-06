@@ -189,9 +189,9 @@ df = spark.sql(f"WITH stage AS \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                          FROM stage vib \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tivbdarobjtypet arch ON vib.aotype_ao = arch.aotype \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.tivbdarobjtypet arch ON vib.aotype_ao = arch.aotype \
                                                                                                     and arch._RecordDeleted = 0 and arch._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tivbdarobjtypet archobj ON vib.aotype_pa = archobj.aotype \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.tivbdarobjtypet archobj ON vib.aotype_pa = archobj.aotype \
                                                                                                     and archobj._RecordDeleted = 0 and archobj._RecordCurrent = 1 \
                          where vib._RecordVersion = 1 ")
 
@@ -216,9 +216,9 @@ df = spark.sql(f"WITH stage AS \
 #                                 VIB._RecordDeleted, \
 #                                 VIB._RecordCurrent \
 #                                FROM {ADS_DATABASE_STAGE}.{source_object} vib \
-#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tivbdarobjtypet arch ON vib.aotype_ao = arch.aotype \
+#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.tivbdarobjtypet arch ON vib.aotype_ao = arch.aotype \
 #                                                                                                     and arch._RecordDeleted = 0 and arch._RecordCurrent = 1 \
-#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tivbdarobjtypet archobj ON vib.aotype_pa = archobj.aotype \
+#                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.tivbdarobjtypet archobj ON vib.aotype_pa = archobj.aotype \
 #                                                                                                     and archobj._RecordDeleted = 0 and archobj._RecordCurrent = 1")
 
 # print(f'Number of rows: {df_cleansed.count()}')

@@ -22,7 +22,7 @@ def getStormWaterNetwork():
     baseDf = spark.sql(f"""select level30 as stormWaterNetwork, 
                                 level40 as stormWaterCatchment ,
                                 _RecordDeleted 
-                        from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA 
+                        from {ADS_DATABASE_CLEANSED}.hydra.TSYSTEMAREA 
                         where product = 'StormWater' 
                         and   _RecordCurrent = 1 
                         """)
@@ -55,5 +55,5 @@ def getStormWaterNetwork():
 # COMMAND ----------
 
 df, schema = getStormWaterNetwork()
-#TemplateEtl(df, entity="dimStormWaterNetwork", businessKey="stormWaterCatchment", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimStormWaterNetwork", businessKey="stormWaterCatchment", schema=schema)
+#TemplateEtl(df, entity="dim.stormWaterNetwork", businessKey="stormWaterCatchment", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+TemplateEtlSCD(df, entity="dim.stormWaterNetwork", businessKey="stormWaterCatchment", schema=schema)

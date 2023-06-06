@@ -42,15 +42,15 @@ def getMeterConsumptionBillingDocument():
         erchc.sequenceNumber as invoiceMaxSequenceNumber,
         erch._RecordDeleted as _RecordDeleted,
         erch._DLCleansedZoneTimeStamp 
-        from {ADS_DATABASE_CLEANSED}.isu_erch erch 
-           inner join {ADS_DATABASE_CLEANSED}.isu_dberchz1 as dberchz1 on erch.billingDocumentNumber = dberchz1.billingDocumentNumber                               
+        from {ADS_DATABASE_CLEANSED}.isu.erch erch 
+           inner join {ADS_DATABASE_CLEANSED}.isu.dberchz1 as dberchz1 on erch.billingDocumentNumber = dberchz1.billingDocumentNumber                               
                                           and (dberchz1.lineItemTypeCode = 'ZDQUAN' or dberchz1.lineItemTypeCode = 'ZRQUAN')         
                                           and trim(erch.billingSimulationIndicator) = ''    
-           inner join {ADS_DATABASE_CLEANSED}.isu_dberchz2 as dberchz2 on dberchz1.billingDocumentNumber = dberchz2.billingDocumentNumber
+           inner join {ADS_DATABASE_CLEANSED}.isu.dberchz2 as dberchz2 on dberchz1.billingDocumentNumber = dberchz2.billingDocumentNumber
                                           and dberchz1.billingDocumentLineItemId  = dberchz2.billingDocumentLineItemId
                                           and trim(dberchz2.suppressedMeterReadingDocumentId) <> ''
            left outer join (select *, row_number() over(partition by billingDocumentNumber order by sequenceNumber desc) rec_num 
-                               from {ADS_DATABASE_CLEANSED}.isu_erchc where _RecordCurrent = 1 ) erchc
+                               from {ADS_DATABASE_CLEANSED}.isu.erchc where _RecordCurrent = 1 ) erchc
                                           on erch.billingDocumentNumber =  erchc.billingDocumentNumber and erchc.rec_num = 1 
            where erch._RecordCurrent = 1 and dberchz1._RecordCurrent = 1 and dberchz2._RecordCurrent = 1 
         """).dropDuplicates()
@@ -95,8 +95,8 @@ def getMeterConsumptionBillingDocument():
 # COMMAND ----------
 
 df, schema = getMeterConsumptionBillingDocument()
-#TemplateEtl(df, entity="dimMeterConsumptionBillingDocument", businessKey="sourceSystemCode,billingDocumentNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateTimeSliceEtlSCD(df, entity="dimMeterConsumptionBillingDocument", businessKey="billingDocumentNumber", schema=schema, fromDateCol='billingPeriodStartDate', toDateCol='billingPeriodEndDate')
+#TemplateEtl(df, entity="dim.meterConsumptionBillingDocument", businessKey="sourceSystemCode,billingDocumentNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+TemplateTimeSliceEtlSCD(df, entity="dim.meterConsumptionBillingDocument", businessKey="billingDocumentNumber", schema=schema, fromDateCol='billingPeriodStartDate', toDateCol='billingPeriodEndDate')
 
 # COMMAND ----------
 

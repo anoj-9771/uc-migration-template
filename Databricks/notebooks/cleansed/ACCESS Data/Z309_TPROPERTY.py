@@ -266,13 +266,13 @@ df_cleansed = spark.sql(f"SELECT \
         a._RecordDeleted, \
         a._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} a \
-         left outer join cleansed.access_Z309_TLocalGovt b on b.LGACode = a.c_lga and b._RecordCurrent = 1 \
-         left outer join cleansed.access_Z309_TPropType e on e.propertyTypeCode = a.c_prop_type and e._RecordCurrent = 1 \
-         left outer join cleansed.access_Z309_TPropType f on e.superiorPropertyTypeCode = f.propertyTypeCode and f._RecordCurrent = 1 \
-         left outer join cleansed.access_Z309_TRataType h on h.rateabilityTypeCode = a.c_rata_type and h._RecordCurrent = 1 \
-         left outer join cleansed.access_Z309_TSEWEUSAGETYPE ref5 on a.C_SEWE_USAG_TYPE = ref5.sewerUsageTypeCode and ref5._RecordCurrent = 1 \
-         left outer join cleansed.access_Z309_TPROPAREATYPE ref6 on a.C_PROP_AREA_TYPE = ref6.propertyAreaTypeCode and ref6._RecordCurrent = 1 \
-         left outer join cleansed.access_Z309_TEXTRACTLOT ref7 on a.C_EXTR_LOT = ref7.extractLotCode and ref7._RecordCurrent = 1 \
+         left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TLocalGovt b on b.LGACode = a.c_lga and b._RecordCurrent = 1 \
+         left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TPropType e on e.propertyTypeCode = a.c_prop_type and e._RecordCurrent = 1 \
+         left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TPropType f on e.superiorPropertyTypeCode = f.propertyTypeCode and f._RecordCurrent = 1 \
+         left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TRataType h on h.rateabilityTypeCode = a.c_rata_type and h._RecordCurrent = 1 \
+         left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TSEWEUSAGETYPE ref5 on a.C_SEWE_USAG_TYPE = ref5.sewerUsageTypeCode and ref5._RecordCurrent = 1 \
+         left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TPROPAREATYPE ref6 on a.C_PROP_AREA_TYPE = ref6.propertyAreaTypeCode and ref6._RecordCurrent = 1 \
+         left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TEXTRACTLOT ref7 on a.C_EXTR_LOT = ref7.extractLotCode and ref7._RecordCurrent = 1 \
 ")
 #print(f'Number of rows: {df_cleansed.count()}')
 

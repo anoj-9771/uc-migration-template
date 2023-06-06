@@ -238,22 +238,22 @@ df = spark.sql(f"WITH stage AS \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage con \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TINFPRTY_TX ip ON con.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.ZCD_TINFPRTY_TX ip ON con.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
                                                                                             and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TSUPPRTYP_TX sp ON con.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.ZCD_TSUPPRTYP_TX sp ON con.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
                                                                                             and sp._RecordDeleted = 0 and sp._RecordCurrent = 1 \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPLANTYPE_TX plt ON con.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.ZCD_TPLANTYPE_TX plt ON con.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
                                                                                             and plt._RecordDeleted = 0 and plt._RecordCurrent = 1 \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TIVBDAROBJTYPET tiv ON con.ZCD_AOTYPE = tiv.AOTYPE \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TIVBDAROBJTYPET tiv ON con.ZCD_AOTYPE = tiv.AOTYPE \
                                                                                             and tiv._RecordDeleted = 0 and tiv._RecordCurrent = 1 \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPROCTYPE_TX prt ON con.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.ZCD_TPROCTYPE_TX prt ON con.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
                                                                                             and prt._RecordDeleted = 0 and prt._RecordCurrent = 1 \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0CAM_STREETCODE_TEXT stc ON con.STREETCODE = stc.streetCode and con.COUNTRY = stc.countryShortName \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0CAM_STREETCODE_TEXT stc ON con.STREETCODE = stc.streetCode and con.COUNTRY = stc.countryShortName \
                                                                                             and stc._RecordDeleted = 0 and stc._RecordCurrent = 1 \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE227T reg ON con.REGPOLIT = reg.REGPOLIT and con.COUNTRY = reg.COUNTRY\
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TE227T reg ON con.REGPOLIT = reg.REGPOLIT and con.COUNTRY = reg.COUNTRY\
                                                                                             and reg._RecordDeleted = 0 and reg._RecordCurrent = 1 \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd ON dd.domainName = 'ZCD_DO_ADDR_LOT_TYPE' and con.ZCD_LOT_TYPE = dd.domainValueSingleUpperLimit \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ehauisu ehau ON ehau.propertyNumber = con.HAUS  \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.dd07t dd ON dd.domainName = 'ZCD_DO_ADDR_LOT_TYPE' and con.ZCD_LOT_TYPE = dd.domainValueSingleUpperLimit \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.ehauisu ehau ON ehau.propertyNumber = con.HAUS  \
                          where con._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
@@ -324,19 +324,19 @@ df = spark.sql(f"WITH stage AS \
 #                               con._RecordDeleted, \
 #                               con._RecordCurrent \
 #                             FROM {ADS_DATABASE_STAGE}.{source_object} con \
-#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TINFPRTY_TX ip ON con.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
+#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.ZCD_TINFPRTY_TX ip ON con.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
 #                                                                                             and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
-#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TSUPPRTYP_TX sp ON con.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
+#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.ZCD_TSUPPRTYP_TX sp ON con.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
 #                                                                                             and sp._RecordDeleted = 0 and sp._RecordCurrent = 1 \
-#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPLANTYPE_TX plt ON con.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
+#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.ZCD_TPLANTYPE_TX plt ON con.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
 #                                                                                             and plt._RecordDeleted = 0 and plt._RecordCurrent = 1 \
-#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TIVBDAROBJTYPET tiv ON con.ZCD_AOTYPE = tiv.AOTYPE \
+#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TIVBDAROBJTYPET tiv ON con.ZCD_AOTYPE = tiv.AOTYPE \
 #                                                                                             and tiv._RecordDeleted = 0 and tiv._RecordCurrent = 1 \
-#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPROCTYPE_TX prt ON con.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
+#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.ZCD_TPROCTYPE_TX prt ON con.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
 #                                                                                             and prt._RecordDeleted = 0 and prt._RecordCurrent = 1 \
-#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0CAM_STREETCODE_TEXT stc ON con.STREETCODE = stc.streetCode and con.COUNTRY = stc.countryShortName \
+#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0CAM_STREETCODE_TEXT stc ON con.STREETCODE = stc.streetCode and con.COUNTRY = stc.countryShortName \
 #                                                                                             and stc._RecordDeleted = 0 and stc._RecordCurrent = 1 \
-#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE227T reg ON con.REGPOLIT = reg.REGPOLIT and con.COUNTRY = reg.COUNTRY\
+#                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TE227T reg ON con.REGPOLIT = reg.REGPOLIT and con.COUNTRY = reg.COUNTRY\
 #                                                                                             and reg._RecordDeleted = 0 and reg._RecordCurrent = 1")
 
 

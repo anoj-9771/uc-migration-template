@@ -31,7 +31,7 @@ df_contract_account = spark.sql(f"""
         lastChangedBy                 AS lastChangedBy,
         lastChangedDate               AS lastChangedDate,
         con._RecordDeleted            AS _RecordDeleted 
-    FROM {ADS_DATABASE_CLEANSED}.isu_0cacont_acc_attr_2 con
+    FROM {ADS_DATABASE_CLEANSED}.isu.0cacont_acc_attr_2 con
     WHERE 
         con._RecordCurrent = 1 
 """    
@@ -79,7 +79,7 @@ schema = StructType([
 
 TemplateEtlSCD(
     df_contract_account, 
-    entity="dimContractAccount", 
+    entity="dim.contractAccount", 
     businessKey="contractAccountNumber", 
     schema=schema
 )

@@ -194,9 +194,9 @@ df = spark.sql(f"WITH stage AS \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage stg \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_zcd_tsupprtyp_tx supty on supty.superiorPropertyTypeCode = stg.SUP_PROP_TYPE \
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.zcd_tsupprtyp_tx supty on supty.superiorPropertyTypeCode = stg.SUP_PROP_TYPE \
                                                                                                     and supty._RecordDeleted = 0 and supty._RecordCurrent = 1 \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infty on infty.inferiorPropertyTypeCode = stg.INF_PROP_TYPE \
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.zcd_tinfprty_tx infty on infty.inferiorPropertyTypeCode = stg.INF_PROP_TYPE \
                                                                                                     and infty._RecordDeleted = 0 and infty._RecordCurrent = 1 \
                         where stg._RecordVersion = 1").cache()
 

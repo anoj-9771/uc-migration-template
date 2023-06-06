@@ -7,7 +7,7 @@
 
 # COMMAND ----------
 
-# MAGIC %run ./global-variables-scala
+# %run ./global-variables-scala
 
 # COMMAND ----------
 
@@ -35,7 +35,7 @@
 
 # COMMAND ----------
 
-# MAGIC %run ./util-dw-tsql-scala
+# %run ./util-dw-tsql-scala
 
 # COMMAND ----------
 
@@ -47,7 +47,7 @@
 
 # COMMAND ----------
 
-# MAGIC %run ./connect-synapse
+# %run ./connect-synapse
 
 # COMMAND ----------
 

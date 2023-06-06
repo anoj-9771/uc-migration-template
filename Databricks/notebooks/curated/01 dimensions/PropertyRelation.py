@@ -20,7 +20,7 @@ def getPropertyRelation():
                                         relationshipType2,
                                         _RecordDeleted,
                                         _DLCleansedZoneTimeStamp 
-                                        from {ADS_DATABASE_CLEANSED}.isu_zcd_tprop_rel where _RecordCurrent = 1 """)
+                                        from {ADS_DATABASE_CLEANSED}.isu.zcd_tprop_rel where _RecordCurrent = 1 """)
     
     dummyDimRecDf = spark.createDataFrame([("-1","-1",
                                             datetime.strptime("1900-01-01","%Y-%m-%d").date(),
@@ -46,8 +46,8 @@ def getPropertyRelation():
 # COMMAND ----------
 
 df, schema = getPropertyRelation()
-#TemplateEtl(df, entity="dimPropertyRelation", businessKey="property1Number,property2Number,relationshipTypeCode1,relationshipTypeCode2,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateTimeSliceEtlSCD(df, entity="dimPropertyRelation", businessKey="property1Number,property2Number,relationshipTypeCode1,validFromDate", schema=schema)
+#TemplateEtl(df, entity="dim.propertyRelation", businessKey="property1Number,property2Number,relationshipTypeCode1,relationshipTypeCode2,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+TemplateTimeSliceEtlSCD(df, entity="dim.propertyRelation", businessKey="property1Number,property2Number,relationshipTypeCode1,validFromDate", schema=schema)
 
 # COMMAND ----------
 

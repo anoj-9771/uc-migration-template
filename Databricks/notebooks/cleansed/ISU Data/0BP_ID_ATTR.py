@@ -264,15 +264,15 @@ df = spark.sql(f"""
         '1'                                                       as _RecordCurrent, 
         cast('{CurrentTimeStamp}' as TimeStamp)                   as _DLCleansedZoneTimeStamp 
     FROM stage BP 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_ID_TYPE_TEXT BP_TXT 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0BP_ID_TYPE_TEXT BP_TXT 
         ON BP.TYPE = BP_TXT.identificationTypeCode 
         AND BP_TXT._RecordDeleted = 0 
         AND BP_TXT._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_t005t t005t 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.t005t t005t 
         ON BP.COUNTRY = t005t.countryCode 
         AND t005t._RecordDeleted = 0 
         AND t005t._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_t005u t005u 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.t005u t005u 
         ON BP.REGION = t005u.stateCode 
         AND BP.COUNTRY = t005u.countryCode 
         AND t005u._RecordDeleted = 0 
@@ -347,7 +347,7 @@ DeltaSaveDataFrameToDeltaTable(
 # CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 
 # spark.sql(f" \
-#     MERGE INTO cleansed.isu_0BP_ID_ATTR \
+#     MERGE INTO {ADS_DATABASE_CLEANSED}.isu.0BP_ID_ATTR \
 #     using isu_bp_id_deleted_records \
 #     on isu_0BP_ID_ATTR.businessPartnerNumber = isu_bp_id_deleted_records.PARTNER \
 #     and isu_0BP_ID_ATTR.identificationTypeCode = isu_bp_id_deleted_records.TYPE \

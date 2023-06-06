@@ -205,8 +205,8 @@ df_cleansed = spark.sql(f"SELECT \
             l._RecordDeleted, \
             l._RecordCurrent \
         FROM {ADS_DATABASE_STAGE}.{source_object} l \
-                left outer join cleansed.access_z309_TPLANTYPE pt on l.C_PLAN_TYPE = pt.planTypeCode \
-                left outer join cleansed.access_z309_TPORTIONLOTYPE plt on l.C_PORT_LOT_TYPE = plt.lotTypeCode WHERE N_PROP <> '4174119'")
+                left outer join {ADS_DATABASE_CLEANSED}.access.z309_TPLANTYPE pt on l.C_PLAN_TYPE = pt.planTypeCode \
+                left outer join {ADS_DATABASE_CLEANSED}.access.z309_TPORTIONLOTYPE plt on l.C_PORT_LOT_TYPE = plt.lotTypeCode WHERE N_PROP <> '4174119'")
 #------------------------------------------------------------------------------------------
 # Note: property 4174119 is a strata garage and should only exist on the strata units table
 #------------------------------------------------------------------------------------------                        

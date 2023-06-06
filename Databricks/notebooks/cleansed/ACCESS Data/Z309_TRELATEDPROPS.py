@@ -195,7 +195,7 @@ df_cleansed = spark.sql(f"SELECT \
             prt._RecordDeleted, \
             prt._RecordCurrent \
         FROM {ADS_DATABASE_STAGE}.{source_object} prt left outer join \
-                cleansed.access_z309_TPROPRELATYPE ref on prt.C_PROP_RELA_TYPE = ref.relationshipTypeCode \
+                {ADS_DATABASE_CLEANSED}.access.z309_TPROPRELATYPE ref on prt.C_PROP_RELA_TYPE = ref.relationshipTypeCode \
         ")
 
 #print(f'Number of rows: {df_cleansed.count()}')

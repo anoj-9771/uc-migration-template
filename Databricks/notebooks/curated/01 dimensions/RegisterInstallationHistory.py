@@ -30,7 +30,7 @@ def getRegisterInstallationHistory():
                                                   rateFactGroup,
                                                   rih._RecordDeleted,
                                                   rih._DLCleansedZoneTimeStamp 
-                                              from {ADS_DATABASE_CLEANSED}.isu_0UC_REGINST_STR_ATTR rih
+                                              from {ADS_DATABASE_CLEANSED}.isu.0UC_REGINST_STR_ATTR rih
                                               where rih._RecordCurrent = 1 
                                         """)
     
@@ -60,7 +60,7 @@ def getRegisterInstallationHistory():
 # COMMAND ----------
 
 df, schema = getRegisterInstallationHistory()
-TemplateTimeSliceEtlSCD(df, entity="dimRegisterInstallationHistory", businessKey="logicalRegisterNumber,installationNumber,validToDate", schema=schema)
+TemplateTimeSliceEtlSCD(df, entity="dim.registerInstallationHistory", businessKey="logicalRegisterNumber,installationNumber,validToDate", schema=schema)
 
 # COMMAND ----------
 

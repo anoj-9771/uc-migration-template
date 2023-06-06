@@ -218,8 +218,8 @@ df_cleansed = spark.sql(f"SELECT \
 	tbl._RecordDeleted, \
 	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-left outer join cleansed.access_Z309_TPLANTYPE ref1 on tbl.C_PLAN_TYPE = ref1.planTypeCode \
-left outer join cleansed.access_Z309_TPORTIONLOTYPE ref2 on tbl.C_PORT_LOT_TYPE = ref2.lotTypeCode \
+left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TPLANTYPE ref1 on tbl.C_PLAN_TYPE = ref1.planTypeCode \
+left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TPORTIONLOTYPE ref2 on tbl.C_PORT_LOT_TYPE = ref2.lotTypeCode \
                                 ")
 
 # COMMAND ----------
@@ -260,7 +260,7 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from cleansed.access_z309_thlot
+# MAGIC select * from {ADS_DATABASE_CLEANSED}.access.z309_thlot
 # MAGIC where planTypecode is not null
 
 # COMMAND ----------

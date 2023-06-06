@@ -270,15 +270,15 @@ df = spark.sql(f"""
                '1'                                                     as _RecordCurrent, 
                cast('{CurrentTimeStamp}' as TimeStamp)                 as _DLCleansedZoneTimeStamp 
      FROM stage stg 
-     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0DIVISION_TEXT div ON 
+     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0DIVISION_TEXT div ON 
           div.divisionCode = stg.SPARTE and 
           div._RecordDeleted = 0 and
           div._RecordCurrent = 1 
-     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_SERTYPE_TEXT ser ON 
+     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_SERTYPE_TEXT ser ON 
           ser.serviceTypeCode = stg.SERVICE and 
           ser._RecordDeleted = 0 and 
           ser._RecordCurrent = 1 
-     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE438T mrc ON 
+     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TE438T mrc ON 
           mrc.meterReadingControlCode = stg.ABLESARTST and 
           mrc._RecordDeleted = 0 and 
           mrc._RecordCurrent = 1 
@@ -319,11 +319,11 @@ df = spark.sql(f"""
 #                             stg._RecordDeleted, \
 #                             stg._RecordCurrent \
 #                         FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0DIVISION_TEXT div on div.divisionCode = stg.SPARTE \
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0DIVISION_TEXT div on div.divisionCode = stg.SPARTE \
 #                                                                                                     and div._RecordDeleted = 0 and div._RecordCurrent = 1 \
-#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_SERTYPE_TEXT ser on ser.serviceTypeCode = stg.SERVICE \
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_SERTYPE_TEXT ser on ser.serviceTypeCode = stg.SERVICE \
 #                                                                                                     and ser._RecordDeleted = 0 and ser._RecordCurrent = 1 \
-#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE438T mrc ON mrc.meterReadingControlCode = stg.ABLESARTST \
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TE438T mrc ON mrc.meterReadingControlCode = stg.ABLESARTST \
 #                                                                                                     and mrc._RecordDeleted = 0 and mrc._RecordCurrent = 1")
 
 # print(f'Number of rows: {df_cleansed.count()}')

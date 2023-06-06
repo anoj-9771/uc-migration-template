@@ -46,9 +46,13 @@ class SCDTransform( BlankClass ):
         self.BusinessKeyCols = f"{BUSINESS_KEY_COLS}"
         self.SurrogateKey = f"{self.EntityName}SK"
         self.SurrogateKey = self.SurrogateKey[0].lower() + self.SurrogateKey[1:]
-        self.TargetTable = f"{TARGET_LAYER}.dim{self.EntityName}"
-        self.MountPoint = DataLakeGetMountPoint(ADS_CONTAINER_CURATED)
-        self.DataLakePath = f"dbfs:{self.MountPoint}/dim{self.EntityName.lower()}/delta"
+        if is_uc():
+            self.TargetTable = f"{TARGET_LAYER}.dim.{self.EntityName}"
+            self.DataLakePath = ""
+        else:
+            self.TargetTable = f"{TARGET_LAYER}.dim{self.EntityName}"
+            self.MountPoint = DataLakeGetMountPoint(ADS_CONTAINER_CURATED)
+            self.DataLakePath = f"dbfs:{self.MountPoint}/dim{self.EntityName.lower()}/delta"
 
 # COMMAND ----------
 
@@ -96,6 +100,9 @@ def addSCDColumns(dataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SCD
 def TableExists(tableFqn):
     return spark._jsparkSession.catalog().tableExists(tableFqn.split(".")[0], tableFqn.split(".")[1])
 
+def TableExistsUC(tableFqn):
+    return (spark.table(f'{tableFqn.split(".")[0]}.information_schema.tables').filter(f"""table_schema = '{tableFqn.split('.')[1]}' and table_name = '{tableFqn.split('.')[-1]}'""").count () > 0)
+
 def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath):
     dataFrame.write \
     .format("delta") \
@@ -103,12 +110,21 @@ def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath):
     .mode("overwrite") \
     .save(dataLakePath)
     spark.sql(f"CREATE TABLE IF NOT EXISTS {targetTableFqn} USING DELTA LOCATION \'{dataLakePath}\'")
-    
+
+def CreateDeltaTableUC(dataFrame, targetTableFqn):
+    dataFrame.write \
+    .format("delta") \
+    .option("mergeSchema", "true") \
+    .mode("overwrite") \
+    .saveAsTable(targetTableFqn)
+    spark.sql(f"CREATE TABLE IF NOT EXISTS {targetTableFqn}")
+
+
 def AdjustRecordStartDate(dataFrame, _=_):
     if _.EntityName.lower() == "location" or _.EntityName.lower() == "property" or _.EntityName.lower() == "device":
         dataFrame = dataFrame.withColumn("_RecordStart", expr("CAST('1990-07-01' AS TIMESTAMP)"))
     else:
-        _recordStartDate = str(spark.sql("select min(startbillingperiod) from cleansed.isu_erch").collect()[0][0])
+        _recordStartDate = str(spark.sql(f"select min(startbillingperiod) from {ADS_DATABASE_CLEANSED}.isu.erch").collect()[0][0])
         dataFrame = dataFrame.withColumn("_RecordStart", expr(f"CAST({_recordStartDate} AS TIMESTAMP)"))
     return dataFrame
 
@@ -131,23 +147,36 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
             scd_start_date, scd_expire_date = str(dt_tp[0]), str(dt_tp[1])
     
     print("Add SCD Columns to Source Dataframe")
-    if (not(TableExists(targetTableFqn))):
-        scd_start_date = "1900-01-01"
+    if is_uc():
+        if (not(TableExistsUC(targetTableFqn))):
+            scd_start_date = "1900-01-01"
+    else:
+        if (not(TableExists(targetTableFqn))):
+            scd_start_date = "1900-01-01"
     sourceDataFrame = addSCDColumns(sourceDataFrame,scd_start_date, scd_end_date, _)
 
     # If Target table not exists, then create Target table with source data
-    
-    if (not(TableExists(targetTableFqn))):
-        print(f"Table {targetTableFqn} not exists, Creat and load Table {targetTableFqn}")
+    if is_uc():
+        if (not(TableExistsUC(targetTableFqn))):
+            print(f"Table {targetTableFqn} not exists, Create and load Table {targetTableFqn}")
+            # Adjust _RecordStart date for first load
+            print("Adjust _RecordStart date for first load")
+            #sourceDataFrame = AdjustRecordStartDate(sourceDataFrame,_)
+#           sourceDataFrame = sourceDataFrame.withColumn("_RecordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
+            CreateDeltaTableUC(sourceDataFrame, targetTableFqn)  
+            return
+    else:
+        if (not(TableExists(targetTableFqn))):
+            print(f"Table {targetTableFqn} not exists, Create and load Table {targetTableFqn}")
         
-        # Adjust _RecordStart date for first load
+            # Adjust _RecordStart date for first load
         
-        print("Adjust _RecordStart date for first load")
-        #sourceDataFrame = AdjustRecordStartDate(sourceDataFrame,_)
-#         sourceDataFrame = sourceDataFrame.withColumn("_RecordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
+            print("Adjust _RecordStart date for first load")
+            #sourceDataFrame = AdjustRecordStartDate(sourceDataFrame,_)
+#           sourceDataFrame = sourceDataFrame.withColumn("_RecordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
         
-        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
-        return
+            CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+            return
     
     print("Checking new records")
 

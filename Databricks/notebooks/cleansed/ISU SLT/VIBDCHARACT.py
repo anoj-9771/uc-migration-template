@@ -195,7 +195,7 @@ df = spark.sql(f"WITH stage AS \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage stg\
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0df_refixfi_text ff on ff.fixtureAndFittingCharacteristicCode = stg.FIXFITCHARACT \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu.0df_refixfi_text ff on ff.fixtureAndFittingCharacteristicCode = stg.FIXFITCHARACT \
                                                                                                    and ff._RecordDeleted = 0 and ff._RecordCurrent = 1 \
                         where stg._RecordVersion = 1 ").cache()
 
@@ -252,7 +252,7 @@ CurrentTimeStamp = GeneralLocalDateTime()
 CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 
 spark.sql(f" \
-    MERGE INTO cleansed.isu_VIBDCHARACT \
+    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.VIBDCHARACT isu_VIBDCHARACT\
     using isu_vibdcharact_deleted_records \
     on isu_VIBDCHARACT.architecturalObjectInternalId = isu_vibdcharact_deleted_records.INTRENO \
     and isu_VIBDCHARACT.fixtureAndFittingCharacteristicCode = isu_vibdcharact_deleted_records.FIXFITCHARACT \

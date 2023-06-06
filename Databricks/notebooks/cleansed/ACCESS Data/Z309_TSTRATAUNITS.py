@@ -231,7 +231,7 @@ dbutils.notebook.exit("1")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from cleansed.access_z309_tstrataunits
+# MAGIC select * from {ADS_DATABASE_CLEANSED}.access.z309_tstrataunits
 
 # COMMAND ----------
 

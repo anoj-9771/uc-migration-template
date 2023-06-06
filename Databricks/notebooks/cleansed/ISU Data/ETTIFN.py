@@ -257,11 +257,11 @@ df = spark.sql(f"""
                     '1'                                                 as _RecordCurrent, 
                     cast('{CurrentTimeStamp}' as TimeStamp)             as _DLCleansedZoneTimeStamp 
             FROM stage ef 
-            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT te ON 
+            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_STATTART_TEXT te ON 
                     ef.TARIFART = te.rateTypeCode and
                     te._RecordDeleted = 0 and 
                     te._RecordCurrent = 1 
-            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te067t te067t ON
+            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.te067t te067t ON
                     ef.KONDIGR = te067t AND
                     te067t._RecordDeleted = 0 and 
                     te067t._RecordCurrent = 1 

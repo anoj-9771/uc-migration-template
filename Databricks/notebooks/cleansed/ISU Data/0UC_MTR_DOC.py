@@ -219,7 +219,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR ORDER BY _FileDateTimeStamp D
                                       '1' as _RecordCurrent, \
                                       cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage MR \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_MRTYPE_TEXT MR_TXT \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_MRTYPE_TEXT MR_TXT \
                                 ON MR.ISTABLART = MR_TXT.meterReadingTypeCode \
                                 AND MR_TXT._RecordDeleted = 0 AND MR_TXT._RecordCurrent = 1 \
                        ")

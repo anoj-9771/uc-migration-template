@@ -29,7 +29,7 @@
 # MAGIC     - **IF** ISU BP does not exist, and CRM BP does:
 # MAGIC         - **THEN** return CRM columns
 # MAGIC
-# MAGIC 3. Load Source Table into `curated.dimBusinessPartnerGroup`
+# MAGIC 3. Load Source Table into `{ADS_DATABASE_CURATED}.dim.BusinessPartnerGroup`
 # MAGIC Using the SCD loading function `TemplateEtlSCD` to merge results from source to target
 # MAGIC ***
 
@@ -70,7 +70,7 @@ df_isu_0bpartner_attr = (
             validFromDate                             AS validFromDate,
             validToDate                               AS validToDate,
             _RecordDeleted 
-        FROM {ADS_DATABASE_CLEANSED}.isu_0bpartner_attr isu
+        FROM {ADS_DATABASE_CLEANSED}.isu.0bpartner_attr isu
         WHERE
             businessPartnerCategoryCode = '3' -- FILTERS TO GROUP
             AND _RecordCurrent = 1 
@@ -134,7 +134,7 @@ df_crm_0bpartner_attr = (
             machineOffReasonCode                      AS machineOffReasonCode,
             machineOffReason                          AS machineOffReason,
             _RecordDeleted 
-        FROM {ADS_DATABASE_CLEANSED}.crm_0bpartner_attr crm
+        FROM {ADS_DATABASE_CLEANSED}.crm.0bpartner_attr crm
         WHERE 
             businessPartnerCategoryCode = '3' -- FILTERS TO GROUP
             AND _RecordCurrent = 1 
@@ -379,7 +379,7 @@ schema = StructType([
 
 TemplateEtlSCD(
     df_bpartnergroup_master, 
-    entity="dimBusinessPartnerGroup", 
+    entity="dim.businessPartnerGroup", 
     businessKey="businessPartnerGroupNumber",
     schema=schema
 )

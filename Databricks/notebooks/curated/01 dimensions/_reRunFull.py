@@ -24,162 +24,162 @@ dbutils.notebook.run("./_RejectOverlapSourceData", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimDate')
+CleanTable('{ADS_DATABASE_CURATED}.dim.Date')
 dbutils.notebook.run("./Date", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimAccountBusinessPartner')
+CleanTable('{ADS_DATABASE_CURATED}.dim.AccountBusinessPartner')
 dbutils.notebook.run("./AccountBusinessPartner", 60*60)
 
 # COMMAND ----------
 
-# CleanTable('curated.dimBusinessPartner')
+# CleanTable('{ADS_DATABASE_CURATED}.dim.BusinessPartner')
 # dbutils.notebook.run("./BusinessPartner", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimBusinessPartnerAddress')
+CleanTable('{ADS_DATABASE_CURATED}.dim.BusinessPartnerAddress')
 dbutils.notebook.run("./BusinessPartnerAddress", 60*60)
 
 # COMMAND ----------
 
-# CleanTable('curated.dimBusinessPartnerGroup')
+# CleanTable('{ADS_DATABASE_CURATED}.dim.BusinessPartnerGroup')
 # dbutils.notebook.run("./BusinessPartnerGroup", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimBusinessPartnerIdentification')
+CleanTable('{ADS_DATABASE_CURATED}.dim.BusinessPartnerIdentification')
 dbutils.notebook.run("./BusinessPartnerIdentification", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimBusinessPartner')
-CleanTable('curated.dimBusinessPartnerGroup')
-CleanTable('curated.dimBusinessPartnerRelation')
+CleanTable('{ADS_DATABASE_CURATED}.dim.BusinessPartner')
+CleanTable('{ADS_DATABASE_CURATED}.dim.BusinessPartnerGroup')
+CleanTable('{ADS_DATABASE_CURATED}.dim.BusinessPartnerRelation')
 dbutils.notebook.run("./BusinessPartnerRelation", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimContractHistory')
-CleanTable('curated.dimContract')
+CleanTable('{ADS_DATABASE_CURATED}.dim.ContractHistory')
+CleanTable('{ADS_DATABASE_CURATED}.dim.Contract')
 dbutils.notebook.run("./Contract", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimContractAccount')
+CleanTable('{ADS_DATABASE_CURATED}.dim.ContractAccount')
 dbutils.notebook.run("./ContractAccount", 60*60)
 
 # COMMAND ----------
 
-# CleanTable('curated.dimContractHistory')
+# CleanTable('{ADS_DATABASE_CURATED}.dim.ContractHistory')
 # dbutils.notebook.run("./ContractHistory", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimDeviceHistory')
-CleanTable('curated.dimDeviceCharacteristics')
-CleanTable('curated.dimDevice')
+CleanTable('{ADS_DATABASE_CURATED}.dim.DeviceHistory')
+CleanTable('{ADS_DATABASE_CURATED}.dim.DeviceCharacteristics')
+CleanTable('{ADS_DATABASE_CURATED}.dim.Device')
 dbutils.notebook.run("./Device", 60*60)
 
 # COMMAND ----------
 
-# CleanTable('curated.dimDeviceCharacteristics')
+# CleanTable('{ADS_DATABASE_CURATED}.dim.DeviceCharacteristics')
 # dbutils.notebook.run("./DeviceCharacteristics", 60*60)
 
 # COMMAND ----------
 
-# CleanTable('curated.dimDeviceHistory')
+# CleanTable('{ADS_DATABASE_CURATED}.dim.DeviceHistory')
 # dbutils.notebook.run("./DeviceHistory", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimDeviceInstallationHistory')
+CleanTable('{ADS_DATABASE_CURATED}.dim.DeviceInstallationHistory')
 dbutils.notebook.run("./DeviceInstallationHistory", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimDisconnectionDocument')
+CleanTable('{ADS_DATABASE_CURATED}.dim.DisconnectionDocument')
 dbutils.notebook.run("./DisconnectionDocument", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimInstallationHistory')
-CleanTable('curated.dimInstallation')
+CleanTable('{ADS_DATABASE_CURATED}.dim.InstallationHistory')
+CleanTable('{ADS_DATABASE_CURATED}.dim.Installation')
 dbutils.notebook.run("./Installation", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimInstallationFacts')
+CleanTable('{ADS_DATABASE_CURATED}.dim.InstallationFacts')
 dbutils.notebook.run("./InstallationFacts", 60*60)
 
 # COMMAND ----------
 
-# CleanTable('curated.dimInstallationHistory')
+# CleanTable('{ADS_DATABASE_CURATED}.dim.InstallationHistory')
 # dbutils.notebook.run("./InstallationHistory", 60*60)
 
 # COMMAND ----------
 
-# CleanTable('curated.dimLocation')
+# CleanTable('{ADS_DATABASE_CURATED}.dim.Location')
 # dbutils.notebook.run("./Location", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimMeterConsumptionBillingDocument')
+CleanTable('{ADS_DATABASE_CURATED}.dim.MeterConsumptionBillingDocument')
 dbutils.notebook.run("./MeterConsumptionBillingDocument", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimMeterConsumptionBillingLineItem')
+CleanTable('{ADS_DATABASE_CURATED}.dim.MeterConsumptionBillingLineItem')
 dbutils.notebook.run("./MeterConsumptionBillingLineItem", 60*60)
 
 # COMMAND ----------
 
-#CleanTable('curated.dimLocation')
-#CleanTable('curated.dimPropertyLot')
-#CleanTable('curated.dimPropertyTypeHistory')
-#CleanTable('curated.dimProperty')
+#CleanTable('{ADS_DATABASE_CURATED}.dim.Location')
+#CleanTable('{ADS_DATABASE_CURATED}.dim.PropertyLot')
+#CleanTable('{ADS_DATABASE_CURATED}.dim.PropertyTypeHistory')
+#CleanTable('{ADS_DATABASE_CURATED}.dim.Property')
 #dbutils.notebook.run("./Property", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimWaterNetwork')
-CleanTable('curated.dimStormWaterNetwork')
-CleanTable('curated.dimSewerNetwork')
-CleanTable('curated.dimLocation')
-CleanTable('curated.dimPropertyLot')
-CleanTable('curated.dimPropertyTypeHistory')
-CleanTable('curated.dimProperty')
+CleanTable('{ADS_DATABASE_CURATED}.dim.WaterNetwork')
+CleanTable('{ADS_DATABASE_CURATED}.dim.StormWaterNetwork')
+CleanTable('{ADS_DATABASE_CURATED}.dim.SewerNetwork')
+CleanTable('{ADS_DATABASE_CURATED}.dim.Location')
+CleanTable('{ADS_DATABASE_CURATED}.dim.PropertyLot')
+CleanTable('{ADS_DATABASE_CURATED}.dim.PropertyTypeHistory')
+CleanTable('{ADS_DATABASE_CURATED}.dim.Property')
 dbutils.notebook.run("./Property", 60*60)
 
 # COMMAND ----------
 
-# CleanTable('curated.dimPropertyLot')
+# CleanTable('{ADS_DATABASE_CURATED}.dim.PropertyLot')
 # dbutils.notebook.run("./PropertyLot", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimPropertyRelation')
+CleanTable('{ADS_DATABASE_CURATED}.dim.PropertyRelation')
 dbutils.notebook.run("./PropertyRelation", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimPropertyService')
+CleanTable('{ADS_DATABASE_CURATED}.dim.PropertyService')
 dbutils.notebook.run("./PropertyService", 60*60)
 
 # COMMAND ----------
 
-# CleanTable('curated.dimPropertyTypeHistory')
+# CleanTable('{ADS_DATABASE_CURATED}.dim.PropertyTypeHistory')
 # dbutils.notebook.run("./PropertyTypeHistory", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimRegisterHistory')
+CleanTable('{ADS_DATABASE_CURATED}.dim.RegisterHistory')
 dbutils.notebook.run("./RegisterHistory", 60*60)
 
 # COMMAND ----------
 
-CleanTable('curated.dimRegisterInstallationHistory')
+CleanTable('{ADS_DATABASE_CURATED}.dim.RegisterInstallationHistory')
 dbutils.notebook.run("./RegisterInstallationHistory", 60*60)
 
 # COMMAND ----------

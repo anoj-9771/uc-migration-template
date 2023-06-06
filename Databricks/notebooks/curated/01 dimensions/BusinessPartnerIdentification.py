@@ -26,7 +26,7 @@
 # MAGIC         - **THEN** return ISU columns
 # MAGIC     -  **ELSE** return CRM Columns
 # MAGIC
-# MAGIC 3. Load Source Table into `curated.dimBusinessPartnerIdentification`
+# MAGIC 3. Load Source Table into `{ADS_DATABASE_CURATED}.dim.BusinessPartnerIdentification`
 # MAGIC Using the SCD loading function `TemplateEtlSCD` to merge results from source to target
 # MAGIC ***
 
@@ -52,7 +52,7 @@ df_isu_0bp_id_attr = (
             entryDate,
             institute,
             _RecordDeleted 
-        FROM {ADS_DATABASE_CLEANSED}.isu_0bp_id_attr
+        FROM {ADS_DATABASE_CLEANSED}.isu.0bp_id_attr
         WHERE 
             _RecordCurrent = 1 
     """
@@ -73,7 +73,7 @@ df_crm_0bp_id_attr = (
             entryDate,
             institute,
             _RecordDeleted 
-        FROM {ADS_DATABASE_CLEANSED}.crm_0bp_id_attr
+        FROM {ADS_DATABASE_CLEANSED}.crm.0bp_id_attr
         WHERE 
             _RecordCurrent = 1 
 """
@@ -161,7 +161,7 @@ schema = StructType([
 # ---- Load Data with SCD --- #
 TemplateEtlSCD(
     df_bpid_master, 
-    entity="dimBusinessPartnerIdentification", 
+    entity="dim.businessPartnerIdentification", 
     businessKey="businessPartnerNumber,businessPartnerIdNumber,identificationTypeCode",
     schema=schema
 )

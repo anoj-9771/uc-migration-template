@@ -40,7 +40,7 @@ df_isu_0uc_isu_32 = spark.sql(f"""
         propertyNumber                                            AS propertyNumber,
         _RecordDeleted,
         _DLCleansedZoneTimeStamp 
-    FROM {ADS_DATABASE_CLEANSED}.isu_0uc_isu_32
+    FROM {ADS_DATABASE_CLEANSED}.isu.0uc_isu_32
     WHERE 
         _RecordCurrent = 1 
     """
@@ -100,13 +100,13 @@ schema = StructType([
 
 #TemplateEtlSCD(
 #    df_disconnection_document, 
-#    entity="dimDisconnectionDocument", 
+#    entity="dim.disconnectionDocument", 
 #    businessKey="sourceSystemCode,disconnectionDocumentNumber,disconnectionObjectNumber,disconnectionActivityPeriod",
 #    schema=schema
 #)
 
 TemplateTimeSliceEtlSCD(df_disconnection_document, 
-                        entity="dimDisconnectionDocument", 
+                        entity="dim.disconnectionDocument", 
                         businessKey="sourceSystemCode,disconnectionDocumentNumber,disconnectionObjectNumber,disconnectionActivityPeriod", schema=schema)
 
 # COMMAND ----------

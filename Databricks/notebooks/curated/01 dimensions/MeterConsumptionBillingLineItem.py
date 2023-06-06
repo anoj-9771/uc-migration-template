@@ -54,14 +54,14 @@ def getMeterConsumptionBillingLineItem():
                     dberchz2.meterReadingDocumentId,
                     erch._RecordDeleted as _RecordDeleted,
                     erch._DLCleansedZoneTimeStamp 
-                    from cleansed.isu_erch erch 
-                               inner join cleansed.isu_dberchz1 as dberchz1 on erch.billingDocumentNumber = dberchz1.billingDocumentNumber                               
+                    from {ADS_DATABASE_CLEANSED}.isu.erch erch 
+                               inner join {ADS_DATABASE_CLEANSED}.isu.dberchz1 as dberchz1 on erch.billingDocumentNumber = dberchz1.billingDocumentNumber                               
                                                               and (dberchz1.lineItemTypeCode = 'ZDQUAN' or dberchz1.lineItemTypeCode = 'ZRQUAN')         
                                                               and trim(erch.billingSimulationIndicator) = ''    
-                               inner join cleansed.isu_dberchz2 as dberchz2 on dberchz1.billingDocumentNumber = dberchz2.billingDocumentNumber
+                               inner join {ADS_DATABASE_CLEANSED}.isu.dberchz2 as dberchz2 on dberchz1.billingDocumentNumber = dberchz2.billingDocumentNumber
                                                               and dberchz1.billingDocumentLineItemId  = dberchz2.billingDocumentLineItemId
                                                               and trim(dberchz2.suppressedMeterReadingDocumentId) <> '' 
-                               left join cleansed.isu_0uc_tvorg_text as tvorg_text on tvorg_text.mainTransactionCode = erch.mainTransactionCode 
+                               left join {ADS_DATABASE_CLEANSED}.isu.0uc_tvorg_text as tvorg_text on tvorg_text.mainTransactionCode = erch.mainTransactionCode 
                                                               and tvorg_text.subTransactionCode = dberchz1.subTransactionCode 
                                where erch._RecordCurrent = 1 and dberchz1._RecordCurrent = 1 and dberchz2._RecordCurrent = 1
                    """).dropDuplicates()
@@ -123,8 +123,8 @@ def getMeterConsumptionBillingLineItem():
 # COMMAND ----------
 
 df, schema = getMeterConsumptionBillingLineItem()
-#TemplateEtl(df, entity="dimMeterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateTimeSliceEtlSCD(df, entity="dimMeterConsumptionBillingLineItem", businessKey="billingDocumentNumber,billingDocumentLineItemId", schema=schema, fromDateCol='billingPeriodStartDate', toDateCol='billingPeriodEndDate')
+#TemplateEtl(df, entity="dim.meterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+TemplateTimeSliceEtlSCD(df, entity="dim.meterConsumptionBillingLineItem", businessKey="billingDocumentNumber,billingDocumentLineItemId", schema=schema, fromDateCol='billingPeriodStartDate', toDateCol='billingPeriodEndDate')
 
 # COMMAND ----------
 

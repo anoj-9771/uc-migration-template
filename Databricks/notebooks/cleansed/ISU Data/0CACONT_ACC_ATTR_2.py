@@ -251,11 +251,11 @@ df = spark.sql(f"""
                '1'                                             as _RecordCurrent, 
                cast('{CurrentTimeStamp}' as TimeStamp)         as _DLCleansedZoneTimeStamp 
      FROM stage con 
-     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_VKTYP_TEXT ty ON 
+     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_VKTYP_TEXT ty ON 
           con.VKTYP = ty.contractAccountCategoryCode and 
           con.APPLK = ty.applicationArea and ty._RecordDeleted = 0 and 
           ty._RecordCurrent = 1 
-     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_applk_text APP ON
+     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0uc_applk_text APP ON
           APP.ApplicationAreaCode = con.APPLK
      WHERE 
           con._RecordVersion = 1 
@@ -286,7 +286,7 @@ df = spark.sql(f"""
 #                             con._RecordDeleted, \
 #                             con._RecordCurrent \
 #                           FROM {ADS_DATABASE_STAGE}.{source_object} con \
-#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_VKTYP_TEXT ty ON con.VKTYP = ty.contractAccountCategoryCode and  con.APPLK = ty.applicationArea\
+#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_VKTYP_TEXT ty ON con.VKTYP = ty.contractAccountCategoryCode and  con.APPLK = ty.applicationArea\
 #                                                                                                     and ty._RecordDeleted = 0 and ty._RecordCurrent = 1")
 
 

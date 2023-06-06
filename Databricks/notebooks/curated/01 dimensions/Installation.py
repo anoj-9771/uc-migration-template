@@ -51,7 +51,7 @@ def getInstallation():
             lastChangedDate,
             lastChangedBy,
             _RecordDeleted 
-        FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstalla_attr_2 
+        FROM {ADS_DATABASE_CLEANSED}.isu.0ucinstalla_attr_2 
         WHERE _RecordCurrent = 1 
         """
     )
@@ -99,10 +99,10 @@ def getInstallation():
 
 df, schema = getInstallation()
 
-curnt_table = f'{ADS_DATABASE_CURATED}.dimInstallation'
+curnt_table = f'{ADS_DATABASE_CURATED}.dim.installation'
 curnt_pk = 'installationNumber' 
 curnt_recordStart_pk = 'installationNumber'
-history_table = f'{ADS_DATABASE_CURATED}.dimInstallationHistory'
+history_table = f'{ADS_DATABASE_CURATED}.dim.installationHistory'
 history_table_pk = 'installationNumber'
 history_table_pk_convert = 'installationNumber'
 
@@ -112,7 +112,7 @@ updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
 
 TemplateEtlSCD(
     df_, 
-    entity="dimInstallation", 
+    entity="dim.installation", 
     businessKey="installationNumber", 
     schema=schema
 )

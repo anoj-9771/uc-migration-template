@@ -1,10 +1,17 @@
 # Databricks notebook source
-notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
-view = notebookPath[-1:][0]
-db = notebookPath[-3:][0]
+# MAGIC %run ../common/common-curated-includeMain
 
-spark.sql("""
-CREATE OR REPLACE VIEW curated.viewBusinessPartner AS 
+# COMMAND ----------
+
+# notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+# view = notebookPath[-1:][0]
+# db = notebookPath[-3:][0]
+schema_name = 'consumption'
+view_name = 'viewbusinesspartner'
+view_fqn = f"{ADS_DATABASE_CURATED}.{schema_name}.{view_name}"
+
+spark.sql(f"""
+CREATE OR REPLACE VIEW {view_fqn} AS 
  
 With dimBusinessPartnerRanges AS
 (
@@ -14,7 +21,7 @@ With dimBusinessPartnerRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY businessPartnerNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimBusinessPartner
+                FROM {ADS_DATABASE_CURATED}.dim.BusinessPartner
                 where businessPartnerCategoryCode in ('1','2')
 ),
 dimBusinessPartnerAddressRanges AS
@@ -25,8 +32,8 @@ dimBusinessPartnerAddressRanges AS
                 ba._recordEnd,
                 COALESCE( LEAD( ba._recordStart, 1 ) OVER( PARTITION BY ba.businessPartnerNumber ORDER BY ba._recordStart ), 
                   CASE WHEN ba._recordEnd < cast('9999-12-31T23:59:59' as timestamp) then ba._recordEnd + INTERVAL 1 SECOND else ba._recordEnd end) AS _newRecordEnd
-                FROM curated.dimBusinessPartnerAddress ba
-                inner join curated.dimbusinesspartner bp on bp.businesspartnernumber = ba.businesspartnernumber
+                FROM {ADS_DATABASE_CURATED}.dim.businessPartnerAddress ba
+                inner join {ADS_DATABASE_CURATED}.dim.businesspartner bp on bp.businesspartnernumber = ba.businesspartnernumber
                 where bp.businessPartnerCategoryCode in ('1','2')
 ),
 dimBusinessPartnerRelationRanges AS
@@ -37,8 +44,8 @@ dimBusinessPartnerRelationRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY br.businessPartnerNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimBusinessPartnerRelation br
-                inner join (select businesspartnernumber from curated.dimbusinesspartner bp where businessPartnerCategoryCode in ('1','2')) bp on bp.businesspartnernumber = br.businesspartnernumber
+                FROM {ADS_DATABASE_CURATED}.dim.businessPartnerRelation br
+                inner join (select businesspartnernumber from {ADS_DATABASE_CURATED}.dim.businesspartner bp where businessPartnerCategoryCode in ('1','2')) bp on bp.businesspartnernumber = br.businesspartnernumber
                 WHERE _recordDeleted = 0
 ),
 dateDriver AS
@@ -169,21 +176,21 @@ SELECT
     CASE WHEN coalesce(BR.validToDate, '1900-01-01') = '9999-12-31' and _effectiveto = '9999-12-31 23:59:59.000'  then 'Y' ELSE 'N' END AS currentFlag,
     if(BP._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
 FROM effectiveDateRanges DR
-LEFT JOIN  curated.dimbusinesspartner BP ON 
+LEFT JOIN  {ADS_DATABASE_CURATED}.dim.businesspartner BP ON 
     DR.businessPartnerNumber = BP.businessPartnerNumber AND
     DR._effectiveFrom <= BP._RecordEnd AND
     DR._effectiveTo >= BP._RecordStart  
-LEFT JOIN  curated.dimbusinesspartnerrelation BR ON 
+LEFT JOIN  {ADS_DATABASE_CURATED}.dim.businesspartnerrelation BR ON 
     DR.businessPartnerNumber = BR.businessPartnerNumber AND
     DR._effectiveFrom <= BR._RecordEnd AND
     DR._effectiveTo >= BR._RecordStart AND
     BR._recordDeleted = 0
-LEFT JOIN curated.dimbusinesspartneraddress ADDR ON 
+LEFT JOIN {ADS_DATABASE_CURATED}.dim.businesspartneraddress ADDR ON 
     DR.businessPartnerNumber = ADDR.businessPartnerNumber AND
     DR._effectiveFrom <= ADDR._RecordEnd AND
     DR._effectiveTo >= ADDR._RecordStart 
 )
-""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 1 else "CREATE OR REPLACE VIEW"))
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewsExists(view_fqn) else "CREATE OR REPLACE VIEW"))
 
 # COMMAND ----------
 

@@ -226,7 +226,7 @@ df = spark.sql(f"WITH stage AS \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage stg \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu.0comp_code_text cc on cc.companyCode = stg.BUKRS \
                                                                                                     and cc._RecordDeleted = 0 and cc._RecordCurrent = 1 \
                         where stg._RecordVersion = 1 ")
 
@@ -290,7 +290,7 @@ df = spark.sql(f"WITH stage AS \
 #                                   stg._RecordDeleted, \
 #                                   stg._RecordCurrent \
 #                                FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-#                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS \
+#                                  left outer join {ADS_DATABASE_CLEANSED}.isu.0comp_code_text cc on cc.companyCode = stg.BUKRS \
 #                                                                                                     and cc._RecordDeleted = 0 and cc._RecordCurrent = 1"
 #                               )
 

@@ -26,7 +26,7 @@ def getWaterNetwork():
                                 case when product = 'Water'  then 'Y' else 'N' end as isPotableWaterNetwork, 
                                 case when product = 'RecycledWater'  then 'Y' else 'N' end as isRecycledWaterNetwork ,
                                 _RecordDeleted 
-                        from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA 
+                        from {ADS_DATABASE_CLEANSED}.hydra.TSYSTEMAREA 
                         where product in ('Water','RecycledWater') 
                         and   _RecordCurrent = 1 
                         """)
@@ -66,8 +66,8 @@ def getWaterNetwork():
 # COMMAND ----------
 
 df, schema = getWaterNetwork()
-#TemplateEtl(df, entity="dimWaterNetwork", businessKey="supplyZone,pressureArea", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimWaterNetwork", businessKey="supplyZone,pressureArea", schema=schema)
+#TemplateEtl(df, entity="dim.waterNetwork", businessKey="supplyZone,pressureArea", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+TemplateEtlSCD(df, entity="dim.waterNetwork", businessKey="supplyZone,pressureArea", schema=schema)
 
 # COMMAND ----------
 

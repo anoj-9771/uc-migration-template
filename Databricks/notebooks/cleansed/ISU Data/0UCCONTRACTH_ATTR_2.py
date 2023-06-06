@@ -245,7 +245,7 @@ df = spark.sql(f"""
             '1' as _RecordCurrent, 
             cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
         from stage ca 
-        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.DD07T dd ON 
             ca.XREPLCNTL = dd.domainValueSingleUpperLimit 
             and dd.domainName = 'EXREPLCNTL' 
             and dd._RecordDeleted = 0 
@@ -318,7 +318,7 @@ DeltaSaveDataFrameToDeltaTable(
 # DBTITLE 1,12.2 Save Data frame into Cleansed Delta table (Delete Records)
 cleansed_df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_contract_deleted_records")
 spark.sql(f" \
-    MERGE INTO cleansed.isu_0UCCONTRACTH_ATTR_2 \
+    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.0UCCONTRACTH_ATTR_2 isu_0UCCONTRACTH_ATTR_2 \
     using isu_contract_deleted_records \
     on isu_0UCCONTRACTH_ATTR_2.contractId = isu_contract_deleted_records.contractId \
     and isu_0UCCONTRACTH_ATTR_2.validFromDate = isu_contract_deleted_records.validFromDate \
@@ -375,7 +375,7 @@ df.unpersist()
 # CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 
 # spark.sql(f" \
-#     MERGE INTO cleansed.isu_0UCCONTRACTH_ATTR_2 \
+#     MERGE INTO {ADS_DATABASE_CLEANSED}.isu.0UCCONTRACTH_ATTR_2 \
 #     using isu_contract_deleted_records \
 #     on isu_0UCCONTRACTH_ATTR_2.contractId = isu_contract_deleted_records.VERTRAG \
 #     and isu_0UCCONTRACTH_ATTR_2.validFromDate = isu_contract_deleted_records.AB \

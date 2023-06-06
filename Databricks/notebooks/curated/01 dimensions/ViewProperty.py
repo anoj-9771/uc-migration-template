@@ -1,10 +1,17 @@
 # Databricks notebook source
-notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
-view = notebookPath[-1:][0]
-db = notebookPath[-3:][0]
+# MAGIC %run ../common/common-curated-includeMain
 
-spark.sql("""
-CREATE OR REPLACE VIEW curated.viewProperty AS
+# COMMAND ----------
+
+# notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+# view = notebookPath[-1:][0]
+# db = notebookPath[-3:][0]
+schema_name = 'consumption'
+view_name = 'viewproperty'
+view_fqn = f"{ADS_DATABASE_CURATED}.{schema_name}.{view_name}"
+
+spark.sql(f"""
+CREATE OR REPLACE VIEW {view_fqn} AS
 
 With dimPropertyDateRanges AS
 (
@@ -14,7 +21,7 @@ With dimPropertyDateRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY propertyNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimProperty
+                FROM {ADS_DATABASE_CURATED}.dim.property
                 --WHERE _recordDeleted = 0
 ),
 
@@ -26,7 +33,7 @@ dimPropertyTypeHistoryDateRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY propertyNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimPropertyTypeHistory
+                FROM {ADS_DATABASE_CURATED}.dim.propertyTypeHistory
                 WHERE _recordDeleted = 0
 ),
 
@@ -38,7 +45,7 @@ dimPropertyLotDateRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY propertyNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimPropertyLot
+                FROM {ADS_DATABASE_CURATED}.dim.propertyLot
                 --WHERE _recordDeleted = 0
 ),
 
@@ -50,7 +57,7 @@ dimLocationDateRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY locationID ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimLocation
+                FROM {ADS_DATABASE_CURATED}.dim.location
                 --WHERE _recordDeleted = 0
 ),
 
@@ -172,32 +179,32 @@ select
       END AS currentFlag,
     if(dimProperty._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
 from effectiveDateRanges as effectiveDateRanges
-left outer join curated.dimProperty dimProperty
+left outer join {ADS_DATABASE_CURATED}.dim.property dimProperty
         on dimproperty.propertynumber = effectiveDateRanges.propertyNumber 
 		and dimProperty._recordEnd >= effectiveDateRanges._effectiveFrom 
 		and dimProperty._recordStart <= effectiveDateRanges._effectiveTo
         --AND dimProperty._recordDeleted = 0
-left outer join curated.dimPropertyTypeHistory dimPropertyTypeHistory 
+left outer join {ADS_DATABASE_CURATED}.dim.propertyTypeHistory dimPropertyTypeHistory 
         on dimPropertyTypeHistory.propertynumber = effectiveDateRanges.propertyNumber 
 		and dimPropertyTypeHistory.validToDate >= effectiveDateRanges._effectiveFrom 
 		and dimPropertyTypeHistory.validFromDate <= effectiveDateRanges._effectiveTo
         AND dimPropertyTypeHistory._recordDeleted = 0
-left outer join curated.dimPropertyLot dimPropertyLot
+left outer join {ADS_DATABASE_CURATED}.dim.propertyLot dimPropertyLot
         on dimPropertyLot.propertynumber = effectiveDateRanges.propertyNumber 
 		and dimPropertyLot._recordEnd >= effectiveDateRanges._effectiveFrom 
 		and dimPropertyLot._recordStart <= effectiveDateRanges._effectiveTo
         --AND dimPropertyLot._recordDeleted = 0
-left outer join curated.dimLocation dimLocation
+left outer join {ADS_DATABASE_CURATED}.dim.location dimLocation
         on dimLocation.locationID = effectiveDateRanges.propertyNumber 
 		and dimLocation._recordEnd >= effectiveDateRanges._effectiveFrom 
 		and dimLocation._recordStart <= effectiveDateRanges._effectiveTo 
         --AND dimLocation._recordDeleted = 0
-left outer join curated.dimwaternetwork dimwaternetwork on dimwaternetwork.waterNetworkSK = dimProperty.waterNetworkSK_drinkingWater
-left outer join curated.dimwaternetwork dimrecycledwaternetwork on dimrecycledwaternetwork.waterNetworkSK = dimProperty.waterNetworkSK_recycledWater
-left outer join curated.dimsewernetwork dimsewernetwork on dimsewernetwork.sewerNetworkSK = dimProperty.sewerNetworkSK
-left outer join curated.dimstormwaternetwork dimstormwaternetwork on dimstormwaternetwork.stormWaterNetworkSK = dimProperty.stormWaterNetworkSK
+left outer join {ADS_DATABASE_CURATED}.dim.waternetwork dimwaternetwork on dimwaternetwork.waterNetworkSK = dimProperty.waterNetworkSK_drinkingWater
+left outer join {ADS_DATABASE_CURATED}.dim.waternetwork dimrecycledwaternetwork on dimrecycledwaternetwork.waterNetworkSK = dimProperty.waterNetworkSK_recycledWater
+left outer join {ADS_DATABASE_CURATED}.dim.sewernetwork dimsewernetwork on dimsewernetwork.sewerNetworkSK = dimProperty.sewerNetworkSK
+left outer join {ADS_DATABASE_CURATED}.dim.stormwaternetwork dimstormwaternetwork on dimstormwaternetwork.stormWaterNetworkSK = dimProperty.stormWaterNetworkSK
 ) ORDER BY _effectiveFrom;
-""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 1 else "CREATE OR REPLACE VIEW"))
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewExists(view_fqn) else "CREATE OR REPLACE VIEW"))
 
 # COMMAND ----------
 

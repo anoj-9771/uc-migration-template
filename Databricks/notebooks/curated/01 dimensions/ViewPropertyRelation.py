@@ -1,12 +1,19 @@
 # Databricks notebook source
-notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
-view = notebookPath[-1:][0]
-db = notebookPath[-3:][0]
+# MAGIC %run ../common/common-curated-includeMain
 
-spark.sql("""
+# COMMAND ----------
+
+# notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+# view = notebookPath[-1:][0]
+# db = notebookPath[-3:][0]
+schema_name = 'consumption'
+view_name = 'viewpropertyrelation'
+view_fqn = f"{ADS_DATABASE_CURATED}.{schema_name}.{view_name}"
+
+spark.sql(f"""
 -- View: viewPropertyRelation
 -- Description: viewProprtyRelation
-CREATE OR REPLACE VIEW curated.viewPropertyRelation AS
+CREATE OR REPLACE VIEW {view_fqn} AS
 
 SELECT * FROM 
 (
@@ -28,8 +35,8 @@ SELECT
       ELSE 'N'
       END AS currentFlag,
       'Y' AS currentRecordFlag 
-FROM curated.dimpropertyrelation
+FROM {ADS_DATABASE_CURATED}.dim.propertyrelation
 WHERE _recordDeleted = 0
 )
 ORDER BY _effectiveFrom
-""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 1 else "CREATE OR REPLACE VIEW"))
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewExists(view_fqn) else "CREATE OR REPLACE VIEW"))

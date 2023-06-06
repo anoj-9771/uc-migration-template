@@ -73,7 +73,7 @@ for table in table_list:
             # formatting column names ignoring metadata columns
             if not column.col_name.startswith("_") or column.col_name.startswith("_effective"):
                 curr_column = curr_column + 1
-                if "SK" not in column.col_name and not "_effective" not in column.col_name:
+                if "SK" not in column.col_name and "_effective" not in column.col_name:
                     col_name = column.col_name.replace("GUID","Guid").replace("ID","Id").replace("SCAMP","Scamp").replace("LGA", "Lga")
                     col_name_seperated = ' '.join(re.sub( r"([A-Z])", r" \1", col_name).split())
                     col_name_formatted = col_name_seperated[0:1].capitalize() + col_name_seperated[1:100].replace(" Guid"," GUID").replace(" Id"," ID")

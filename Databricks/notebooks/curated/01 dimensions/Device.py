@@ -51,8 +51,8 @@ def getDevice():
                                       dc.ggwaNumber,
                                       dc.certificationRequirementType,
                                       d._RecordDeleted 
-                                from {ADS_DATABASE_CLEANSED}.isu_0uc_device_attr d
-                                    left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_devcat_attr dc
+                                from {ADS_DATABASE_CLEANSED}.isu.0uc_device_attr d
+                                    left outer join {ADS_DATABASE_CLEANSED}.isu.0uc_devcat_attr dc
                                           on d.materialNumber = dc.materialNumber
                                 where d._RecordCurrent = 1 
                                       and dc._RecordCurrent = 1 
@@ -92,17 +92,17 @@ def getDevice():
 
 df, schema = getDevice()
 
-curnt_table = f'{ADS_DATABASE_CURATED}.dimDevice'
+curnt_table = f'{ADS_DATABASE_CURATED}.dim.device'
 curnt_pk = 'deviceNumber' 
 curnt_recordStart_pk = 'deviceNumber'
-history_table = f'{ADS_DATABASE_CURATED}.dimDeviceHistory'
+history_table = f'{ADS_DATABASE_CURATED}.dim.deviceHistory'
 history_table_pk = 'deviceNumber'
 history_table_pk_convert = 'deviceNumber'
 
 df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk)
 updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
 
-TemplateEtlSCD(df_, entity="dimDevice", businessKey="deviceNumber", schema=schema)
+TemplateEtlSCD(df_, entity="dim.device", businessKey="deviceNumber", schema=schema)
 
 # COMMAND ----------
 

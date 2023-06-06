@@ -218,9 +218,9 @@ df_cleansed = spark.sql(f"SELECT \
 	tbl._RecordDeleted, \
 	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-left outer join cleansed.access_Z309_TLOCALGOVT ref1 on tbl.C_LGA = ref1.LGA \
-left outer join cleansed.access_Z309_TDPIDCODE ref2 on tbl.C_FLOR_LVL = ref2.itemNameAbbreviation and ref2.itemCode = 'FLT' and ref2.validForUse = 'V' \
-left outer join cleansed.access_Z309_TDPIDCODE ref3 on tbl.C_FLAT_UNIT = ref3.itemNameAbbreviation and ref3.itemCode = 'FUT' and ref3.validForUse = 'V' \
+left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TLOCALGOVT ref1 on tbl.C_LGA = ref1.LGA \
+left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TDPIDCODE ref2 on tbl.C_FLOR_LVL = ref2.itemNameAbbreviation and ref2.itemCode = 'FLT' and ref2.validForUse = 'V' \
+left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TDPIDCODE ref3 on tbl.C_FLAT_UNIT = ref3.itemNameAbbreviation and ref3.itemCode = 'FUT' and ref3.validForUse = 'V' \
                                 ")
 
 # COMMAND ----------

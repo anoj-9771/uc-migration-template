@@ -221,7 +221,7 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 
 # DBTITLE 1,The framework doesn't allow allocation of SKs to null keys. So, now the table exists, change na to null
 # MAGIC %sql
-# MAGIC update cleansed.access_z309_tdebittype
+# MAGIC update {ADS_DATABASE_CLEANSED}.access.z309_tdebittype
 # MAGIC set debitTypeCode = Null 
 # MAGIC where debitTypecode = 'na'
 

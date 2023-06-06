@@ -36,8 +36,8 @@ df_installation_history = spark.sql(f"""
         i.IndustrySystem               AS IndustrySystem,
         i._RecordDeleted,
         i._DLCleansedZoneTimeStamp 
-    FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstallah_attr_2 i
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ucmtrdunit_attr m ON 
+    FROM {ADS_DATABASE_CLEANSED}.isu.0ucinstallah_attr_2 i
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0ucmtrdunit_attr m ON 
         i.meterReadingUnit = m.meterReadingUnit AND
         m._recordCurrent = 1 
     WHERE 
@@ -94,7 +94,7 @@ schema = StructType([
 
 TemplateTimeSliceEtlSCD(
     df_installation_history, 
-    entity="dimInstallationHistory", 
+    entity="dim.installationHistory", 
     businessKey="installationNumber,validToDate", 
     schema=schema
 )

@@ -247,15 +247,15 @@ def runQuery(table, source):
             a._RecordCurrent \
         FROM {table} a \
              left outer join CLEANSED.access_Z309_TMeterType b on b.meterTypeCode = a.C_METE_TYPE \
-             left outer join cleansed.access_Z309_TMETEREADFREQ ref2 on a.C_METE_READ_FREQ = ref2.meterReadingFrequencyCode \
-             left outer join cleansed.access_Z309_TMETERGRIDLOCA ref3 on a.C_METE_GRID_LOCA = ref3.meterGridLocationCode \
-             left outer join cleansed.access_Z309_TMETEREADINST ref4 on a.C_READ_INST_NUM1 = ref4.meterReadingInstructionCode \
-             left outer join cleansed.access_Z309_TMETEREADINST ref5 on a.C_READ_INST_NUM2 = ref5.meterReadingInstructionCode \
-             left outer join cleansed.access_Z309_TMETERCHANGEREAS ref6 on a.C_METE_CHAN_REAS = ref6.meterExchangeReasonCode \
+             left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETEREADFREQ ref2 on a.C_METE_READ_FREQ = ref2.meterReadingFrequencyCode \
+             left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERGRIDLOCA ref3 on a.C_METE_GRID_LOCA = ref3.meterGridLocationCode \
+             left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETEREADINST ref4 on a.C_READ_INST_NUM1 = ref4.meterReadingInstructionCode \
+             left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETEREADINST ref5 on a.C_READ_INST_NUM2 = ref5.meterReadingInstructionCode \
+             left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERCHANGEREAS ref6 on a.C_METE_CHAN_REAS = ref6.meterExchangeReasonCode \
              left outer join CLEANSED.access_Z309_TMeterClass c on c.meterClassCode = a.C_METE_CLAS \
              left outer join CLEANSED.access_Z309_TMeterCategory d on d.meterCategoryCode = a.C_METE_CATE \
              left outer join CLEANSED.access_Z309_TMeterGroup e on e.meterGroupCode = a.C_METE_GROU \
-             left outer join cleansed.access_Z309_TMETERGRIDLOCA ref10 on a.C_METE_READ_LOCA = ref10.meterGridLocationCode \
+             left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERGRIDLOCA ref10 on a.C_METE_READ_LOCA = ref10.meterGridLocationCode \
              ")
     
     return df_data
@@ -449,7 +449,7 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select count(*) from cleansed.access_Z309_TPROPMETER where dataSource = 'BI'
+# MAGIC select count(*) from {ADS_DATABASE_CLEANSED}.access.Z309_TPROPMETER where dataSource = 'BI'
 
 # COMMAND ----------
 

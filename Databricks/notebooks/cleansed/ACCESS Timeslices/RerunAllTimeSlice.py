@@ -20,30 +20,30 @@ def CleanTable(tableNameFqn):
 
 # COMMAND ----------
 
-CleanTable('cleansed.access_facilityTimeslice')
+CleanTable('{ADS_DATABASE_CLEANSED}.access.facilityTimeslice')
 dbutils.notebook.run("./facilityTimeslice_Fix", 60*60)
 
 # COMMAND ----------
 
-CleanTable('cleansed.access_meterTimeslice')
+CleanTable('{ADS_DATABASE_CLEANSED}.access.meterTimeslice')
 dbutils.notebook.run("./meterTimeslice_Fix", 60*60)
 
 # COMMAND ----------
 
-CleanTable('cleansed.access_propertyAddressTimeslice')
+CleanTable('{ADS_DATABASE_CLEANSED}.access.propertyAddressTimeslice')
 dbutils.notebook.run("./propertyAddressTimeslice", 60*60)
 
 # COMMAND ----------
 
-CleanTable('cleansed.access_propertyLotTimeslice')
+CleanTable('{ADS_DATABASE_CLEANSED}.access.propertyLotTimeslice')
 dbutils.notebook.run("./propertyLotTimeslice_Fixed", 60*60)
 
 # COMMAND ----------
 
-CleanTable('cleansed.access_propertyTimeslice')
+CleanTable('{ADS_DATABASE_CLEANSED}.access.propertyTimeslice')
 dbutils.notebook.run("./propertyTimeslice_Fixed", 60*60)
 
 # COMMAND ----------
 
-CleanTable('cleansed.access_propertyTypeTimeslice')
+CleanTable('{ADS_DATABASE_CLEANSED}.access.propertyTypeTimeslice')
 dbutils.notebook.run("./propertyTypeTimeslice_Fixed", 60*60)

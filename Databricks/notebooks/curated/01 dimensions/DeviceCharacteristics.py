@@ -29,18 +29,18 @@ def getDeviceCharacteristics():
                                                   SELECT *, RANK() OVER (PARTITION BY classificationObjectInternalId,characteristicInternalId 
                                                                               ORDER BY _DLCleansedZoneTimeStamp DESC
                                                                          ) AS rank
-                                                  FROM {ADS_DATABASE_CLEANSED}.isu_ausp ausp 
+                                                  FROM {ADS_DATABASE_CLEANSED}.isu.ausp ausp 
                                                   WHERE _RecordCurrent = 1 
                                                   ) 
                                             WHERE rank = 1
                                                 ),
                                         isu_ausp_cawnt AS (
                                                 SELECT isu_ausp.*, isu_cawnt.characteristicValueDescription
-                                                 FROM isu_ausp LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_cawn
+                                                 FROM isu_ausp LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.cawn
                                                      ON isu_ausp.characteristicInternalId = isu_cawn.internalcharacteristic
                                                          AND isu_ausp.characteristicValueCode = isu_cawn.characteristicValue
                                                          AND isu_cawn._RecordCurrent = 1 
-                                                 LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_cawnt
+                                                 LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.cawnt
                                                       ON isu_cawn.internalCharacteristic = isu_cawnt.internalcharacteristic
                                                           AND isu_cawn.internalCounter = isu_cawnt.internalCounter 
                                                           AND isu_cawnt._RecordCurrent = 1 
@@ -66,10 +66,10 @@ def getDeviceCharacteristics():
                                                  ),
                                          ausp_cabnt_cawnt AS (
                                               SELECT DISTINCT ausp_cawnt.*, isu_cabn.characteristicName, isu_cabnt.characteristicDescription 
-                                              FROM ausp_cawnt INNER JOIN {ADS_DATABASE_CLEANSED}.isu_cabn
+                                              FROM ausp_cawnt INNER JOIN {ADS_DATABASE_CLEANSED}.isu.cabn
                                                   ON ausp_cawnt.characteristicInternalId = isu_cabn.internalcharacteristic
                                                       AND isu_cabn._RecordCurrent = 1 
-                                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_cabnt
+                                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.cabnt
                                                   ON isu_cabn.internalcharacteristic = isu_cabnt.internalcharacteristic
                                                       AND isu_cabn.internalCounterforArchivingObjectsbyECM = isu_cabnt.internalCounterforArchivingObjectsbyECM
                                                       AND isu_cabnt._RecordCurrent = 1 
@@ -138,17 +138,17 @@ def getDeviceCharacteristics():
 
 df, schema = getDeviceCharacteristics()
 
-curnt_table = f'{ADS_DATABASE_CURATED}.dimDeviceCharacteristics'
+curnt_table = f'{ADS_DATABASE_CURATED}.dim.deviceCharacteristics'
 curnt_pk = 'deviceNumber,characteristicInternalId,classifiedEntityType,classTypeCode,archivingObjectsInternalId' 
 curnt_recordStart_pk = 'deviceNumber'
-history_table = f'{ADS_DATABASE_CURATED}.dimDeviceHistory'
+history_table = f'{ADS_DATABASE_CURATED}.dim.deviceHistory'
 history_table_pk = 'deviceNumber'
 history_table_pk_convert = 'deviceNumber'
 
 df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk)
 updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
 
-TemplateEtlSCD(df_, entity="dimDeviceCharacteristics", businessKey="deviceNumber,characteristicInternalId,classifiedEntityType,classTypeCode,archivingObjectsInternalId", schema=schema)
+TemplateEtlSCD(df_, entity="dim.deviceCharacteristics", businessKey="deviceNumber,characteristicInternalId,classifiedEntityType,classTypeCode,archivingObjectsInternalId", schema=schema)
 
 # COMMAND ----------
 

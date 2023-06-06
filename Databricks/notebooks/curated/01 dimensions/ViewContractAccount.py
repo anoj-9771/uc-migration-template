@@ -1,13 +1,20 @@
 # Databricks notebook source
-notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
-view = notebookPath[-1:][0]
-db = notebookPath[-3:][0]
+# MAGIC %run ../common/common-curated-includeMain
 
-spark.sql("""
+# COMMAND ----------
+
+# notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+# view = notebookPath[-1:][0]
+# db = notebookPath[-3:][0]
+schema_name = 'consumption'
+view_name = 'viewcontractaccount'
+view_fqn = f"{ADS_DATABASE_CURATED}.{schema_name}.{view_name}"
+
+spark.sql(f"""
 
 -- View: viewContractAccount
 -- Description: viewContractAccount
-CREATE OR REPLACE VIEW curated.viewContractAccount AS
+CREATE OR REPLACE VIEW {view_fqn} AS
 
 With ContractAccountDateRanges AS
 (
@@ -17,7 +24,7 @@ With ContractAccountDateRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY contractAccountNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimContractAccount
+                FROM {ADS_DATABASE_CURATED}.dim.contractAccount
                 --WHERE _recordDeleted = 0
 ),
 
@@ -29,7 +36,7 @@ AccountBusinessPartnerDateRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY contractAccountNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimAccountBusinessPartner
+                FROM {ADS_DATABASE_CURATED}.dim.accountBusinessPartner
                 --WHERE _recordDeleted = 0
 ),
 
@@ -143,12 +150,12 @@ SELECT
       END AS currentFlag
       ,if(dimContractAccount._RecordDeleted = 0,'Y','N') AS currentRecordFlag
 FROM effectiveDateRanges as effectiveDateRanges
-LEFT OUTER JOIN curated.dimContractAccount
+LEFT OUTER JOIN {ADS_DATABASE_CURATED}.dim.contractAccount dimContractAccount
   ON effectiveDateRanges.contractAccountNumber = dimContractAccount.contractAccountNumber
         AND effectiveDateRanges._effectiveFrom <= dimContractAccount._RecordEnd
         AND effectiveDateRanges._effectiveTo >= dimContractAccount._RecordStart 
         --AND dimContractAccount._recordDeleted = 0
-LEFT OUTER JOIN curated.dimAccountBusinessPartner
+LEFT OUTER JOIN {ADS_DATABASE_CURATED}.dim.accountBusinessPartner dimAccountBusinessPartner
     ON effectiveDateRanges.contractAccountNumber = dimAccountBusinessPartner.contractAccountNumber
       AND effectiveDateRanges._effectiveFrom <= dimAccountBusinessPartner._RecordEnd
       AND effectiveDateRanges._effectiveTo >= dimAccountBusinessPartner._RecordStart
@@ -156,4 +163,4 @@ LEFT OUTER JOIN curated.dimAccountBusinessPartner
       --WHERE dimContractAccount.contractAccountSK is not null 
 )
 ORDER BY _effectiveFrom
-""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 1 else "CREATE OR REPLACE VIEW"))
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewExists(view_fqn) else "CREATE OR REPLACE VIEW"))

@@ -209,7 +209,7 @@ df = spark.sql(f"WITH stage AS \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage MU \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_PORTION_TEXT PR_TXT \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_PORTION_TEXT PR_TXT \
                                 ON MU.PORTION = PR_TXT.portionNumber \
                                 AND PR_TXT._RecordDeleted = 0 AND PR_TXT._RecordCurrent = 1 \
                         where MU._RecordVersion = 1 ")

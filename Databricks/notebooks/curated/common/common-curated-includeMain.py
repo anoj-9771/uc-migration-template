@@ -100,10 +100,13 @@ def TemplateEtl(df : object, entity, businessKey, schema, writeMode, AddSK = Tru
 # COMMAND ----------
 
 def TemplateEtlSCD(df : object, entity, businessKey, schema, target_layer='curated', scd_valid_start_date='now', scd_valid_end_date='9999-12-31T23:59:59', snap_shot=1, date_granularity='Second'):
-    
+
     Entity_Type = 'dimension'
     TARGET_LAYER = ADS_DATABASE_CURATED
-    Entity_Name = entity[3:]
+    if is_uc():
+        Entity_Name = entity[4:]
+    else:
+        Entity_Name = entity[3:]
     BUSINESS_KEY_COLS = businessKey
     SCD_START_DATE = scd_valid_start_date
     SCD_END_DATE = scd_valid_end_date
@@ -205,7 +208,10 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, fromDateCo
     TargetTable = f"{TARGET_LAYER}.{entity}"
     mount_point = DataLakeGetMountPoint(ADS_CONTAINER_CURATED)
     TargetTableDataLakePath = f"dbfs:{mount_point}/{entity.lower()}/delta"
-    EntityName = entity[3:]
+    if is_uc():
+        EntityName = entity[4:]
+    else:
+        EntityName = entity[3:]
     SurrogateKey = f"{EntityName}SK"
     SurrogateKey = SurrogateKey[0].lower() + SurrogateKey[1:]
     
@@ -247,8 +253,10 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, fromDateCo
     df = df.select([field.name for field in schema] + ['_BusinessKey','_DLCuratedZoneTimeStamp','_RecordStart','_RecordEnd','_RecordDeleted','_RecordCurrent'])
     
     print("Overwrite Target Table")
-    
-    df.write.mode("overwrite").saveAsTable(TargetTable, path=TargetTableDataLakePath)
+    if is_uc():
+        df.write.mode("overwrite").saveAsTable(TargetTable)
+    else:
+        df.write.mode("overwrite").saveAsTable(TargetTable, path=TargetTableDataLakePath)
     
     verifyTableSchema(f"{TARGET_LAYER}.{entity}", schema)
 
@@ -310,3 +318,8 @@ def updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk):
         .execute()
     
 #updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
+
+# COMMAND ----------
+
+def viewExists(viewFqn):
+    return (spark.table(f'{viewFqn.split(".")[0]}.information_schema.views').filter(f"""table_schema = '{viewFqn.split('.')[1]}' and table_name = '{viewFqn.split('.')[-1]}'""").count () > 0)

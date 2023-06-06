@@ -204,7 +204,7 @@ df_cleansed = spark.sql(f"SELECT \
 	tbl._RecordDeleted, \
 	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-left outer join cleansed.access_Z309_TSERVICETYPE ref1 on tbl.C_SERV_TYPE = ref1.serviceTypeCode \
+left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TSERVICETYPE ref1 on tbl.C_SERV_TYPE = ref1.serviceTypeCode \
                                 ")
 
 # COMMAND ----------
@@ -236,7 +236,7 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 
 # MAGIC %sql
 # MAGIC select * 
-# MAGIC from   cleansed.access_Z309_TPROPSERVFACI
+# MAGIC from   {ADS_DATABASE_CLEANSED}.access.Z309_TPROPSERVFACI
 
 # COMMAND ----------
 

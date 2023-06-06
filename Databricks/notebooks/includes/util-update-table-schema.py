@@ -11,8 +11,80 @@
 
 # COMMAND ----------
 
-print('verifyTableSchema(table as string, new structure definition as StructType)')
-print('\tThis function will verify nullable flags in schema against table definition and generate/run ALTER statements as required')
+import pandas as pd
+
+# COMMAND ----------
+
+# MAGIC %run ./global-variables-python
+
+# COMMAND ----------
+
+csv_path = "/mnt/datalake-raw/cleansed_csv/curated_mapping.csv"
+    
+
+# COMMAND ----------
+
+def lookup_curated_namespace(env:str, current_database_name: str, current_table_name: str, csv_path:str) -> str:
+    """looks up the target table namespace based on the current_table_name provided. note that this function assumes that there are no duplicate 'current_table_name' entries in the excel sheet."""
+    future_namespace = {}
+    try:
+        p_df = pd.read_csv(csv_path)
+        future_database_name = p_df[(p_df['current_table_name'] == current_table_name) & (p_df['current_database_name'].str.contains('curated'))]['future_database_name'].tolist()[0]
+        future_table_name = p_df[(p_df['current_table_name'] == current_table_name) & (p_df['current_database_name'].str.contains('curated'))]['future_table_name'].tolist()[0]
+        future_namespace['database_name'] = future_database_name
+        future_namespace['table_name'] = future_table_name
+    except Exception as e:
+        future_namespace['database_name'] = 'dim' if 'dim' in current_table_name else 'fact' if 'fact' in current_table_name else 'uncategorized'
+        future_namespace['table_name'] = current_table_name.replace('dim', '') if 'dim' in current_table_name else current_table_name.replace('fact', '') if 'fact' in current_table_name else current_table_name
+        print (f'Warning! Issue occurred while looking up the future namespace for table: {current_database_name}.{current_table_name}')
+    return future_namespace
+
+# COMMAND ----------
+
+def get_table_name(layer:str, j_schema: str, j_table: str) -> str:
+    """gets correct table namespace based on the UC migration/databricks-env secret being available in keyvault, used primarily for raw and cleansed ETL pipelines where the 3 part arguments are derived from controldb"""
+    if is_uc():
+        return f"{env}{layer}.{j_schema}.{j_table}"
+    else:
+        return f"{layer}.{j_schema}_{j_table}"
+    
+
+# COMMAND ----------
+
+def get_table_namespace(layer:str, table: str) -> str:
+    """gets correct table namespace based on the UC migration/databricks-env secret being available in keyvault, used primarily for pipelines other than raw and cleansed ETL"""
+    if is_uc():
+        env = dbutils.secrets.get('ADS', 'databricks-env')
+        if layer == 'raw' or layer == 'cleansed':
+            #use pattern to convert raw.source_tablename to raw.source.table_name
+            catalog_name = f'{env}{layer}'
+            db_name = table.split('_')[0]
+            table_name = '_'.join(table.split('_')[1:])
+            return f'{catalog_name}.{db_name}.{table_name}'
+        elif 'curated' in layer or 'semantic' in layer:
+            #use lookup_curated_namespace to find the target database and table based on mapping sheet
+            catalog_name = f'{env}{layer}'
+            db_name = lookup_curated_namespace(env, layer, table, csv_path)['database_name']
+            table_name = lookup_curated_namespace(env, layer, table, csv_path)['table_name']
+            return f'{catalog_name}.{db_name}.{table_name}'
+        elif layer == 'datalab':
+            #datalab schemas are named after environment except for prepord and prod
+            trimmed_env = env.replace('_', '')
+            catalog_name = layer
+            db_name = 'swc' if trimmed_env == '' else 'preprod' if trimmed_env == 'ppd' else f'{trimmed_env}' 
+            return f'{layer}.{db_name}.{table}'
+        else:
+            #stage/rejected tables follow slightly different database format to datalab
+            trimmed_env = env.replace('_', '')
+            return f'{layer}.{trimmed_env}.{table}'
+    else:
+         return f"{layer}.{table}"
+    
+
+# COMMAND ----------
+
+# print('verifyTableSchema(table as string, new structure definition as StructType)')
+# print('\tThis function will verify nullable flags in schema against table definition and generate/run ALTER statements as required')
 
 # COMMAND ----------
 
@@ -20,7 +92,7 @@ def verifyTableSchema(table, newSchema):
     from pyspark.sql.types import StructType, StructField, IntegerType, StringType, TimestampType, BooleanType, FloatType, DecimalType, DateType, LongType
     
     #This function is not relevant for tables in the raw layer or the staged step of the cleansed layer
-    if table.split('.')[0] == 'raw' or (table.split('.')[0] == 'cleansed' and table.split('.')[1][:4] == 'stg_'):
+    if table.split('.')[0].split('_')[-1] == 'raw' or (table.split('.')[0].split('_')[-1] == 'cleansed' and table.split('.')[1][:4] == 'stg_'):
         return
     
     dfStruct = []
@@ -42,7 +114,7 @@ def verifyTableSchema(table, newSchema):
             struct.append([flds[0], flds[1], flds[2]])
         return(struct)
 
-    df = spark.table(table)
+    df = spark.sql("select * from {0} limit 0".format(table))
     currentStruct = buildStruct(df.schema)
     desiredStruct = buildStruct(newSchema)
     

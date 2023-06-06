@@ -6,6 +6,22 @@
 #Please ensure the name of the scope matches with the scope name created in the environment
 ADS_KV_ACCOUNT_SCOPE = "ADS"
 
+# COMMAND ----------
+
+def is_uc():
+    """check if the current databricks environemnt is Unity Catalog enabled"""
+    try:
+        dbutils.secrets.get('ADS', 'databricks-env')
+        return True
+    except Exception as e:
+        return False
+
+# COMMAND ----------
+
+if is_uc():
+    ADS_DATABRICKS_ENV = dbutils.secrets.get('ADS', 'databricks-env')
+else:
+    ADS_DATABRICKS_ENV = ''
 
 # COMMAND ----------
 
@@ -35,6 +51,7 @@ ADS_KV_SYN_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
 
 ADS_SYNAPSE_DB_SERVER = "synws-" + ADS_SUBSCRIPTION + "-daf-" + ADS_ENVIRONMENT + "-01" 
 
+
 # COMMAND ----------
 
 #Data Lake Containers
@@ -50,21 +67,21 @@ ADS_CONTAINER_REJECTED = "rejected"
 # COMMAND ----------
 
 #Delta Lake Databases
-ADS_DATABASE_RAW = "raw"
+ADS_DATABASE_RAW = f"{ADS_DATABRICKS_ENV}raw"
 ADS_DATABASE_CLEANSED_STAGE = "cleansed.stg"
-ADS_DATABASE_CLEANSED = "cleansed"
-ADS_DATABASE_STAGE = "stage"
+ADS_DATABASE_CLEANSED = f"{ADS_DATABRICKS_ENV}cleansed"
+ADS_DATABASE_STAGE = f"{ADS_DATABRICKS_ENV}stage"
 ADS_DATABASE_CURATED_STAGE = "curated.stg"
-ADS_DATABASE_CURATED = "curated"
+ADS_DATABASE_CURATED = f"{ADS_DATABRICKS_ENV}curated"
 ADS_DATABASE_CURATED_V2 = "curated_v2"
-ADS_DATABASE_REJECTED = "rejected"
+ADS_DATABASE_REJECTED = f"{ADS_DATABRICKS_ENV}rejected"
 
-ADS_DATALAKE_ZONE_RAW = "raw"
-ADS_DATALAKE_ZONE_CLEANSED = "cleansed"
-ADS_DATALAKE_ZONE_STAGE = "stage"
-ADS_DATALAKE_ZONE_CURATED = "curated"
+ADS_DATALAKE_ZONE_RAW = f"{ADS_DATABRICKS_ENV}raw"
+ADS_DATALAKE_ZONE_CLEANSED = f"{ADS_DATABRICKS_ENV}cleansed"
+ADS_DATALAKE_ZONE_STAGE = f"{ADS_DATABRICKS_ENV}stage"
+ADS_DATALAKE_ZONE_CURATED = f"{ADS_DATABRICKS_ENV}curated"
 ADS_DATALAKE_ZONE_CURATED_V2 = "curated-v2"
-ADS_DATALAKE_ZONE_REJECTED = "rejected"
+ADS_DATALAKE_ZONE_REJECTED = f"{ADS_DATABRICKS_ENV}rejected"
 
 #SQL Schema
 ADS_SQL_SCHEMA_RAW = "raw"
@@ -73,6 +90,7 @@ ADS_SQL_SCHEMA_STAGE = "stage"
 
 ADS_TARGET_DELTA_TABLE = "DELTA"
 ADS_TARGET_SQL_SERVER = "SQLSERVER"
+
 
 # COMMAND ----------
 

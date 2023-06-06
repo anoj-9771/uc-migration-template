@@ -212,15 +212,15 @@ Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,ZWNUMMER,AB,BIS ORDER BY _FileDa
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage re \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UCDIVISCAT_TEXT di ON re.SPARTYP = di.sectorCategoryCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UCDIVISCAT_TEXT di ON re.SPARTYP = di.sectorCategoryCode \
                                                                                           and di._RecordDeleted = 0 and di._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE065T id ON re.SPARTYP = id.divisionCategoryCode and re.ZWKENN = id.registerIdCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TE065T id ON re.SPARTYP = id.divisionCategoryCode and re.ZWKENN = id.registerIdCode \
                                                                                           and id._RecordDeleted = 0 and id._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE523T te ON re.ZWART = te.registerTypeCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TE523T te ON re.ZWART = te.registerTypeCode \
                                                                                           and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'E_ZWTYP' \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'E_ZWTYP' \
                                                                                           and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd1 ON re.BLIWIRK = dd1.domainValueSingleUpperLimit and  dd1.domainName = 'BLIWIRK' \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.DD07T dd1 ON re.BLIWIRK = dd1.domainValueSingleUpperLimit and  dd1.domainName = 'BLIWIRK' \
                                                                                           and dd1._RecordDeleted = 0 and dd1._RecordCurrent = 1 \
                         ").cache()
 
@@ -280,7 +280,7 @@ DeltaSaveDataFrameToDeltaTable(cleansed_df.filter("_RecordDeleted = '0'"), targe
 # Load deleted records to replace the existing Deleted records implementation logic
 cleansed_df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_regist_deleted_records")
 spark.sql(f" \
-    MERGE INTO cleansed.isu_0UC_REGIST_ATTR \
+    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.0UC_REGIST_ATTR isu_0UC_REGIST_ATTR \
     using isu_regist_deleted_records \
     on isu_0UC_REGIST_ATTR.equipmentNumber = isu_regist_deleted_records.equipmentNumber \
     and isu_0UC_REGIST_ATTR.registerNumber = isu_regist_deleted_records.registerNumber \

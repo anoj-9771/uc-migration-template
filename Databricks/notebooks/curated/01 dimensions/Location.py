@@ -50,13 +50,13 @@ def getLocation():
                                      --a.latitude, 
                                      --a.longitude,
                                      d._RecordDeleted 
-                                     from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode b on d.propertyNumber = b.architecturalObjectNumber 
+                                     from {ADS_DATABASE_CLEANSED}.isu.0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu.vibdnode b on d.propertyNumber = b.architecturalObjectNumber 
                                          left outer join (select propertyNumber, lga, latitude, longitude from 
                                               (select propertyNumber, lga, latitude, longitude, 
                                                 row_number() over (partition by propertyNumber order by areaSize desc,latitude,longitude,lga) recNum 
-                                                from cleansed.hydra_tlotparcel where  _RecordCurrent = 1 ) 
+                                                from {ADS_DATABASE_CLEANSED}.hydra.tlotparcel where  _RecordCurrent = 1 ) 
                                                 where recNum = 1) a on a.propertyNumber = b.architecturalObjectNumber, 
-                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c 
+                                          {ADS_DATABASE_CLEANSED}.isu.0funct_loc_attr c 
                                      where b.architecturalObjectNumber = c.functionalLocationNumber 
                                      and b.parentArchitecturalObjectNumber is null 
                                      and b._RecordCurrent = 1 
@@ -87,14 +87,14 @@ def getLocation():
                                      --a.latitude, 
                                      --a.longitude,
                                      d._RecordDeleted 
-                                     from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode b on d.propertyNumber = b.architecturalObjectNumber 
+                                     from {ADS_DATABASE_CLEANSED}.isu.0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu.vibdnode b on d.propertyNumber = b.architecturalObjectNumber 
                                          left outer join (select propertyNumber, lga, latitude, longitude from 
                                               (select propertyNumber, lga, latitude, longitude, 
                                                 row_number() over (partition by propertyNumber order by areaSize desc,latitude,longitude,lga) recNum 
-                                                from {ADS_DATABASE_CLEANSED}.hydra_tlotparcel where _RecordCurrent = 1 ) 
+                                                from {ADS_DATABASE_CLEANSED}.hydra.tlotparcel where _RecordCurrent = 1 ) 
                                                 where recNum = 1) a on a.propertyNumber = b.parentArchitecturalObjectNumber, 
-                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, 
-                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c1 
+                                          {ADS_DATABASE_CLEANSED}.isu.0funct_loc_attr c, 
+                                          {ADS_DATABASE_CLEANSED}.isu.0funct_loc_attr c1 
                                      where b.architecturalObjectNumber = c.functionalLocationNumber 
                                      and b.parentArchitecturalObjectNumber = c1.functionalLocationNumber 
                                      and b._RecordCurrent = 1 
@@ -106,7 +106,7 @@ def getLocation():
     ISULocationDf.createOrReplaceTempView('allLocations')
     
     missingProps = spark.sql(f"""select propertyNumber 
-                               from   {ADS_DATABASE_CLEANSED}.access_Z309_TPropertyAddress 
+                               from   {ADS_DATABASE_CLEANSED}.access.Z309_TPropertyAddress 
                                where  _RecordCurrent = 1 
                                minus 
                                select locationId 
@@ -119,12 +119,12 @@ def getLocation():
                                 select su.propertyNumber, 
                                        ms.masterPropertyNumber as parentPropertyNumber, 
                                        'Child of Master Strata' as relationshipType 
-                                from {ADS_DATABASE_CLEANSED}.access_z309_tstrataunits su 
-                                      inner join {ADS_DATABASE_CLEANSED}.access_z309_tmastrataplan ms on su.strataPlanNumber = ms.strataPlanNumber and ms._RecordCurrent = 1 
-                                      left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = ms.masterPropertynumber and pr._RecordCurrent = 1 
+                                from {ADS_DATABASE_CLEANSED}.access.z309_tstrataunits su 
+                                      inner join {ADS_DATABASE_CLEANSED}.access.z309_tmastrataplan ms on su.strataPlanNumber = ms.strataPlanNumber and ms._RecordCurrent = 1 
+                                      left outer join {ADS_DATABASE_CLEANSED}.access.z309_tproperty pr on pr.propertynumber = ms.masterPropertynumber and pr._RecordCurrent = 1 
                                 where su._RecordCurrent = 1), 
                              remainingProps as(select propertyNumber 
-                                               from   {ADS_DATABASE_CLEANSED}.access_z309_tproperty 
+                                               from   {ADS_DATABASE_CLEANSED}.access.z309_tproperty 
                                                where  _RecordCurrent = 1 
                                                minus 
                                                select propertyNumber 
@@ -134,8 +134,8 @@ def getLocation():
                                         rp.relatedPropertyNumber as parentPropertyNumber, 
                                         rp.relationshipType as relationshipType, 
                                         rank() over (partition by rp.propertyNumber order by relationshipTypecode desc) as rnk 
-                                from {ADS_DATABASE_CLEANSED}.access_z309_trelatedProps rp inner join remainingProps rem on rp.propertyNumber = rem.propertyNumber 
-                                       left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = rp.relatedPropertynumber 
+                                from {ADS_DATABASE_CLEANSED}.access.z309_trelatedProps rp inner join remainingProps rem on rp.propertyNumber = rem.propertyNumber 
+                                       left outer join {ADS_DATABASE_CLEANSED}.access.z309_tproperty pr on pr.propertynumber = rp.relatedPropertynumber 
                                 where rp.relationshipTypeCode in ('P','U') 
                                 and   rp._RecordCurrent = 1), 
                               t3 as(select * from t1 
@@ -146,7 +146,7 @@ def getLocation():
                                     from relatedprops 
                                     where rnk = 1), 
                               t4 as(select propertyNumber 
-                                    from {ADS_DATABASE_CLEANSED}.access_z309_tproperty 
+                                    from {ADS_DATABASE_CLEANSED}.access.z309_tproperty 
                                     where _RecordCurrent = 1 
                                     minus 
                                     select propertyNumber from t3) 
@@ -155,7 +155,7 @@ def getLocation():
                             select pr.propertyNumber, 
                                     pr.propertyNumber as parentPropertyNumber, 
                                     'Self as Parent' as relationshipType 
-                            from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr, t4 
+                            from {ADS_DATABASE_CLEANSED}.access.z309_tproperty pr, t4 
                             where pr.propertyNumber = t4.propertyNumber 
                             and pr._RecordCurrent = 1 
                             """)
@@ -205,15 +205,15 @@ def getLocation():
                            --latitude, 
                            --longitude,
                            pa._RecordDeleted 
-                           from {ADS_DATABASE_CLEANSED}.access_z309_tpropertyaddress pa left outer join 
-                                 {ADS_DATABASE_CLEANSED}.access_z309_tstreetguide sg on pa.streetGuideCode = sg.streetGuideCode, 
+                           from {ADS_DATABASE_CLEANSED}.access.z309_tpropertyaddress pa left outer join 
+                                 {ADS_DATABASE_CLEANSED}.access.z309_tstreetguide sg on pa.streetGuideCode = sg.streetGuideCode, 
                                  parents pp, 
-                                 {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr, 
+                                 {ADS_DATABASE_CLEANSED}.access.z309_tproperty pr, 
                                  missingProps mp left outer join 
                                  (select propertyNumber, lga, latitude, longitude from 
                                          (select propertyNumber, lga, latitude, longitude, 
                                                  row_number() over (partition by propertyNumber order by areaSize desc,latitude,longitude) recNum 
-                                          from {ADS_DATABASE_CLEANSED}.hydra_tlotparcel where  _RecordCurrent = 1 ) 
+                                          from {ADS_DATABASE_CLEANSED}.hydra.tlotparcel where  _RecordCurrent = 1 ) 
                                           where recNum = 1) hy on hy.propertyNumber = pp.parentPropertyNumber
                             where pa.propertyNumber = pp.propertyNumber 
                             and   pa.propertyNumber = pr.propertyNumber 
@@ -293,19 +293,19 @@ def getLocation():
 # COMMAND ----------
 
 df, schema = getLocation()
-#TemplateEtl(df, entity="dimLocation", businessKey="locationId", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+#TemplateEtl(df, entity="dim.Location", businessKey="locationId", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
-curnt_table = f'{ADS_DATABASE_CURATED}.dimLocation'
+curnt_table = f'{ADS_DATABASE_CURATED}.dim.location'
 curnt_pk = 'locationId' 
 curnt_recordStart_pk = 'locationId'
-history_table = f'{ADS_DATABASE_CURATED}.dimPropertyTypeHistory'
+history_table = f'{ADS_DATABASE_CURATED}.dim.propertyTypeHistory'
 history_table_pk = 'propertyNumber'
 history_table_pk_convert = 'propertyNumber as locationId'
 
 df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk)
 updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
 
-TemplateEtlSCD(df_, entity="dimLocation", businessKey="locationId", schema=schema)
+TemplateEtlSCD(df_, entity="dim.location", businessKey="locationId", schema=schema)
 
 # COMMAND ----------
 
@@ -316,11 +316,11 @@ TemplateEtlSCD(df_, entity="dimLocation", businessKey="locationId", schema=schem
 
 # MAGIC %sql
 # MAGIC with t1 as (select cp.propertyNumber, LGA
-# MAGIC             from   curated.dimLocation l,
+# MAGIC             from   {ADS_DATABASE_CURATED}.dim.location l,
 # MAGIC                    curated.ACCESSCancelledActiveProps cp
 # MAGIC             where  l.locationId = cp.activeProperty and l._RecordCurrent = 1)
 # MAGIC
-# MAGIC merge into curated.dimLocation l
+# MAGIC merge into {ADS_DATABASE_CURATED}.dim.location l
 # MAGIC using      t1
 # MAGIC on         l.locationId = t1.propertyNumber and l._RecordCurrent = 1
 # MAGIC when matched then update 

@@ -155,39 +155,39 @@ def GeneralAlignTableName(table_name):
   
   print ('Updating Table Names to remove special characters')
     
-  renamed_table = d = re.sub('[-@ ,;{}()]', '_', get_table_name(table_name))
+  renamed_table = d = re.sub('[-@ ,;{}()]', '_', table_name)
     
   return renamed_table
 
 # COMMAND ----------
 
-# MAGIC %scala
-# MAGIC 
-# MAGIC def GeneralAlignTableNameScala(table_name: String) : String = {
-# MAGIC   
-# MAGIC   val regex = "[;@ ,;{}()-]".r
-# MAGIC   
-# MAGIC   var updated_table_name = regex.replaceAllIn(table_name, "_")
-# MAGIC   
-# MAGIC   return updated_table_name
-# MAGIC   
-# MAGIC }
+# %scala
+
+# def GeneralAlignTableNameScala(table_name: String) : String = {
+  
+#   val regex = "[;@ ,;{}()-]".r
+  
+#   var updated_table_name = regex.replaceAllIn(table_name, "_")
+  
+#   return updated_table_name
+  
+# }
 
 # COMMAND ----------
 
-# MAGIC %scala
-# MAGIC 
-# MAGIC def GeneralGetBoolFromStringScala(str_val: String) : Boolean = {
-# MAGIC   
-# MAGIC   if (str_val.toUpperCase() == "TRUE")
-# MAGIC   {
-# MAGIC     return true
-# MAGIC   }
-# MAGIC   else
-# MAGIC   {
-# MAGIC     return false
-# MAGIC   }
-# MAGIC }
+# %scala
+
+# def GeneralGetBoolFromStringScala(str_val: String) : Boolean = {
+  
+#   if (str_val.toUpperCase() == "TRUE")
+#   {
+#     return true
+#   }
+#   else
+#   {
+#     return false
+#   }
+# }
 
 # COMMAND ----------
 

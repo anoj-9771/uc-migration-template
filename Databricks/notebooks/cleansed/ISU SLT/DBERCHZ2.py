@@ -218,10 +218,10 @@ df = spark.sql(f"WITH stage AS \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage left join {ADS_DATABASE_CLEANSED}.isu_te609t te609t on te609t.meterReadingReasonCode = stage.ABLESGRV \
-                                left join {ADS_DATABASE_CLEANSED}.isu_0uc_mrtype_text mrtype on mrtype.meterReadingTypeCode = stage.ISTABLART \
-                                left join {ADS_DATABASE_CLEANSED}.isu_0uc_mrtype_text mrtype2 on mrtype2.meterReadingTypeCode = stage.ISTABLARTVA \
-                                left join {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t on dd07t.domainName = 'REGRELSORT' and dd07t.domainValueSingleUpperLimit = stage.REGRELSORT \
+                        from stage left join {ADS_DATABASE_CLEANSED}.isu.te609t te609t on te609t.meterReadingReasonCode = stage.ABLESGRV \
+                                left join {ADS_DATABASE_CLEANSED}.isu.0uc_mrtype_text mrtype on mrtype.meterReadingTypeCode = stage.ISTABLART \
+                                left join {ADS_DATABASE_CLEANSED}.isu.0uc_mrtype_text mrtype2 on mrtype2.meterReadingTypeCode = stage.ISTABLARTVA \
+                                left join {ADS_DATABASE_CLEANSED}.isu.dd07t dd07t on dd07t.domainName = 'REGRELSORT' and dd07t.domainValueSingleUpperLimit = stage.REGRELSORT \
                                 where _RecordVersion = 1")
 
 #print(f'Number of rows: {df.count()}')

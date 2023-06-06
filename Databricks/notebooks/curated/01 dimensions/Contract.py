@@ -76,7 +76,7 @@ def getContract():
                                     ,lastChangedDate
                                     ,lastChangedBy 
                                     ,_RecordDeleted 
-                                from {ADS_DATABASE_CLEANSED}.isu_0uccontract_attr_2
+                                from {ADS_DATABASE_CLEANSED}.isu.0uccontract_attr_2
                                 where _RecordCurrent = 1 
                               """)
     
@@ -143,17 +143,17 @@ def getContract():
 
 df, schema = getContract()
 
-curnt_table = f'{ADS_DATABASE_CURATED}.dimContract'
+curnt_table = f'{ADS_DATABASE_CURATED}.dim.contract'
 curnt_pk = 'contractId' 
 curnt_recordStart_pk = 'contractId'
-history_table = f'{ADS_DATABASE_CURATED}.dimContractHistory'
+history_table = f'{ADS_DATABASE_CURATED}.dim.contractHistory'
 history_table_pk = 'contractId'
 history_table_pk_convert = 'contractId'
 
 df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk)
 updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
 
-TemplateEtlSCD(df_, entity="dimContract", businessKey="contractId", schema=schema)
+TemplateEtlSCD(df_, entity="dim.contract", businessKey="contractId", schema=schema)
 
 # COMMAND ----------
 

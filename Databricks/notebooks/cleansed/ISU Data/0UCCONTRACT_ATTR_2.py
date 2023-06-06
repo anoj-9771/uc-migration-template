@@ -292,32 +292,32 @@ df = spark.sql(f"""
             '1' as _RecordCurrent, 
             cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
         FROM stage ca 
-        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT ct 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0COMP_CODE_TEXT ct 
             ON ca.BUKRS = ct.companyCode 
             and ct._RecordDeleted = 0 
             and ct._RecordCurrent = 1 
-        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0DIVISION_TEXT dt ON 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0DIVISION_TEXT dt ON 
             ca.SPARTE = dt.divisionCode 
             and dt._RecordDeleted = 0 
             and dt._RecordCurrent = 1 
-        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FCACTDETID_TEXT ft ON 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0FCACTDETID_TEXT ft ON 
             ca.KOFIZ = ft.accountDeterminationCode 
             and ft._RecordDeleted = 0 
             and ft._RecordCurrent = 1 
-        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.DD07T dd ON 
             ca.ABSZYK = dd.domainValueSingleUpperLimit 
             and dd.domainName = 'ABSZYK' 
             and dd._RecordDeleted = 0 
             and dd._RecordCurrent = 1 
-        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd1 ON 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.DD07T dd1 ON 
             ca.GEMFAKT = dd1.domainValueSingleUpperLimit 
             and dd1.domainName = 'E_GEMFAKT' 
             and dd1._RecordDeleted = 0 
             and dd1._RecordCurrent = 1 
-        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_ABRSPERR_TEXT at ON 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_ABRSPERR_TEXT at ON 
             ca.ABRSPERR = at.billBlockingReasonCode 
             and at._RecordDeleted = 0 and at._RecordCurrent = 1 
-        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd2 ON 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.DD07T dd2 ON 
             ca.KZSONDAUSZ = dd2.domainValueSingleUpperLimit 
             and dd2.domainName = 'KZSONDAUSZ' 
             and dd2._RecordDeleted = 0 

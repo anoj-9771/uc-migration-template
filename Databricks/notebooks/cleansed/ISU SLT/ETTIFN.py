@@ -279,15 +279,15 @@ df = spark.sql(f"""
             '1'                                                       as _RecordCurrent, 
             cast('{CurrentTimeStamp}' as TimeStamp)                   as _DLCleansedZoneTimeStamp 
     FROM stage ef 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT te ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_STATTART_TEXT te ON 
         ef.TARIFART = te.rateTypeCode and 
         te._RecordDeleted = 0 and 
         te._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te067t te067t ON
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.te067t te067t ON
         ef.KONDIGR = te067t.rateFactGroupCode AND
         te067t._RecordDeleted = 0 and 
         te067t._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_OPERAND_TEXT op ON
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_OPERAND_TEXT op ON
         op.operandcode = ef.OPERAND AND
         op._RecordDeleted = 0 AND
         op._RecordCurrent = 1 
@@ -359,7 +359,7 @@ CurrentTimeStamp = GeneralLocalDateTime()
 CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 
 spark.sql(f" \
-    MERGE INTO cleansed.isu_ETTIFN \
+    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.ETTIFN isu_ETTIFN \
     using isu_ettifn_deleted_records \
     on isu_ETTIFN.installationNumber = isu_ettifn_deleted_records.ANLAGE \
     and isu_ETTIFN.operandCode = isu_ettifn_deleted_records.OPERAND \

@@ -22,11 +22,11 @@ def getPropertyLot():
                                         isu_0uc_connobj_attr_2.propertyNumber,
                                         CAST(a.latitude AS DECIMAL(9,6)) as latitude,
                                         CAST(a.longitude AS DECIMAL(9,6)) as longitude,
-                                        _RecordDeleted from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 
+                                        _RecordDeleted from {ADS_DATABASE_CLEANSED}.isu.0uc_connobj_attr_2 isu_0uc_connobj_attr_2
                                         left outer join (select propertyNumber, lga, latitude, longitude from 
                                               (select propertyNumber, lga, latitude, longitude, 
                                                 row_number() over (partition by propertyNumber order by areaSize desc,latitude,longitude) recNum 
-                                                from cleansed.hydra_tlotparcel where  _RecordCurrent = 1 ) 
+                                                from {ADS_DATABASE_CLEANSED}.hydra.tlotparcel where  _RecordCurrent = 1 ) 
                                                 where recNum = 1) a on a.propertyNumber = isu_0uc_connobj_attr_2.propertyNumber
                                         where isu_0uc_connobj_attr_2.propertyNumber <> '' 
                                         and  _RecordCurrent = 1 """)
@@ -55,19 +55,19 @@ def getPropertyLot():
 # COMMAND ----------
 
 df, schema = getPropertyLot()
-#TemplateEtl(df, entity="dimPropertyLot", businessKey="planTypeCode,planNumber,lotTypeCode,lotNumber,sectionNumber,propertyNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+#TemplateEtl(df, entity="dim.PropertyLot", businessKey="planTypeCode,planNumber,lotTypeCode,lotNumber,sectionNumber,propertyNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
-curnt_table = f'{ADS_DATABASE_CURATED}.dimPropertyLot'
+curnt_table = f'{ADS_DATABASE_CURATED}.dim.propertyLot'
 curnt_pk = 'propertyNumber' 
 curnt_recordStart_pk = 'propertyNumber'
-history_table = f'{ADS_DATABASE_CURATED}.dimPropertyTypeHistory'
+history_table = f'{ADS_DATABASE_CURATED}.dim.propertyTypeHistory'
 history_table_pk = 'propertyNumber'
 history_table_pk_convert = 'propertyNumber'
 
 df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk)
 updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
 
-TemplateEtlSCD(df_, entity="dimPropertyLot", businessKey="propertyNumber", schema=schema)
+TemplateEtlSCD(df_, entity="dim.propertyLot", businessKey="propertyNumber", schema=schema)
 
 # COMMAND ----------
 

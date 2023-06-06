@@ -204,13 +204,13 @@ Select *, ROW_NUMBER() OVER (PARTITION BY LOGIKZW,ANLAGE,AB,BIS ORDER BY _FileDa
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage re \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT st ON re.TARIFART = st.rateTypeCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_STATTART_TEXT st ON re.TARIFART = st.rateTypeCode \
                                                                                           and st._RecordDeleted = 0 and st._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_PRICCLA_TEXT pt ON re.PREISKLA = pt.priceClassCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_PRICCLA_TEXT pt ON re.PREISKLA = pt.priceClassCode \
                                                                                           and pt._RecordDeleted = 0 and pt._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE405T te ON re.ZOPCODE = te.operationCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TE405T te ON re.ZOPCODE = te.operationCode \
                                                                                           and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE067T te67 ON re.KONDIGR = te67.rateFactGroupCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TE067T te67 ON re.KONDIGR = te67.rateFactGroupCode \
                                                                                           and te67._RecordDeleted = 0 and te67._RecordCurrent = 1 \
                         ").cache()
 
@@ -262,7 +262,7 @@ DeltaSaveDataFrameToDeltaTable(cleansed_df.filter("_RecordDeleted = '0'"), targe
 # Load deleted records to replace the existing Deleted records implementation logic
 cleansed_df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_reginst_deleted_records")
 spark.sql(f" \
-    MERGE INTO cleansed.isu_0UC_REGINST_STR_ATTR \
+    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.0UC_REGINST_STR_ATTR isu_0UC_REGINST_STR_ATTR \
     using isu_reginst_deleted_records \
     on isu_0UC_REGINST_STR_ATTR.logicalRegisterNumber = isu_reginst_deleted_records.logicalRegisterNumber \
     and isu_0UC_REGINST_STR_ATTR.installationNumber = isu_reginst_deleted_records.installationNumber \

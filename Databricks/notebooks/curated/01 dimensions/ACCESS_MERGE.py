@@ -236,7 +236,7 @@ df_access = spark.sql(f"""
                 0 as _RecordDeleted,
                 0 as _RecordCurrent,
                 row_number() over(partition by concat(d.propertyNumber,'-',d.propertyMeterNumber) order by d.validFrom desc, d.validTo desc) as row_sequence 
-              from cleansed.access_meterTimeslice d 
+              from {ADS_DATABASE_CLEANSED}.access.meterTimeslice d 
                     where d.meterMakerNumber is not null 
                     and d.meterMakerNumber <> ''
                     and d.meterMakerNumber <> '0' and to_timestamp(d.validTo) >= to_timestamp(d.validFrom)
@@ -280,7 +280,7 @@ df_access = spark.sql(f"""
                 0 as _RecordDeleted,
                 0 as _RecordCurrent,
                 row_number() over(partition by concat(propertyNumber,'-',propertyMeterNumber) order by validFrom desc, validTo desc) as row_sequence
-              from cleansed.access_meterTimeslice 
+              from {ADS_DATABASE_CLEANSED}.access.meterTimeslice 
               where meterMakerNumber is not null 
                     and meterMakerNumber <> ''
                     and meterMakerNumber <> '0' and to_timestamp(validTo) >= to_timestamp(validFrom)
@@ -322,7 +322,7 @@ df_access = spark.sql(f"""
                 0 as _RecordDeleted,
                 0 as _RecordCurrent,
                 row_number() over(partition by concat(propertyNumber,'-',propertyMeterNumber) order by validFrom desc, validTo desc) as row_sequence
-              from cleansed.access_meterTimeslice 
+              from {ADS_DATABASE_CLEANSED}.access.meterTimeslice 
               where meterMakerNumber is not null 
                     and meterMakerNumber <> ''
                     and meterMakerNumber <> '0' and to_timestamp(validTo) >= to_timestamp(validFrom)
@@ -365,7 +365,7 @@ df_access = spark.sql(f"""
             0 as _RecordDeleted,
             0 as _RecordCurrent,
             row_number() over(partition by concat(propertyNumber,'-',propertyMeterNumber) order by validFrom desc, validTo desc) as row_sequence
-            from cleansed.access_meterTimeslice 
+            from {ADS_DATABASE_CLEANSED}.access.meterTimeslice 
             where meterMakerNumber is not null 
                 and meterMakerNumber <> ''
                 and meterMakerNumber <> '0' and to_timestamp(validTo) >= to_timestamp(validFrom)
@@ -394,14 +394,14 @@ def getAccessProperty():
                                     coalesce(plts.domainValueText,lotType) as lotType, 
                                     sectionNumber as sectionNumber, 
                                     row_number() over (partition by propertyNumber order by planNumber,lotNumber,sectionNumber) recNum 
-                            from {ADS_DATABASE_CLEANSED}.access_z309_tlot tlot 
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tplantype_tx pts on pts.plan_type = case when planTypeCode = 'DP' then '01' 
+                            from {ADS_DATABASE_CLEANSED}.access.z309_tlot tlot 
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu.zcd_tplantype_tx pts on pts.plan_type = case when planTypeCode = 'DP' then '01' 
                                                                                               when planTypeCode = 'PSP' then '03' 
                                                                                               when planTypeCode = 'PDP' then '04' 
                                                                                               when planTypeCode = 'CN' then '05' 
                                                                                               when planTypeCode = 'SP' then '02' 
                                                                                               else null end 
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_dd07t plts on lotTypeCode = plts.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' 
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu.dd07t plts on lotTypeCode = plts.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' 
                             where tlot._RecordCurrent = 1 
                          ) numRec where recNum = 1
                         union all 
@@ -413,7 +413,7 @@ def getAccessProperty():
                                 '01' as lotTypeCode, 
                                 'Full' as lotType, 
                                 null as sectionNumber 
-                        from {ADS_DATABASE_CLEANSED}.access_z309_tstrataunits 
+                        from {ADS_DATABASE_CLEANSED}.access.z309_tstrataunits 
                         where _RecordCurrent = 1 
                         """)
     lotDf.createOrReplaceTempView('lots')
@@ -426,14 +426,14 @@ def getAccessProperty():
                                         pr.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, 
                                         coalesce(supsap.superiorPropertyType,pr.superiorPropertyType) as parentSuperiorPropertyType, 
                                        'Child of Master Strata' as relationshipType 
-                                from {ADS_DATABASE_CLEANSED}.access_z309_tstrataunits su 
-                                      inner join {ADS_DATABASE_CLEANSED}.access_z309_tmastrataplan ms on su.strataPlanNumber = ms.strataPlanNumber and ms._RecordCurrent = 1 
-                                      left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = ms.masterPropertynumber and pr._RecordCurrent = 1 
-                                      left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = pr.propertyTypeCode and infsap._RecordCurrent = 1 
-                                      left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = pr.superiorPropertyTypeCode and supsap._RecordCurrent = 1 
+                                from {ADS_DATABASE_CLEANSED}.access.z309_tstrataunits su 
+                                      inner join {ADS_DATABASE_CLEANSED}.access.z309_tmastrataplan ms on su.strataPlanNumber = ms.strataPlanNumber and ms._RecordCurrent = 1 
+                                      left outer join {ADS_DATABASE_CLEANSED}.access.z309_tproperty pr on pr.propertynumber = ms.masterPropertynumber and pr._RecordCurrent = 1 
+                                      left outer join {ADS_DATABASE_CLEANSED}.isu.zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = pr.propertyTypeCode and infsap._RecordCurrent = 1 
+                                      left outer join {ADS_DATABASE_CLEANSED}.isu.zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = pr.superiorPropertyTypeCode and supsap._RecordCurrent = 1 
                                 where su._RecordCurrent = 1), 
                              remainingProps as(select propertyNumber 
-                                               from   {ADS_DATABASE_CLEANSED}.access_z309_tproperty 
+                                               from   {ADS_DATABASE_CLEANSED}.access.z309_tproperty 
                                                where  _RecordCurrent = 1 
                                                minus 
                                                select propertyNumber 
@@ -447,10 +447,10 @@ def getAccessProperty():
                                         coalesce(supsap.superiorPropertyType,pr.superiorPropertyType) as parentSuperiorPropertyType, 
                                         rp.relationshipType as relationshipType, 
                                         row_number() over (partition by rp.propertyNumber order by relationshipTypecode desc) as rn 
-                                from {ADS_DATABASE_CLEANSED}.access_z309_trelatedProps rp inner join remainingProps rem on rp.propertyNumber = rem.propertyNumber 
-                                       left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = rp.relatedPropertynumber 
-                                       left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = pr.propertyTypeCode and infsap._RecordCurrent = 1 
-                                       left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = pr.superiorPropertyTypeCode and supsap._RecordCurrent = 1 
+                                from {ADS_DATABASE_CLEANSED}.access.z309_trelatedProps rp inner join remainingProps rem on rp.propertyNumber = rem.propertyNumber 
+                                       left outer join {ADS_DATABASE_CLEANSED}.access.z309_tproperty pr on pr.propertynumber = rp.relatedPropertynumber 
+                                       left outer join {ADS_DATABASE_CLEANSED}.isu.zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = pr.propertyTypeCode and infsap._RecordCurrent = 1 
+                                       left outer join {ADS_DATABASE_CLEANSED}.isu.zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = pr.superiorPropertyTypeCode and supsap._RecordCurrent = 1 
                                 where rp.relationshipTypeCode in ('M','P','U') 
                                 and   rp._RecordCurrent = 1), 
                               t3 as(select * from t1 
@@ -465,7 +465,7 @@ def getAccessProperty():
                                     from relatedprops 
                                     where rn = 1), 
                               t4 as(select propertyNumber 
-                                    from {ADS_DATABASE_CLEANSED}.access_z309_tproperty 
+                                    from {ADS_DATABASE_CLEANSED}.access.z309_tproperty 
                                     where _RecordCurrent = 1 
                                     minus 
                                     select propertyNumber from t3) 
@@ -478,7 +478,7 @@ def getAccessProperty():
                                     superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, 
                                     superiorPropertyType as parentSuperiorPropertyType, 
                                     'Self as Parent' as relationshipType 
-                            from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr, t4 
+                            from {ADS_DATABASE_CLEANSED}.access.z309_tproperty pr, t4 
                             where pr.propertyNumber = t4.propertyNumber 
                             and pr._RecordCurrent = 1 
                             """)
@@ -489,7 +489,7 @@ def getAccessProperty():
                                     sewerNetworkSK as sewerNetworkSK, stormWaterNetworkSK as stormWaterNetworkSK, 
                                     row_number() over (partition by propertyNumber order by lp.waterPressureZone desc, lp.recycledSupplyZone desc, 
                                     lp.sewerScamp desc, lp.stormWaterCatchment desc) as rn 
-                            from {ADS_DATABASE_CLEANSED}.hydra_TLotParcel lp 
+                            from {ADS_DATABASE_CLEANSED}.hydra.TLotParcel lp 
                                   left outer join {ADS_DATABASE_CURATED_V2}.dimWaterNetwork wn on lp.waterPressureZone = wn.pressureArea and wn._RecordCurrent = 1 
                                   left outer join {ADS_DATABASE_CURATED_V2}.dimWaterNetwork wnr on lp.recycledSupplyZone = wnr.supplyZone and wnr._RecordCurrent = 1 
                                   left outer join {ADS_DATABASE_CURATED_V2}.dimSewerNetwork snw on lp.sewerScamp = snw.SCAMP and snw._RecordCurrent = 1 
@@ -547,10 +547,10 @@ def getAccessProperty():
                 0 as _RecordDeleted,
                 0 as _RecordCurrent,
                 row_number() over(partition by pt.propertyNumber order by pt.validFrom desc, pt.validTo desc) as row_sequence 
-         from cleansed.access_propertyTimeslice pt  
+         from {ADS_DATABASE_CLEANSED}.access.propertyTimeslice pt  
          left outer join parents pp on pp.propertyNumber = pt.propertyNumber 
          left outer join systemAreas sa on sa.propertyNumber = pp.parentPropertyNumber 
-         left outer join cleansed.access_z309_thydraareas ha on pt.propertyNumber = ha.propertyNumber where to_timestamp(pt.validTo) >= to_timestamp(pt.validFrom) 
+         left outer join {ADS_DATABASE_CLEANSED}.access.z309_thydraareas ha on pt.propertyNumber = ha.propertyNumber where to_timestamp(pt.validTo) >= to_timestamp(pt.validFrom) 
     """)
 
     return df_access
@@ -585,7 +585,7 @@ df_access = spark.sql(f"""
           0 as _RecordDeleted,
           0 as _RecordCurrent,
           row_number() over(partition by propertyNumber order by validFrom desc, validTo desc) as row_sequence  
-          from cleansed.access_propertyTypeTimeslice 
+          from {ADS_DATABASE_CLEANSED}.access.propertyTypeTimeslice 
           where to_timestamp(validTo) >= to_timestamp(validFrom)
     
     """)
@@ -619,7 +619,7 @@ df_access = spark.sql(f"""
             0 as _RecordDeleted,
             0 as _RecordCurrent,
             row_number() over(partition by propertyNumber order by validFrom desc, validTo desc) as row_sequence  
-            from cleansed.access_propertyLotTimeslice where to_timestamp(validTo) >= to_timestamp(validFrom) 
+            from {ADS_DATABASE_CLEANSED}.access.propertyLotTimeslice where to_timestamp(validTo) >= to_timestamp(validFrom) 
         """)
 
 merge_access(table, bk, sk, df_access)
@@ -648,7 +648,7 @@ df_access = spark.sql(f"""
           0 as _RecordDeleted,
           0 as _RecordCurrent,
           row_number() over(partition by propertyNumber order by validFrom desc, validTo desc) as row_sequence 
-          from cleansed.access_facilityTimeslice where to_timestamp(validTo) >= to_timestamp(validFrom)
+          from {ADS_DATABASE_CLEANSED}.access.facilityTimeslice where to_timestamp(validTo) >= to_timestamp(validFrom)
         """)
 
 merge_access_timeslice(table, bk, sk, df_access)
@@ -691,7 +691,7 @@ df_access = spark.sql(f"""
     0 as _RecordDeleted,
     0 as _RecordCurrent,
     row_number() over(partition by locationId order by validFrom desc, validTo desc) as row_sequence 
-    from cleansed.access_propertyAddressTimeslice where to_timestamp(validTo) >= to_timestamp(validFrom)
+    from {ADS_DATABASE_CLEANSED}.access.propertyAddressTimeslice where to_timestamp(validTo) >= to_timestamp(validFrom)
 """)
 
 merge_access(table, bk, sk, df_access)

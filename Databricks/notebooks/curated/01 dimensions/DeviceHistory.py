@@ -37,7 +37,7 @@ def getDeviceHistory():
                                                else null end as lastDeviceRemovalDate,
                                            dh._RecordDeleted,
                                            dh._DLCleansedZoneTimeStamp 
-                                      from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVICEH_ATTR dh
+                                      from {ADS_DATABASE_CLEANSED}.isu.0UC_DEVICEH_ATTR dh
                                       where dh._RecordCurrent = 1 and dh._RecordDeleted <> -1
                                       """)
     dummyDimRecDf = spark.createDataFrame([("-1","1900-01-01", "9999-12-31")], ["deviceNumber","validFromDate","validToDate"])   
@@ -72,7 +72,7 @@ def getDeviceHistory():
 # COMMAND ----------
 
 df, schema = getDeviceHistory()
-TemplateTimeSliceEtlSCD(df, entity="dimDeviceHistory", businessKey="deviceNumber,validToDate", schema=schema)
+TemplateTimeSliceEtlSCD(df, entity="dim.deviceHistory", businessKey="deviceNumber,validToDate", schema=schema)
 
 # COMMAND ----------
 

@@ -75,12 +75,6 @@ def DeltaSaveDataframeDirect(dataframe, source_group, table_name, database_name,
   #Mount the Data Lake 
   data_lake_mount_point = DataLakeGetMountPoint(container)
   
-  print("table_name: "+table_name)
-  print(table_name.split("_",1)[-1].lower())
-
-  query = "CREATE DATABASE IF NOT EXISTS {0}".format(database_name)
-  spark.sql(query)
-  
   #Start of fix to restructure framework folders 
   
   if database_name == ADS_DATABASE_RAW or database_name == ADS_DATABASE_CLEANSED or database_name == ADS_DATABASE_CURATED:
@@ -90,39 +84,78 @@ def DeltaSaveDataframeDirect(dataframe, source_group, table_name, database_name,
     
   LogEtl ("Saving delta lake file : " + delta_path + " with mode " + write_mode)
   #End of fix to restructure framework folders 
-  
-  table_name_fq = "{0}.{1}".format(database_name, table_name)
-  
-  if write_mode == ADS_WRITE_MODE_OVERWRITE:
-    if DeltaTableExists(table_name_fq):
-      #As we are doing a full load, it is a good idea to do some cleanups
-      LogEtl("Vacuuming Delta table : " + table_name_fq)
-      spark.sql("VACUUM " + table_name_fq + " ")
 
-  if partition_keys == "":
-    LogEtl ("No partition keys")
-    dataframe.write \
-        .format('delta') \
-        .option("mergeSchema", "true") \
-        .option("overwriteSchema", "true") \
-        .mode(write_mode) \
-        .save(delta_path)
+  print("table_name: "+table_name)
+  table_name_fq = "{0}.{1}".format(database_name, table_name)
+  print("table_name_fq: "+table_name_fq)
+    
+  if is_uc():
+    query = "CREATE CATALOG IF NOT EXISTS {0}".format(table_name_fq.split('.')[0])
+    spark.sql(query)
+
+    query = "CREATE SCHEMA IF NOT EXISTS {0}.{1}".format(table_name_fq.split('.')[0], table_name_fq.split('.')[1])
+    spark.sql(query)
+
+    if write_mode == ADS_WRITE_MODE_OVERWRITE:
+      if DeltaTableExists(table_name_fq):
+        #As we are doing a full load, it is a good idea to do some cleanups
+        LogEtl("Vacuuming Delta table : " + table_name_fq)
+        spark.sql("VACUUM " + table_name_fq + " ")
+
+    if partition_keys == "":
+      LogEtl ("No partition keys")
+      dataframe.write \
+          .format('delta') \
+          .option("mergeSchema", "true") \
+          .option("overwriteSchema", "true") \
+          .mode(write_mode) \
+          .saveAsTable(table_name_fq)
+    else:
+      LogEtl ("Partition keys : " + str(partition_keys))
+      dataframe.write \
+          .format('delta') \
+          .option("mergeSchema", "true")\
+          .option("overwriteSchema", "true") \
+          .mode(write_mode) \
+          .partitionBy(partition_keys) \
+          .saveAsTable(table_name_fq)
+    LogEtl ("Creating table : {0} with mode {1}".format(table_name_fq, write_mode))
+    query = "CREATE TABLE IF NOT EXISTS {0} ".format(table_name_fq)
+    spark.sql(query)
+  
   else:
-    LogEtl ("Partition keys : " + str(partition_keys))
-    dataframe.write \
-        .format('delta') \
-        .option("mergeSchema", "true")\
-        .option("overwriteSchema", "true") \
-        .mode(write_mode) \
-        .partitionBy(partition_keys) \
-        .save(delta_path)
-  
-  LogEtl ("Creating table : {0} with mode {1} at path : {2}".format(table_name, write_mode, delta_path))
-  query = "CREATE TABLE IF NOT EXISTS {0}.{1}  USING DELTA LOCATION \'{2}\'".format(database_name, table_name, delta_path)
-  spark.sql(query)
-  
-  verifyTableSchema(f"{database_name}.{table_name}", schema)
-  
+    query = "CREATE DATABASE IF NOT EXISTS {0}".format(database_name)
+    spark.sql(query)
+
+    if write_mode == ADS_WRITE_MODE_OVERWRITE:
+      if DeltaTableExists(table_name_fq):
+        #As we are doing a full load, it is a good idea to do some cleanups
+        LogEtl("Vacuuming Delta table : " + table_name_fq)
+        spark.sql("VACUUM " + table_name_fq + " ")
+
+    if partition_keys == "":
+      LogEtl ("No partition keys")
+      dataframe.write \
+          .format('delta') \
+          .option("mergeSchema", "true") \
+          .option("overwriteSchema", "true") \
+          .mode(write_mode) \
+          .save(delta_path)
+    else:
+      LogEtl ("Partition keys : " + str(partition_keys))
+      dataframe.write \
+          .format('delta') \
+          .option("mergeSchema", "true")\
+          .option("overwriteSchema", "true") \
+          .mode(write_mode) \
+          .partitionBy(partition_keys) \
+          .save(delta_path)
+    
+    LogEtl ("Creating table : {0} with mode {1} at path : {2}".format(table_name, write_mode, delta_path))
+    query = "CREATE TABLE IF NOT EXISTS {0}.{1}  USING DELTA LOCATION \'{2}\'".format(database_name, table_name, delta_path)
+    spark.sql(query)
+
+  verifyTableSchema(table_name_fq, schema)
   LogEtl ("Finishing : DeltaSaveDataframeToTable")
   
 
@@ -130,16 +163,11 @@ def DeltaSaveDataframeDirect(dataframe, source_group, table_name, database_name,
 
 def DeltaCreateTableIfNotExists(delta_target_table, delta_source_table, data_lake_zone, delta_table_path, is_delta_extract):
   
-  database_name = delta_target_table.split(".")[0]
-  #Create database if it does not already exists
-  query = "CREATE DATABASE IF NOT EXISTS {0}".format(database_name)
-  spark.sql(query)
-
   #Nothing to do if the table already exists
   if DeltaTableExists(delta_target_table): 
     LogEtl('Delta Table ' + delta_target_table + ' already exists')
     return 
-
+  
   LogEtl('Delta Table ' + delta_target_table + ' do not exist')
   source_query = "SELECT * FROM " + delta_source_table + " LIMIT 0"
   LogEtl(source_query)
@@ -171,28 +199,66 @@ def DeltaCreateTableIfNotExists(delta_target_table, delta_source_table, data_lak
   #Temporary forcing the tables to stop partitioning. We want to check the performance impact
   partition_table = False
   
-  LogEtl ('Creating an empty delta table at the location : ' + delta_table_path)
-  if partition_table:
-    df.write \
-      .format('delta') \
-      .mode("overwrite") \
-      .partitionBy("year", "month", "day") \
-      .option("mergeSchema", "true") \
-     .option("overwriteSchema", "true") \
-      .save(delta_table_path) 
-  else:
-    #If the extract is not on delta, then we do not know the partitioning column, hence the table will be created without partition
-    df.write \
-      .format('delta') \
-      .mode("overwrite") \
-      .option("mergeSchema", "true") \
-      .option("overwriteSchema", "true") \
-      .save(delta_table_path)
-
-  query = "CREATE TABLE IF NOT EXISTS " + delta_target_table + " USING DELTA LOCATION \'" + delta_table_path + "\'"
-  LogEtl(query)
-  spark.sql(query)
+  if is_uc():
   
+    catalog_name = delta_target_table.split(".")[0]
+    #Create catalog if it does not already exists
+    query = "CREATE CATALOG IF NOT EXISTS {0}".format(catalog_name)
+    spark.sql(query)
+
+    schema_name = delta_target_table.split(".")[1]
+    #Create schema if it does not already exists
+    query = "CREATE SCHEMA IF NOT EXISTS {0}.{1}".format(catalog_name, schema_name)
+    spark.sql(query)
+
+    LogEtl ('Creating an empty delta table : ' + delta_target_table)
+    if partition_table:
+      df.write \
+        .format('delta') \
+        .mode("overwrite") \
+        .partitionBy("year", "month", "day") \
+        .option("mergeSchema", "true") \
+        .option("overwriteSchema", "true") \
+        .saveAsTable(delta_target_table) 
+    else:
+      #If the extract is not on delta, then we do not know the partitioning column, hence the table will be created without partition
+      df.write \
+        .format('delta') \
+        .mode("overwrite") \
+        .option("mergeSchema", "true") \
+        .option("overwriteSchema", "true") \
+        .saveAsTable(delta_target_table)
+    query = "CREATE TABLE IF NOT EXISTS " + delta_target_table
+    LogEtl(query)
+    spark.sql(query)
+    
+  else:
+    database_name = delta_target_table.split(".")[0]
+    #Create database if it does not already exists
+    query = "CREATE DATABASE IF NOT EXISTS {0}".format(database_name)
+    spark.sql(query)
+
+    LogEtl ('Creating an empty delta table at the location : ' + delta_table_path)
+    if partition_table:
+      df.write \
+        .format('delta') \
+        .mode("overwrite") \
+        .partitionBy("year", "month", "day") \
+        .option("mergeSchema", "true") \
+        .option("overwriteSchema", "true") \
+        .save(delta_table_path) 
+    else:
+      #If the extract is not on delta, then we do not know the partitioning column, hence the table will be created without partition
+      df.write \
+        .format('delta') \
+        .mode("overwrite") \
+        .option("mergeSchema", "true") \
+        .option("overwriteSchema", "true") \
+        .save(delta_table_path)
+    query = "CREATE TABLE IF NOT EXISTS " + delta_target_table + " USING DELTA LOCATION \'" + delta_table_path + "\'"
+    LogEtl(query)
+    spark.sql(query)
+    
   return
 
 # COMMAND ----------
@@ -547,8 +613,11 @@ def DeltaSyncToSQLDWOverwrite(delta_table, target_schema, target_table):
 def DeltaSaveDataFrameToDeltaTable(
   dataframe, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, schema, track_changes = False, is_delta_extract = False, business_key = "", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0"):
   
-  stage_table_name = f"{ADS_DATABASE_STAGE}.{target_table}"
-  
+  if is_uc():
+    stage_table_name = "{0}.{1}.{2}".format(ADS_DATABASE_STAGE, target_table.split('.')[0], target_table.split('.')[1])
+  else:
+    stage_table_name = f"{ADS_DATABASE_STAGE}.{target_table}"
+
   if AddSKColumn:
     dataframe = DeltaInjectSurrogateKeyToDataFrame(dataframe, target_table, business_key)
 
@@ -586,17 +655,20 @@ def DeltaSaveToDeltaTable(
   
   spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)  
   
-  target_table_fqn = f"{target_database}.{target_table}" 
+  target_table_fq = f"{target_database}.{target_table}" 
   # Start of Fix for Framework Folder Restructure
-  if target_data_lake_zone != ADS_DATALAKE_ZONE_CURATED:
-    target_table = target_table.split("_",1)[-1] 
-  # End of Fix for Framework Folder Restructure
-  data_lake_path = DeltaGetDataLakePath(target_data_lake_zone, data_lake_folder, target_table)
+  data_lake_path = ''
+
+  if not is_uc():
+    if target_data_lake_zone != ADS_DATALAKE_ZONE_CURATED:
+      target_table = target_table.split("_",1)[-1] 
+    # End of Fix for Framework Folder Restructure
+    data_lake_path = DeltaGetDataLakePath(target_data_lake_zone, data_lake_folder, target_table)
   
   #Ensure we have a table before we start the data load.
   #The table is used to generate a dataframe to get the column names and to generate the merge query.
   DeltaCreateTableIfNotExists(
-    delta_target_table = target_table_fqn, 
+    delta_target_table = target_table_fq, 
     delta_source_table = source_table, 
     data_lake_zone = target_data_lake_zone, 
     delta_table_path = data_lake_path, 
@@ -606,7 +678,7 @@ def DeltaSaveToDeltaTable(
   LogEtl("Generating delta SQL query")
   delta_query = SQLMerge_DeltaTable_GenerateSQL(
       source_table_name = source_table, 
-      target_table_name = target_table_fqn, 
+      target_table_name = target_table_fq, 
       business_key = business_key, 
       delta_column = delta_column, 
       start_counter = start_counter, 
@@ -726,14 +798,24 @@ def DeltaSaveToStageTable(dataframe, target_database, target_table, stage_table_
   '''
   This method uses the dataframe to load data into stage Delta Table
   '''
-  data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_STAGE, target_database, target_table)
-  #Drop the stage table if it exists
-  spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
-  dbutils.fs.rm(f'{data_lake_path}/_delta_log', True)
-  dbutils.fs.rm(data_lake_path, True)
-  #Save the dataframe temporarily to Stage database
-  LogEtl(f"write to stg table")
-  dataframe.write.mode("overwrite").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(stage_table_name)
+  if is_uc():
+    spark.sql("CREATE SCHEMA IF NOT EXISTS {0}.{1}".format(stage_table_name.split('.')[0], stage_table_name.split('.')[1]))
+    #Drop the stage table if it exists
+    spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
+    #Save the dataframe temporarily to Stage database
+    LogEtl(f"write to stg table")
+    stage_table_name = "{0}.{1}.{2}".format(ADS_DATABASE_STAGE, target_table.split('.')[0], target_table.split('.')[1])
+    dataframe.write.mode("overwrite").option("overwriteSchema","true").saveAsTable(stage_table_name)
+  else:
+    spark.sql("CREATE DATABASE IF NOT EXISTS {0}".format(stage_table_name.split('.')[0]))
+    #Drop the stage table if it exists
+    spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
+    data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_STAGE, target_database, target_table)
+    dbutils.fs.rm(f'{data_lake_path}/_delta_log', True)
+    dbutils.fs.rm(data_lake_path, True)
+    #Save the dataframe temporarily to Stage database
+    LogEtl(f"write to stg table")
+    dataframe.write.mode("overwrite").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(stage_table_name)
 
 # COMMAND ----------
 
@@ -742,9 +824,14 @@ from pyspark.sql.functions import DataFrame
 
 def DeltaSaveDataFrameToRejectTable(dataframe,target_table,business_key,source_key,lastExecutionTS):
   #This method uses the dataframe to load data into Cleansed Rejected Table
-    reject_table = 'cleansed_rejected'
-    raw_table = f"raw.{target_table}"
-    
+    if is_uc():      
+      reject_table = "ADS_DATABASE_REJECTED.{0}.cleansed_rejected".format(target_table.split('.')[0])
+      raw_table = f"{ADS_DATABRICKS_ENV}raw.{target_table}"
+      target_table_fqn = "ADS_DATABASE_REJECTED.{0}.{1}".format(target_table.split('.')[0], target_table.split('.')[1])
+    else:
+      reject_table = 'cleansed_rejected'
+      raw_table = f"raw.{target_table}"
+
     #Build cleansed reject dataframe
     reject_df = dataframe.withColumn('rejectRecordCleansed', to_json(struct(col("*"))))
     reject_df = reject_df.withColumn("tableName",lit(target_table)) \
@@ -763,15 +850,25 @@ def DeltaSaveDataFrameToRejectTable(dataframe,target_table,business_key,source_k
     print("Rejected Rows:")
     display(reject_df)
 
-    #Save the reject dataframe to generic reject table (cleansed_reject)    
-    data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_REJECTED, ADS_DATABASE_REJECTED, reject_table) 
-    print(data_lake_path)
-    LogEtl(f"write to reject table")
-    reject_df.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(f"rejected.{reject_table}") 
-    
-    #Save the reject dataframe to individual reject table
-    data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_REJECTED, ADS_DATABASE_REJECTED, target_table)
-    print(data_lake_path)
-    #Drop columns 
-    cleansed_df = dataframe.drop("sourceKeyDesc","sourceKey","rejectColumn")
-    dataframe.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(f"rejected.{target_table}") 
+    if is_uc():
+      #Save the reject dataframe to generic reject table (cleansed_reject)    
+      LogEtl(f"write to reject table")
+      reject_df.write.mode("append").option("overwriteSchema","true").saveAsTable(reject_table) 
+      
+      #Save the reject dataframe to individual reject table
+      #Drop columns 
+      cleansed_df = dataframe.drop("sourceKeyDesc","sourceKey","rejectColumn")
+      dataframe.write.mode("append").option("overwriteSchema","true").saveAsTable(target_table_fqn) 
+    else:
+      #Save the reject dataframe to generic reject table (cleansed_reject)    
+      data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_REJECTED, ADS_DATABASE_REJECTED, reject_table) 
+      print(data_lake_path)
+      LogEtl(f"write to reject table")
+      reject_df.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(f"rejected.{reject_table}") 
+      
+      #Save the reject dataframe to individual reject table
+      data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_REJECTED, ADS_DATABASE_REJECTED, target_table)
+      print(data_lake_path)
+      #Drop columns 
+      cleansed_df = dataframe.drop("sourceKeyDesc","sourceKey","rejectColumn")
+      dataframe.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(f"rejected.{target_table}") 

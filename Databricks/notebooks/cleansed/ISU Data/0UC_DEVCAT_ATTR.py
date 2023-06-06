@@ -191,11 +191,11 @@ df = spark.sql(f"WITH stage AS \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage DEVCAT \
-                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_FUNKLAS_TEXT FKLASTX ON DEVCAT.FUNKLAS = FKLASTX.functionClassCode \
+                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_FUNKLAS_TEXT FKLASTX ON DEVCAT.FUNKLAS = FKLASTX.functionClassCode \
                                                                                                     and FKLASTX._RecordDeleted = 0 and FKLASTX._RecordCurrent = 1 \
-                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_BAUKLAS_TEXT BKLASTX ON DEVCAT.BAUKLAS = BKLASTX.constructionClassCode \
+                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_BAUKLAS_TEXT BKLASTX ON DEVCAT.BAUKLAS = BKLASTX.constructionClassCode \
                                                                                                     and BKLASTX._RecordDeleted = 0 and BKLASTX._RecordCurrent = 1 \
-                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_REGGRP_TEXT REGGRP ON DEVCAT.ZWGRUPPE = REGGRP.registerGroupCode \
+                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0UC_REGGRP_TEXT REGGRP ON DEVCAT.ZWGRUPPE = REGGRP.registerGroupCode \
                                                                                                     and REGGRP._RecordDeleted = 0 and REGGRP._RecordCurrent = 1 \
                         where DEVCAT._RecordVersion = 1 ")
 

@@ -5,6 +5,11 @@
 
 def getPropertyTypeHistory():
     
+    if is_uc():
+        stage_table_name = "{0}.{1}.{2}".format(ADS_DATABASE_STAGE, ADS_DATABRICKS_ENV.split('_')[0], 'access_property_hist')
+    else:
+        stage_table_name = f"{ADS_DATABASE_STAGE}.access_property_hist"
+    
     df_isu = spark.sql(f"""select 'ISU' as sourceSystemCode,
                     propertyNumber, 
                     superiorPropertyTypeCode, 
@@ -15,12 +20,12 @@ def getPropertyTypeHistory():
                     ValidToDate,
                     _RecordDeleted,
                     _DLCleansedZoneTimeStamp 
-                    from {ADS_DATABASE_CLEANSED}.isu_zcd_tpropty_hist where _RecordCurrent = 1 and _RecordDeleted <> -1 """)
+                    from {ADS_DATABASE_CLEANSED}.isu.zcd_tpropty_hist where _RecordCurrent = 1 and _RecordDeleted <> -1 """)
     '''
     spark.sql(f"""CREATE OR REPLACE TEMP VIEW view_access_property_hist 
             as with histRaw as( 
                             select a.propertyNumber, propertyTypeCode, propertyType, superiorPropertyTypeCode, superiorPropertyType, propertyTypeEffectiveFrom as validFrom, rowSupersededTimestamp as updateTS 
-                            from {ADS_DATABASE_CLEANSED}.access_z309_thproperty a), 
+                            from {ADS_DATABASE_CLEANSED}.access.z309_thproperty a), 
                   histOrdered as( 
                             select propertyNumber, propertyTypeCode, propertyType, superiorPropertyTypeCode, superiorPropertyType, validFrom, updateTS, 
                             row_number() over (partition by propertyNumber, validFrom order by updateTS) as rnk 
@@ -28,7 +33,7 @@ def getPropertyTypeHistory():
                   allRows as( 
                             select a.propertyNumber, propertyTypeCode, propertyType, superiorPropertyTypeCode, superiorPropertyType, propertyTypeEffectiveFrom as validFrom, 
                             to_timestamp('99991231235959','yyyyMMddHHmmss') as updateTS 
-                            from {ADS_DATABASE_CLEANSED}.access_z309_tproperty a 
+                            from {ADS_DATABASE_CLEANSED}.access.z309_tproperty a 
                             union all 
                             select propertyNumber, propertyTypeCode, propertyType, superiorPropertyTypeCode, superiorPropertyType, validFrom, updateTS 
                             from histOrdered 
@@ -44,13 +49,12 @@ def getPropertyTypeHistory():
                             where validFrom <> validTo) 
             select * from clean2;""")
 
-    spark.sql(f"""CREATE OR REPLACE TABLE stage.access_property_hist 
-    LOCATION 'dbfs:/mnt/datalake-curated/stage/access_property_hist' 
+    spark.sql(f"""CREATE OR REPLACE TABLE {stage_table_name} 
     as with accessProperties as (select propertyNumber from view_access_property_hist 
                               minus 
-                              select propertyNumber from {ADS_DATABASE_CLEANSED}.isu_zcd_tpropty_hist), 
+                              select propertyNumber from {ADS_DATABASE_CLEANSED}.isu.zcd_tpropty_hist), 
          prophist as ( 
-            select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from {ADS_DATABASE_CLEANSED}.isu_zcd_tpropty_hist 
+            select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from {ADS_DATABASE_CLEANSED}.isu.zcd_tpropty_hist 
             union   
             select a.propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from view_access_property_hist a  
                   join accessProperties b on a.propertyNumber = b.propertyNumber 
@@ -65,7 +69,7 @@ def getPropertyTypeHistory():
                     inferiorPropertyType, 
                     ValidFromDate, 
                     ValidToDate 
-                    from stage.access_property_hist""")
+                    from {stage_table_name}""")
     
     df = df_isu.unionByName(df_access, allowMissingColumns = True).dropDuplicates()
     
@@ -94,9 +98,9 @@ def getPropertyTypeHistory():
 # COMMAND ----------
 
 df, schema = getPropertyTypeHistory()
-#TemplateEtl(df, entity="dimPropertyTypeHistory", businessKey="propertyNumber,ValidFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-#TemplateEtlSCD(df, entity="dimPropertyTypeHistory", businessKey="propertyNumber,ValidFromDate", schema=schema)
-TemplateTimeSliceEtlSCD(df, entity="dimPropertyTypeHistory", businessKey="propertyNumber,ValidFromDate", schema=schema)
+#TemplateEtl(df, entity="dim.propertyTypeHistory", businessKey="propertyNumber,ValidFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+#TemplateEtlSCD(df, entity="dim.propertyTypeHistory", businessKey="propertyNumber,ValidFromDate", schema=schema)
+TemplateTimeSliceEtlSCD(df, entity="dim.propertyTypeHistory", businessKey="propertyNumber,ValidFromDate", schema=schema)
 
 # COMMAND ----------
 

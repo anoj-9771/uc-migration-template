@@ -199,7 +199,7 @@ df = spark.sql(f"WITH stage AS \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage EQUI \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.companyCode \
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.companyCode \
                                                                                               and COMP._RecordDeleted = 0 and COMP._RecordCurrent = 1 \
                         where EQUI._RecordVersion = 1 ")
 
@@ -236,7 +236,7 @@ df = spark.sql(f"WITH stage AS \
 #                             EQUI._RecordDeleted, \
 #                             EQUI._RecordCurrent \
 #                           FROM {ADS_DATABASE_STAGE}.{source_object} EQUI \
-#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.companyCode \
+#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.companyCode \
 #                                                                                               and COMP._RecordDeleted = 0 and COMP._RecordCurrent = 1")
 
 # print(f'Number of rows: {df_cleansed.count()}')

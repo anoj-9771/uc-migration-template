@@ -272,20 +272,20 @@ df = spark.sql(f"""
         '1'                                             as _RecordCurrent, 
         cast('{CurrentTimeStamp}' as TimeStamp)         as _DLCleansedZoneTimeStamp 
     FROM stage stg 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0uc_aklasse_text bc on 
         bc.billingClassCode = stg.AKLASSE and 
         bc._RecordDeleted = 0 and 
         bc._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text tt on 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0uc_tariftyp_text tt on 
         tt.TARIFTYP = stg.TARIFTYP and 
         tt._RecordDeleted = 0 and 
         tt._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text st on 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0ind_sector_text st on 
         st.industrySystem = stg.ISTYPE and 
         st.industryCode = stg.BRANCHE and 
         st._RecordDeleted = 0 and 
         st._RecordCurrent = 1 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ind_numsys_text nt on
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0ind_numsys_text nt on
         nt.industrySystem = stg.ISTYPE and 
         nt._RecordDeleted = 0 and
         nt._RecordCurrent = 1 
@@ -338,7 +338,7 @@ DeltaSaveDataFrameToDeltaTable(cleansed_df.filter("_RecordDeleted = '0'"), targe
 # Load deleted records to replace the existing Deleted records implementation logic
 cleansed_df.filter("_RecordDeleted = '1'").createOrReplaceTempView("isu_installation_deleted_records")
 spark.sql(f" \
-    MERGE INTO cleansed.isu_0UCINSTALLAH_ATTR_2 \
+    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.0UCINSTALLAH_ATTR_2 isu_0UCINSTALLAH_ATTR_2 \
     using isu_installation_deleted_records \
     on isu_0UCINSTALLAH_ATTR_2.installationNumber = isu_installation_deleted_records.installationNumber \
     and isu_0UCINSTALLAH_ATTR_2.validFromDate = isu_installation_deleted_records.validFromDate \

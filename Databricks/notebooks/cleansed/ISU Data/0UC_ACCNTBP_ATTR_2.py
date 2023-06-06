@@ -293,26 +293,26 @@ df = spark.sql(f"""WITH stage AS
                                 '1' as _RecordCurrent, 
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
                         FROM stage acc 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_ACCTREL_TEXT acc_txt ON acc.VKPBZ = acc_txt.accountRelationshipCode and acc_txt._RecordDeleted = 0 and acc_txt._RecordCurrent = 1 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tfk043t tfk043t ON tfk043t.toleranceGroupCode = acc.TOGRU 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te128t te128t ON te128t.manualOutsortingReasonCode  = acc.MANOUTS_IN 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te192t te192t ON te192t.outsortingCheckGroupCode  = acc.AUSGRUP_IN 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t ON dd07t.domainName = 'JVLTE' AND  dd07t.domainValueSingleUpperLimit = acc.JVLTE 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t1 ON dd07t1.domainName = 'ABSLANFO' AND  dd07t1.domainValueSingleUpperLimit = acc.ABSANFBZ 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t2 ON dd07t2.domainName = 'ABSLANFO' AND  dd07t2.domainValueSingleUpperLimit = acc.ABSANFAB 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_bbproc_text bbproc ON bbproc.billingProcedureCode  = acc.KZABSVER 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_zahlkond_text zahlkond ON zahlkond.paymentConditionCode = acc.ZAHLKOND 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0fcactdetid_text 0fcactdetid ON 0fcactdetid.accountDeterminationCode  = acc.KOFIZ_SD 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt ON esendcontrolt.dispatchControlCode  = acc.SENDCONTROL_RH 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0comp_code_text 0comp_code ON acc.OPBUK =0comp_code.companyCode 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0comp_code_text 0comp_code1 ON acc.STDBK =0comp_code1.companyCode 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0fc_pymet_text pymet ON pymet.paymentMethodCode  =  acc.EZAWE 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tfk047xt tfk047xt ON tfk047xt.collectionStrategyCode  = acc.STRAT 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt1 ON esendcontrolt1.dispatchControlCode  = acc.SENDCONTROL_MA 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt2 ON esendcontrolt2.dispatchControlCode  = acc.SENDCONTROL_GP 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_efrm efrm ON acc.FORMKEY = efrm.applicationForm 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK111T TFK111T ON  acc.VERTYP = TFK111T.clearingCategoryCode 
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK041BT TFK041BT ON TFK041BT.collectionManagementMasterDataGroupCode =acc.CMGRP 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0FC_ACCTREL_TEXT acc_txt ON acc.VKPBZ = acc_txt.accountRelationshipCode and acc_txt._RecordDeleted = 0 and acc_txt._RecordCurrent = 1 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.tfk043t tfk043t ON tfk043t.toleranceGroupCode = acc.TOGRU 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.te128t te128t ON te128t.manualOutsortingReasonCode  = acc.MANOUTS_IN 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.te192t te192t ON te192t.outsortingCheckGroupCode  = acc.AUSGRUP_IN 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.dd07t dd07t ON dd07t.domainName = 'JVLTE' AND  dd07t.domainValueSingleUpperLimit = acc.JVLTE 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.dd07t dd07t1 ON dd07t1.domainName = 'ABSLANFO' AND  dd07t1.domainValueSingleUpperLimit = acc.ABSANFBZ 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.dd07t dd07t2 ON dd07t2.domainName = 'ABSLANFO' AND  dd07t2.domainValueSingleUpperLimit = acc.ABSANFAB 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0uc_bbproc_text bbproc ON bbproc.billingProcedureCode  = acc.KZABSVER 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0uc_zahlkond_text zahlkond ON zahlkond.paymentConditionCode = acc.ZAHLKOND 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0fcactdetid_text 0fcactdetid ON 0fcactdetid.accountDeterminationCode  = acc.KOFIZ_SD 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.esendcontrolt esendcontrolt ON esendcontrolt.dispatchControlCode  = acc.SENDCONTROL_RH 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0comp_code_text 0comp_code ON acc.OPBUK =0comp_code.companyCode 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0comp_code_text 0comp_code1 ON acc.STDBK =0comp_code1.companyCode 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0fc_pymet_text pymet ON pymet.paymentMethodCode  =  acc.EZAWE 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.tfk047xt tfk047xt ON tfk047xt.collectionStrategyCode  = acc.STRAT 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.esendcontrolt esendcontrolt1 ON esendcontrolt1.dispatchControlCode  = acc.SENDCONTROL_MA 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.esendcontrolt esendcontrolt2 ON esendcontrolt2.dispatchControlCode  = acc.SENDCONTROL_GP 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.efrm efrm ON acc.FORMKEY = efrm.applicationForm 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TFK111T TFK111T ON  acc.VERTYP = TFK111T.clearingCategoryCode 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TFK041BT TFK041BT ON TFK041BT.collectionManagementMasterDataGroupCode =acc.CMGRP 
                         where acc._RecordVersion = 1 
                         """
 )
@@ -377,7 +377,7 @@ df = spark.sql(f"""WITH stage AS
 #                                 acc._RecordDeleted, \
 #                                 acc._RecordCurrent \
 #                         FROM {ADS_DATABASE_STAGE}.{source_object} acc \
-#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_ACCTREL_TEXT acc_txt ON acc.VKPBZ = acc_txt.accountRelationshipCode and acc_txt._RecordDeleted = 0 and acc_txt._RecordCurrent = 1")
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.0FC_ACCTREL_TEXT acc_txt ON acc.VKPBZ = acc_txt.accountRelationshipCode and acc_txt._RecordDeleted = 0 and acc_txt._RecordCurrent = 1")
 
 
 # print(f'Number of rows: {df_cleansed.count()}')

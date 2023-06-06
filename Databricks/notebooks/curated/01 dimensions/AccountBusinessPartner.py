@@ -74,7 +74,7 @@ def getAccountBusinessPartner():
           lastChangedBy,
           lastChangedDate,
           _RecordDeleted 
-          from {ADS_DATABASE_CLEANSED}.isu_0uc_accntbp_attr_2 
+          from {ADS_DATABASE_CLEANSED}.isu.0uc_accntbp_attr_2 
           where _RecordCurrent = 1  
         """)
     
@@ -155,8 +155,8 @@ def getAccountBusinessPartner():
 # COMMAND ----------
 
 df, schema = getAccountBusinessPartner()
-#TemplateEtl(df, entity="dimAccountBusinessPartner", businessKey="contractAccountNumber,businessPartnerGroupNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimAccountBusinessPartner", businessKey="contractAccountNumber,businessPartnerGroupNumber", schema=schema)
+#TemplateEtl(df, entity="dim.accountBusinessPartner", businessKey="contractAccountNumber,businessPartnerGroupNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+TemplateEtlSCD(df, entity="dim.accountBusinessPartner", businessKey="contractAccountNumber,businessPartnerGroupNumber", schema=schema)
 
 # COMMAND ----------
 

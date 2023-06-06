@@ -260,7 +260,7 @@ df = spark.sql(f"WITH stage AS \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage cu \
-                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_DD07T dd ON cu.ProductType = dd.domainValueSingleUpperLimit \
+                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm.DD07T dd ON cu.ProductType = dd.domainValueSingleUpperLimit \
                                                                     and dd.domainName = 'CRM_PRODUCT_KIND' and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
                         where cu._RecordVersion = 1 ").cache()
 

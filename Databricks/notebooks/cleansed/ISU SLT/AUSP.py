@@ -209,7 +209,7 @@ df = spark.sql(f"WITH stage AS \
                                     '1' as _RecordCurrent, \
                                     cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage stg \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TCLAT tc ON stg.KLART = tc.classTypeCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.TCLAT tc ON stg.KLART = tc.classTypeCode \
                                      and tc._RecordDeleted = 0 and tc._RecordCurrent = 1 \
                         where stg._RecordVersion = 1 ")
 
@@ -276,7 +276,7 @@ CurrentTimeStamp = GeneralLocalDateTime()
 CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 
 spark.sql(f" \
-    MERGE INTO cleansed.isu_AUSP \
+    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.AUSP \
     using isu_ausp_deleted_records \
     on isu_AUSP.characteristicInternalId = isu_ausp_deleted_records.ATINN \
     and isu_AUSP.classificationObjectInternalId = isu_ausp_deleted_records.OBJEK \

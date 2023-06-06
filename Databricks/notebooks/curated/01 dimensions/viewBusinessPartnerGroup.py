@@ -1,12 +1,19 @@
 # Databricks notebook source
-notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
-view = notebookPath[-1:][0]
-db = notebookPath[-3:][0]
+# MAGIC %run ../common/common-curated-includeMain
 
-spark.sql("""
+# COMMAND ----------
+
+# notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+# view = notebookPath[-1:][0]
+# db = notebookPath[-3:][0]
+schema_name = 'consumption'
+view_name = 'viewbusinesspartnergroup'
+view_fqn = f"{ADS_DATABASE_CURATED}.{schema_name}.{view_name}"
+
+spark.sql(f"""
 -- View: viewBusinessPartnerGroup
 -- Description: viewBusinessPartnerGroup
-CREATE OR REPLACE VIEW curated.viewBusinessPartnerGroup AS
+CREATE OR REPLACE VIEW {view_fqn} AS
 /*** 
 /*================================================================================================
 			all_ID
@@ -30,7 +37,7 @@ with all_ID AS (
       ELSE 'N'
     END AS _currentIndicator
   FROM
-    curated.dimBusinessPartnerIdentification ID 
+    {ADS_DATABASE_CURATED}.dim.businessPartnerIdentification ID 
 ),
 /*=====================================================================================
 		valid_ID
@@ -200,7 +207,7 @@ with dimBusinessPartnerGroupRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY businessPartnerGroupNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimBusinessPartnerGroup
+                FROM {ADS_DATABASE_CURATED}.dim.businessPartnerGroup
                 --WHERE _recordDeleted = 0
 ),
 
@@ -212,7 +219,7 @@ dimBusinessPartnerAddressRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY businessPartnerNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimBusinessPartnerAddress
+                FROM {ADS_DATABASE_CURATED}.dim.businessPartnerAddress
                 --WHERE _recordDeleted = 0
 ),
 
@@ -348,11 +355,11 @@ FROM
       if(BPG._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
     FROM
       effectiveDateRanges DR
-      LEFT JOIN curated.dimBusinessPartnerGroup BPG ON DR.businessPartnerGroupNumber = BPG.businessPartnerGroupNumber
+      LEFT JOIN {ADS_DATABASE_CURATED}.dim.businessPartnerGroup BPG ON DR.businessPartnerGroupNumber = BPG.businessPartnerGroupNumber
       AND DR._effectiveFrom <= BPG._RecordEnd
       AND DR._effectiveTo >= BPG._RecordStart
       --AND BPG._recordDeleted = 0
-      LEFT JOIN curated.dimbusinesspartneraddress ADDR ON DR.businessPartnerGroupNumber = ADDR.businessPartnerNumber
+      LEFT JOIN {ADS_DATABASE_CURATED}.dim.businesspartneraddress ADDR ON DR.businessPartnerGroupNumber = ADDR.businessPartnerNumber
       AND DR._effectiveFrom <= ADDR._RecordEnd
       AND DR._effectiveTo >= ADDR._RecordStart
       --AND ADDR._recordDeleted = 0
@@ -360,4 +367,4 @@ FROM
     WHERE
       businessPartnerGroupSK IS NOT NULL
   )
-  """.replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 1 else "CREATE OR REPLACE VIEW"))
+  """.replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewExists(view_fqn) else "CREATE OR REPLACE VIEW"))

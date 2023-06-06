@@ -197,7 +197,7 @@ df_cleansed = spark.sql(f"SELECT \
 	tbl._RecordDeleted, \
 	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-left outer join cleansed.access_Z309_TPROPAREATYPE ref1 on tbl.C_PROP_AREA_TYPE = ref1.propertyAreaTypeCode \
+left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TPROPAREATYPE ref1 on tbl.C_PROP_AREA_TYPE = ref1.propertyAreaTypeCode \
                                 ")
 
 # COMMAND ----------

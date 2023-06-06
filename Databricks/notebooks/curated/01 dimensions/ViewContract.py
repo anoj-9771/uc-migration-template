@@ -1,12 +1,19 @@
 # Databricks notebook source
-notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
-view = notebookPath[-1:][0]
-db = notebookPath[-3:][0]
+# MAGIC %run ../common/common-curated-includeMain
 
-spark.sql("""
+# COMMAND ----------
+
+# notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+# view = notebookPath[-1:][0]
+# db = notebookPath[-3:][0]
+schema_name = 'consumption'
+view_name = 'viewcontract'
+view_fqn = f"{ADS_DATABASE_CURATED}.{schema_name}.{view_name}"
+
+spark.sql(f"""
 -- View: viewContract
 -- Description: viewContract
-CREATE OR REPLACE VIEW curated.viewContract AS
+CREATE OR REPLACE VIEW {view_fqn} AS
 
 With ContractDateRanges AS
 (
@@ -16,7 +23,7 @@ With ContractDateRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY contractId ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimContract
+                FROM {ADS_DATABASE_CURATED}.dim.contract
                 --WHERE _recordDeleted = 0
 ),
 
@@ -28,7 +35,7 @@ ContractHistoryDateRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY contractId ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated.dimContractHistory
+                FROM {ADS_DATABASE_CURATED}.dim.contractHistory
                 WHERE _recordDeleted = 0
 ),
 
@@ -130,16 +137,16 @@ SELECT
       END AS currentFlag
     , if(dimContract._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
 FROM effectiveDateRanges as effectiveDateRanges
-LEFT OUTER JOIN curated.dimContract
+LEFT OUTER JOIN {ADS_DATABASE_CURATED}.dim.contract dimContract
     ON dimContract.contractId = effectiveDateRanges.contractId 
         AND dimContract._recordEnd >= effectiveDateRanges._effectiveFrom 
         AND dimContract._recordStart <= effectiveDateRanges._effectiveTo
         --AND dimContract._recordDeleted = 0
-LEFT OUTER JOIN curated.dimContractHistory
+LEFT OUTER JOIN {ADS_DATABASE_CURATED}.dim.contractHistory dimContractHistory
     ON dimContractHistory.contractId = effectiveDateRanges.contractId 
         AND dimContractHistory._recordEnd >= effectiveDateRanges._effectiveFrom 
         AND dimContractHistory._recordStart <= effectiveDateRanges._effectiveTo
         AND dimContractHistory._recordDeleted = 0
 )
 ORDER BY _effectiveFrom
-""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {db} LIKE '{view}'").count() == 1 else "CREATE OR REPLACE VIEW"))
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewExists(view_fqn) else "CREATE OR REPLACE VIEW"))

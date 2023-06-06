@@ -36,7 +36,7 @@ def getRegisterHistory():
                                           doNotReadFlag,
                                           rh._RecordDeleted,
                                           rh._DLCleansedZoneTimeStamp 
-                                      from {ADS_DATABASE_CLEANSED}.isu_0UC_REGIST_ATTR rh
+                                      from {ADS_DATABASE_CLEANSED}.isu.0UC_REGIST_ATTR rh
                                       where rh._RecordCurrent = 1 
                                       """)
     dummyDimRecDf = spark.createDataFrame([("-1","-1","1900-01-01", "9999-12-31")], ["registerNumber","deviceNumber","validFromDate","validToDate"])   
@@ -71,7 +71,7 @@ def getRegisterHistory():
 # COMMAND ----------
 
 df, schema = getRegisterHistory()
-TemplateTimeSliceEtlSCD(df, entity="dimRegisterHistory", businessKey="registerNumber,deviceNumber,validToDate", schema=schema)
+TemplateTimeSliceEtlSCD(df, entity="dim.registerHistory", businessKey="registerNumber,deviceNumber,validToDate", schema=schema)
 
 # COMMAND ----------
 

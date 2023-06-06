@@ -49,7 +49,7 @@ isu0bpRelationsAttrDf  = (
                 relationshipType                    as relationshipType,
                 _RecordDeleted,
                 _DLCleansedZoneTimeStamp 
-            FROM {ADS_DATABASE_CLEANSED}.isu_0bp_relations_attr 
+            FROM {ADS_DATABASE_CLEANSED}.isu.0bp_relations_attr 
             where 
                 relationshipDirection = '1' 
                 and _RecordCurrent = 1 
@@ -80,7 +80,7 @@ crm0bpRelationsAttrDf  = (
                 relationshipType                    as relationshipType,
                 _RecordDeleted,
                 _DLCleansedZoneTimeStamp 
-            FROM {ADS_DATABASE_CLEANSED}.crm_0bp_relations_attr 
+            FROM {ADS_DATABASE_CLEANSED}.crm.0bp_relations_attr 
             where 
                 relationshipDirection = '1' 
                 and _RecordCurrent = 1 --and businessPartnerNumber1 in ('0004005333','0005021635')
@@ -318,7 +318,7 @@ def getBusinessPartnerGroupRelationship():
 df, schema = getBusinessPartnerGroupRelationship()
 TemplateTimeSliceEtlSCD(
     df, 
-    entity="dimBusinessPartnerRelation", 
+    entity="dim.businessPartnerRelation", 
     businessKey="businessPartnerGroupNumber,businessPartnerNumber,relationshipNumber,validToDate", 
     schema=schema
 )
