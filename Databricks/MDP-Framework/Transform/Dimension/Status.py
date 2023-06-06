@@ -1,20 +1,26 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
 def Transform():
     global df
     # ------------- TABLES ----------------- #
-    df = GetTable(f"{SOURCE}.crm_tj30t")
+    df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_tj30t')}")
     proc_type_df = GetTable(f"{SOURCE}.crm_crmc_proc_type").select("objectTypeCode","userStatusProfile").dropDuplicates()
     object_df = spark.sql(
         f"""SELECT objectTypeCode, objectTypeDescription FROM 
-           ((SELECT objectTypeCode, objectTypeDescription, 1 AS record_number FROM {SOURCE}.crm_crmc_prt_otype WHERE objectTypeCode IN 
-            (SELECT objectTypeCode FROM {SOURCE}.crm_crmc_prt_otype GROUP BY objectTypeCode HAVING COUNT(1) = 1))
+           ((SELECT objectTypeCode, objectTypeDescription, 1 AS record_number FROM {get_table_namespace(f'{SOURCE}', 'crm_crmc_prt_otype')} WHERE objectTypeCode IN 
+            (SELECT objectTypeCode FROM {get_table_namespace(f'{SOURCE}', 'crm_crmc_prt_otype')} GROUP BY objectTypeCode HAVING COUNT(1) = 1))
            UNION
-            (SELECT objectTypeCode, objectTypeDescription, ROW_NUMBER() OVER(PARTITION BY objectTypeCode ORDER BY extract_datetime DESC) AS record_number FROM {SOURCE}.crm_crmc_prt_otype WHERE objectTypeCode IN 
-            (SELECT objectTypeCode FROM {SOURCE}.crm_crmc_prt_otype GROUP BY objectTypeCode HAVING COUNT(1) > 1) and DefaultBorType = 'X')
+            (SELECT objectTypeCode, objectTypeDescription, ROW_NUMBER() OVER(PARTITION BY objectTypeCode ORDER BY extract_datetime DESC) AS record_number FROM {get_table_namespace(f'{SOURCE}', 'crm_crmc_prt_otype')} WHERE objectTypeCode IN 
+            (SELECT objectTypeCode FROM {get_table_namespace(f'{SOURCE}', 'crm_crmc_prt_otype')} GROUP BY objectTypeCode HAVING COUNT(1) > 1) and DefaultBorType = 'X')
             ) where record_number = 1""")
     status_usage_pref1 = spark.sql(f"""select distinct statusProfile as sp1 from {SOURCE}.crm_0crm_srv_req_inci_h where statusProfile is not null""")
     status_usage_pref2 = spark.sql(f"""select distinct statusProfile as sp2 from {SOURCE}.crm_0crm_sales_act_1 where statusProfile is not null""")

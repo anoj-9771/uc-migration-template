@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -58,7 +64,7 @@ def Transform():
     # Updating Business SCD columns for existing records
     try:
         # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
-        existing_data = spark.sql(f"""select * from {DEFAULT_TARGET}.{TableName}""") 
+        existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
         matched_df = existing_data.join(df.select("jobPlanNumber","jobPlanRevisionNumber",col("sourceValidFromTimestamp").alias("new_change_date")),["jobPlanNumber","jobPlanRevisionNumber"],"inner")\
         .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
 
@@ -79,12 +85,12 @@ Transform()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select count(1),workOrderJobPlanSK from curated.dimWorkOrderJobPlan GROUP BY workOrderJobPlanSK having count(1)>1
+# MAGIC select count(1),workOrderJobPlanSK from {get_table_namespace('curated', 'dimWorkOrderJobPlan')} GROUP BY workOrderJobPlanSK having count(1)>1
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC create or replace view curated_v3.dimWorkOrderJobPlan AS (select * from curated.dimWorkOrderJobPlan)
+# MAGIC create or replace view {get_table_namespace('curated', 'dimWorkOrderJobPlan')} AS (select * from {get_table_namespace('curated', 'dimWorkOrderJobPlan')})
 
 # COMMAND ----------
 

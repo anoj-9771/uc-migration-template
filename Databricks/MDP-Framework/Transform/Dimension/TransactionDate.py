@@ -1,12 +1,18 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
 def Transform():
     global df
     # ------------- TABLES ----------------- #
-    df = GetTable(f"{SOURCE}.crm_scapptseg")
+    df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_scapptseg')}")
 #     desc_df = GetTable(f"{SOURCE}.crm_scapttxt").select('apptType','apptTypeDescription')
   
     # ------------- JOINS ------------------ #

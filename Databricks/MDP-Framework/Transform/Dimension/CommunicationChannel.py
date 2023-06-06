@@ -1,11 +1,17 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
 def Transform():
     # ------------- TABLES ----------------- #
-    df = GetTable(f"{SOURCE}.crm_0crm_category_text")
+    df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_category_text')}")
     # ------------- JOINS ------------------ #
 
     # ------------- TRANSFORMS ------------- #

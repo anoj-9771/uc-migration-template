@@ -3,12 +3,11 @@
 
 # COMMAND ----------
 
-from pyspark.sql.window import Window
-from pyspark.sql.functions import row_number, lag, lead
+# MAGIC %run ../../Common/common-transform 
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-helpers 
 
 # COMMAND ----------
 
@@ -18,6 +17,8 @@ from math import ceil
 from datetime import date, datetime, timedelta
 import time
 from pyspark.sql.types import DateType, IntegerType, BooleanType
+from pyspark.sql.window import Window
+from pyspark.sql.functions import row_number, lag, lead
 
 # COMMAND ----------
 
@@ -158,7 +159,7 @@ def getDate():
                       ,fiscalDates_Int(calendarDate,'month') as monthOfFinancialYear \
                       ,fiscalDates_Int(calendarDate,'quarter') as quarterOfFinancialYear \
                       ,case when fiscalDates_Int(calendarDate,'quarter') < 3 then 1 else 2 end as halfOfFinancialYear \
-                      from cleansed.isu_scal_tt_date where calendardate <='9999-06-30'\
+                      from {get_table_namespace('cleansed', 'isu_scal_tt_date')} where calendardate <='9999-06-30'\
                       union \
                       SELECT  \
                       calendarDate \
@@ -192,7 +193,7 @@ def getDate():
                       ,null as monthOfFinancialYear \
                       ,null as quarterOfFinancialYear \
                       ,null as halfOfFinancialYear \
-                      from cleansed.isu_scal_tt_date where calendardate >'9999-06-30'\
+                      from {get_table_namespace('cleansed', 'isu_scal_tt_date')} where calendardate >'9999-06-30'\
                    ")
 
 
@@ -215,12 +216,12 @@ def Transform():
     from
     (
     select null as publicHoliday, null as isHoliday, null as holidayName, calendarDate, 'Y' isBusinessDay
-    from curated.dimDate X left anti join cleansed.datagov_australiapublicholidays Y on calendardate = date 
+    from {get_table_namespace('curated', 'dimDate')} X left anti join {get_table_namespace('cleansed', 'datagov_australiapublicholidays')} Y on calendardate = date 
     where dayofweek in (1,2,3,4,5)
     and calendaryear > 2013
     union
     select Y.date publicHoliday, case when Y.date is not null then 'Y' end isHoliday, Y.holidayName, calendarDate, 'N' isBusinessDay
-    from curated.dimDate left outer join cleansed.datagov_australiapublicholidays Y on calendardate = date 
+    from {get_table_namespace('curated', 'dimDate')} left outer join {get_table_namespace('cleansed', 'datagov_australiapublicholidays')} Y on calendardate = date 
     where (dayofweek in (6,7) or date is not null)
     and calendaryear > 2013
     ) as c""")

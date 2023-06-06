@@ -2,18 +2,24 @@
 # MAGIC %md 
 # MAGIC Vno| Date      | Who         |Purpose
 # MAGIC ---|:---------:|:-----------:|:--------:
-# MAGIC 1  |28/02/2023 |Mag          |Transform cleansed.maximo_relatedrecord to Curated_v2.bridgeServiceTicketWorkOrder    
+# MAGIC 1  |28/02/2023 |Mag          |Transform {get_table_namespace('cleansed', 'maximo_relatedrecord')} to Curated_v2.bridgeServiceTicketWorkOrder    
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
 def Transform():
     global df
     # ------------- TABLES ----------------- #
-    df = GetTable(f"{SOURCE}.maximo_sr") 
+    df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'maximo_sr')}") 
     
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [

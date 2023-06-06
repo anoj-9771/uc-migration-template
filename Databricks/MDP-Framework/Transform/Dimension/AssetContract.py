@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -63,7 +69,7 @@ def Transform():
     # Updating Business SCD columns for existing records
     try:
         # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
-        existing_data = spark.sql(f"""select * from {DEFAULT_TARGET}.{TableName}""") 
+        existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
         matched_df = existing_data.join(df.select("assetContractNumber", "assetContractRevisionNumber",col("sourceValidFromTimestamp").alias("new_changed_date")),["assetContractNumber", "assetContractRevisionNumber"],"inner")\
         .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
 
@@ -84,17 +90,18 @@ Transform()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC Select assetContractSK, count(1) from curated.dimAssetContract group by assetContractSK having count(1) >1
+# MAGIC Select assetContractSK, count(1) from {get_table_namespace('curated', 'dimAssetContract')} group by assetContractSK having count(1) >1
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC drop view if exists curated_v3.dimAssetContract
+# MAGIC drop view if exists {get_table_namespace('curated', 'dimAssetContract')}
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC create or replace view curated_v3.dimAssetContract As (select * from curated.dimAssetContract)
+spark.sql(f"""
+          create or replace view {get_table_namespace('curated', 'dimAssetContract')} As (select * from {get_table_namespace('curated', 'dimAssetContract')})
+          """)
 
 # COMMAND ----------
 

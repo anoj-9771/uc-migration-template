@@ -6,7 +6,13 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -92,18 +98,18 @@ duplicate_columns = ["surveyId", "surveyName", "recordId"]
 
 # COMMAND ----------
 
-df_billpaid =  GetTable(f"{SOURCE}.qualtrics_billpaidsuccessfullyresponses")
-df_businessXconn =  GetTable(f"{SOURCE}.qualtrics_businessconnectservicerequestcloseresponses")
-df_complaintsClosed  =  GetTable(f"{SOURCE}.qualtrics_complaintscomplaintclosedresponses")
-df_contactCentreInteract  =  GetTable(f"{SOURCE}.qualtrics_contactcentreinteractionmeasurementsurveyresponses")
-df_Customercareresponses  =  GetTable(f"{SOURCE}.qualtrics_customercareresponses")
-df_devApplicationreceived  =  GetTable(f"{SOURCE}.qualtrics_developerapplicationreceivedresponses")
-df_feedbacktabgolive  =  GetTable(f"{SOURCE}.qualtrics_feedbacktabgoliveresponses")
-df_p4sonlinefeedback  =  GetTable(f"{SOURCE}.qualtrics_p4sonlinefeedbackresponses")
-df_s73surveyresponse   =  GetTable(f"{SOURCE}.qualtrics_s73surveyresponses")
-df_waterfixpost =  GetTable(f"{SOURCE}.qualtrics_waterfixpostinteractionfeedbackresponses")
-df_websitegolive =  GetTable(f"{SOURCE}.qualtrics_websitegoliveresponses")
-df_wscs73exp =  GetTable(f"{SOURCE}.qualtrics_wscs73experiencesurveyresponses")
+df_billpaid =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_billpaidsuccessfullyresponses')}")
+df_businessXconn =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_businessconnectservicerequestcloseresponses')}")
+df_complaintsClosed  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_complaintscomplaintclosedresponses')}")
+df_contactCentreInteract  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_contactcentreinteractionmeasurementsurveyresponses')}")
+df_Customercareresponses  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_customercareresponses')}")
+df_devApplicationreceived  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_developerapplicationreceivedresponses')}")
+df_feedbacktabgolive  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_feedbacktabgoliveresponses')}")
+df_p4sonlinefeedback  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_p4sonlinefeedbackresponses')}")
+df_s73surveyresponse   =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_s73surveyresponses')}")
+df_waterfixpost =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_waterfixpostinteractionfeedbackresponses')}")
+df_websitegolive =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_websitegoliveresponses')}")
+df_wscs73exp =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_wscs73experiencesurveyresponses')}")
 
 billpaid_df = transpose_df(df_billpaid, billpaid_column, duplicate_columns)
 businessXconn_df = transpose_df(df_businessXconn, businessXconn_column, duplicate_columns)
@@ -133,7 +139,7 @@ final_df = billpaid_df.union(businessXconn_df) \
     .union(wscs73exp_df) 
 
 
-resp_df = GetTable(f"{TARGET}.dimSurveyResponseInformation") \
+resp_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimSurveyResponseInformation')}") \
           .select("surveyResponseInformationSK", "surveyResponseId")
 
 finaldf = final_df.join(resp_df, resp_df["surveyResponseId"] == final_df["recordId"], "left").withColumn("sourceSystem", lit('Qualtrics').cast("string")) 

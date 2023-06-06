@@ -36,6 +36,9 @@ def log_to_json(source_table_name:str, target_table_name:str, start_time:str, en
 def lookup_curated_namespace(env:str, current_database_name: str, current_table_name: str, excel_path:str) -> str:
     """looks up the target table namespace based on the current_table_name provided. note that this function assumes that there are no duplicate 'current_table_name' entries in the excel sheet."""
     future_namespace = {}
+    #convert the given database_name and table_name to lower so they can be compared with the migration spreadsheet
+    current_database_name = current_database_name.lower()
+    current_table_name = current_table_name.lower()
     try:
         p_df = read_run_sheet(excel_path, f'{env}curated_mapping')
         future_database_name = p_df[(p_df['current_table_name'] == current_table_name) & (p_df['current_database_name'].str.contains('curated'))]['future_database_name'].tolist()[0]

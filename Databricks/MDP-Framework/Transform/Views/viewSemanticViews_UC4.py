@@ -78,7 +78,7 @@ left join {get_table_namespace('curated', 'dimassetcontract')} dac
 on dac.assetContractSK = fwo.assetContractFK
 and dac.sourceRecordCurrent = 1
 
-inner join curated_v2.dimdate dd
+inner join {get_table_namespace('curated', 'dimdate')} dd
 on to_date(fwo.workOrderFinishedDate) = dd.calendardate
 
 left join {get_table_namespace('curated', 'viewancestorlocationhierarchypivot')} loc_hier

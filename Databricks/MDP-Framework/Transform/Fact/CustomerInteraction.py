@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -9,7 +15,7 @@ def Transform():
     # for dimproperty and dimbuisnesspartner table the default "-1" value is resided in _businessKey as part of UC1 implementation #
     # for all UC3 dimensions the unknown record is implemented as where SK = "-1" , hence the default NULL FK lookup handling can be vary between dimensions #
 
-    df = GetTable(f"{SOURCE}.crm_0crm_sales_act_1") \
+    df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_sales_act_1')}") \
     .withColumn("processType_BK",expr("concat(ProcessTypeCode,'|','CRM')")) \
     .withColumn("status_BK",expr("concat(statusProfile, '|', statusCode)")) \
     .withColumn("channel_BK",expr("concat(communicationChannelCode, '|', 'CRM')")) \
@@ -20,27 +26,27 @@ def Transform():
     .withColumn("subCategory" , expr("'to be provide'"))   
 
 
-    process_type_df = GetTable(f"{DEFAULT_TARGET}.dimCustomerServiceProcessType") \
+    process_type_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimCustomerServiceProcessType')}") \
     .select("customerServiceProcessTypeSK","_BusinessKey","_recordStart","_recordEnd","_recordCurrent")
         
-    status_df = GetTable(f"{DEFAULT_TARGET}.dimCustomerInteractionStatus") \
+    status_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimCustomerInteractionStatus')}") \
     .select("customerInteractionStatusSK","_BusinessKey","_recordStart","_recordEnd","_recordCurrent")
        
-    responsible_employee_df = GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner") \
+    responsible_employee_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimBusinessPartner')}") \
     .select("businessPartnerSK","businessPartnerNumber","_recordStart","_recordEnd","_businessKey") \
     .withColumnRenamed("businessPartnerSK","responsibleEmployeeFK")
     
-    contact_person_df = GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner") \
+    contact_person_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimBusinessPartner')}") \
     .select("businessPartnerSK","businessPartnerNumber","_recordStart","_recordEnd","_businessKey") \
     .withColumnRenamed("businessPartnerSK","contactPersonFK")
    
-    property_df = GetTable(f"{DEFAULT_TARGET}.dimProperty") \
+    property_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimProperty')}") \
     .select("propertySK","_BusinessKey","_recordStart","_recordEnd") 
 
-    channel_df = GetTable(f"{DEFAULT_TARGET}.dimcommunicationchannel") \
+    channel_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcommunicationchannel')}") \
     .select("communicationChannelSK","_businessKey","customerServiceChannelCode", "sourceSystemCode", "_recordStart","_recordEnd","_recordCurrent")
     
-    date_df = GetTable(f"{DEFAULT_TARGET}.dimdate").select("dateSK","calendarDate")
+    date_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimdate')}").select("dateSK","calendarDate")
     
     
     # ------------- JOINS ------------------ #

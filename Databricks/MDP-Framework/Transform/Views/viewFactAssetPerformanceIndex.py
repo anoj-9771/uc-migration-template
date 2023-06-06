@@ -8,7 +8,7 @@
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace('curated_v3', 'viewFactAssetPerformanceIndex')} AS
+CREATE OR REPLACE VIEW {get_table_namespace('curated', 'viewFactAssetPerformanceIndex')} AS
 (
     select 	assetPerformanceIndexSK
 ,	assetNumber

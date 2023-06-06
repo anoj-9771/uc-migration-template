@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -10,18 +16,18 @@ TARGET = DEFAULT_TARGET
 def Transform():
     global df
     # ------------- TABLES ----------------- #
-    df = GetTable(f"{SOURCE}.crm_crmd_erms_step") \
+    df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_erms_step')}") \
     .withColumn("email_BK",expr("right(emailID,17)")) \
     .withColumn("firstAgent_BK",expr("CASE WHEN firstAgent IS NULL THEN '-1' ELSE firstAgent END")) \
     .withColumn("secondAgent_BK",expr("CASE WHEN secondAgent IS NULL THEN '-1' ELSE firstAgent END")) \
     .withColumn("firstOrgUnit_BK",expr("CASE WHEN firstOrganisationUnit IS NULL THEN '-1' ELSE concat('OU',RIGHT(firstOrganisationUnit,8)) END")) \
     .withColumn("secondOrgUnit_BK",expr("CASE WHEN secondOrganisationUnit IS NULL THEN '-1' ELSE concat('OU',RIGHT(secondOrganisationUnit,8)) END"))        
-    crmd_erms_eventt_df = GetTable(f"{SOURCE}.crm_crmd_erms_eventt").select("emailEventID", "emailEventDescription")
-    businessPartner_firstAgent_df = GetTable(f"{TARGET}.dimbusinessPartner").select("businessPartnerSK", "businessPartnerNumber")
-    businessPartner_secondAgent_df = GetTable(f"{TARGET}.dimbusinessPartner").select("businessPartnerSK", "businessPartnerNumber")
-    businessPartner_firstOrgUnit_df = GetTable(f"{TARGET}.dimbusinessPartner").select("businessPartnerSK", "businessPartnerNumber")
-    businessPartner_secondOrgUnit_df = GetTable(f"{TARGET}.dimbusinessPartner").select("businessPartnerSK", "businessPartnerNumber")
-    emailHeader_df = GetTable(f"{TARGET}.dimcustomerserviceemailheader").select("customerServiceEmailHeaderSK","_businessKey").filter("_recordCurrent == 1")
+    crmd_erms_eventt_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_erms_eventt')}").select("emailEventID", "emailEventDescription")
+    businessPartner_firstAgent_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimbusinessPartner')}").select("businessPartnerSK", "businessPartnerNumber")
+    businessPartner_secondAgent_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimbusinessPartner')}").select("businessPartnerSK", "businessPartnerNumber")
+    businessPartner_firstOrgUnit_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimbusinessPartner')}").select("businessPartnerSK", "businessPartnerNumber")
+    businessPartner_secondOrgUnit_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimbusinessPartner')}").select("businessPartnerSK", "businessPartnerNumber")
+    emailHeader_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimcustomerserviceemailheader')}").select("customerServiceEmailHeaderSK","_businessKey").filter("_recordCurrent == 1")
     
     # ------------- JOINS ------------------ #
     df = df.join(crmd_erms_eventt_df, crmd_erms_eventt_df.emailEventID == df.eventID, "left").select(df["*"],crmd_erms_eventt_df["emailEventDescription"])

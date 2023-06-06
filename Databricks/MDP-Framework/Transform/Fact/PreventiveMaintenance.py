@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -11,9 +17,9 @@ def Transform():
     
     # ------------- TABLES ----------------- #
     df = get_recent_cleansed_records(f"{SOURCE}","maximo","pM","changed_date","preventiveMaintenanceChangedTimestamp").alias("maximo_pM")
-    jobPlan_df = GetTable(f"{TARGET}.dimWorkOrderJobPlan").select("workOrderJobPlanNumber","workOrderJobPlanSK")
-    assetContract_df = GetTable(f"{TARGET}.dimAssetContract").select("assetContractNumber","assetContractSK")
-    asset_df = GetTable(f"{TARGET}.dimAsset").select("assetNumber","assetSK")
+    jobPlan_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimWorkOrderJobPlan')}").select("workOrderJobPlanNumber","workOrderJobPlanSK")
+    assetContract_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetContract')}").select("assetContractNumber","assetContractSK")
+    asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetNumber","assetSK")
     
     
     # ------------- JOINS ------------------ #
@@ -80,8 +86,9 @@ Transform()
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC create or replace view curated_v3.factPreventiveMaintenance AS (SELECT * from curated.factpreventivemaintenance)
+spark.sql(
+    f"""create or replace view {get_table_namespace('curated', 'factPreventiveMaintenance')} AS (SELECT * from {get_table_namespace('curated', 'factpreventivemaintenance')})
+          """)
 
 # COMMAND ----------
 

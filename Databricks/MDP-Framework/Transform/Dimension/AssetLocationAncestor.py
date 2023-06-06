@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -21,7 +27,7 @@ def Transform():
     .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)"))
     df = load_sourceValidFromTimeStamp(df,business_date)
 
-    assetLocation_df = GetTable(f"{TARGET}.dimAssetLocation").filter("_recordCurrent == 1").select("assetLocationSK",col("assetLocationName").alias("location"))
+    assetLocation_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").filter("_recordCurrent == 1").select("assetLocationSK",col("assetLocationName").alias("location"))
     locoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper"))
     ancLocoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper")).select(col("location").alias("ancestorLocation"),col("level").alias("ancestorLevel"))
     lochierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","lochierarchy")).select(col("location").alias("lochierarchy_location"),"parent","children",col("system").alias("lochierarchySystem"))
@@ -71,7 +77,7 @@ def Transform():
 # Updating Business SCD columns for existing records
     try:
         # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
-        existing_data = spark.sql(f"""select * from {DEFAULT_TARGET}.{TableName}""") 
+        existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
         matched_df = existing_data.join(df.select("location","ancestorLocation","locationAncestorSystem",col("sourceValidFromTimestamp").alias("new_changed_date")),["location","ancestorLocation","locationAncestorSystem"],"inner")\
         .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
 
@@ -98,12 +104,12 @@ Transform()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select Count(1),assetLocationAncestorSK from curated.dimAssetLocationAncestor GROUP BY assetLocationAncestorSK having count(1)>1
+# MAGIC select Count(1),assetLocationAncestorSK from {get_table_namespace('curated', 'dimAssetLocationAncestor')} GROUP BY assetLocationAncestorSK having count(1)>1
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC create or replace view curated_v3.dimAssetLocationAncestor AS (select * from curated.dimAssetLocationAncestor)
+# MAGIC create or replace view {get_table_namespace('curated', 'dimAssetLocationAncestor')} AS (select * from {get_table_namespace('curated', 'dimAssetLocationAncestor')})
 
 # COMMAND ----------
 

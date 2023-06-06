@@ -6,7 +6,11 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ----------
+
+# MAGIC %run ../../Common/common-helpers 
 
 # COMMAND ----------
 
@@ -223,54 +227,54 @@ dimQuesQuery = f"""select surveyQuestionSK,
                             concat_ws('','question',CAST(ltrim('QID', surveyQuestionId) AS INTEGER), 'TopicSentimentScore') as topicSentimentScoreColumn,
                             concat_ws('','question',CAST(ltrim('QID', surveyQuestionId) AS INTEGER), 'TopicsSentimentsLabel') as topicsSentimentsLabelColumn,
                             concat_ws('','question',CAST(ltrim('QID', surveyQuestionId) AS INTEGER), 'ParTopicsText') as parTopicsTextColumn
-                            from {TARGET}.dimSurveyQuestion 
+                            from {get_table_namespace(f'{TARGET}', 'dimSurveyQuestion')} 
                     """
 
 
 df_dimQues = spark.sql(dimQuesQuery)
 
-dsv = GetTable(f"{TARGET}.dimsurveyparticipant")
-dsr = GetTable(f"{TARGET}.dimsurveyresponseinformation")
-dp  = GetTable(f"{TARGET}.dimProperty") 
-dbp = GetTable(f"{TARGET}.dimbusinesspartner")
+dsv = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimsurveyparticipant')}")
+dsr = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimsurveyresponseinformation')}")
+dp  = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimProperty')}") 
+dbp = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimbusinesspartner')}")
 #dpSKUC1 = str(spark.sql("Select propertySK from dimproperty where _businessKey = '-1'").collect()[0][0])
 #dbppSKUC1 = str(spark.sql("Select businessPartnerSK from dimbusinesspartner where _businessKey = '-1'").collect()[0][0])
 uc1DefaultSK = '60e35f602481e8c37d48f6a3e3d7c30d'
 
-df_billpaid =  GetTable(f"{SOURCE}.qualtrics_billpaidsuccessfullyresponses")
+df_billpaid =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_billpaidsuccessfullyresponses')}")
 df_billpaid = add_missing_columns(df_billpaid, duplicate_columns) 
 
-df_businessXconn =  GetTable(f"{SOURCE}.qualtrics_businessconnectservicerequestcloseresponses")
+df_businessXconn =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_businessconnectservicerequestcloseresponses')}")
 df_businessXconn = add_missing_columns(df_businessXconn, duplicate_columns)
 
-df_complaintsClosed  =  GetTable(f"{SOURCE}.qualtrics_complaintscomplaintclosedresponses")
+df_complaintsClosed  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_complaintscomplaintclosedresponses')}")
 df_complaintsClosed = add_missing_columns(df_complaintsClosed, duplicate_columns)
 
-df_contactCentreInteract  =  GetTable(f"{SOURCE}.qualtrics_contactcentreinteractionmeasurementsurveyresponses")
+df_contactCentreInteract  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_contactcentreinteractionmeasurementsurveyresponses')}")
 df_contactCentreInteract = add_missing_columns(df_contactCentreInteract, duplicate_columns)
 
-df_Customercareresponses  =  GetTable(f"{SOURCE}.qualtrics_customercareresponses")
+df_Customercareresponses  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_customercareresponses')}")
 df_Customercareresponses = add_missing_columns(df_Customercareresponses, duplicate_columns)
 
-df_devApplicationreceived  =  GetTable(f"{SOURCE}.qualtrics_developerapplicationreceivedresponses")
+df_devApplicationreceived  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_developerapplicationreceivedresponses')}")
 df_devApplicationreceived = add_missing_columns(df_devApplicationreceived, duplicate_columns)
 
-df_feedbacktabgolive  =  GetTable(f"{SOURCE}.qualtrics_feedbacktabgoliveresponses")
+df_feedbacktabgolive  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_feedbacktabgoliveresponses')}")
 df_feedbacktabgolive = add_missing_columns(df_feedbacktabgolive, duplicate_columns)
 
-df_p4sonlinefeedback  =  GetTable(f"{SOURCE}.qualtrics_p4sonlinefeedbackresponses")
+df_p4sonlinefeedback  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_p4sonlinefeedbackresponses')}")
 df_p4sonlinefeedback = add_missing_columns(df_p4sonlinefeedback, duplicate_columns)
 
-df_s73surveyresponse   =  GetTable(f"{SOURCE}.qualtrics_s73surveyresponses")
+df_s73surveyresponse   =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_s73surveyresponses')}")
 df_s73surveyresponse = add_missing_columns(df_s73surveyresponse, duplicate_columns)
 
-df_waterfixpost =  GetTable(f"{SOURCE}.qualtrics_waterfixpostinteractionfeedbackresponses")
+df_waterfixpost =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_waterfixpostinteractionfeedbackresponses')}")
 df_waterfixpost = add_missing_columns(df_waterfixpost, duplicate_columns)
 
-df_websitegolive =  GetTable(f"{SOURCE}.qualtrics_websitegoliveresponses")
+df_websitegolive =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_websitegoliveresponses')}")
 df_websitegolive = add_missing_columns(df_websitegolive, duplicate_columns)
 
-df_wscs73exp =  GetTable(f"{SOURCE}.qualtrics_wscs73experiencesurveyresponses")
+df_wscs73exp =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_wscs73experiencesurveyresponses')}")
 df_wscs73exp = add_missing_columns(df_wscs73exp, duplicate_columns)
 
 billpaid_df  = transpose_df(df_billpaid, df_dimQues, duplicate_columns)
@@ -397,20 +401,20 @@ finaldf = billpaid_df.union(businessXconn_df) \
 # COMMAND ----------
 
 #########Added CRM Survey #############################Ignore surveyId 'Z_BILLASSIST_SURVEY' for now as in contains Sensitive info
-dimBuss = GetTable(f"{DEFAULT_TARGET}.dimSurvey")
+dimBuss = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimSurvey')}")
 split_col = split(col("sourceBusinessKey"), r"\|")
 dimBuss = dimBuss.withColumn("surveyId", split_col.getItem(1)).withColumn("SourceSystem", split_col.getItem(0)).filter(col("SourceSystem") == 'CRM').select(col("surveyId")).distinct().collect()
 #print(dimBuss)
 
-crm_0crm_srv_req_inci_h_df = GetTable(f"{SOURCE}.crm_0crm_srv_req_inci_h")
-crm_crmd_link_df = GetTable(f"{SOURCE}.crm_crmd_link")
-crm_crmd_survey_df = GetTable(f"{SOURCE}.crm_crmd_survey")
-crm_crm_svy_db_sv_df = GetTable(f"{SOURCE}.crm_crm_svy_db_sv")
-crm_crm_svy_re_quest_df = GetTable(f"{SOURCE}.crm_crm_svy_re_quest").filter(col("surveyID") != lit('Z_BILLASSIST_SURVEY'))
-crm_crm_svy_db_s_df = GetTable(f"{SOURCE}.crm_crm_svy_db_s").filter(col("surveyID") != lit('Z_BILLASSIST_SURVEY'))
-crm_0svy_qstnnr_text_df = GetTable(f"{SOURCE}.crm_0svy_qstnnr_text")
-crm_0svy_qstnnr_text_df2 = GetTable(f"{SOURCE}.crm_0svy_quest_text")
-dimQuestion_df = GetTable(f"{DEFAULT_TARGET}.dimSurveyQuestion").filter(col("surveyID") != lit('Z_BILLASSIST_SURVEY'))
+crm_0crm_srv_req_inci_h_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h')}")
+crm_crmd_link_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_link')}")
+crm_crmd_survey_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_survey')}")
+crm_crm_svy_db_sv_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crm_svy_db_sv')}")
+crm_crm_svy_re_quest_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crm_svy_re_quest')}").filter(col("surveyID") != lit('Z_BILLASSIST_SURVEY'))
+crm_crm_svy_db_s_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crm_svy_db_s')}").filter(col("surveyID") != lit('Z_BILLASSIST_SURVEY'))
+crm_0svy_qstnnr_text_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0svy_qstnnr_text')}")
+crm_0svy_qstnnr_text_df2 = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0svy_quest_text')}")
+dimQuestion_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimSurveyQuestion')}").filter(col("surveyID") != lit('Z_BILLASSIST_SURVEY'))
 
 
 max_svv = crm_crm_svy_db_sv_df.groupBy("surveyValuesGUID").agg(max(col("surveyValuesVersion")).alias("max_surveyValuesVersion"))

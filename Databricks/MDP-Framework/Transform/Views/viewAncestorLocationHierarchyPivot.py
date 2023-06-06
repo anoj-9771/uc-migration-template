@@ -135,7 +135,7 @@ CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewAncestorLo
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from  {get_table_namespace('curated_v3', 'viewAncestorLocationHierarchyPivot')} limit 10
+# MAGIC select * from  {get_table_namespace('curated', 'viewAncestorLocationHierarchyPivot')} limit 10
 
 # COMMAND ----------
 

@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -57,8 +63,8 @@ def monthly_Transform():
     FROM
     (
         SELECT DISTINCT da.assetNumber, da.assetSK
-        FROM hive_metastore.curated_v3.dimasset da
-        inner join hive_metastore.curated_v3.dimassetlocation dal
+        FROM {get_table_namespace('curated', 'dimasset')} da
+        inner join {get_table_namespace('curated', 'dimassetlocation')} dal
         on da.assetLocationFK = dal.assetLocationSK
     where da.sourceRecordCurrent = 1
         and dal.sourceRecordCurrent = 1
@@ -88,7 +94,7 @@ def monthly_Transform():
     INNER JOIN
     ( 
     select *  
-    from hive_metastore.curated_v3.factworkorder
+    from {get_table_namespace('curated', 'factworkorder')}
     qualify row_number() over(partition by workOrderCreationId order by workOrderChangeDate desc)=1
     ) fwo
     ON dt.assetSK = fwo.assetFK     
@@ -146,14 +152,14 @@ def monthly_Transform():
             FROM 
             ( 
             select *  
-            from hive_metastore.curated_v3.factworkorder
+            from {get_table_namespace('curated', 'factworkorder')}
             qualify row_number() over(partition by workOrderCreationId order by workOrderChangeDate desc)=1
             ) fwo
-            inner join hive_metastore.curated_v3.dimasset da
+            inner join {get_table_namespace('curated', 'dimasset')} da
             ON da.assetSK = fwo.assetFK  
             and da.sourceRecordCurrent = 1
 
-            inner join hive_metastore.curated_v3.dimassetlocation dal
+            inner join {get_table_namespace('curated', 'dimassetlocation')} dal
             ON da.assetLocationFK = dal.assetLocationSK
             and dal.sourceRecordCurrent = 1
             and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
@@ -194,26 +200,26 @@ def monthly_Transform():
         from 
         (
         select workOrder, asset, worktype, taskcode, parentWo, originatingRecord, reportedDateTime, Class as workorderClass, fCId, serviceType, STATUS
-        from cleansed.maximo_workorder 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} 
         qualify row_number() over(partition by workOrder order by changeDate desc) =1
         ) WORKORDER
         left join 
         (
         SELECT failurecode, workOrder 
-        FROM cleansed.MAXIMO_FAILUREREPORT WHERE TYPE = 'REMEDY' 
+        FROM {get_table_namespace('cleansed', 'MAXIMO_FAILUREREPORT')} WHERE TYPE = 'REMEDY' 
         ) b 
         on b.workOrder=WORKORDER.workOrder 
         left join 
         (
         select asset, workOrder 
-        from cleansed.maximo_workorder 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} 
         qualify row_number() over(partition by workOrder order by changeDate desc) =1
         )parentWO 
         on parentWO.workOrder = WORKORDER.parentWo
         left join 
         (
         select asset,workorder  
-        from cleansed.maximo_workorder 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} 
         qualify row_number() over(partition by workOrder order by changeDate desc) =1
         )oriWO
         on oriWO.workorder = WORKORDER.originatingRecord
@@ -448,14 +454,14 @@ def yearly_Transform():
             FROM 
             ( 
             select *  
-            from hive_metastore.curated_v3.factworkorder
+            from {get_table_namespace('curated', 'factworkorder')}
             qualify row_number() over(partition by workOrderCreationId order by workOrderChangeDate desc)=1
             ) fwo
-            inner join hive_metastore.curated_v3.dimasset da
+            inner join {get_table_namespace('curated', 'dimasset')} da
             ON da.assetSK = fwo.assetFK  
             and da.sourceRecordCurrent = 1
 
-            inner join hive_metastore.curated_v3.dimassetlocation dal
+            inner join {get_table_namespace('curated', 'dimassetlocation')} dal
             ON da.assetLocationFK = dal.assetLocationSK
             and dal.sourceRecordCurrent = 1
             and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
@@ -493,26 +499,26 @@ def yearly_Transform():
         from 
         (
         select workOrder, asset, worktype, taskcode, parentWo, originatingRecord, reportedDateTime, Class as workorderClass, fCId, serviceType, STATUS
-        from cleansed.maximo_workorder 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} 
         qualify row_number() over(partition by workOrder order by changeDate desc) =1
         ) WORKORDER
         left join 
         (
         SELECT failurecode, workOrder 
-        FROM cleansed.MAXIMO_FAILUREREPORT WHERE TYPE = 'REMEDY' 
+        FROM {get_table_namespace('cleansed', 'MAXIMO_FAILUREREPORT')} WHERE TYPE = 'REMEDY' 
         ) b 
         on b.workOrder=WORKORDER.workOrder 
         left join 
         (
         select asset, workOrder 
-        from cleansed.maximo_workorder 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} 
         qualify row_number() over(partition by workOrder order by changeDate desc) =1
         )parentWO 
         on parentWO.workOrder = WORKORDER.parentWo
         left join 
         (
         select asset,workorder  
-        from cleansed.maximo_workorder 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} 
         qualify row_number() over(partition by workOrder order by changeDate desc) =1
         )oriWO
         on oriWO.workorder = WORKORDER.originatingRecord
@@ -711,14 +717,14 @@ def yearly_Transform():
             FROM 
             ( 
             select *  
-            from hive_metastore.curated_v3.factworkorder
+            from {get_table_namespace('curated', 'factworkorder')}
             qualify row_number() over(partition by workOrderCreationId order by workOrderChangeDate desc)=1
             ) fwo
-            inner join hive_metastore.curated_v3.dimasset da
+            inner join {get_table_namespace('curated', 'dimasset')} da
             ON da.assetSK = fwo.assetFK  
             and da.sourceRecordCurrent = 1
 
-            inner join hive_metastore.curated_v3.dimassetlocation dal
+            inner join {get_table_namespace('curated', 'dimassetlocation')} dal
             ON da.assetLocationFK = dal.assetLocationSK
             and dal.sourceRecordCurrent = 1
             and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
@@ -748,7 +754,7 @@ def yearly_Transform():
         serviceType as SWCSERVTYPE, 
         fcid as FINCNTRLID, 
         reportedDateTime as REPORTDATE
-        from cleansed.maximo_workorder 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} 
         qualify row_number() over(partition by workOrder order by changeDate desc) =1
         ) WORKORDER
     ON DT.ASSETNUM = WORKORDER.ASSETNUM
@@ -780,8 +786,9 @@ yearly_Transform()
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC create or replace view curated_v3.factassetperformanceindex as (select * from curated.factassetperformanceindex)
+spark.sql(f"""
+          create or replace view {get_table_namespace('curated', 'factassetperformanceindex')} as (select * from {get_table_namespace('curated', 'factassetperformanceindex')})
+          """)
 
 # COMMAND ----------
 

@@ -5,7 +5,7 @@
 
 ####Curated viewServiceRequestReceivedCategory
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace('curated_v3', 'viewservicerequestreceivedcategory')}
+CREATE OR REPLACE VIEW {get_table_namespace('curated', 'viewservicerequestreceivedcategory')}
 AS
 SELECT
 categorySK
@@ -26,7 +26,7 @@ categorySK
 ,sourceRecordCurrent
 ,sourceBusinessKey
 FROM
-  {get_table_namespace('curated_v3', 'dimCategory')}
+  {get_table_namespace('curated', 'dimCategory')}
 WHERE categoryUsage = 'Service Request'
   AND categoryType = 'Received Category'
 """)
@@ -35,7 +35,7 @@ WHERE categoryUsage = 'Service Request'
 
 #Curated viewServiceRequestResolutionCategory
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace('curated_v3', 'viewserviceresolutioncategory')}
+CREATE OR REPLACE VIEW {get_table_namespace('curated', 'viewserviceresolutioncategory')}
 AS
 SELECT
 categorySK
@@ -56,7 +56,7 @@ categorySK
 ,sourceRecordCurrent
 ,sourceBusinessKey
 FROM
-  {get_table_namespace('curated_v3', 'dimCategory')}
+  {get_table_namespace('curated', 'dimCategory')}
 WHERE categoryUsage = 'Service Request'
   AND categoryType = 'Resolution Category'
 """)

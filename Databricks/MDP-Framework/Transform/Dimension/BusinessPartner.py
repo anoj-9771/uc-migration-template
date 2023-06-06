@@ -6,7 +6,13 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -53,7 +59,7 @@ isuDF = (GetTable(f"{SOURCE}.isu_0bpartner_attr")
                         )
 
 
-crmDF = (GetTable(f"{SOURCE}.crm_0bpartner_attr")
+crmDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0bpartner_attr')}")
                                             .filter((col("businessPartnerCategoryCode").isin("1", "2")) & 
                                             (col("_RecordCurrent")== 1) & (col("_RecordDeleted")== 0))                                            
                                             .withColumn("sourceSystemCode",lit("CRM"))

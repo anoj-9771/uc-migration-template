@@ -1,5 +1,13 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ----------
+
+# MAGIC %run ../../Common/common-helpers 
+
+# COMMAND ----------
+
+DEFAULT_TARGET = 'curated'
 
 # COMMAND ----------
 
@@ -11,31 +19,31 @@ def Transform():
     global df
     # ------------- TABLES ----------------- #
     
-    property_df = GetTable(f"{DEFAULT_TARGET}.viewpropertyKey") \
+    property_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'viewpropertyKey')}") \
     .select("propertyNumber","superiorPropertyTypeCode","superiorPropertyType","inferiorPropertyTypeCode","inferiorPropertyType","architecturalObjectTypeCode","architecturalObjectType","parentArchitecturalObjectNumber","parentArchitecturalObjectTypeCode","parentArchitecturalObjectType","waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","propertySK","propertyTypeHistorySK","drinkingWaterNetworkSK","buildingFeeDate").filter("currentFlag = 'Y'")
         
-    property_service_df = GetTable(f"{DEFAULT_TARGET}.viewpropertyservice") \
+    property_service_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'viewpropertyservice')}") \
     .select(col("propertyNumber").alias("service_propertyNumber"),"fixtureAndFittingCharacteristicCode","fixtureAndFittingCharacteristic","currentFlag","currentRecordFlag","validToDate").filter("currentFlag = 'Y'")
 
-    joint_service_parent_df = GetTable(f"{DEFAULT_TARGET}.viewPropertyRelation") \
+    joint_service_parent_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'viewPropertyRelation')}") \
     .select(col("property1Number").alias("service_propertyNumber"),col("relationshipTypeCode1").alias("relationshipTypeCode"),col("relationshipType1").alias("relationshipType")).filter("relationshipTypeCode1 in ('J', 'L')").filter("currentFlag = 'Y'")
 
-    joint_service_child_df = GetTable(f"{DEFAULT_TARGET}.viewPropertyRelation") \
+    joint_service_child_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'viewPropertyRelation')}") \
     .select("property2Number","relationshipTypeCode2","relationshipType2").filter("relationshipTypeCode2 in ('F', 'M')").filter("currentFlag = 'Y'")
   
-    water_installation_df = GetTable(f"{DEFAULT_TARGET}.viewinstallation") \
+    water_installation_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'viewinstallation')}") \
     .select(col("propertyNumber").alias("install_propertyNumber"),"installationNumber","divisionCode","division","industrySystem","portionNumber","portionText").filter("divisionCode = 10").filter("currentFlag = 'Y'")
 
-    rate_type_df = GetTable(f"{DEFAULT_TARGET}.dimInstallationFacts") \
+    rate_type_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimInstallationFacts')}") \
     .select(col("installationNumber").alias("rate_installationNumber"),"rateTypeCode","rateType","operandCode","validToDate").filter("operandCode == 'WRT-WSSC'").filter("validToDate == '9999-12-31'")
 
-    date_df = GetTable(f"{DEFAULT_TARGET}.dimdate") \
+    date_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimdate')}") \
     .select("calendarDate","yearEndDate","yearStartDate","monthEndDate","monthStartDate").filter("calendarDate = current_date()") 
 
-    billingdocument_df = GetTable(f"{DEFAULT_TARGET}.dimmeterconsumptionbillingdocument") \
+    billingdocument_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimmeterconsumptionbillingdocument')}") \
     .select("meterConsumptionBillingDocumentSK","isOutsortedFlag").filter("_RecordDeleted = 0")
 
-    factbilled_df = GetTable(f"{DEFAULT_TARGET}.factbilledwaterconsumption") \
+    factbilled_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'factbilledwaterconsumption')}") \
     .select(col("meterConsumptionBillingDocumentSK").alias("fact_meterConsumptionBillingDocumentSK"),"propertyNumber")
 
     # ------------- JOINS ------------------ #

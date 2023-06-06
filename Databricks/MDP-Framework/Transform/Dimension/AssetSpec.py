@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -17,7 +23,7 @@ def Transform():
     business_date = 'changedDate'
     target_date ="assetSpecChangedTimestamp"
     df = get_recent_cleansed_records(f"{SOURCE}","maximo","assetSpec",business_date,target_date)
-    dimAsset_df = GetTable(f"{TARGET}.dimAsset").select("assetSK","assetNumber")
+    dimAsset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetSK","assetNumber")
     class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure")).select("classStructure",'classification',col('description').alias('classPath'))
     classification_df = GetTable(get_table_name(f"{SOURCE}","maximo","classification")).select('classification',col('description').alias('classificationDescription'))
     measure_unit_df = GetTable(get_table_name(f"{SOURCE}","maximo","measureUnit")).select("unitOfMeasure",col("description").alias("unitOfMeasureDescription"))
@@ -64,7 +70,7 @@ def Transform():
     # ------------- SAVE ------------------- #
     try:
         # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
-        existing_data = spark.sql(f"""select * from {DEFAULT_TARGET}.{TableName}""") 
+        existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
         matched_df = existing_data.join(df.select("assetSK", "assetSpecAttributeIdentifier", "assetSpecLinearSpecificationId", "assetSpecSectionCode",col("sourceValidFromTimestamp").alias("new_changed_date")),["assetSK", "assetSpecAttributeIdentifier", "assetSpecLinearSpecificationId", "assetSpecSectionCode"],"inner")\
         .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
 
@@ -84,13 +90,13 @@ Transform()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SELECT count(1), AssetSpecSk FROM curated.dimassetspec GROUP BY assetSpecSK having count(1)> 1
+# MAGIC SELECT count(1), AssetSpecSk FROM {get_table_namespace('curated', 'dimassetspec')} GROUP BY assetSpecSK having count(1)> 1
 
 # COMMAND ----------
 
 # DBTITLE 1, 
 # MAGIC %sql
-# MAGIC create or replace view curated_v3.dimassetspec AS (select * from curated.dimassetspec)
+# MAGIC create or replace view {get_table_namespace('curated', 'dimassetspec')} AS (select * from {get_table_namespace('curated', 'dimassetspec')})
 
 # COMMAND ----------
 

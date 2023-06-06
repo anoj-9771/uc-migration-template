@@ -17,5 +17,5 @@ Deploy-AzureResourceGroup.ps1
 /*/obj/Debug
 /*/bin/Debug
 .vscode
-Databricks/uc_migration/user_notebooks/*
+Databricks/uc_migration/*
 *.pyc

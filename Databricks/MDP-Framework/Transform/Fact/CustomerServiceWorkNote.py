@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -26,7 +32,7 @@ def Transform():
     summary_res_match_regex = "(\[\s)(SUMMARY|RESOLUTION)(\sTEXT\-\sDATE\-\s)([0-9]{8})(\sTIME:\s)([0-9]{6})(\s\])([^\[]*)"
     interaction_match_regex = "(\[\s)(Summary)(\sText\-\-\sDate\-\s)([0-9]{8})(\sTime\-\s)([0-9]{6})(\s\])([^\[]*)"
     
-    summary_res_notes_df =  GetTable(f"{SOURCE}.crm_zcs_long_text_f") \
+    summary_res_notes_df =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_zcs_long_text_f')}") \
     .select("serviceRequestGUID","serviceRequestID","summaryNote1","summaryNote2","summaryNote3","resolutionNote1","resolutionNote2","resolutionNote3")
 
 #     Prepare Summary DF
@@ -62,8 +68,8 @@ def Transform():
     
 
     
-    df1 = GetTable(f"cleansed.crm_zpstxhwithcguid").select("noteID","noteGUID","noteTypeCode","CreatedDateTime","CreatedBy","changeBy","changedDatetime","noteLineNum")
-    aurion_employee_df = spark.sql("""Select userid, givenNames, surname from cleansed.aurion_active_employees union Select userid, givenNames, surname from cleansed.aurion_terminated_employees""")
+    df1 = GetTable(f"{get_table_namespace('cleansed', 'crm_zpstxhwithcguid')}").select("noteID","noteGUID","noteTypeCode","CreatedDateTime","CreatedBy","changeBy","changedDatetime","noteLineNum")
+    aurion_employee_df = spark.sql(f"""Select userid, givenNames, surname from {get_table_namespace('cleansed', 'aurion_active_employees')} union Select userid, givenNames, surname from {get_table_namespace('cleansed', 'aurion_terminated_employees')}""")
     windowSpecUserID  = Window.partitionBy("userid") 
     aurion_employee_df = aurion_employee_df.withColumn("rankUser",row_number().over(windowSpecUserID.orderBy(col("surname")))).filter("rankuser == 1")
     
@@ -90,7 +96,7 @@ def Transform():
     .withColumnRenamed("changedDatetime","modifiedTimeStamp")
 
     
- #   interaction_df =  GetTable(f"{SOURCE}.crm_zcs_long_text_act")
+ #   interaction_df =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_zcs_long_text_act')}")
  #   interaction_df = interaction_df.select(interaction_df.
 #actitivtyObjectGUID.alias("activityObjectGUID"),interaction_df.
 #actitivtyObjectID.alias("objectID"),"createdDate","summaryDescription1","summaryDescription2","summaryDescription3") \

@@ -1,5 +1,9 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ----------
+
+# MAGIC %run ../../Common/common-helpers 
 
 # COMMAND ----------
 
@@ -15,13 +19,13 @@ def Transform():
     global df
     # ------------- TABLES ----------------- #
     w = Window().partitionBy("assetFK")
-    df = spark.sql(f"select assetFK, snapshotDate as latest_snapshotDate,assetLocationFK,workOrderTrendDate from (select assetFK, snapshotDate,assetLocationFK,workOrderTrendDate, row_number() over(partition by assetFK order by snapshotDate desc) as rownumb from {TARGET}.factworkorder)dt where rownumb = 1")
+    df = spark.sql(f"select assetFK, snapshotDate as latest_snapshotDate,assetLocationFK,workOrderTrendDate from (select assetFK, snapshotDate,assetLocationFK,workOrderTrendDate, row_number() over(partition by assetFK order by snapshotDate desc) as rownumb from {get_table_namespace(f'{TARGET}', 'factworkorder')})dt where rownumb = 1")
 
-    workOrder_df = GetTable(f"{DEFAULT_TARGET}.factworkorder").select("assetFK","snapshotDate","breakdownMaintenanceWorkOrderRepairHour","workOrderCreationId","WorkTypeCode","workOrderClassDescription","workOrderCompliantIndicator","breakdownMaintenanceWorkOrderTargetHour","workOrderStatusDescription","actualWorkOrderLaborCostAmount","actualWorkOrderMaterialCostAmount","actualWorkOrderServiceCostAmount","actualWorkOrderLaborCostFromActivityAmount","actualWorkOrderMaterialCostFromActivityAmount","actualWorkOrderServiceCostFromActivityAmount","workOrderChildIndicator","externalStatusCode") .withColumn("rank",rank().over(w.orderBy(col("snapshotDate").desc()))) \
+    workOrder_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'factworkorder')}").select("assetFK","snapshotDate","breakdownMaintenanceWorkOrderRepairHour","workOrderCreationId","WorkTypeCode","workOrderClassDescription","workOrderCompliantIndicator","breakdownMaintenanceWorkOrderTargetHour","workOrderStatusDescription","actualWorkOrderLaborCostAmount","actualWorkOrderMaterialCostAmount","actualWorkOrderServiceCostAmount","actualWorkOrderLaborCostFromActivityAmount","actualWorkOrderMaterialCostFromActivityAmount","actualWorkOrderServiceCostFromActivityAmount","workOrderChildIndicator","externalStatusCode") .withColumn("rank",rank().over(w.orderBy(col("snapshotDate").desc()))) \
     .filter("rank == 1").drop("rank") 
     workOrder_df = workOrder_df.withColumnRenamed("assetFK","wo_assetFK")
-    assetLocation_df = GetTable(f"{TARGET}.dimAssetLocation").select("assetLocationSK","assetLocationStatusDescription")
-    asset_df = GetTable(f"{TARGET}.dimAsset").select("assetSK","assetNetworkLengthPerKilometerValue")
+    assetLocation_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").select("assetLocationSK","assetLocationStatusDescription")
+    asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetSK","assetNetworkLengthPerKilometerValue")
 
     
     # ------------- JOINS ------------------ #
@@ -81,36 +85,5 @@ def Transform():
 pass
 Transform()
 
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC Select assetPerformanceSK, count(1) from curated_v3.factAssetPerformance group by assetPerformanceSK having count(1) > 1
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from curated_v3.factAssetPerformance where assetPerformanceSK is null
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from curated_v3.factworkorder where assetFK = '0f92d140871d227a3d90f8011009c7e1'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select location,assetLocationSK, wo.changeDate, loc.sourceValidFromDateTime, loc.sourceValidToDateTime from cleansed.maximo_workorder wo left join curated_v3.dimassetlocation loc on wo.location = loc.assetLocationName  where workOrder = '1535605' 
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from curated_v3.dimAsset where assetSK = '0f92d140871d227a3d90f8011009c7e1'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from curated_v3.dimAssetLocation where assetLocationSK = '19bf63f14235eb43ddaf2e2bea639b19'
-
-# COMMAND ----------
 
 

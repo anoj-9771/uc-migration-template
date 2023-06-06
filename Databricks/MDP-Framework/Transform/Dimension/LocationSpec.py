@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -23,7 +29,7 @@ def Transform():
     .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)"))
     df = load_sourceValidFromTimeStamp(df,business_date)
 
-    asset_location_df = GetTable(f"{TARGET}.dimAssetLocation").select("assetLocationSK","assetLocationName")
+    asset_location_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").select("assetLocationSK","assetLocationName")
     class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure")).select("classStructure",'classification',col('description').alias('classPath'))
     classification_df = GetTable(get_table_name(f"{SOURCE}","maximo","classification")).select('classification',col('description').alias('classificationDescription'))
     measure_unit_df = GetTable(get_table_name(f"{SOURCE}","maximo","measureUnit")).select("unitOfMeasure",col("description").alias("unitOfMeasureDescription"))
@@ -65,7 +71,7 @@ def Transform():
     # Updating Business SCD columns for existing records
     try:
         # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
-        existing_data = spark.sql(f"""select * from {DEFAULT_TARGET}.{TableName}""") 
+        existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
         matched_df = existing_data.join(df.select("location","attribute",col("sourceValidFromTimestamp").alias("new_changed_date")),["location","attribute"],"inner")\
         .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
 
@@ -84,12 +90,12 @@ Transform()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select count(1), locationSpecSK from curated.dimlocationSpec group by locationSpecSK having count(1) > 1
+# MAGIC select count(1), locationSpecSK from {get_table_namespace('curated', 'dimlocationSpec')} group by locationSpecSK having count(1) > 1
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC create or replace view curated_v3.dimlocationSpec AS (select * from curated.dimlocationSpec)
+# MAGIC create or replace view {get_table_namespace('curated', 'dimlocationSpec')} AS (select * from {get_table_namespace('curated', 'dimlocationSpec')})
 
 # COMMAND ----------
 

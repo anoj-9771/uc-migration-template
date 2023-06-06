@@ -6,7 +6,13 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -40,42 +46,42 @@ Choiceschema = MapType(
 
 DimSurvey  = GetTable(f"{DEFAULT_TARGET}.dimSurvey").select("surveySK", "surveyName") 
 
-Survey1  = GetTable(f"{SOURCE}.qualtrics_billpaidsuccessfullyquestions").withColumn("sourceSystem", lit("Qualtrics")) \
+Survey1  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_billpaidsuccessfullyquestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
-Survey2  = GetTable(f"{SOURCE}.qualtrics_businessConnectServiceRequestCloseQuestions").withColumn("sourceSystem", lit("Qualtrics")) \
+Survey2  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_businessConnectServiceRequestCloseQuestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
-Survey3  = GetTable(f"{SOURCE}.qualtrics_complaintsComplaintClosedQuestions").withColumn("sourceSystem", lit("Qualtrics")) \
+Survey3  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_complaintsComplaintClosedQuestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
-Survey4  = GetTable(f"{SOURCE}.qualtrics_contactcentreinteractionmeasurementsurveyquestions").withColumn("sourceSystem", lit("Qualtrics")) \
+Survey4  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_contactcentreinteractionmeasurementsurveyquestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
-Survey5  = GetTable(f"{SOURCE}.qualtrics_customercarequestions").withColumn("sourceSystem", lit("Qualtrics")) \
+Survey5  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_customercarequestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
 Survey6  = GetTable(f"{SOURCE}.qualtrics_developerapplicationreceivedquestions").withColumn("sourceSystem", lit("Qualtrics")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
-Survey7  = GetTable(f"{SOURCE}.qualtrics_p4sonlinefeedbackquestions").withColumn("sourceSystem", lit("Qualtrics")) \
+Survey7  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_p4sonlinefeedbackquestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
-Survey8  = GetTable(f"{SOURCE}.qualtrics_s73surveyquestions").withColumn("sourceSystem", lit("Qualtrics")) \
+Survey8  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_s73surveyquestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
-Survey9 =  GetTable(f"{SOURCE}.qualtrics_waterfixpostinteractionfeedbackquestions").withColumn("sourceSystem", lit("Qualtrics")) \
+Survey9 =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_waterfixpostinteractionfeedbackquestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
-Survey10 = GetTable(f"{SOURCE}.qualtrics_websitegolivequestions").withColumn("sourceSystem", lit("Qualtrics")) \
+Survey10 = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_websitegolivequestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .withColumn("answers", lit(None).cast("string")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
-Survey11 = GetTable(f"{SOURCE}.qualtrics_wscs73experiencesurveyquestions").withColumn("sourceSystem", lit("Qualtrics")) \
+Survey11 = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_wscs73experiencesurveyquestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .withColumn("answers", lit(None).cast("string")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
-Survey12  = GetTable(f"{SOURCE}.qualtrics_feedbacktabgolivequestions").withColumn("sourceSystem", lit("Qualtrics"))  \
+Survey12  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_feedbacktabgolivequestions')}").withColumn("sourceSystem", lit("Qualtrics"))  \
                  .withColumn("answers", lit(None).cast("string")) \
                  .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
@@ -141,7 +147,7 @@ for df in Surveys:
 union_df = union_df.withColumn("surveyVersion", lit(None).cast("string"))
 
 dimBuss = GetTable(f"{DEFAULT_TARGET}.dimSurvey")
-crmQues = GetTable(f"{SOURCE}.crm_crm_svy_re_quest")
+crmQues = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crm_svy_re_quest')}")
 
 split_col = split(col("sourceBusinessKey"), r"\|")
 dimBuss = dimBuss.withColumn("surveyID", split_col.getItem(1))

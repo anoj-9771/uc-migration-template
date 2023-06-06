@@ -6,7 +6,13 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -17,7 +23,7 @@ def Transform():
     # ------------- TABLES ----------------- #   
     srStatus = GetTable(f"{SOURCE}.crm_0crm_sales_act_1").select("statusProfile").distinct().filter("statusProfile IS NOT NULL") 
     
-    recStatus = GetTable(f"{SOURCE}.crm_tj30t") \
+    recStatus = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_tj30t')}") \
     .select("statusProfile", "statusCode", "statusShortDescription","status").dropDuplicates() 
     
         

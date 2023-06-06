@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -53,7 +59,7 @@ dummyDimPartnerSK = '60e35f602481e8c37d48f6a3e3d7c30d' ##Derived by hashing -1 a
 global publicHolidaysPD
 ###################CONFIG / REFERENCE DF#################################
 
-publicHolidaysPD = (GetTable(f"{SOURCE}.datagov_australiapublicholidays")
+publicHolidaysPD = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'datagov_australiapublicholidays')}")
                              .filter(col('jurisdiction').rlike("NSW|NAT")) 
                              .filter(upper(col('holidayName')) != "BANK HOLIDAY") 
                             .select('date').withColumnRenamed("date","holidayDate")
@@ -62,7 +68,7 @@ publicHolidaysPD = (GetTable(f"{SOURCE}.datagov_australiapublicholidays")
 # COMMAND ----------
 
 #####-----------DIRECT DATAFRAMES CRM--------------------------###############
-coreDF =(( GetTable(f"{SOURCE}.crm_0crm_srv_req_inci_h")
+coreDF =(( GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h')}")
            .withColumn("sourceSystemCode",lit("CRM"))
            .withColumn("receivedBK", concat(col("coherentAspectIdD"),lit("|"),col("coherentCategoryIdD")))
            .withColumn("resolutionBK", concat(col("coherentAspectIdC"),lit("|"),col("coherentCategoryIdC")))
@@ -127,7 +133,7 @@ coreDF =(( GetTable(f"{SOURCE}.crm_0crm_srv_req_inci_h")
                   )                 
         )
     
-servCatDF =  ( GetTable(f"{DEFAULT_TARGET}.dimcustomerservicecategory")
+servCatDF =  ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomerservicecategory')}")
                              .select( col("customerServiceCategorySK").alias("resolutionCategoryFK")
                                      ,col("customerServiceCategorySK").alias("receivedCategoryFK")
                                      ,col("sourceBusinessKey")                                  
@@ -136,7 +142,7 @@ servCatDF =  ( GetTable(f"{DEFAULT_TARGET}.dimcustomerservicecategory")
                              )
             )
     
-busPartDF = ( GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner")
+busPartDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimBusinessPartner')}")
                              .select( col("businessPartnerSK")
                                      ,col("businessPartnerNumber")
                                      ,col("_recordStart")
@@ -155,20 +161,20 @@ busPartGrpDF = ( GetTable(f"{DEFAULT_TARGET}.dimBusinessPartnerGroup")
             )
     
 
-contractDF = ( GetTable(f"{DEFAULT_TARGET}.dimContract").filter(col("_recordCurrent") == lit("1"))
+contractDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimContract')}").filter(col("_recordCurrent") == lit("1"))
                            .select( col("contractSK").alias("contractFK")
                                    ,col("_BusinessKey")
                                   ) 
              )
     
-procTypeDF = ( GetTable(f"{DEFAULT_TARGET}.dimcustomerserviceprocesstype")
+procTypeDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomerserviceprocesstype')}")
                                           .filter(col("_recordCurrent") == lit("1"))
                            .select( col("customerServiceProcessTypeSK").alias("processTypeFK")
                                      ,col("_BusinessKey")
                                   ) 
              )
     
-propertyDF = ( GetTable(f"{DEFAULT_TARGET}.dimProperty")
+propertyDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimProperty')}")
                            .select( col("propertySK").alias("propertyFK")
                                      ,col("_BusinessKey")
                                      ,col("_recordStart")
@@ -177,7 +183,7 @@ propertyDF = ( GetTable(f"{DEFAULT_TARGET}.dimProperty")
                  
             )
     
-statusDF = ( GetTable(f"{DEFAULT_TARGET}.dimcustomerservicerequestStatus")
+statusDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomerservicerequestStatus')}")
                                         .filter(col("_recordCurrent") == lit("1"))
                            .select( col("customerServiceRequestStatusSK").alias("StatusFK")
                                      ,col("_BusinessKey")
@@ -185,7 +191,7 @@ statusDF = ( GetTable(f"{DEFAULT_TARGET}.dimcustomerservicerequestStatus")
             )
     
     
-channelDF = ( GetTable(f"{DEFAULT_TARGET}.dimCommunicationChannel")
+channelDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimCommunicationChannel')}")
                      .filter(col("_recordCurrent") == lit("1"))
                      .select( col("communicationChannelSK").alias("communicationChannelFK")
                               ,col("_BusinessKey")
@@ -193,38 +199,38 @@ channelDF = ( GetTable(f"{DEFAULT_TARGET}.dimCommunicationChannel")
                  
            )
 
-crmLinkDF = ( GetTable(f"{SOURCE}.crm_crmd_link")
+crmLinkDF = ( GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_link')}")
                            .select( col("hiGUID")
                                    ,col("setGUID")).filter(col("setObjectType") == lit("30"))
              
             )
 
-crmSappSegDF = (GetTable(f"{SOURCE}.crm_scapptseg").filter(col("apptType").isin(['ZCLOSEDATE', 'SRV_RREADY', 'SRV_RFIRST', 'VALIDTO','ZRESPONDED']))                                                   
+crmSappSegDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_scapptseg')}").filter(col("apptType").isin(['ZCLOSEDATE', 'SRV_RREADY', 'SRV_RFIRST', 'VALIDTO','ZRESPONDED']))                                                   
                                                    .select(col("applicationGUID"), col("apptType"), col("apptStartDatetime"))
                                                    .groupBy("applicationGUID")
                                                    .pivot("apptType", ['ZCLOSEDATE', 'SRV_RREADY', 'SRV_RFIRST', 'VALIDTO','ZRESPONDED'])
                                                    .agg(max("apptStartDatetime"))
                ) 
 
-aurion_df =  (GetTable(f"{SOURCE}.vw_aurion_employee_details")
+aurion_df =  (GetTable(f"{get_table_namespace(f'{SOURCE}', 'vw_aurion_employee_details')}")
                   .withColumn("OrganisationUnitNumberF", when(col("OrganisationUnitNumber").isNull(), lit("-1"))
                                                          .otherwise(concat(lit("OU6"),lpad(col("OrganisationUnitNumber"), 7, "0"))))
             )
 
-auDistDF  = (GetTable(f"{SOURCE}.vw_aurion_employee_details")
+auDistDF  = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'vw_aurion_employee_details')}")
                   .select(col("businessPartnerNumber").alias("businessPartnerNumberM")
                          ,col("positionNumber").alias("positionNumberM")
                          ,col("dateEffective").alias("dateEffectiveM")
                          ,col("dateTo").alias("dateToM")).distinct()
             )
 
-ebpDF =    (  GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner")
+ebpDF =    (  GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimBusinessPartner')}")
                    .filter(col("_recordCurrent") == 1)
                    .select(col("businessPartnerSK"), col("businessPartnerNumber"))
             )
                    
 
-aurUserDF = (GetTable(f"{SOURCE}.vw_aurion_employee_details")
+aurUserDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'vw_aurion_employee_details')}")
                .select(col("userid")
                       ,concat_ws(" ",col("givenNames"), col("surname")).alias("createdByName")
                       ,concat_ws(" ",col("givenNames"), col("surname")).alias("ChangedByName")
@@ -232,14 +238,14 @@ aurUserDF = (GetTable(f"{SOURCE}.vw_aurion_employee_details")
             )
 
 
-locationDF = (GetTable(f"{DEFAULT_TARGET}.dimlocation")
+locationDF = (GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimlocation')}")
                    .select(col("locationSK").alias("locationFK"),
                            col("locationID"),                           
                            col("_RecordStart"),
                            col("_RecordEnd"))
             )
 
-dateDF = (GetTable(f"{DEFAULT_TARGET}.dimDate")
+dateDF = (GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimDate')}")
                    .select(col("dateSK").alias("serviceRequestStartDateFK"),
                            col("dateSK").alias("serviceRequestEndDateFK"), 
                            col("dateSK").alias("snapshotDateFK"),
@@ -524,13 +530,13 @@ df2 = spark.sql(f""" WITH MAXIMO AS (SELECT
                         CASE WHEN WO.taskCode = 'IVA1'   THEN '10'
                              WHEN WO.taskCode like 'WR%' THEN '11' ELSE '' END as issueResponsibilityCode,
                         row_number() Over(partition by WO.workOrder order by CAST(WO.rowStamp as BIGINT) desc)  as rkn          
-                    FROM cleansed.maximo_workorder WO
-                    LEFT JOIN cleansed.maximo_swcproblemtype PT on WO.problemType = PT.problemType
-                    LEFT JOIN cleansed.maximo_jobplan JP on WO.jobTaskId = jp.jobPlanId
-                    LEFT JOIN cleansed.maximo_locoper LOC on WO.location =  LOC.location  
-                    LEFT JOIN cleansed.maximo_relatedrecord REL on WO.workOrder = REL.recordKey
-                    LEFT JOIN cleansed.maximo_ticket SR on   SR.serviceRequest = REL.relatedRecordKey
-                    LEFT JOIN cleansed.maximo_failurereport FR on WO.workOrder = FR.workOrder AND FR.type = 'REMEDY'
+                    FROM {get_table_namespace('cleansed', 'maximo_workorder')} WO
+                    LEFT JOIN {get_table_namespace('cleansed', 'maximo_swcproblemtype')} PT on WO.problemType = PT.problemType
+                    LEFT JOIN {get_table_namespace('cleansed', 'maximo_jobplan')} JP on WO.jobTaskId = jp.jobPlanId
+                    LEFT JOIN {get_table_namespace('cleansed', 'maximo_locoper')} LOC on WO.location =  LOC.location  
+                    LEFT JOIN {get_table_namespace('cleansed', 'maximo_relatedrecord')} REL on WO.workOrder = REL.recordKey
+                    LEFT JOIN {get_table_namespace('cleansed', 'maximo_ticket')} SR on   SR.serviceRequest = REL.relatedRecordKey
+                    LEFT JOIN {get_table_namespace('cleansed', 'maximo_failurereport')} FR on WO.workOrder = FR.workOrder AND FR.type = 'REMEDY'
                     WHERE WO.status in ('FINISHED','CAN') 
                       AND WO.serviceType != 'R' 
                       AND SR.callType = 'J'

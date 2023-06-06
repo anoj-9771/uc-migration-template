@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -19,36 +25,36 @@ from pyspark.sql.window import Window
 # caL2.categoryID as CAT_ID_LEVEL2, ctL2.categoryDescription as CAT_DESC_LEVEL2,
 # caL3.categoryID as CAT_ID_LEVEL3, ctL3.categoryDescription as CAT_DESC_LEVEL3,
 # caL4.categoryID as CAT_ID_LEVEL4, ctL4.categoryDescription as CAT_DESC_LEVEL4
-# from hive_metastore.cleansed.crm_crmc_erms_cat_as catree
+# from {get_table_namespace('cleansed', 'crm_crmc_erms_cat_as')} catree
 
 
 
 # --LEVEL ONE
-# LEFT JOIN  hive_metastore.cleansed.crm_crmc_erms_cat_hi hiL1 on catree.categoryTreeGUID = hiL1.categoryTreeGUID
-# LEFT JOIN hive_metastore.cleansed.crm_crmc_erms_cat_ct parent on parent.categoryGUID = hiL1.parentGuid
-# LEFT JOIN hive_metastore.cleansed.crm_crmc_erms_cat_ca caL1 on hiL1.childGUID = caL1.categoryGUID and hiL1.categoryTreeGUID = caL1.categoryTreeGUID
-# LEFT JOIN hive_metastore.cleansed.crm_crmc_erms_cat_ct ctL1 on caL1.categoryGUID = ctL1.categoryGUID
+# LEFT JOIN  {get_table_namespace('cleansed', 'crm_crmc_erms_cat_hi')} hiL1 on catree.categoryTreeGUID = hiL1.categoryTreeGUID
+# LEFT JOIN {get_table_namespace('cleansed', 'crm_crmc_erms_cat_ct')} parent on parent.categoryGUID = hiL1.parentGuid
+# LEFT JOIN {get_table_namespace('cleansed', 'crm_crmc_erms_cat_ca')} caL1 on hiL1.childGUID = caL1.categoryGUID and hiL1.categoryTreeGUID = caL1.categoryTreeGUID
+# LEFT JOIN {get_table_namespace('cleansed', 'crm_crmc_erms_cat_ct')} ctL1 on caL1.categoryGUID = ctL1.categoryGUID
 
 
 
 # --LEVEL TWO
-# LEFT JOIN  hive_metastore.cleansed.crm_crmc_erms_cat_hi hiL2 on catree.categoryTreeGUID = hiL2.categoryTreeGUID AND hiL2.parentGuid = hil1.childGUID
-# LEFT JOIN hive_metastore.cleansed.crm_crmc_erms_cat_ca caL2 on hiL2.childGUID = caL2.categoryGUID and hiL2.categoryTreeGUID = caL2.categoryTreeGUID
-# LEFT JOIN hive_metastore.cleansed.crm_crmc_erms_cat_ct ctL2 on caL2.categoryGUID = ctL2.categoryGUID
+# LEFT JOIN  {get_table_namespace('cleansed', 'crm_crmc_erms_cat_hi')} hiL2 on catree.categoryTreeGUID = hiL2.categoryTreeGUID AND hiL2.parentGuid = hil1.childGUID
+# LEFT JOIN {get_table_namespace('cleansed', 'crm_crmc_erms_cat_ca')} caL2 on hiL2.childGUID = caL2.categoryGUID and hiL2.categoryTreeGUID = caL2.categoryTreeGUID
+# LEFT JOIN {get_table_namespace('cleansed', 'crm_crmc_erms_cat_ct')} ctL2 on caL2.categoryGUID = ctL2.categoryGUID
 
 
 
 # --LEVEL THREE
-# LEFT JOIN hive_metastore.cleansed.crm_crmc_erms_cat_hi hiL3 on catree.categoryTreeGUID = hiL3.categoryTreeGUID AND hiL3.parentGuid = hil2.childGUID
-# LEFT JOIN hive_metastore.cleansed.crm_crmc_erms_cat_ca caL3 on hiL3.childGUID = caL3.categoryGUID and hiL3.categoryTreeGUID = caL3.categoryTreeGUID
-# LEFT JOIN hive_metastore.cleansed.crm_crmc_erms_cat_ct ctL3 on caL3.categoryGUID = ctL3.categoryGUID
+# LEFT JOIN {get_table_namespace('cleansed', 'crm_crmc_erms_cat_hi')} hiL3 on catree.categoryTreeGUID = hiL3.categoryTreeGUID AND hiL3.parentGuid = hil2.childGUID
+# LEFT JOIN {get_table_namespace('cleansed', 'crm_crmc_erms_cat_ca')} caL3 on hiL3.childGUID = caL3.categoryGUID and hiL3.categoryTreeGUID = caL3.categoryTreeGUID
+# LEFT JOIN {get_table_namespace('cleansed', 'crm_crmc_erms_cat_ct')} ctL3 on caL3.categoryGUID = ctL3.categoryGUID
 
 
 
 # --LEVEL FOUR
-# LEFT JOIN hive_metastore.cleansed.crm_crmc_erms_cat_hi hiL4 on catree.categoryTreeGUID = hiL4.categoryTreeGUID AND hiL4.parentGuid = hil3.childGUID
-# LEFT JOIN hive_metastore.cleansed.crm_crmc_erms_cat_ca caL4 on hiL4.childGUID = caL4.categoryGUID and hiL4.categoryTreeGUID = caL4.categoryTreeGUID
-# LEFT JOIN hive_metastore.cleansed.crm_crmc_erms_cat_ct ctL4 on caL4.categoryGUID = ctL3.categoryGUID
+# LEFT JOIN {get_table_namespace('cleansed', 'crm_crmc_erms_cat_hi')} hiL4 on catree.categoryTreeGUID = hiL4.categoryTreeGUID AND hiL4.parentGuid = hil3.childGUID
+# LEFT JOIN {get_table_namespace('cleansed', 'crm_crmc_erms_cat_ca')} caL4 on hiL4.childGUID = caL4.categoryGUID and hiL4.categoryTreeGUID = caL4.categoryTreeGUID
+# LEFT JOIN {get_table_namespace('cleansed', 'crm_crmc_erms_cat_ct')} ctL4 on caL4.categoryGUID = ctL3.categoryGUID
 
 
 

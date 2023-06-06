@@ -4,7 +4,7 @@
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace('curated_v3', 'viewpropertykey')} AS
+CREATE OR REPLACE VIEW {get_table_namespace('curated', 'viewpropertykey')} AS
 
 With dimPropertyDateRanges AS
 (
@@ -14,7 +14,7 @@ With dimPropertyDateRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY propertyNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated_v2.dimProperty
+                FROM {get_table_namespace('curated', 'dimProperty')}
                 --WHERE _recordDeleted = 0
 ),
 
@@ -26,7 +26,7 @@ dimPropertyTypeHistoryDateRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY propertyNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated_v2.dimPropertyTypeHistory
+                FROM {get_table_namespace('curated', 'dimPropertyTypeHistory')}
                 WHERE _recordDeleted = 0
 ),
 
@@ -38,7 +38,7 @@ dimPropertyLotDateRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY propertyNumber ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated_v2.dimPropertyLot
+                FROM {get_table_namespace('curated', 'dimPropertyLot')}
                 --WHERE _recordDeleted = 0
 ),
 
@@ -50,7 +50,7 @@ dimLocationDateRanges AS
                 _recordEnd,
                 COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY locationID ORDER BY _recordStart ), 
                   CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
-                FROM curated_v2.dimLocation
+                FROM {get_table_namespace('curated', 'dimLocation')}
                 --WHERE _recordDeleted = 0
 ),
 
@@ -172,30 +172,30 @@ select
       END AS currentFlag,
     if(dimProperty._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
 from effectiveDateRanges as effectiveDateRanges
-left outer join curated_v2.dimProperty dimProperty
+left outer join {get_table_namespace('curated', 'dimProperty')} dimProperty
         on dimproperty.propertynumber = effectiveDateRanges.propertyNumber 
                                 and dimProperty._recordEnd >= effectiveDateRanges._effectiveFrom 
                                 and dimProperty._recordStart <= effectiveDateRanges._effectiveTo
         --AND dimProperty._recordDeleted = 0
-left outer join curated_v2.dimPropertyTypeHistory dimPropertyTypeHistory 
+left outer join {get_table_namespace('curated', 'dimPropertyTypeHistory')} dimPropertyTypeHistory 
         on dimPropertyTypeHistory.propertynumber = effectiveDateRanges.propertyNumber 
                                 and dimPropertyTypeHistory.validToDate >= effectiveDateRanges._effectiveFrom 
                                 and dimPropertyTypeHistory.validFromDate <= effectiveDateRanges._effectiveTo
         AND dimPropertyTypeHistory._recordDeleted = 0
-left outer join curated_v2.dimPropertyLot dimPropertyLot
+left outer join {get_table_namespace('curated', 'dimPropertyLot')} dimPropertyLot
         on dimPropertyLot.propertynumber = effectiveDateRanges.propertyNumber 
                                 and dimPropertyLot._recordEnd >= effectiveDateRanges._effectiveFrom 
                                 and dimPropertyLot._recordStart <= effectiveDateRanges._effectiveTo
         --AND dimPropertyLot._recordDeleted = 0
-left outer join curated_v2.dimLocation dimLocation
+left outer join {get_table_namespace('curated', 'dimLocation')} dimLocation
         on dimLocation.locationID = effectiveDateRanges.propertyNumber 
                                 and dimLocation._recordEnd >= effectiveDateRanges._effectiveFrom 
                                 and dimLocation._recordStart <= effectiveDateRanges._effectiveTo 
         --AND dimLocation._recordDeleted = 0
-left outer join curated_v2.dimwaternetwork dimwaternetwork on dimwaternetwork.waterNetworkSK = dimProperty.waterNetworkSK_drinkingWater
-left outer join curated_v2.dimwaternetwork dimrecycledwaternetwork on dimrecycledwaternetwork.waterNetworkSK = dimProperty.waterNetworkSK_recycledWater
+left outer join {get_table_namespace('curated', 'dimwaternetwork')} dimwaternetwork on dimwaternetwork.waterNetworkSK = dimProperty.waterNetworkSK_drinkingWater
+left outer join {get_table_namespace('curated', 'dimwaternetwork')} dimrecycledwaternetwork on dimrecycledwaternetwork.waterNetworkSK = dimProperty.waterNetworkSK_recycledWater
 left outer join curated_V2.dimsewernetwork dimsewernetwork on dimsewernetwork.sewerNetworkSK = dimProperty.sewerNetworkSK
-left outer join curated_v2.dimstormwaternetwork dimstormwaternetwork on dimstormwaternetwork.stormWaterNetworkSK = dimProperty.stormWaterNetworkSK
+left outer join {get_table_namespace('curated', 'dimstormwaternetwork')} dimstormwaternetwork on dimstormwaternetwork.stormWaterNetworkSK = dimProperty.stormWaterNetworkSK
 ) ORDER BY _effectiveFrom;
 """)
 

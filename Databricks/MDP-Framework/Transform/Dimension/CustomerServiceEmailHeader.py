@@ -1,19 +1,25 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
 def Transform():
     global df
     # ------------- TABLES ----------------- #
-    df = GetTable(f"{SOURCE}.crm_crmd_erms_header").withColumn("email_id",expr("right(emailID, 17)"))
+    df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_erms_header')}").withColumn("email_id",expr("right(emailID, 17)"))
     windowSpec1  = Window.partitionBy("email_id") 
     df = df.withColumn("row_number",row_number().over(windowSpec1.orderBy(col("changedDate").desc()))).filter("row_number == 1").drop("row_number","email_id")
     
     crmd_erms_contnt_df = GetTable(f"{SOURCE}.crm_crmd_erms_contnt").select(col("EmailID").alias('emailID'), "subject")
    
-    businessPartner_agent_df = GetTable(f"{SOURCE}.crm_0bpartner_attr").select("businessPartnerNumber","firstName", "lastName")
-    businessPartner_orgunit_df = GetTable(f"{SOURCE}.crm_0bpartner_attr").select("businessPartnerNumber","organizationName")
+    businessPartner_agent_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0bpartner_attr')}").select("businessPartnerNumber","firstName", "lastName")
+    businessPartner_orgunit_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0bpartner_attr')}").select("businessPartnerNumber","organizationName")
     
     
     # ------------- JOINS ------------------ #

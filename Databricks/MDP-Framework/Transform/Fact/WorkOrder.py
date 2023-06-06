@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -22,26 +28,26 @@ def Transform():
     .withColumn("rank",rank().over(workOrder_windowSpec.orderBy(col("changeDate").desc()))) \
     .filter("rank == 1").drop("rank")
 
-    asset_df = GetTable(f"{TARGET}.dimAsset").select("assetNumber","assetSK","sourceValidFromTimestamp","sourceValidToTimestamp").drop_duplicates().cache()
-    assetLocation_df = GetTable(f"{TARGET}.dimAssetLocation").select("assetLocationName","assetLocationSK","assetLocationTypeCode","sourceValidFromTimestamp","sourceValidToTimestamp").drop_duplicates().cache()
-    asset_contract_df = GetTable(f"{TARGET}.dimAssetContract").select("assetContractSK","assetContractNumber","assetContractRevisionNumber","sourceValidFromTimestamp","sourceValidToTimestamp")\
+    asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetNumber","assetSK","sourceValidFromTimestamp","sourceValidToTimestamp").drop_duplicates().cache()
+    assetLocation_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").select("assetLocationName","assetLocationSK","assetLocationTypeCode","sourceValidFromTimestamp","sourceValidToTimestamp").drop_duplicates().cache()
+    asset_contract_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetContract')}").select("assetContractSK","assetContractNumber","assetContractRevisionNumber","sourceValidFromTimestamp","sourceValidToTimestamp")\
     .withColumn("rank",rank().over(Window.partitionBy("assetContractNumber").orderBy(col("assetContractRevisionNumber").desc()))) \
     .filter("rank == 1").drop("rank").cache()
-    jobPlan_df = GetTable(f"{TARGET}.dimWorkOrderJobPlan").select("workOrderJobPlanNumber","workOrderJobPlanSK","workOrderJobPlanRevisionNumber","sourceValidFromTimestamp","sourceValidToTimestamp").withColumn("rank",rank().over(Window.partitionBy("workOrderJobPlanNumber").orderBy(col("workOrderJobPlanRevisionNumber").desc()))) \
+    jobPlan_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimWorkOrderJobPlan')}").select("workOrderJobPlanNumber","workOrderJobPlanSK","workOrderJobPlanRevisionNumber","sourceValidFromTimestamp","sourceValidToTimestamp").withColumn("rank",rank().over(Window.partitionBy("workOrderJobPlanNumber").orderBy(col("workOrderJobPlanRevisionNumber").desc()))) \
     .filter("rank == 1").drop("rank").cache()
-    problemType_df = GetTable(f"{TARGET}.dimWorkOrderProblemType").select(col("workOrderProblemTypeId").alias("dim_problemType"),"workOrderProblemTypeSK","_recordStart","_recordEnd").drop_duplicates().cache()
+    problemType_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimWorkOrderProblemType')}").select(col("workOrderProblemTypeId").alias("dim_problemType"),"workOrderProblemTypeSK","_recordStart","_recordEnd").drop_duplicates().cache()
     
     swchierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","swchierarchy")).select("code",col("description").alias("serviceDepartmentDesc")).drop_duplicates().cache()
     swcwoext_df = GetTable(get_table_name(f"{SOURCE}","maximo","swcwoext")).select("workOrderId","externalStatus","externalStatusDate").drop_duplicates().cache()    
     child_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder")).select(col("workOrder").alias("childWorkOrder"),col("parentWo").alias("childParentWo")).drop_duplicates().cache()
-    pm_df = spark.sql("""select * from
+    pm_df = spark.sql(f"""select * from
         (select pm.pm, pm.frequency, pm.frequencyUnits, row_number() over(partition by pm.pm order by pm.changeddate desc) as rownumb from {0} pm) dt where rownumb = 1""".format(get_table_name(f"{SOURCE}","maximo","pm"))).cache()
     
     parent_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder")).select(col("workOrder").alias("parentWorkOrder"),col("serviceContract").alias("parentServiceContract"),col("pm").alias("parentpm")) \
     .join(pm_df.select(col("pm").alias("parentpm"), col("frequency").alias("parent_frequency"),col("frequencyUnits").alias("parent_frequencyUnits")),"parentpm","left").cache()
 
 
-    date_df = GetTable(f"curated_v2.dimdate").select("calendarDate","nextBusinessDay").alias("dte").cache()
+    date_df = GetTable(f"{get_table_namespace('curated', 'dimdate')}").select("calendarDate","nextBusinessDay").alias("dte").cache()
     
     # WorkOrder Status table has multiple entries for the same date. Curated requirement is to pick the first record when the status changed.
     woStatus_windowSpec  = Window.partitionBy("woWorkOrder","woStatus")
@@ -58,9 +64,9 @@ def Transform():
         .withColumn("workOrderClosedDate",pivot_df.CLOSE)\
         .withColumn("workOrderFinishedDate",pivot_df.FINISHED)
    
-    log_status_minDate_df = spark.sql("""SELECT DISTINCT WL.record as workOrder, MIN(to_date(WL.Date)) as workorderAcceptedLogStatusMinDate, WL.status as log_status FROM {0} WL WHERE WL.status = 'ACCEPTED' GROUP BY wl.record,wl.status""".format(get_table_name(f"{SOURCE}","maximo","worklog"))).cache()
+    log_status_minDate_df = spark.sql(f"""SELECT DISTINCT WL.record as workOrder, MIN(to_date(WL.Date)) as workorderAcceptedLogStatusMinDate, WL.status as log_status FROM {0} WL WHERE WL.status = 'ACCEPTED' GROUP BY wl.record,wl.status""".format(get_table_name(f"{SOURCE}","maximo","worklog"))).cache()
    
-    related_record_df = spark.sql("""SELECT                 
+    related_record_df = spark.sql(f"""SELECT                 
     RR.recordKey, COUNT(DISTINCT(WOR.workOrder)) AS relatedCorrectiveMaintenanceWorkorderCount from
     (select * from (
             select recordKey, row_number() over(partition by recordKey order by rowStamp desc) as rownumb from {0}
@@ -278,13 +284,15 @@ Transform()
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC Select workOrderSK, count(1) from curated.factWorkOrder group by workOrderSK having count(1) >1
+spark.sql(
+        f"""Select workOrderSK, count(1) from {get_table_namespace('curated', 'factWorkOrder')} group by workOrderSK having count(1) >1
+        """)
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC create or replace view curated_v3.factworkorder AS (select * from curated.factworkorder)
+spark.sql(
+        f"""create or replace view {get_table_namespace('curated', 'factworkorder')} AS (select * from {get_table_namespace('curated', 'factworkorder')})
+        """)
 
 # COMMAND ----------
 

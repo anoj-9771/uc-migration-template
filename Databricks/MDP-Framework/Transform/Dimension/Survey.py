@@ -6,7 +6,13 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -37,7 +43,7 @@ surveyQualtrics = spark.sql(f"""
             CAST(NULL as TIMESTAMP) as sourceValidToDateTime,
             CAST(NULL as INTEGER) as sourceRecordCurrent,
             'Qualtrics'||'|'||aa.id||'|' as sourceBusinessKey            
-        FROM (SELECT r.* FROM ( SELECT explode(result.elements) r FROM raw.qualtrics_surveys )) aa
+        FROM (SELECT r.* FROM ( SELECT explode(result.elements) r FROM {get_table_namespace('raw', 'qualtrics_surveys')} )) aa
                                ,controldb.dbo_extractLoadManifest bb 
         WHERE SystemCode = 'Qualtricsref'
           AND  aa.id = concat('SV_', regexp_extract(bb.SourceQuery, "/SV_(.*?)/", 1)) 
@@ -49,9 +55,9 @@ surveyCRM = spark.sql(f"""
                      (Select * , dateadd(MILLISECOND ,-1,LEAD(sourceValidFromDateTime ) OVER(partition by surveyId order by sourceValidFromDateTime )) sourceValidToDateTime
                      from (Select distinct s.surveyID as surveyId,  questionnaireLong as surveyName,  s.createdBy createdByUserId ,  q.surveyVersion, 
                                   creationDateAt as sourceValidFromDateTime 
-                                 from {SOURCE}.crm_crm_svy_re_quest q
-                                 INNER JOIN {SOURCE}.crm_crm_svy_db_s s on q.surveyID = s.surveyID and q.surveyVersion = s.surveyVersion
-                                  LEFT JOIN {SOURCE}.crm_0svy_qstnnr_text S on q.questionnaire = S.questionnaireId                           
+                                 from {get_table_namespace(f'{SOURCE}', 'crm_crm_svy_re_quest')} q
+                                 INNER JOIN {get_table_namespace(f'{SOURCE}', 'crm_crm_svy_db_s')} s on q.surveyID = s.surveyID and q.surveyVersion = s.surveyVersion
+                                  LEFT JOIN {get_table_namespace(f'{SOURCE}', 'crm_0svy_qstnnr_text')} S on q.questionnaire = S.questionnaireId                           
                                   ))
                        SELECT surveyId
                              ,surveyName

@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -16,18 +22,18 @@ def create_temp_table(dataframe):
     spark.sql("drop table if exists temp.dimAsset_temp")
     temp_df = dataframe
     
-    asset_location_df = GetTable(f"{TARGET}.dimAssetLocation").select(col("assetLocationName").alias("location"),"assetLocationSK","assetLocationTypeCode","assetLocationFacilityShortCode")
+    asset_location_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").select(col("assetLocationName").alias("location"),"assetLocationSK","assetLocationTypeCode","assetLocationFacilityShortCode")
     class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure")).select("classStructure","classification",col("description").alias("classificationPath"))
     classification_df = GetTable(get_table_name(f"{SOURCE}","maximo","classification")).select("classification",col("description").alias("classificationDescription"))
     astmeter_df = GetTable(get_table_name(f"{SOURCE}","maximo","assetMeter")).filter("meter in ('CAG_ROMP','EXPTOTALLIFE')").select("asset","meter", "lastReading")
 
     pivot_meter_df = astmeter_df.groupBy("asset").pivot("meter").agg(min(col("lastReading")))
     
-    locspc_df = spark.sql("""select lsp.location, lsp.numericValue as loc_numericValue from {0} lsp where lsp.attribute = 'COF_SCORE'""".format(get_table_name(f"{SOURCE}","maximo","locationspec"))).select("location","loc_numericValue")
+    locspc_df = spark.sql(f"""select lsp.location, lsp.numericValue as loc_numericValue from {0} lsp where lsp.attribute = 'COF_SCORE'""".format(get_table_name(f"{SOURCE}","maximo","locationspec"))).select("location","loc_numericValue")
     
-    asset_spec_df =spark.sql("""select * except(rownumb) from ((select asset, attribute, alphanumericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from cleansed.maximo_assetspec where attribute in ("MAIN_TYPE","SEWER_FUNCTION","PURPOSE","PIPE_SIZE","VALVE_SIZE","HORIZONTAL_LENGTH","SEWER_MATERIAL","WATER_TYPE","LATESTREHABTYPE","CROSS_SECTION","MAINTENANCE_STRATEGY","WATERMAIN_PIPETYPE"))
+    asset_spec_df =spark.sql(f"""select * except(rownumb) from ((select asset, attribute, alphanumericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from {get_table_namespace('cleansed', 'maximo_assetspec')} where attribute in ("MAIN_TYPE","SEWER_FUNCTION","PURPOSE","PIPE_SIZE","VALVE_SIZE","HORIZONTAL_LENGTH","SEWER_MATERIAL","WATER_TYPE","LATESTREHABTYPE","CROSS_SECTION","MAINTENANCE_STRATEGY","WATERMAIN_PIPETYPE"))
     UNION
-    (select asset, attribute, numericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from cleansed.maximo_assetspec where attribute = "COF_SCORE")
+    (select asset, attribute, numericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from {get_table_namespace('cleansed', 'maximo_assetspec')} where attribute = "COF_SCORE")
     )dt where rownumb = 1""".format(get_table_name(f"{SOURCE}","maximo","assetspec")))
     pivot_df = asset_spec_df.groupBy("asset").pivot("attribute").agg(min(col("val")))
     
@@ -145,7 +151,7 @@ def Transform():
     # Updating Business SCD columns for existing records
     try:
         # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
-        existing_data = spark.sql(f"""select * from {DEFAULT_TARGET}.{TableName}""") 
+        existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
         matched_df = existing_data.join(df.select("assetNumber",col("sourceValidFromTimestamp").alias("new_changed_date")),"assetNumber","inner")\
         .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
 
@@ -165,8 +171,7 @@ Transform()
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC create or replace view curated_v3.dimasset AS (select * from curated.dimAsset)
+spark.sql(f"""create or replace view {get_table_namespace('curated', 'dimasset')} AS (select * from {get_table_namespace('curated', 'dimAsset')})""")
 
 # COMMAND ----------
 
