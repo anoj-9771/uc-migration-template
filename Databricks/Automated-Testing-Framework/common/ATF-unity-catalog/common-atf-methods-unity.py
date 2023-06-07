@@ -65,15 +65,27 @@ _automatedMethods = {
         ,"KeysNotNullOrBlankChk"
         #,"KeysAreSameLengthChk"
     ],
-    "curated_v2": [
-    ],
-    "curated_v3": [
-    ]
+    "curated_v2": [],
+    "curated_v3": [],
+    "dev_cleansed": [],
+    "dev_curated": [],
+    "test_cleansed": [],
+    "test_curated": [],
+    "pp_cleansed": [],
+    "pp_curated": []
+    
 }
 
 #COPY THE AUTOMATED TESTS
 _automatedMethods["curated_v2"] = _automatedMethods["curated"]
 _automatedMethods["curated_v3"] = _automatedMethods["curated"]
+
+_automatedMethods["dev_cleansed"] = _automatedMethods["cleansed"]
+_automatedMethods["dev_curated"] = _automatedMethods["curated"]
+_automatedMethods["test_cleansed"] = _automatedMethods["cleansed"]
+_automatedMethods["test_curated"] = _automatedMethods["curated"]
+_automatedMethods["pp_cleansed"] = _automatedMethods["cleansed"]
+_automatedMethods["pp_curated"] = _automatedMethods["curated"]
 
 DOC_PATH = ''
 SHEET_NAME = ''
@@ -97,25 +109,25 @@ SD_TARGET = ''
 # COMMAND ----------
 
 # DBTITLE 1,Helper Functions
-def ascii_ignore(x):
-    try:
-        return x.encode('ascii', 'ignore').decode('ascii')
-    except:
-        pass
-#         print("Warning: Missing values for Target Column Name and/or Datatype, Schema Check and S-T tests may fail due to incomplete mapping.")
-ascii_udf = udf(ascii_ignore)
+# def ascii_ignore(x):
+#     try:
+#         return x.encode('ascii', 'ignore').decode('ascii')
+#     except:
+#         pass
+# #         print("Warning: Missing values for Target Column Name and/or Datatype, Schema Check and S-T tests may fail due to incomplete mapping.")
+# ascii_udf = udf(ascii_ignore)
 
 # COMMAND ----------
 
-def TrimWhitespace(df):
-    columns = [
-        "TargetColumnName", 
-        "DataType"
-    ]
-    for column in columns:
-        df = df.withColumn(column, regexp_replace(column, r"^\s+|\s+$", ""))
-        df = df.withColumn(column, ascii_udf(column))
-    return df 
+# def TrimWhitespace(df):
+#     columns = [
+#         "TargetColumnName", 
+#         "DataType"
+#     ]
+#     for column in columns:
+#         df = df.withColumn(column, regexp_replace(column, r"^\s+|\s+$", ""))
+#         df = df.withColumn(column, ascii_udf(column))
+#     return df 
 
 # COMMAND ----------
 
@@ -141,7 +153,7 @@ def loadCleansedMapping(sheetName = ""):
                                      "CustomTransform"        
                       )
         mappingData = mappingData.filter(mappingData.TargetTable.isNotNull())
-        mappingData = TrimWhitespace(mappingData)
+        # mappingData = TrimWhitespace(mappingData)
     elif sheetName == 'TAG':
         mappingData = mappingData.selectExpr(
                                  "`Tag Name` as TagName",
@@ -204,9 +216,9 @@ def loadCuratedMapping(sheetName = ""):
                                          "`Transformation Logic` as Transformations"
                           )
             mappingData = mappingData.filter(mappingData.TargetTable.isNotNull())
-            mappingData = TrimWhitespace(mappingData)
+            # mappingData = TrimWhitespace(mappingData)
         except:
-            print("Error occured while loading mapping, column name(s) may not be as expected.")
+            print("Error occured while loading mapping, mapping column name(s) may not be as expected.")
         # except:
         #     try:
         #         mappingData = mappingData.selectExpr(
@@ -287,13 +299,20 @@ def GetTargetSchemaDf():
 
 # COMMAND ----------
 
-def GetMappingSchemaDf():
-    if GetDatabaseName().upper() == 'CLEANSED':
-        tablename = GetSelfFqn()
+def GetMappingSchemaDf():    
+    if GetCatalogName().upper().endswith('CURATED'):
+        tablename = GetDatabaseName() + GetTableName()
     else:
-        tablename = GetNotebookName()
+        tablename = f"cleansed.{GetDatabaseName()}_{GetTableName()}"
     
-    mappingData = MAPPING_DOC
+    if not MAPPING_DOC:
+        if GetCatalogName().upper().endswith('CURATED'):
+            mappingData = loadCuratedMapping().cache()
+        else:
+            mappingData = loadCleansedMapping().cache()
+        mappingData.count()
+    else:
+        mappingData = MAPPING_DOC
     mappingData.createOrReplaceTempView("mappingView")
     
     startQuery = f"""
@@ -318,7 +337,7 @@ def GetMappingSchemaDf():
     """
     
     # for cleansed, we check that UniqueKey columns have null contraint
-    if GetDatabaseName().upper() == 'CLEANSED':
+    if GetCatalogName().upper().endswith('CLEANSED'):
         mappingDf = spark.sql(f""" 
             {startQuery}
             case 
@@ -346,12 +365,19 @@ def GetMappingSchemaDf():
 # COMMAND ----------
 
 def GetUniqueKeys():
-    if GetDatabaseName().upper() == 'CLEANSED':
-        tablename = GetSelfFqn()
+    if GetCatalogName().upper().endswith('CURATED'):
+        tablename = GetDatabaseName() + GetTableName()
     else:
-        tablename = GetNotebookName()
-        
-    mappingData = MAPPING_DOC
+        tablename = f"cleansed.{GetDatabaseName()}_{GetTableName()}"
+    
+    if not MAPPING_DOC:
+        if GetCatalogName().upper().endswith('CURATED'):
+            mappingData = loadCuratedMapping().cache()
+        else:
+            mappingData = loadCleansedMapping().cache()
+        mappingData.count()
+    else:
+        mappingData = MAPPING_DOC
     mappingData.createOrReplaceTempView("mappingView")
     
     df = spark.sql(f"""
@@ -372,15 +398,12 @@ def GetUniqueKeys():
 # COMMAND ----------
 
 def GetMandatoryCols():
-#     Required if Cleansed has mandatory cols (currently does not)
-#     if GetDatabaseName().upper() == 'CLEANSED':
-#         tablename = GetSelfFqn()
-#     else:
-#         tablename = GetNotebookName()
-
-    tablename = GetNotebookName()
-        
-    mappingData = MAPPING_DOC
+    tablename = GetDatabaseName() + GetTableName()
+    
+    if not MAPPING_DOC:
+        mappingData = loadCuratedMapping().cache()
+    else:
+        mappingData = MAPPING_DOC
     mappingData.createOrReplaceTempView("mappingView")
     
     df = spark.sql(f"""
@@ -401,15 +424,12 @@ def GetMandatoryCols():
 # COMMAND ----------
 
 def GetForeignKeyCols():
-#     Required if Cleansed has mandatory cols (currently does not)
-#     if GetDatabaseName().upper() == 'CLEANSED':
-#         tablename = GetSelfFqn()
-#     else:
-#         tablename = GetNotebookName()
-
-    tablename = GetNotebookName()
-        
-    mappingData = MAPPING_DOC
+    tablename = GetDatabaseName() + GetTableName()
+    
+    if not MAPPING_DOC:
+        mappingData = loadCuratedMapping().cache()
+    else:
+        mappingData = MAPPING_DOC
     mappingData.createOrReplaceTempView("mappingView")
     
     df = spark.sql(f"""
@@ -430,17 +450,31 @@ def GetForeignKeyCols():
 # COMMAND ----------
 
 def AutomatedSourceQuery(tablename = ""):
-    if tablename == "" and GetDatabaseName().upper() != 'CLEANSED':
-        tablename = GetNotebookName()
+    if tablename == "" and GetCatalogName().upper().endswith('CURATED'):
+        tablename = GetDatabaseName() + GetTableName()
     elif tablename == "":
-        tablename = GetSelfFqn()
-    
-    mappingData = MAPPING_DOC
+        tablename = f"cleansed.{GetDatabaseName()}_{GetTableName()}"
+
+    if not MAPPING_DOC:
+        if GetCatalogName().upper().endswith('CURATED'):
+            mappingData = loadCuratedMapping().cache()
+        else:
+            mappingData = loadCleansedMapping().cache()
+        mappingData.count()
+    else:
+        mappingData = MAPPING_DOC
     mappingData.createOrReplaceTempView("mappingView")
     
     if TAG_SHEET:
         tags = TAG_SHEET
         tags.createOrReplaceTempView("tagView")
+    elif GetCatalogName().upper().endswith('CLEANSED'):
+        try:
+            tags = loadCleansedMapping('TAG').cache()
+            tags.count()
+            tags.createOrReplaceTempView("tagView")
+        except:
+            pass
     
     df = spark.sql(f"""
         Select 
@@ -459,11 +493,13 @@ def AutomatedSourceQuery(tablename = ""):
     """)
     # df.display()
 
-    sourceSystem = GetNotebookName().split("_")[0]
+    # sourceSystem = GetTableName().split("_")[0]
+    sourceSystem = GetDatabaseName()
     # print(sourceSystem)
 
     if sourceSystem.upper() == 'HYDRA':
-        jsonPath = f"dbfs:/mnt/datalake-landing/hydra/{GetNotebookName().split('_', 1)[1]}/*.json"
+        # jsonPath = f"dbfs:/mnt/datalake-landing/hydra/{GetTableName().split('_', 1)[1]}/*.json"
+        jsonPath = f"dbfs:/mnt/datalake-landing/hydra/{GetTableName()}/*.json"
         jsonFile = spark.read.format("json").load(jsonPath)
         # print(jsonPath)
         jsonDf = jsonFile.drop('_corrupt_record', 'type')\
@@ -508,7 +544,7 @@ def AutomatedSourceQuery(tablename = ""):
     if sourceSystem.upper() == 'HYDRA':
         rawTable = "jsonSourceView"
     else:
-        rawTable = df.select("SourceTable").collect()[0][0]
+        rawTable = ConvertTableName(df.select("SourceTable").collect()[0][0])
 
     sqlQuery = sqlQuery + "\n" + f"from {rawTable} a\n"
     # print(sqlQuery)
@@ -517,10 +553,10 @@ def AutomatedSourceQuery(tablename = ""):
 
 # COMMAND ----------
 
-def CuratedSrcQryTemplate(tablename = ""):
+def CuratedSrcQryTemplate():
     mappingData = loadCuratedMapping()
     mappingData.createOrReplaceTempView("mappingView")
-    tablename = GetNotebookName()
+    tablename = GetDatabaseName() + GetTableName()
 
     df = spark.sql(f"""
             Select 
@@ -533,14 +569,15 @@ def CuratedSrcQryTemplate(tablename = ""):
             where TargetTable = UPPER("{tablename}")
             and TargetColumnName not like '\_%'
         """)
-
     df.createOrReplaceTempView("mappingView")
-    rawTable = spark.sql(f"""
+
+    srcTable = spark.sql(f"""
         Select SourceTable, count(SourceTable) from mappingView
         group by SourceTable
         order by count(SourceTable) desc
         limit 1
-    """).select("SourceTable").collect()[0][0] 
+    """)
+    srcTable = ConvertTableName(srcTable.select("SourceTable").collect()[0][0] )
 
     sqlQuery = 'sourceDf = spark.sql("""\nSELECT \n'
     joins = ""
@@ -563,7 +600,7 @@ def CuratedSrcQryTemplate(tablename = ""):
         
     joins = joins.strip()
     sqlQuery = sqlQuery.strip().strip(',')
-    sqlQuery = sqlQuery + "\n" + f"from cleansed.{rawTable} a\n\n" + joins + '\n""")'
+    sqlQuery = sqlQuery + "\n" + f"from cleansed.{srcTable} a\n\n" + joins + '\n""")'
     print(sqlQuery)
     
     
@@ -606,14 +643,22 @@ def CuratedSrcQryTemplate(tablename = ""):
 # COMMAND ----------
 
 def AutomatedTargetQuery(tablename = ""):
-    if GetDatabaseName().upper() != 'CLEANSED':
-        tablename = GetNotebookName()
+    # mapping: dimAsset
+    # tb: curated.dim.asset
+    # mapping: cleansed.art_art_assessment_mxes_data
+    # tb: cleansed.art.art_assessment_mxes_data
+
+    if tablename == "" and GetCatalogName().upper().endswith('CURATED'):
+        tablename = GetDatabaseName() + GetTableName()
     elif tablename == "":
-        tablename = GetSelfFqn()
-        
+        tablename = f"cleansed.{GetDatabaseName()}_{GetTableName()}"
+
     # mappingData = MAPPING_DOC
     if not MAPPING_DOC:
-        mappingData = loadCuratedMapping().cache()
+        if GetCatalogName().upper().endswith('CURATED'):
+            mappingData = loadCuratedMapping().cache()
+        else:
+            mappingData = loadCleansedMapping().cache()
         mappingData.count()
     else:
         mappingData = MAPPING_DOC
@@ -630,13 +675,17 @@ def AutomatedTargetQuery(tablename = ""):
     
     sqlCode = ""
     for row in df.collect():
-        sqlCode = sqlCode + row.TargetColumnName + ",\n"    
+        if GetCatalogName().upper().endswith('CURATED') and row.TargetColumnName.endswith('SK'):
+            continue
+        else:
+            sqlCode = sqlCode + row.TargetColumnName + ",\n"    
             
     sqlCode = sqlCode.strip().strip(',')
-    if GetDatabaseName().upper() == 'CLEANSED':
-        sqlQuery = "Select \n" + f"{sqlCode} \n" + f"from {tablename}"
-    else:
-        sqlQuery = "Select \n" + f"{sqlCode} \n" + f"from {GetDatabaseName()}.{tablename}"
+    sqlQuery = "Select \n" + f"{sqlCode} \n" + f"from {GetSelfFqn()}"
+    # if GetCatalogName().upper().endswith('CLEANSED'):
+    #     sqlQuery = "Select \n" + f"{sqlCode} \n" + f"from {tablename}"
+    # else:
+    #     sqlQuery = "Select \n" + f"{sqlCode} \n" + f"from {GetDatabaseName()}.{tablename}"
     
     return sqlQuery
 
@@ -653,13 +702,7 @@ def GetSrcTgtDfs(tablename):
 # COMMAND ----------
 
 def GetColumns():
-#     Required if Cleansed has mandatory cols (currently does not)
-#     if GetDatabaseName().upper() == 'CLEANSED':
-#         tablename = GetSelfFqn()
-#     else:
-#         tablename = GetNotebookName()
-
-    tablename = GetNotebookName()
+    tablename = GetDatabaseName() + GetTableName()
         
     mappingData = MAPPING_DOC
     mappingData.createOrReplaceTempView("mappingView")
@@ -713,7 +756,7 @@ def SchemaChk():
         display(targetDf)
         print('Mapping Schema:')
         display(mappingDf)
-        print(f'Schema Check mismatches for {GetNotebookName()}')
+        print(f'Schema Check mismatches for  {GetDatabaseName()}.{GetTableName()}')
         print('Columns in Target that are not in Mapping (Target-Mapping):')
         display(diff1)
         print('Columns in Mapping that are not in Target (Mapping-Target):')
@@ -728,22 +771,27 @@ def DuplicateKeysChk():
     if keyColumns.strip() == "":
         Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
     else:
-        if GetDatabaseName().upper() != "CLEANSED" and FD_OR_SD == 'SDUc3Plus':
+        if GetCatalogName().upper().endswith('CURATED') and FD_OR_SD == 'SDUc3Plus':
             keyColumns = keyColumns + ', sourceValidFromTimestamp'
-        elif GetDatabaseName().upper() != "CLEANSED":
+        elif GetCatalogName().upper().endswith('CURATED'):
             keyColumns = keyColumns + ', _RecordStart'
         
-        count = -1
-        try:
-            df = spark.sql(f"""SELECT {keyColumns}, COUNT(*) as RecCount FROM {GetSelfFqn()} 
-                            GROUP BY {keyColumns} HAVING COUNT(*) > 1""")
-            count = df.count()
-        except:
-            if GetDatabaseName().upper() == "CURATED_V3" and FD_OR_SD == 'SDUc3Plus':
-                keyColumns = UNIQUE_KEYS
-                df = spark.sql(f"""SELECT {keyColumns}, sourceValidFromDatetime, COUNT(*) as RecCount FROM {GetSelfFqn()} 
-                            GROUP BY {keyColumns}, sourceValidFromDatetime HAVING COUNT(*) > 1""")
-                count = df.count()
+        df = spark.sql(f"""SELECT {keyColumns}, COUNT(*) as RecCount FROM {GetSelfFqn()} 
+                        GROUP BY {keyColumns} HAVING COUNT(*) > 1""")
+        count = df.count()
+
+        # temp solution for UC3 curated tbs where sourceValidFromDatetime should be sourceValidFromTimestamp
+        # count = -1
+        # try:
+        #     df = spark.sql(f"""SELECT {keyColumns}, COUNT(*) as RecCount FROM {GetSelfFqn()} 
+        #                     GROUP BY {keyColumns} HAVING COUNT(*) > 1""")
+        #     count = df.count()
+        # except:
+        #     if GetDatabaseName().upper() == "CURATED_V3" and FD_OR_SD == 'SDUc3Plus':
+        #         keyColumns = UNIQUE_KEYS
+        #         df = spark.sql(f"""SELECT {keyColumns}, sourceValidFromDatetime, COUNT(*) as RecCount FROM {GetSelfFqn()} 
+        #                     GROUP BY {keyColumns}, sourceValidFromDatetime HAVING COUNT(*) > 1""")
+        #         count = df.count()
 
         # count = df.count()
         if count > 0: 
@@ -757,16 +805,11 @@ def DuplicateKeysChk():
 # the condition sourceSystemCode <> 'ACCESS' - needs to be removed when we have access data included as part of the testing. (20/12/2022) - GL 
 def ExactDuplicates():
     table = spark.table(GetSelfFqn())
-    df = table.select([c for c in table.columns if c not in {'_RecordStart', '_RecordEnd', '_RecordCurrent', '_RecordDeleted', '_DLCuratedZoneTimeStamp', '_BusinessKey'}])
-    try:
-        df = df.groupBy(df.columns)\
-             .count()\
-             .filter(col('sourceSystemCode') != 'ACCESS')\
-             .filter(col('count') > 1)
-    except:
-        df = df.groupBy(df.columns)\
-             .count()\
-             .filter(col('count') > 1)
+    df = table.select([c for c in table.columns if c not in {'_RecordStart', '_RecordEnd', '_RecordCurrent', '_RecordDeleted', '_DLCuratedZoneTimeStamp', '_DLCleansedZoneTimeStamp', '_BusinessKey'}])
+
+    df = df.groupBy(df.columns)\
+            .count()\
+            .filter(col('count') > 1)
     
     count = df.count()
     if count > 0: 
@@ -779,7 +822,7 @@ def ExactDuplicates():
 def AuditColsIncludedChk():
     df = spark.table(GetSelfFqn())
     
-    if GetDatabaseName().upper() == 'CLEANSED':
+    if GetCatalogName().upper().endswith('CLEANSED'):
         auditCols = ['_RECORDSTART', '_RECORDEND', '_RECORDCURRENT', '_RECORDDELETED', '_DLCLEANSEDZONETIMESTAMP']
     else:
         auditCols = ['_RECORDSTART', '_RECORDEND', '_RECORDCURRENT', '_RECORDDELETED', '_DLCURATEDZONETIMESTAMP', '_BUSINESSKEY']
@@ -834,12 +877,12 @@ def CountRecordsC0D1():
 
 def SrcVsTgtCountChk():
     if DO_ST_TESTS == False:
-        if GetDatabaseName().upper() == 'CURATED' or GetDatabaseName().upper() == "CURATED_V2":
+        if GetCatalogName().upper().endswith('CURATED'):
             source = 'cleansed'
         else:
             source = 'raw'
 
-        tablename = GetSelfFqn().split(".")[1]
+        tablename = GetSelfFqn().split(".", 1)[1]
 
         sourceDf = spark.table(f"{source}.{tablename}").drop_duplicates()
         targetDf = spark.table(f"{GetSelfFqn()}")
@@ -869,8 +912,8 @@ def DuplicateKeysActiveRecsChk():
     if keyColumns.strip() == "":
         Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
     else:
-        if GetDatabaseName().upper() == "CURATED_V3" and FD_OR_SD == 'SDUc3Plus':
-            keyColumns = keyColumns + ', sourceValidFromDatetime'
+        if GetCatalogName().upper().endswith('CURATED') and FD_OR_SD == 'SDUc3Plus':
+            keyColumns = keyColumns + ', sourceValidFromTimestamp'
             
         df = spark.sql(f"""SELECT {keyColumns}, COUNT(*) as recCount FROM {GetSelfFqn()} 
                            WHERE _RecordCurrent=1 and _recordDeleted=0 
@@ -947,44 +990,44 @@ def BusinessKeyNotNullOrBlankChk():
 
 # COMMAND ----------
 
-def BusinessKeyFormatChk1():
-    keyColumns = UNIQUE_KEYS
-    bkQry = ''
-    if keyColumns.strip() == "":
-        Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
-    else:
-        keysList = keyColumns.split(',')
-        for k in keysList:
-            if k == keysList[0]:
-                bkQry = f"when(col('{k}').isNull(), lit('')).otherwise(col('{k}'))"
-                if len(keysList) != 1:
-                    bkQry = f"{bkQry}, lit('|'), \\"
-            else:
-                key = k.strip()
-                bkQry = f"{bkQry}\n\twhen(col('{key}').isNull(), lit('')).otherwise(col('{key}'))"
-                if k != keysList[len(keysList) - 1]:
-                    bkQry = f"{bkQry}, lit('|'), \\"
+# def BusinessKeyFormatChk1():
+#     keyColumns = UNIQUE_KEYS
+#     bkQry = ''
+#     if keyColumns.strip() == "":
+#         Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
+#     else:
+#         keysList = keyColumns.split(',')
+#         for k in keysList:
+#             if k == keysList[0]:
+#                 bkQry = f"when(col('{k}').isNull(), lit('')).otherwise(col('{k}'))"
+#                 if len(keysList) != 1:
+#                     bkQry = f"{bkQry}, lit('|'), \\"
+#             else:
+#                 key = k.strip()
+#                 bkQry = f"{bkQry}\n\twhen(col('{key}').isNull(), lit('')).otherwise(col('{key}'))"
+#                 if k != keysList[len(keysList) - 1]:
+#                     bkQry = f"{bkQry}, lit('|'), \\"
 
-        bkQry = f"concat({bkQry}).alias('_BusinessKey')"            
-        # print(bkQry)
+#         bkQry = f"concat({bkQry}).alias('_BusinessKey')"            
+#         # print(bkQry)
 
 
-    df = spark.table(GetSelfFqn())
-    atfBK = df.select(eval(bkQry))
-    tbBK = df.select('_BusinessKey')
+#     df = spark.table(GetSelfFqn())
+#     atfBK = df.select(eval(bkQry))
+#     tbBK = df.select('_BusinessKey')
 
-    diff1 = atfBK.subtract(tbBK)
-    count = diff1.count()
-    diff2 = tbBK.subtract(atfBK)
-    if diff2.count() > count: count = diff2.count()
-    if count > 0: 
-        print(f"\tTest Failed: Unexpected _BusinessKey values found - Observed mismatches between _BusinessKey recreated by ATF vs target table.")
-        print('Mismatches: _BusinessKey values in Target:')
-        display(diff2)
-        print('Mismatches: _BusinessKey values recreated by ATF:')
-        display(diff1)
+#     diff1 = atfBK.subtract(tbBK)
+#     count = diff1.count()
+#     diff2 = tbBK.subtract(atfBK)
+#     if diff2.count() > count: count = diff2.count()
+#     if count > 0: 
+#         print(f"\tTest Failed: Unexpected _BusinessKey values found - Observed mismatches between _BusinessKey recreated by ATF vs target table.")
+#         print('Mismatches: _BusinessKey values in Target:')
+#         display(diff2)
+#         print('Mismatches: _BusinessKey values recreated by ATF:')
+#         display(diff1)
     
-    Assert(count, 0, errorMessage = f"{count} Unexpected _BusinessKey values found") 
+#     Assert(count, 0, errorMessage = f"{count} Unexpected _BusinessKey values found") 
 
 # COMMAND ----------
 
@@ -1002,14 +1045,6 @@ def BusinessKeyFormatChk():
         for i in manlist:
             newManList.append(i.strip().strip(','))
 
-        # print('New keys list is:')
-        # print(newKeysList)
-        # print('length of keys list is: ' +str(len(newKeysList)))
-        
-        
-        # print('New Man list is:')
-        # print(newManList)
-
         manSet = set(newManList)
 
         if len(newKeysList) == 1:
@@ -1018,8 +1053,6 @@ def BusinessKeyFormatChk():
             sqlCode = ''
             manColFlag = 0
             for k in newKeysList:
-                # k = k.strip()
-                # print('current key:\n' + k)
                 if k in manSet and manColFlag == 0:
                     sqlCode = sqlCode + f'{k},\n'
                     manColFlag = 1
@@ -1084,76 +1117,77 @@ def MandatoryColsNotNullorBlankCk():
 # Previously named ManualDateCheck_1
 def DateValidationSD1():
     driver = FD_OR_SD
-    if driver == 'SD':
-        df = spark.sql(f"""SELECT * FROM {GetSelfFqn()} 
-                       WHERE ValidFromDate > ValidToDate""")
+    if driver == 'SD' or driver == 'SDUc3Plus':
+        qry = f"SELECT * FROM {GetSelfFqn()} WHERE "
+        if driver == 'SD':
+            cols = 'ValidFromDate > ValidToDate'
+        elif driver == 'SDUc3Plus'
+            cols =  'sourceValidFromTimestamp > sourceValidToTimestamp'
+
+        df = spark.sql(qry + cols)
         count = df.count()
-        
+            
         if count > 0: 
-            print(f"\tTest Failed: Found records where ValidFromDate > ValidToDate (Total: {count}).")
+            print(f"\tTest Failed: Found records where {cols} (Total: {count}).")
             DisplayFailedTest(df, count)
         
-        Assert(count, 0, errorMessage = f"{count} records where ValidFromDate > ValidToDate found, expecting 0")
+        Assert(count, 0, errorMessage = f"{count} records where {cols} found, expecting 0")
 
 # COMMAND ----------
 
 # Previously named ManualDateCheck_2
 def DateValidationSD2():
     driver = FD_OR_SD
-    if driver == 'SD':
+    if driver == 'SD' or driver == 'SDUc3Plus':
+        if driver == 'SD':
+            valFrom, valTo = 'ValidFromDate', 'ValidToDate'
+        elif driver == 'SDUc3Plus':
+            valFrom, valTo = 'sourceValidFromTimestamp', 'sourceValidToTimestamp'
+
         df = spark.sql(f"""SELECT * FROM {GetSelfFqn()} 
-                       WHERE (ValidFromDate <> date(_RecordStart)) OR  (ValidToDate <> date(_RecordEnd))""")
+                       WHERE ({valFrom} <> date(_RecordStart)) OR  ({valTo} <> date(_RecordEnd))""")
         count = df.count()
         if count > 0: 
-            print(f"\tTest Failed: Found records where ValidFromDate/ValidToDate is not equal to date(_RecordStart/_RecordEnd) (Total: {count}).")
+            print(f"\tTest Failed: Found records where {valFrom}/{valTo} is not equal to date(_RecordStart/_RecordEnd) (Total: {count}).")
             DisplayFailedTest(df, count)
-        Assert(count, 0, errorMessage = f"{count} records where ValidFromDate/ValidToDate is not equal to date(_RecordStart/_RecordEnd), expecting 0")
+        Assert(count, 0, errorMessage = f"{count} records where {valFrom}/{valTo} is not equal to date(_RecordStart/_RecordEnd), expecting 0")
 
 # COMMAND ----------
 
 def OverlapTimeStampValidation():
     keyColumns = UNIQUE_KEYS
     driver = FD_OR_SD
-    df = ''
-    if driver == 'FD':
-        df = spark.sql(f"SELECT {keyColumns}, start_datetm, end_datetm \
-                   FROM (SELECT {keyColumns}, _recordStart as start_datetm, _recordEnd as end_datetm, \
-                   max(_recordStart) over (partition by {keyColumns} order by _recordStart rows between 1 following and 1 following) as nxt_datetm \
-                   FROM {GetSelfFqn()} WHERE _recordDeleted=0) \
-                   WHERE  DATEDIFF(second,end_datetm,nxt_datetm) <> 1") # can check for <> 9999-12-31
-        count = df.count()
-        if count > 0: 
-            print(f"\tTest Failed: Found records where _RecordStart and _RecordEnd dates/timestamps overlap or have gaps for the same composite key (Total: {count}).")
-            DisplayFailedTest(df, count)
-        Assert(count, 0, errorMessage = f"{count} records with dates/timestamps that overlap or have gaps, expecting 0")
-        
-    elif driver == 'SD':
-        df = spark.sql(f"SELECT {keyColumns}, start_date, end_date \
-                   FROM (SELECT {keyColumns}, date(_recordStart) as start_date, date(_recordEnd) as end_date, \
-                   max(date(_recordStart)) over (partition by {keyColumns} order by _recordStart rows between 1 following and 1 following) as nxt_date \
-                   FROM {GetSelfFqn()} ) \
-                   WHERE  DATEDIFF(day, nxt_date, end_date) <> 1")  ## added _recordDeleted=0 to pick non deleted records.
-        count = df.count()
-        if count > 0: 
-            print(f"\tTest Failed: Found records where _RecordStart and _RecordEnd dates/timestamps overlap or have gaps for the same composite key  (Total: {count}).")
-            DisplayFailedTest(df, count)
-        Assert(count, 0, errorMessage = f"{count} records with with dates/timestamps that overlap or have gaps, expecting 0")
 
-    elif driver == 'SDUc3Plus':
-        df = spark.sql(f"SELECT {keyColumns}, start_datetm, end_datetm \
-                   FROM (SELECT {keyColumns}, sourceValidFromTimestamp as start_datetm, sourceValidToTimestamp as end_datetm, \
-                   max(sourceValidFromTimestamp) over (partition by {keyColumns} order by sourceValidFromTimestamp rows between 1 following and 1 following) as nxt_datetm \
-                   FROM {GetSelfFqn()} WHERE _recordDeleted=0) \
-                   WHERE  DATEDIFF(millisecond,end_datetm,nxt_datetm) <> 1") # can check for <> 9999-12-31
-        count = df.count()
-        if count > 0: 
-            print(f"\tTest Failed: Found records where _RecordStart and _RecordEnd dates/timestamps overlap or have gaps for the same composite key (Total: {count}).")
+    start, end, orderby = '', '', ''
+    innerCond = 'WHERE _recordDeleted=0'
+    outerCond = ''
+
+    if driver == 'FD':
+        start, end, orderby = '_recordStart', '_recordEnd', '_recordStart'
+        outerCond = 'second, end_date, nxt_date'
+    elif driver == 'SD'
+        start, end, orderby = 'date(_recordStart)', 'date(_recordEnd)', '_recordStart'
+        innerCond = ''
+        outerCond = 'day, nxt_date, end_date'
+    elif driver == 'SDUc3Plus'
+        start, end, orderby = 'sourceValidFromTimestamp', 'sourceValidToTimestamp', 'sourceValidFromTimestamp'
+        outerCond = 'millisecond, end_date, nxt_date'
+
+    qry = f"""
+        SELECT {keyColumns}, start_date, end_date
+        FROM (SELECT {keyColumns}, {start} as start_date, {end} as end_date,
+        max({start}) over (partition by {keyColumns} order by {orderby} rows between 1 following and 1 following) as nxt_date
+        FROM {GetSelfFqn()} {innerCond})
+        WHERE DATEDIFF({outerCond}) <> 1
+    """
+
+    df = spark.sql(qry) 
+    count = df.count()
+
+    if count > 0: 
+            print(f"\tTest Failed: Found records where {start} and {end} dates/timestamps overlap or have gaps for the same composite key (Total: {count}).")
             DisplayFailedTest(df, count)
-        Assert(count, 0, errorMessage = f"{count} records with dates/timestamps that overlap or have gaps, expecting 0")   
-    
-    else:
-        Assert(0, 0, compare = "Greater Than", errorMessage = f"Table driver was not in the correct format or was not supplied")
-    
+    Assert(count, 0, errorMessage = f"{count} records with dates/timestamps that overlap or have gaps, expecting 0")
 
 # COMMAND ----------
 
@@ -1302,10 +1336,7 @@ def FKColsNotNullorBlankCk():
 
 # DBTITLE 1,Testing Team Test Cases - S-T checks
 def ST_CountChk_AllRecs():
-    if DO_ST_TESTS == True:
-#         if GetDatabaseName().upper() != 'CLEANSED':
-#             SRC_DF = spark.sql(SOURCE_QUERY)
-            
+    if DO_ST_TESTS == True and GetCatalogName().upper().endswith('CLEANSED'):            
         sourceDf, targetDf = SRC_DF, TGT_DF
 
         sourceCount = sourceDf.count()
@@ -1316,12 +1347,8 @@ def ST_CountChk_AllRecs():
 # COMMAND ----------
 
 def SmT_Chk_AllRecs():    
-    if DO_ST_TESTS == True:
-#         if GetDatabaseName().upper() != 'CLEANSED':
-#             SRC_DF = spark.sql(SOURCE_QUERY)
-        
+    if DO_ST_TESTS == True and GetCatalogName().upper().endswith('CLEANSED'):            
         sourceDf, targetDf = SRC_DF, TGT_DF
-
         df = sourceDf.subtract(targetDf)
         count = df.count()
         if count > 0: 
@@ -1333,10 +1360,7 @@ def SmT_Chk_AllRecs():
 # COMMAND ----------
 
 def TmS_Chk_AllRecs():   
-    if DO_ST_TESTS == True:
-#         if GetDatabaseName().upper() != 'CLEANSED':
-#             SRC_DF = spark.sql(SOURCE_QUERY)
-
+    if DO_ST_TESTS == True and GetCatalogName().upper().endswith('CLEANSED'):            
         sourceDf, targetDf = SRC_DF, TGT_DF
             
         df = targetDf.subtract(sourceDf)
@@ -1351,7 +1375,7 @@ def TmS_Chk_AllRecs():
 
 # DBTITLE 1,Testing Team Test Cases - Other
 def KeysNotNullOrBlankChk():
-    if TST_TM_CHKS == True or GetDatabaseName().upper() == 'CLEANSED':
+    if TST_TM_CHKS == True or GetCatalogName().upper().endswith('CLEANSED'):
         keyColumns = UNIQUE_KEYS
         if keyColumns.strip() == "":
             Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
