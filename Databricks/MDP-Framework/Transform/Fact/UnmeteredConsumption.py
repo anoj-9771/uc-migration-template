@@ -66,7 +66,7 @@ def Transform():
     unmeteredConnecteddf = unmeteredConnecteddf.join(df_parent, (unmeteredConnecteddf.parentArchitecturalObjectNumber == df_parent.parent_propertyNumber), "left")
     unmeteredConnecteddf = unmeteredConnecteddf.where(((col("portionNumber") == 'UNM_01') & (col("relationshipTypeCode").isNull()) & (col("parent_relationshipTypeCode").isNull()) & \
         ~col("inferiorPropertyTypeCode").isin('073', '225', '998', '245', '084', '212', '223', '249')) & ((col("parent_portionNumber") == 'UNM_01') | (col("parent_portionNumber").isNull()))) \
-        .withColumn("reportDate",current_timestamp())
+        .withColumn("reportDate",current_date()-1)
 
     unmeteredConnecteddf = unmeteredConnecteddf.join(date_df).withColumn("unmeteredConnectedFlag",lit('Y')).withColumn("unmeteredConstructionFlag",lit('N')) \
         .withColumn("consumptionKLMonth",((180 / (datediff("yearEndDate", "yearStartDate") + 1)) * (datediff("monthEndDate", "monthStartDate") + 1)))
@@ -80,7 +80,7 @@ def Transform():
         .union(property_df.join(property_service_df,(property_df.propertyNumber == property_service_df.service_propertyNumber) & (property_service_df.fixtureAndFittingCharacteristicCode == 'Z177') & \
         (property_service_df.currentRecordFlag == 'Y') & (property_service_df.validToDate == '9999-12-31'),"inner").where(col("inferiorPropertyTypeCode").isin('089','214','215','237', '236') & (col("buildingFeeDate").isNotNull())) \
         .drop("service_propertyNumber","fixtureAndFittingCharacteristicCode","fixtureAndFittingCharacteristic","currentFlag","currentRecordFlag","validToDate")) \
-        .withColumn("reportDate",current_timestamp())
+        .withColumn("reportDate",current_date()-1)
 
     unmeteredConstructiondf = unmeteredConstructiondf.join(billingdocument_df, (unmeteredConstructiondf.propertyNumber == billingdocument_df.billingdocument_PropertyNum),"left_anti" ) \
         .join(date_df).withColumn("unmeteredConnectedFlag",lit('N')).withColumn("unmeteredConstructionFlag",lit('Y')) \
@@ -88,7 +88,7 @@ def Transform():
 
     unmeteredConstructiondf = unmeteredConstructiondf.select("propertyNumber","reportDate","propertySK","propertyTypeHistorySK","superiorPropertyTypeCode","superiorPropertyType","inferiorPropertyTypeCode","inferiorPropertyType","drinkingWaterNetworkSK","waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","consumptionKLMonth","unmeteredConnectedFlag","unmeteredConstructionFlag")    
 
-    df = unmeteredConnecteddf.unionByName(unmeteredConstructiondf, allowMissingColumns=True)
+    df = unmeteredConnecteddf.unionByName(unmeteredConstructiondf, allowMissingColumns=True).dropDuplicates()
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
