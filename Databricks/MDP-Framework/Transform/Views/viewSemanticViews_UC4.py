@@ -8,7 +8,7 @@
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW semantic.viewAssetKeyPerformanceMeasures AS
+CREATE OR REPLACE VIEW {get_table_namespace('semantic','viewAssetKeyPerformanceMeasures')} AS
 (
    SELECT
 fwo.workorderWorkTypeCode,
@@ -78,10 +78,10 @@ left join {get_table_namespace('curated', 'dimassetcontract')} dac
 on dac.assetContractSK = fwo.assetContractFK
 and dac.sourceRecordCurrent = 1
 
-inner join {get_table_namespace('curated', 'dimdate')} dd
+inner join {get_table_namespace('curated_v3', 'dimdate')} dd
 on to_date(fwo.workOrderFinishedDate) = dd.calendardate
 
-left join {get_table_namespace('curated', 'viewancestorlocationhierarchypivot')} loc_hier
+left join {get_table_namespace('curated', 'viewdimassetlocationancestorhierarchypivot')} loc_hier
 on dal.assetLocationSK = loc_hier.assetLocationFK
 
 left join {get_table_namespace('curated', 'viewRefAssetPerformanceServiceType')} rst

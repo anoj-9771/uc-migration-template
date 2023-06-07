@@ -47,7 +47,7 @@ def Transform():
         ,"serviceType workOrderJobPlanServiceTypeIdentifier" 
         ,"status workOrderJobPlanStatusCode"
         ,"cloneType workOrderJobPlanCloneTypeIdentifier"
-        ,"level workOrderJobPlanSkillLevelNumber"
+        ,"jobPlanLevel workOrderJobPlanSkillLevelNumber"
         ,"changedBy workOrderJobPlanChangedByUserName"
         ,"changedDate workOrderJobPlanChangedTimestamp"
         ,"sourceValidFromTimestamp"
@@ -65,7 +65,7 @@ def Transform():
     try:
         # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
         existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
-        matched_df = existing_data.join(df.select("jobPlanNumber","jobPlanRevisionNumber",col("sourceValidFromTimestamp").alias("new_change_date")),["jobPlanNumber","jobPlanRevisionNumber"],"inner")\
+        matched_df = existing_data.join(df.select("workOrderJobPlanNumber","workOrderJobPlanRevisionNumber",col("sourceValidFromTimestamp").alias("new_change_date")),["workOrderJobPlanNumber","workOrderJobPlanRevisionNumber"],"inner")\
         .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
 
         matched_df =matched_df.withColumn("sourceValidToTimestamp",expr("new_change_date - INTERVAL 1 SECOND")) \
@@ -86,11 +86,6 @@ Transform()
 
 # MAGIC %sql
 # MAGIC select count(1),workOrderJobPlanSK from {get_table_namespace('curated', 'dimWorkOrderJobPlan')} GROUP BY workOrderJobPlanSK having count(1)>1
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC create or replace view {get_table_namespace('curated', 'dimWorkOrderJobPlan')} AS (select * from {get_table_namespace('curated', 'dimWorkOrderJobPlan')})
 
 # COMMAND ----------
 

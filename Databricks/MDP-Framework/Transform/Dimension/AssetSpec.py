@@ -94,10 +94,4 @@ Transform()
 
 # COMMAND ----------
 
-# DBTITLE 1, 
-# MAGIC %sql
-# MAGIC create or replace view {get_table_namespace('curated', 'dimassetspec')} AS (select * from {get_table_namespace('curated', 'dimassetspec')})
-
-# COMMAND ----------
-
 

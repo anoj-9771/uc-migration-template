@@ -29,9 +29,9 @@ def Transform():
 
     assetLocation_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").filter("_recordCurrent == 1").select("assetLocationSK",col("assetLocationName").alias("location"))
     locoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper"))
-    ancLocoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper")).select(col("location").alias("ancestorLocation"),col("level").alias("ancestorLevel"))
-    lochierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","lochierarchy")).select(col("location").alias("lochierarchy_location"),"parent","children",col("system").alias("lochierarchySystem"))
-    locancestor_df = GetTable(get_table_name(f"{SOURCE}","maximo","locancestor")).select(col("location").alias("locancestor_location"),"searchLocationHierarchy",col("system").alias("locancestorSystem"))
+    ancLocoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper")).select(col("location").alias("ancestorLocation"),col("locoperLevel").alias("ancestorLevel"))
+    lochierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","lochierarchy")).select(col("location").alias("lochierarchy_location"),"parent","children","lochierarchySystem")
+    locancestor_df = GetTable(get_table_name(f"{SOURCE}","maximo","locancestor")).select(col("location").alias("locancestor_location"),"searchLocationHierarchy","locancestorSystem")
     locations_df = GetTable(get_table_name(f"{SOURCE}","maximo","locations")).select(col("location").alias("ancestorLocation"),col("description").alias("ancestorDescription"))
     
     # ------------- JOINS ------------------ #
@@ -54,7 +54,7 @@ def Transform():
         ,"assetLocationSK assetLocationFK"
         ,"locationAncestorSystem assetLocationAncestorHierarchySystemName"
         ,"location assetLocationIdentifier"
-        ,"level assetLocationOperationalLevelIdentifer"
+        ,"locoperLevel assetLocationOperationalLevelIdentifer"
         ,"children assetLocationHierarchyChildIndicator"
         ,"description assetLocationHierarchyDescription"
         ,"ancestorLocation assetLocationAncestorName"
@@ -78,14 +78,14 @@ def Transform():
     try:
         # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
         existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
-        matched_df = existing_data.join(df.select("location","ancestorLocation","locationAncestorSystem",col("sourceValidFromTimestamp").alias("new_changed_date")),["location","ancestorLocation","locationAncestorSystem"],"inner")\
+        matched_df = existing_data.join(df.select("assetLocationAncestorHierarchySystemName","assetLocationIdentifier","assetLocationAncestorName",col("sourceValidFromTimestamp").alias("new_changed_date")),["assetLocationAncestorHierarchySystemName","assetLocationIdentifier","assetLocationAncestorName"],"inner")\
         .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
 
         matched_df =matched_df.withColumn("sourceValidToTimestamp",expr("new_changed_date - INTERVAL 1 SECOND")) \
         .withColumn("sourceRecordCurrent",expr("CAST(0 AS INT)"))
 
         # Existing location with missing rows also needs to be updated as "sourceRecordCurrent = 0 and sourceValidToTimestamp = ?"
-        missing_df = existing_data.join(df.select("location",col("changedDate").alias("new_changed_date")),"location","inner")\
+        missing_df = existing_data.join(df.select("assetLocationIdentifier",col("changedDate").alias("new_changed_date")),"assetLocationIdentifier","inner")\
         .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
 
         missing_df =missing_df.withColumn("sourceValidToTimestamp",expr("NOW() - INTERVAL 1 SECOND")) \
@@ -105,11 +105,6 @@ Transform()
 
 # MAGIC %sql
 # MAGIC select Count(1),assetLocationAncestorSK from {get_table_namespace('curated', 'dimAssetLocationAncestor')} GROUP BY assetLocationAncestorSK having count(1)>1
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC create or replace view {get_table_namespace('curated', 'dimAssetLocationAncestor')} AS (select * from {get_table_namespace('curated', 'dimAssetLocationAncestor')})
 
 # COMMAND ----------
 

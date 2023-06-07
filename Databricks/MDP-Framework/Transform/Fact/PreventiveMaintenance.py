@@ -17,8 +17,10 @@ def Transform():
     
     # ------------- TABLES ----------------- #
     df = get_recent_cleansed_records(f"{SOURCE}","maximo","pM","changed_date","preventiveMaintenanceChangedTimestamp").alias("maximo_pM")
-    jobPlan_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimWorkOrderJobPlan')}").select("workOrderJobPlanNumber","workOrderJobPlanSK")
-    assetContract_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetContract')}").select("assetContractNumber","assetContractSK")
+    jobPlan_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimWorkOrderJobPlan')}").select("workOrderJobPlanNumber","workOrderJobPlanRevisionNumber","workOrderJobPlanSK").withColumn("rank",rank().over(Window.partitionBy("workOrderJobPlanNumber").orderBy(col("workOrderJobPlanRevisionNumber").desc()))) \
+    .filter("rank == 1").drop("rank").cache()
+    assetContract_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetContract')}").select("assetContractNumber","assetContractRevisionNumber","assetContractSK").withColumn("rank",rank().over(Window.partitionBy("assetContractNumber").orderBy(col("assetContractRevisionNumber").desc()))) \
+    .filter("rank == 1").drop("rank").cache()
     asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetNumber","assetSK")
     
     
@@ -30,7 +32,7 @@ def Transform():
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
         f"pM ||'|'||changedDate {BK}"
-        ,"pM preventiveMaintenanceID"
+        ,"pM preventiveMaintenanceId"
         ,"changedDate preventiveMaintenanceChangedTimestamp"
         ,"workOrderJobPlanSK workOrderJobPlanFK"
         ,"assetContractSK assetContractFK"
@@ -57,7 +59,7 @@ def Transform():
         ,"serviceDepartment prevnetiveMaintenanceServiceDepartmentCode"
         ,"workCategory preventiveMaintenanceWorkCategoryCode"
         ,"workType preventiveMaintenanceWorkTypeCode"
-        ,"alertLeadDays preventiveMaintenanceLAlertLeadDaysQuantity"
+        ,"alertLeadDays preventiveMaintenanceAlertLeadDaysQuantity"
         ,"serviceType preventiveMaintenanceServiceTypeCode"
         ,"maintenanceCategory preventiveMaintenanceCategoryCode"
         ,"statutory preventiveMaintenanceStatutoryIndicator"
@@ -85,11 +87,3 @@ pass
 Transform()
 
 # COMMAND ----------
-
-spark.sql(
-    f"""create or replace view {get_table_namespace('curated', 'factPreventiveMaintenance')} AS (SELECT * from {get_table_namespace('curated', 'factpreventivemaintenance')})
-          """)
-
-# COMMAND ----------
-
-

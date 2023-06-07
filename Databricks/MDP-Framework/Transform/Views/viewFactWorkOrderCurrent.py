@@ -32,7 +32,7 @@ CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewFactWorkOr
 ,	workOrderServiceDepartmentDescription
 ,	workOrderServiceTypeCode
 ,	workOrderTaskCode
-,	workOrderFinancialControlIdentfier
+,	workOrderFinancialControlIdentifier
 ,	workOrderAssessedPriorityCode
 ,	billedWorkOrderUnitCount
 ,	actualWorkOrderLabourHoursQuantity

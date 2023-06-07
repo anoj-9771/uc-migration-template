@@ -32,7 +32,3 @@ CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewFactWorkOr
  from {get_table_namespace(f'{DEFAULT_TARGET}', 'factWorkOrderFailureReport')} where _recordCurrent=1)
 """)
 
-
-# COMMAND ----------
-
-

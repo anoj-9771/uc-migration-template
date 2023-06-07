@@ -47,7 +47,7 @@ def Transform():
         ,"assetLocationSK assetLocationFK"
         ,"attribute locationSpecAttributeIdentifier"
         ,"location locationSpecName"
-        ,"section locationSpecAttributeSectionName"
+        ,"locationSpecSection locationSpecAttributeSectionName"
         ,"alphanumericValue locationSpecText"
         ,"numericValue locationSpecNumericValue"
         ,"unitOfMeasure locationSpecUnitOfMeasureName"
@@ -72,7 +72,7 @@ def Transform():
     try:
         # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
         existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
-        matched_df = existing_data.join(df.select("location","attribute",col("sourceValidFromTimestamp").alias("new_changed_date")),["location","attribute"],"inner")\
+        matched_df = existing_data.join(df.select("locationSpecAttributeIdentifier","locationSpecName",col("sourceValidFromTimestamp").alias("new_changed_date")),["locationSpecAttributeIdentifier","locationSpecName"],"inner")\
         .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
 
         matched_df =matched_df.withColumn("sourceValidToTimestamp",expr("new_changed_date - INTERVAL 1 SECOND")) \
@@ -91,11 +91,6 @@ Transform()
 
 # MAGIC %sql
 # MAGIC select count(1), locationSpecSK from {get_table_namespace('curated', 'dimlocationSpec')} group by locationSpecSK having count(1) > 1
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC create or replace view {get_table_namespace('curated', 'dimlocationSpec')} AS (select * from {get_table_namespace('curated', 'dimlocationSpec')})
 
 # COMMAND ----------
 

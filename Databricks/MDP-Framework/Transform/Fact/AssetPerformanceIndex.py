@@ -15,137 +15,137 @@
 
 def monthly_Transform():
     df = spark.sql(f"""SELECT
-    assetNumber||'|'||reportingYear||'|'|| reportingMonth||'|'||calculationTypeCode||'|'||orderID {BK}, 
-    assetNumber, 
-    assetSK as assetFK,
-    reportingYear, 
-    reportingMonth,
-    calculationTypeCode,
-    orderID, 
-    selectedPeriodStartDate,
-    selectedPeriodEndDate,
-    comparisonPeriodStartDate,
-    comparisonPeriodEndDate,
-    selectedPeriodBreakdownMaintenanceCount,
-    comparisonPeriodBreakdownMaintenanceCount, 
-    yearlyAverageBreakdownMaintenanceCount, 
-    selectedPeriodFailedAssetsCount,
-    selectedPeriodRepeatedlyFailedAssetsCount,
-    CLASSTYPE
-    FROM(
-    SELECT
-        dt.assetNumber,
-        dt.assetSK,
-        EXTRACT (YEAR FROM DT.SELECTED_PERIOD_END_DATE) reportingYear,
-        EXTRACT (MONTH FROM DT.SELECTED_PERIOD_END_DATE) reportingMonth,
-        'M' calculationTypeCode,
-        DT.ORDER_ID as orderID,
-        DT.SELECTED_PERIOD_START_DATE as selectedPeriodStartDate,
-        DT.SELECTED_PERIOD_END_DATE as selectedPeriodEndDate,
-        DT.COMPARISON_PERIOD_START_DATE as comparisonPeriodStartDate,
-        DT.COMPARISON_PERIOD_END_DATE as comparisonPeriodEndDate,
-        COUNT( CASE WHEN fwo.workOrderReportedDateTimestamp BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END ) selectedPeriodBreakdownMaintenanceCount,
-        COUNT( CASE WHEN fwo.workOrderReportedDateTimestamp BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END ) comparisonPeriodBreakdownMaintenanceCount,
-        COUNT( CASE WHEN fwo.workOrderReportedDateTimestamp BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )/5 yearlyAverageBreakdownMaintenanceCount,
-        CASE WHEN COUNT( CASE WHEN fwo.workOrderReportedDateTimestamp BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END selectedPeriodFailedAssetsCount,
-        CASE WHEN COUNT( CASE WHEN fwo.workOrderReportedDateTimestamp BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 AND COUNT( CASE WHEN fwo.workOrderReportedDateTimestamp BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END selectedPeriodRepeatedlyFailedAssetsCount,
-        'NONLINEAR' as classType 
-        FROM
-    ( 
-    SELECT
-        astloc.assetNumber,
-        astloc.assetSK,
-        MONTHS.M ORDER_ID,
-        (ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-12)+1) SELECTED_PERIOD_START_DATE,
-        (ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1)) SELECTED_PERIOD_END_DATE,
-        (ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-72)+1) COMPARISON_PERIOD_START_DATE,
-        (ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-12)) COMPARISON_PERIOD_END_DATE
-    FROM
-    (
-        SELECT DISTINCT da.assetNumber, da.assetSK
-        FROM {get_table_namespace('curated', 'dimasset')} da
-        inner join {get_table_namespace('curated', 'dimassetlocation')} dal
-        on da.assetLocationFK = dal.assetLocationSK
-    where da.sourceRecordCurrent = 1
-        and dal.sourceRecordCurrent = 1
-        and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
-        and dal.assetLocationStatusDescription  = 'OPERATING'
-        and  dal.assetLocationFacilityShortCode   in ('AV','CP','DB','DG','DP','DQ','DR','EG','FM','GE','GG','MV','NC',
-            'NT','OO','P0','PR','RF','RK','RM','RN','RP','RQ','RS','RT','RX','SC','SF','SG','SK','SL','SM','SN','SO','SP',
-            'SQ','SR','SS','ST','SU','SV','SW','SX','SY','TD','TP','TS','WA','WC','WD','WF','WG','WH','WK','WM','WN','WP','WQ','WS','WT','WU','WX','WZ')	
-    ) astloc
-    CROSS JOIN
-    ( 
-        SELECT 1 AS M UNION ALL
-        SELECT 2 AS M UNION ALL
-        SELECT 3 AS M UNION ALL
-        SELECT 4 AS M UNION ALL
-        SELECT 5 AS M UNION ALL
-        SELECT 6 AS M UNION ALL
-        SELECT 7 AS M UNION ALL
-        SELECT 8 AS M UNION ALL
-        SELECT 9 AS M UNION ALL
-        SELECT 10 AS M UNION ALL
-        SELECT 11 AS M UNION ALL
-        SELECT 12 AS M UNION ALL
-        SELECT 13 AS M
-    ) MONTHS
-    )DT
-    INNER JOIN
-    ( 
-    select *  
-    from {get_table_namespace('curated', 'factworkorder')}
-    qualify row_number() over(partition by workOrderCreationId order by workOrderChangeDate desc)=1
-    ) fwo
-    ON dt.assetSK = fwo.assetFK     
-    and fwo.workTypeCode = 'BM'
-    and fwo.workOrderClassDescription = 'WORKORDER'
-    and fwo.workOrderStatusDescription NOT IN ('CAN','CANDUP','DRAFT')
-    and serviceTypeCode IN ('M','E','F','C')
-    and financialControlIdentifier is NULL
-
-    --and dt.assetNumber = '10640878'
-
-    GROUP BY
-    DT.assetNumber,
-    DT.assetSK,
-    DT.ORDER_ID,
-    DT.SELECTED_PERIOD_START_DATE,
-    DT.SELECTED_PERIOD_END_DATE,
-    DT.COMPARISON_PERIOD_START_DATE,
-    DT.COMPARISON_PERIOD_END_DATE
-
-    UNION
-
-    SELECT 
-    WORKORDER.ASSET as assetNumber,
-    dt.assetSK,
+assetNumber||'|'||reportingYear||'|'|| reportingMonth||'|'||calculationTypeCode||'|'||orderID {BK},                   
+assetNumber, 
+assetSK as assetFK,
+reportingYear, 
+reportingMonth,
+calculationTypeCode,
+orderID, 
+selectedPeriodStartDate,
+selectedPeriodEndDate,
+comparisonPeriodStartDate,
+comparisonPeriodEndDate,
+selectedPeriodBreakdownMaintenanceCount,
+comparisonPeriodBreakdownMaintenanceCount, 
+yearlyAverageBreakdownMaintenanceCount, 
+selectedPeriodFailedAssetsCount,
+selectedPeriodRepeatedlyFailedAssetsCount,
+CLASSTYPE
+FROM(
+SELECT
+    dt.assetNumber,
+	dt.assetSK,	
     EXTRACT (YEAR FROM DT.SELECTED_PERIOD_END_DATE) reportingYear,
     EXTRACT (MONTH FROM DT.SELECTED_PERIOD_END_DATE) reportingMonth,
     'M' calculationTypeCode,
-    DT.ORDER_ID as orderID,
+	DT.ORDER_ID as orderID,
     DT.SELECTED_PERIOD_START_DATE as selectedPeriodStartDate,
     DT.SELECTED_PERIOD_END_DATE as selectedPeriodEndDate,
     DT.COMPARISON_PERIOD_START_DATE as comparisonPeriodStartDate,
     DT.COMPARISON_PERIOD_END_DATE as comparisonPeriodEndDate,
-    COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END ) selectedPeriodBreakdownMaintenanceCount,
-    COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END ) comparisonPeriodBreakdownMaintenanceCount,
-    COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )/5 yearlyAverageBreakdownMaintenanceCount,
-    CASE WHEN COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END selectedPeriodFailedAssetsCount,
-    CASE WHEN COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 AND 
-    COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END selectedPeriodRepeatedlyFailedAssetsCount
-    , 'LINEAR' as classType
-    
-    FROM  
-    
-    (SELECT 
-    ASSETLIST.ASSETNUM,
-    ASSETLIST.assetSK,
-    MONTHS.M ORDER_ID,
+    COUNT( CASE WHEN fwo.workOrderReportedTimestamp BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END ) selectedPeriodBreakdownMaintenanceCount,
+    COUNT( CASE WHEN fwo.workOrderReportedTimestamp BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END ) comparisonPeriodBreakdownMaintenanceCount,
+    COUNT( CASE WHEN fwo.workOrderReportedTimestamp BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )/5 yearlyAverageBreakdownMaintenanceCount,
+    CASE WHEN COUNT( CASE WHEN fwo.workOrderReportedTimestamp BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END selectedPeriodFailedAssetsCount,
+    CASE WHEN COUNT( CASE WHEN fwo.workOrderReportedTimestamp BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 AND COUNT( CASE WHEN fwo.workOrderReportedTimestamp BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END selectedPeriodRepeatedlyFailedAssetsCount,
+	'NONLINEAR' as classType 
+    FROM
+( 
+SELECT
+    astloc.assetNumber,
+    astloc.assetSK,
+	MONTHS.M ORDER_ID,
     (ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-12)+1) SELECTED_PERIOD_START_DATE,
     (ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1)) SELECTED_PERIOD_END_DATE,
     (ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-72)+1) COMPARISON_PERIOD_START_DATE,
     (ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-12)) COMPARISON_PERIOD_END_DATE
+FROM
+  (
+    SELECT DISTINCT da.assetNumber, da.assetSK
+    FROM {get_table_namespace('curated', 'dimasset')} da
+    inner join {get_table_namespace('curated', 'dimassetlocation')} dal
+    on da.assetLocationFK = dal.assetLocationSK
+  where da.sourceRecordCurrent = 1
+    and dal.sourceRecordCurrent = 1
+    and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
+    and dal.assetLocationStatusDescription  = 'OPERATING'
+    and  dal.assetLocationFacilityShortCode   in ('AV','CP','DB','DG','DP','DQ','DR','EG','FM','GE','GG','MV','NC',
+        'NT','OO','P0','PR','RF','RK','RM','RN','RP','RQ','RS','RT','RX','SC','SF','SG','SK','SL','SM','SN','SO','SP',
+        'SQ','SR','SS','ST','SU','SV','SW','SX','SY','TD','TP','TS','WA','WC','WD','WF','WG','WH','WK','WM','WN','WP','WQ','WS','WT','WU','WX','WZ')	
+  ) astloc
+  CROSS JOIN
+  ( 
+    SELECT 1 AS M UNION ALL
+    SELECT 2 AS M UNION ALL
+    SELECT 3 AS M UNION ALL
+    SELECT 4 AS M UNION ALL
+    SELECT 5 AS M UNION ALL
+    SELECT 6 AS M UNION ALL
+    SELECT 7 AS M UNION ALL
+    SELECT 8 AS M UNION ALL
+    SELECT 9 AS M UNION ALL
+    SELECT 10 AS M UNION ALL
+    SELECT 11 AS M UNION ALL
+    SELECT 12 AS M UNION ALL
+	SELECT 13 AS M
+  ) MONTHS
+)DT
+INNER JOIN
+( 
+  select *  
+  from {get_table_namespace('curated', 'factworkorder')}
+  qualify row_number() over(partition by workOrderCreationId order by workOrderChangeTimestamp desc)=1
+) fwo
+ON dt.assetSK = fwo.assetFK     
+and fwo.workorderWorkTypeCode = 'BM'
+and fwo.workOrderClassDescription = 'WORKORDER'
+and fwo.workOrderStatusDescription NOT IN ('CAN','CANDUP','DRAFT')
+and workorderServiceTypeCode IN ('M','E','F','C')
+and workOrderFinancialControlIdentifier is NULL
+
+--and dt.assetNumber = '10640878'
+
+GROUP BY
+DT.assetNumber,
+DT.assetSK,	
+DT.ORDER_ID,
+DT.SELECTED_PERIOD_START_DATE,
+DT.SELECTED_PERIOD_END_DATE,
+DT.COMPARISON_PERIOD_START_DATE,
+DT.COMPARISON_PERIOD_END_DATE
+
+UNION
+
+SELECT 
+WORKORDER.ASSET as assetNumber,
+dt.assetSK,	
+EXTRACT (YEAR FROM DT.SELECTED_PERIOD_END_DATE) reportingYear,
+EXTRACT (MONTH FROM DT.SELECTED_PERIOD_END_DATE) reportingMonth,
+'M' calculationTypeCode,
+DT.ORDER_ID as orderID,
+DT.SELECTED_PERIOD_START_DATE as selectedPeriodStartDate,
+DT.SELECTED_PERIOD_END_DATE as selectedPeriodEndDate,
+DT.COMPARISON_PERIOD_START_DATE as comparisonPeriodStartDate,
+DT.COMPARISON_PERIOD_END_DATE as comparisonPeriodEndDate,
+COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END ) selectedPeriodBreakdownMaintenanceCount,
+COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END ) comparisonPeriodBreakdownMaintenanceCount,
+COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )/5 yearlyAverageBreakdownMaintenanceCount,
+CASE WHEN COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END selectedPeriodFailedAssetsCount,
+CASE WHEN COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 AND 
+COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END selectedPeriodRepeatedlyFailedAssetsCount
+, 'LINEAR' as classType
+ 
+FROM  
+ 
+(SELECT 
+ ASSETLIST.ASSETNUM,
+ASSETLIST.assetSK,
+MONTHS.M ORDER_ID,
+(ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-12)+1) SELECTED_PERIOD_START_DATE,
+(ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1)) SELECTED_PERIOD_END_DATE,
+(ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-72)+1) COMPARISON_PERIOD_START_DATE,
+(ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-12)) COMPARISON_PERIOD_END_DATE
 
     FROM ( 
             SELECT DISTINCT (da.assetNumber) as ASSETNUM, da.assetSK
@@ -396,58 +396,58 @@ monthly_Transform()
 def yearly_Transform():
     df = spark.sql(f"""
     SELECT
-    ASSETNUM||'|'||REPORTING_YEAR||'|'|| REPORTING_MONTH||'|'||CALCULATION_TYPE||'|'||ORDER_ID {BK}, 
-    ASSETNUM as assetNumber, 
-    assetSK as assetFK,
-    REPORTING_YEAR as reportingYear, 
-    REPORTING_MONTH as reportingMonth,
-    CALCULATION_TYPE as calculationTypeCode,
-    ORDER_ID as orderID, 
-    SELECTED_PERIOD_START_DATE as selectedPeriodStartDate,
-    SELECTED_PERIOD_END_DATE as selectedPeriodEndDate,
-    COMPARISON_PERIOD_START_DATE as comparisonPeriodStartDate,
-    COMPARISON_PERIOD_END_DATE as comparisonPeriodEndDate,
-    SELECTED_PERIOD_BM as selectedPeriodBreakdownMaintenanceCount,
-    COMPARISON_PERIOD_BM as comparisonPeriodBreakdownMaintenanceCount, 
-    YEARLY_BM as yearlyAverageBreakdownMaintenanceCount, 
-    NO_OF_FAILED_ASSETS_SELECTED_PERIOD as selectedPeriodFailedAssetsCount,
-    NO_OF_REPEATEDLY_FAILED_ASSETS_SELECTED_PERIOD selectedPeriodRepeatedlyFailedAssetsCount,
-    CLASSTYPE
-    FROM(
-    
-    SELECT 
-    WORKORDER.ASSET as ASSETNUM,
-    DT.assetSK,
-    EXTRACT (YEAR FROM DT.SELECTED_PERIOD_END_DATE) REPORTING_YEAR,
-    EXTRACT (MONTH FROM DT.SELECTED_PERIOD_END_DATE) REPORTING_MONTH,
-    'Y' CALCULATION_TYPE,
-    DT.ORDER_ID,
-    DT.SELECTED_PERIOD_START_DATE,
-    DT.SELECTED_PERIOD_END_DATE,
-    DT.COMPARISON_PERIOD_START_DATE,
-    DT.COMPARISON_PERIOD_END_DATE,
-    COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END ) SELECTED_PERIOD_BM,
-    COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END ) COMPARISON_PERIOD_BM,
-    COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )/5 YEARLY_BM,
-    CASE WHEN COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END NO_OF_FAILED_ASSETS_SELECTED_PERIOD,
-    CASE WHEN COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 AND 
-    COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END NO_OF_REPEATEDLY_FAILED_ASSETS_SELECTED_PERIOD
-    , 'LINEAR' as classType
-    
-    FROM  
-    
-    (SELECT 
-    ASSETLIST.ASSETNUM,
-    ASSETLIST.assetSK,
-    YEARS.Y ORDER_ID,
-    CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y-1)||'-07-01') 
-        WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (7,8,9,10,11,12) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y)||'-07-01') END SELECTED_PERIOD_START_DATE,
-    CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y)||'-06-30') 
-        WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (7,8,9,10,11,12) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y+1)||'-06-30') END SELECTED_PERIOD_END_DATE,
-    CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y-6)||'-07-01') 
-        WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (7,8,9,10,11,12) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y-5)||'-07-01') END COMPARISON_PERIOD_START_DATE,
-    CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y-1)||'-06-30') 
-        WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (7,8,9,10,11,12) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y)||'-06-30') END COMPARISON_PERIOD_END_DATE
+    ASSETNUM||'|'||REPORTING_YEAR||'|'|| REPORTING_MONTH||'|'||CALCULATION_TYPE||'|'||ORDER_ID {BK},
+	ASSETNUM as assetNumber, 
+assetSK as assetFK,
+REPORTING_YEAR as reportingYear, 
+REPORTING_MONTH as reportingMonth,
+CALCULATION_TYPE as calculationTypeCode,
+ORDER_ID as orderID, 
+SELECTED_PERIOD_START_DATE as selectedPeriodStartDate,
+SELECTED_PERIOD_END_DATE as selectedPeriodEndDate,
+COMPARISON_PERIOD_START_DATE as comparisonPeriodStartDate,
+COMPARISON_PERIOD_END_DATE as comparisonPeriodEndDate,
+SELECTED_PERIOD_BM as selectedPeriodBreakdownMaintenanceCount,
+COMPARISON_PERIOD_BM as comparisonPeriodBreakdownMaintenanceCount, 
+YEARLY_BM as yearlyAverageBreakdownMaintenanceCount, 
+NO_OF_FAILED_ASSETS_SELECTED_PERIOD as selectedPeriodFailedAssetsCount,
+NO_OF_REPEATEDLY_FAILED_ASSETS_SELECTED_PERIOD selectedPeriodRepeatedlyFailedAssetsCount,
+CLASSTYPE
+FROM(
+ 
+SELECT 
+WORKORDER.ASSET as ASSETNUM,
+DT.assetSK,
+EXTRACT (YEAR FROM DT.SELECTED_PERIOD_END_DATE) REPORTING_YEAR,
+EXTRACT (MONTH FROM DT.SELECTED_PERIOD_END_DATE) REPORTING_MONTH,
+'Y' CALCULATION_TYPE,
+DT.ORDER_ID,
+DT.SELECTED_PERIOD_START_DATE,
+DT.SELECTED_PERIOD_END_DATE,
+DT.COMPARISON_PERIOD_START_DATE,
+DT.COMPARISON_PERIOD_END_DATE,
+COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END ) SELECTED_PERIOD_BM,
+COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END ) COMPARISON_PERIOD_BM,
+COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )/5 YEARLY_BM,
+CASE WHEN COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END NO_OF_FAILED_ASSETS_SELECTED_PERIOD,
+CASE WHEN COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 AND 
+COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END NO_OF_REPEATEDLY_FAILED_ASSETS_SELECTED_PERIOD
+, 'LINEAR' as classType
+ 
+FROM  
+ 
+(SELECT 
+ ASSETLIST.ASSETNUM,
+ ASSETLIST.assetSK,
+YEARS.Y ORDER_ID,
+CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y-1)||'-07-01') 
+      WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (7,8,9,10,11,12) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y)||'-07-01') END SELECTED_PERIOD_START_DATE,
+CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y)||'-06-30') 
+      WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (7,8,9,10,11,12) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y+1)||'-06-30') END SELECTED_PERIOD_END_DATE,
+CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y-6)||'-07-01') 
+      WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (7,8,9,10,11,12) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y-5)||'-07-01') END COMPARISON_PERIOD_START_DATE,
+CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y-1)||'-06-30') 
+      WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (7,8,9,10,11,12) THEN TO_DATE((EXTRACT (YEAR FROM CURRENT_DATE)-YEARS.Y)||'-06-30') END COMPARISON_PERIOD_END_DATE
 
     FROM ( 
             SELECT DISTINCT (da.assetNumber) as ASSETNUM, da.assetSK
@@ -783,12 +783,6 @@ def yearly_Transform():
     #DisplaySelf()
 pass
 yearly_Transform()
-
-# COMMAND ----------
-
-spark.sql(f"""
-          create or replace view {get_table_namespace('curated', 'factassetperformanceindex')} as (select * from {get_table_namespace('curated', 'factassetperformanceindex')})
-          """)
 
 # COMMAND ----------
 

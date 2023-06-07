@@ -1,76 +1,410 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform 
+# MAGIC %run ../../Common/common-transform
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
+CleanSelf()
 
 # COMMAND ----------
 
-TARGET = DEFAULT_TARGET
+workorderTotalCount_df = spark.sql(f""" 
+select 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'workorderTotalCount' as assetPerformanceMeasureName,
+COUNT (DISTINCT workOrderCreationId) as assetPerformanceMeasureValue
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderFinishedDate = dd.calendardate
+
+LEFT JOIN
+(
+select 
+'PM' as workOrderWorkTypeCode,
+'YES' as workOrderChildIndicator
+) dt
+on wo.workOrderWorkTypeCode = dt.workOrderWorkTypeCode
+and wo.workOrderChildIndicator = dt.workOrderChildIndicator
+
+where dt.workOrderWorkTypeCode is NULL
+and wo.workOrderStatusDescription IN ('CLOSE','COMP','FINISHED')
+and wo.workOrderClassDescription = 'WORKORDER'
+group by
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate
+""")
 
 # COMMAND ----------
 
-# CleanSelf()
+breakdownMaintenanceWorkOrderTotalRepairHourQuantity_df = spark.sql(f"""
+select 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'breakdownMaintenanceWorkOrderTotalRepairHourQuantity' as assetPerformanceMeasureName,
+SUM(wo.breakdownMaintenanceWorkOrderRepairHour) as assetPerformanceMeasureValue
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderFinishedDate = dd.calendardate
+
+WHERE wo.workOrderClassDescription = 'WORKORDER'
+and wo.workOrderWorkTypeCode = 'BM'
+
+group by
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate
+""")
+
+# COMMAND ----------
+
+breakdownMaintenanceTotalWorkOrderCount_df = spark.sql(f"""
+select 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'breakdownMaintenanceTotalWorkOrderCount' as assetPerformanceMeasureName,
+count( DISTINCT wo.workOrderCreationId) as assetPerformanceMeasureValue
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderFinishedDate = dd.calendardate
+
+WHERE wo.workOrderClassDescription = 'WORKORDER'
+and wo.workOrderWorkTypeCode = 'BM'
+
+group by
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate
+""")
+
+# COMMAND ----------
+
+compliantBreakdownMaintenanceWorkOrderCount_df = spark.sql(f"""
+select 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'compliantBreakdownMaintenanceWorkOrderCount' as assetPerformanceMeasureName,
+count( DISTINCT wo.workOrderCreationId) as assetPerformanceMeasureValue
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderFinishedDate = dd.calendardate
+
+WHERE wo.workOrderClassDescription = 'WORKORDER'
+and wo.workOrderWorkTypeCode = 'BM'
+and wo.workOrderCompliantIndicator = 'YES'
+
+group by
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate
+""")
+
+# COMMAND ----------
+
+breakdownMaintenanceWorkOrderTotalTargetHour_df = spark.sql(f"""
+select 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'breakdownMaintenanceWorkOrderTotalTargetHour' as assetPerformanceMeasureName,
+SUM(wo.breakdownMaintenanceWorkOrderTargetHour) as assetPerformanceMeasureValue
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderFinishedDate = dd.calendardate
+
+WHERE wo.workOrderClassDescription = 'WORKORDER'
+and wo.workOrderWorkTypeCode = 'BM'
+
+group by
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate""")
+
+# COMMAND ----------
+
+preventiveMaintenanceWorkOrderTotalCount_df = spark.sql(f"""select 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'preventiveMaintenanceWorkOrderTotalCount' as assetPerformanceMeasureName,
+count( DISTINCT wo.workOrderCreationId) as assetPerformanceMeasureValue
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderFinishedDate = dd.calendardate
+
+WHERE wo.workOrderClassDescription = 'WORKORDER'
+and wo.workOrderWorkTypeCode = 'PM'
+and wo.workOrderChildIndicator = 'NO'
+and wo.workOrderStatusDescription in ('COMP','CLOSE','FINISHED')
+
+group by
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate""")
+
+# COMMAND ----------
+
+breakdownMaintenanceTotalWorkOrderRaisedCount_df = spark.sql(f"""select 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'breakdownMaintenanceTotalWorkOrderRaisedCount' as assetPerformanceMeasureName,
+count( DISTINCT wo.workOrderCreationId) as assetPerformanceMeasureValue
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderTrendDate = dd.calendardate
+
+WHERE wo.workOrderWorkTypeCode = 'BM'
+and wo.workOrderStatusDescription in ('CAN','CANDUP','DRAFT')
+
+group by
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate""")
+
+# COMMAND ----------
+
+breakdownMaintenanceWorkOrderTotalCostAmount_df = spark.sql(f"""SELECT
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'breakdownMaintenanceWorkOrderTotalCostAmount' as assetPerformanceMeasureName,
+SUM(nvl(wo.actualWorkOrderLaborCostAmount,0)+
+nvl(wo.actualWorkOrderMaterialCostAmount,0)+
+nvl(wo.actualWorkOrderServiceCostAmount,0)+
+nvl(wo.actualWorkOrderLaborCostFromActivityAmount,0)+
+nvl(wo.actualWorkOrderMaterialCostFromActivityAmount,0)+
+nvl(wo.actualWorkOrderServiceCostFromActivityAmount,0)) as assetPerformanceMeasureValue 
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderFinishedDate = dd.calendardate
+
+INNER JOIN {get_table_namespace("curated","dimAssetLocation")} alo 
+on wo.assetLocationFK = alo.assetLocationSK
+
+WHERE alo.assetLocationStatusDescription = 'OPERATING' 
+and wo.workOrderStatusDescription NOT in ('CAN', 'CANDUP', 'DRAFT')
+and wo.workOrderWorkTypeCode = 'BM'
+
+group by 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate""")
+
+# COMMAND ----------
+
+correctiveMaintenanceWorkOrderTotalCostAmount_df = spark.sql(f"""SELECT
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'correctiveMaintenanceWorkOrderTotalCostAmount' as assetPerformanceMeasureName,
+SUM(nvl(wo.actualWorkOrderLaborCostAmount,0)+
+nvl(wo.actualWorkOrderMaterialCostAmount,0)+
+nvl(wo.actualWorkOrderServiceCostAmount,0)+
+nvl(wo.actualWorkOrderLaborCostFromActivityAmount,0)+
+nvl(wo.actualWorkOrderMaterialCostFromActivityAmount,0)+
+nvl(wo.actualWorkOrderServiceCostFromActivityAmount,0)) as assetPerformanceMeasureValue 
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderFinishedDate = dd.calendardate
+
+INNER JOIN {get_table_namespace("curated","dimAssetLocation")} alo 
+on wo.assetLocationFK = alo.assetLocationSK
+
+WHERE alo.assetLocationStatusDescription = 'OPERATING' 
+and wo.workOrderStatusDescription NOT in ('CAN', 'CANDUP', 'DRAFT')
+and wo.workOrderWorkTypeCode = 'CM'
+
+group by 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate""")
+
+# COMMAND ----------
+
+preventiveMaintenanceWorkOrderTotalCostAmount_df = spark.sql(f"""SELECT
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'preventiveMaintenanceWorkOrderTotalCostAmount' as assetPerformanceMeasureName,
+SUM(nvl(wo.actualWorkOrderLaborCostAmount,0)+
+nvl(wo.actualWorkOrderMaterialCostAmount,0)+
+nvl(wo.actualWorkOrderServiceCostAmount,0)+
+nvl(wo.actualWorkOrderLaborCostFromActivityAmount,0)+
+nvl(wo.actualWorkOrderMaterialCostFromActivityAmount,0)+
+nvl(wo.actualWorkOrderServiceCostFromActivityAmount,0)) as assetPerformanceMeasureValue
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderFinishedDate = dd.calendardate
+
+INNER JOIN {get_table_namespace("curated","dimAssetLocation")} alo 
+on wo.assetLocationFK = alo.assetLocationSK
+
+WHERE alo.assetLocationStatusDescription = 'OPERATING' 
+and wo.workOrderStatusDescription NOT in ('CAN', 'CANDUP', 'DRAFT')
+and wo.workOrderWorkTypeCode = 'PM'
+
+group by 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate""")
+
+
+
+
+
+
+# COMMAND ----------
+
+preventiveMaintenanceWorkOrderFinishedCount_df = spark.sql(f"""select 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'preventiveMaintenanceWorkOrderFinishedCount' as assetPerformanceMeasureName,
+count( DISTINCT wo.workOrderCreationId) as assetPerformanceMeasureValue
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderFinishedDate = dd.calendardate
+
+WHERE
+wo.workOrderWorkTypeCode = 'PM' and
+wo.workOrderChildIndicator = 'NO' and
+wo.workOrderStatusDescription in ('CLOSE','COMP','FINISHED')
+
+group by
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate""")
+
+# COMMAND ----------
+
+correctiveMaintenanceWorkOrderFinishedCount_df = spark.sql(f"""select 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'correctiveMaintenanceWorkOrderFinishedCount' as assetPerformanceMeasureName,
+count( DISTINCT wo.workOrderCreationId) as assetPerformanceMeasureValue
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderFinishedDate = dd.calendardate
+
+WHERE
+wo.workOrderWorkTypeCode = 'CM' and
+wo.workOrderStatusDescription in ('CLOSE','COMP','FINISHED')
+
+group by
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate""")
+
+# COMMAND ----------
+
+breakdownMaintenanceWorkOrderFailedLengthValue_df = spark.sql(f"""select 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'breakdownMaintenanceWorkOrderFailedLengthValue' as assetPerformanceMeasureName,
+SUM(da.assetNetworkLengthPerKilometerValue) as assetPerformanceMeasureValue
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderFinishedDate = dd.calendardate
+
+INNER JOIN {get_table_namespace('curated','dimasset')} da
+on wo.assetFK = da.assetSK
+and da.sourceRecordCurrent = 1
+
+WHERE wo.workOrderWorkTypeCode = 'BM' 
+and wo.workOrderStatusDescription not in ('CAN', 'CANDUP', 'DRAFT')
+
+group by 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate""")
+
+# COMMAND ----------
+
+workorderBacklogCount_df = spark.sql(f"""select 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate as snapshotDate,
+'workorderBacklogCount'  as assetPerformanceMeasureName,
+COUNT (DISTINCT workOrderCreationId) as assetPerformanceMeasureValue
+FROM {get_table_namespace('curated','viewfactworkorder')} wo
+
+INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+on wo.workOrderTolerancedDueDate = dd.calendardate
+
+LEFT JOIN
+(
+select 
+'PM' as workOrderWorkTypeCode,
+'YES' as workOrderChildIndicator
+) dt
+on wo.workOrderWorkTypeCode = dt.workOrderWorkTypeCode
+and wo.workOrderChildIndicator = dt.workOrderChildIndicator
+
+where dt.workOrderWorkTypeCode is NULL
+and wo.workOrderStatusDescription NOT IN ('CAN','CANDUP','DRAFT')
+and (workOrderFinishedDate is NULL or workOrderFinishedDate>workOrderTolerancedDueDate)
+group by 
+wo.assetFK,
+wo.assetLocationFK,
+dd.calendardate
+""")
+
+# COMMAND ----------
+
+from functools import reduce
+from pyspark.sql import DataFrame
 
 # COMMAND ----------
 
 def Transform():
     global df
     # ------------- TABLES ----------------- #
-    w = Window().partitionBy("assetFK")
-    df = spark.sql(f"select assetFK, snapshotDate as latest_snapshotDate,assetLocationFK,workOrderTrendDate from (select assetFK, snapshotDate,assetLocationFK,workOrderTrendDate, row_number() over(partition by assetFK order by snapshotDate desc) as rownumb from {get_table_namespace(f'{TARGET}', 'factworkorder')})dt where rownumb = 1")
+    
+    
 
-    workOrder_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'factworkorder')}").select("assetFK","snapshotDate","breakdownMaintenanceWorkOrderRepairHour","workOrderCreationId","WorkTypeCode","workOrderClassDescription","workOrderCompliantIndicator","breakdownMaintenanceWorkOrderTargetHour","workOrderStatusDescription","actualWorkOrderLaborCostAmount","actualWorkOrderMaterialCostAmount","actualWorkOrderServiceCostAmount","actualWorkOrderLaborCostFromActivityAmount","actualWorkOrderMaterialCostFromActivityAmount","actualWorkOrderServiceCostFromActivityAmount","workOrderChildIndicator","externalStatusCode") .withColumn("rank",rank().over(w.orderBy(col("snapshotDate").desc()))) \
-    .filter("rank == 1").drop("rank") 
-    workOrder_df = workOrder_df.withColumnRenamed("assetFK","wo_assetFK")
-    assetLocation_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").select("assetLocationSK","assetLocationStatusDescription")
-    asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetSK","assetNetworkLengthPerKilometerValue")
+    dfs = [workorderTotalCount_df, 
+           breakdownMaintenanceWorkOrderTotalRepairHourQuantity_df, 
+           breakdownMaintenanceTotalWorkOrderCount_df, 
+           compliantBreakdownMaintenanceWorkOrderCount_df, 
+           breakdownMaintenanceWorkOrderTotalTargetHour_df, 
+           preventiveMaintenanceWorkOrderTotalCount_df, 
+           breakdownMaintenanceTotalWorkOrderRaisedCount_df, 
+           breakdownMaintenanceWorkOrderTotalCostAmount_df, 
+           correctiveMaintenanceWorkOrderTotalCostAmount_df, 
+           preventiveMaintenanceWorkOrderTotalCostAmount_df, 
+           preventiveMaintenanceWorkOrderFinishedCount_df, 
+           correctiveMaintenanceWorkOrderFinishedCount_df, 
+           breakdownMaintenanceWorkOrderFailedLengthValue_df, 
+           workorderBacklogCount_df]
+    df = reduce(DataFrame.union, dfs)
 
     
     # ------------- JOINS ------------------ #
     
-    df = df.join(workOrder_df,(workOrder_df.wo_assetFK == df.assetFK) & (workOrder_df.snapshotDate <= df.latest_snapshotDate), "left") \
-    .join(assetLocation_df,df.assetLocationFK == assetLocation_df.assetLocationSK,"left") \
-    .join(asset_df,df.assetFK == asset_df.assetSK,"left")   
     
     # ------------- TRANSFORMS ------------- #
 
-    
-    df = df.withColumn("breakdownMaintenanceWorkOrderTotalRepairHourQuantity",sum(expr("case when breakdownMaintenanceWorkOrderRepairHour is not null then breakdownMaintenanceWorkOrderRepairHour else 0 end")).over(w)) \
-    .withColumn("breakdownMaintenanceTotalWorkOrderCount",sum(expr("case when WorkTypeCode = 'BM' and workOrderClassDescription = 'WORKORDER' then 1 else 0 end")).over(w)) \
-    .withColumn("compliantBreakdownMaintenanceWorkOrderCount",sum(expr("case when WorkTypeCode = 'BM' and workOrderClassDescription = 'WORKORDER' and workOrderCompliantIndicator = 'YES' then 1 else 0 end")).over(w)) \
-    .withColumn("breakdownMaintenanceWorkOrderTotalTargetHour",sum(expr("case when breakdownMaintenanceWorkOrderTargetHour is not null then breakdownMaintenanceWorkOrderTargetHour else 0 end")).over(w)) \
-    .withColumn("preventiveMaintenanceWorkOrderTotalCount",sum(expr("case when WorkTypeCode = 'PM' and workOrderClassDescription = 'WORKORDER' and workOrderCompliantIndicator = 'YES' and workOrderStatusDescription in ('CLOSE','COMP','FINISHED') then 1 else 0 end")).over(w)) \
-    .withColumn("breakdownMaintenanceTotalWorkOrderRaisedCount",sum(expr("case when WorkTypeCode = 'BM' and workOrderStatusDescription NOT IN ('CAN', 'CANDUP', 'DRAFT') then 1 else 0 end")).over(w)) \
-    .withColumn("breakdownMaintenanceWorkOrderTotalCostAmount",sum(expr("case when WorkTypeCode = 'BM' and workOrderStatusDescription NOT IN ('CAN', 'CANDUP', 'DRAFT') and assetLocationStatusDescription = 'OPERATING' then coalesce(actualWorkOrderLaborCostAmount,0)+coalesce(actualWorkOrderMaterialCostAmount,0)+coalesce(actualWorkOrderServiceCostAmount,0)+coalesce(actualWorkOrderLaborCostFromActivityAmount,0)+coalesce(actualWorkOrderMaterialCostFromActivityAmount,0)+coalesce(actualWorkOrderServiceCostFromActivityAmount,0) else 0 end")).over(w)) \
-    .withColumn("correctiveMaintenanceWorkOrderTotalCostAmount",sum(expr("case when WorkTypeCode = 'CM' and workOrderStatusDescription NOT IN ('CAN', 'CANDUP', 'DRAFT') and assetLocationStatusDescription = 'OPERATING' then coalesce(actualWorkOrderLaborCostAmount,0)+coalesce(actualWorkOrderMaterialCostAmount,0)+coalesce(actualWorkOrderServiceCostAmount,0)+coalesce(actualWorkOrderLaborCostFromActivityAmount,0)+coalesce(actualWorkOrderMaterialCostFromActivityAmount,0)+coalesce(actualWorkOrderServiceCostFromActivityAmount,0) else 0 end")).over(w)) \
-    .withColumn("preventiveMaintenanceWorkOrderTotalCostAmount",sum(expr("case when WorkTypeCode = 'PM' and workOrderStatusDescription NOT IN ('CAN', 'CANDUP', 'DRAFT') and assetLocationStatusDescription = 'OPERATING' then coalesce(actualWorkOrderLaborCostAmount,0)+coalesce(actualWorkOrderMaterialCostAmount,0)+coalesce(actualWorkOrderServiceCostAmount,0)+coalesce(actualWorkOrderLaborCostFromActivityAmount,0)+coalesce(actualWorkOrderMaterialCostFromActivityAmount,0)+coalesce(actualWorkOrderServiceCostFromActivityAmount,0) else 0 end")).over(w)) \
-    .withColumn("preventiveMaintenanceWorkOrderFinishedCount",sum(expr("case when WorkTypeCode = 'PM' and workOrderStatusDescription in ('CLOSE','COMP','FINISHED') and workOrderChildIndicator = 'NO' then 1 else 0 end")).over(w)) \
-    .withColumn("correctiveMaintenanceWorkOrderFinishedCount",sum(expr("case when WorkTypeCode = 'CM' and workOrderStatusDescription in ('CLOSE','COMP','FINISHED') then 1 else 0 end")).over(w)) \
-    .withColumn("breakdownMaintenanceWorkOrderFailedLengthValue",sum(expr("case when WorkTypeCode = 'BM' and externalStatusCode in ('CAN', 'CANDUP', 'DRAFT') then assetNetworkLengthPerKilometerValue else 0 end")).over(w))
-
-    df = df.withColumn("etl_key",concat_ws('|',df.assetSK,df.assetLocationFK,df.workOrderTrendDate))
+    df = df.na.drop(subset=["assetFK"]) \
+        .withColumn("etl_key",concat_ws('|',df.assetFK,df.assetLocationFK,df.snapshotDate, df.assetPerformanceMeasureName))
 
     _.Transforms = [
         f"etl_key {BK}"
-        ,"assetSK assetFK"
-        ,"assetLocationSK assetLocationFK"
-        ,"workOrderTrendDate"
-        ,"breakdownMaintenanceWorkOrderTotalRepairHourQuantity"
-        ,"breakdownMaintenanceTotalWorkOrderCount"
-        ,"compliantBreakdownMaintenanceWorkOrderCount"
-        ,"breakdownMaintenanceWorkOrderTotalTargetHour"
-        ,"preventiveMaintenanceWorkOrderTotalCount"
-        ,"breakdownMaintenanceTotalWorkOrderRaisedCount"
-        ,"breakdownMaintenanceWorkOrderTotalCostAmount"
-        ,"correctiveMaintenanceWorkOrderTotalCostAmount"
-        ,"preventiveMaintenanceWorkOrderTotalCostAmount"
-        ,"preventiveMaintenanceWorkOrderFinishedCount"
-        ,"correctiveMaintenanceWorkOrderFinishedCount"
-        ,"breakdownMaintenanceWorkOrderFailedLengthValue"
-        ,"workOrderTrendDate snapshotDate"
-       
+        ,"assetFK"
+        ,"assetLocationFK"
+        ,"snapshotDate"
+        ,"assetPerformanceMeasureName"
+        ,"assetPerformanceMeasureValue"
     ]
     df = df.selectExpr(
         _.Transforms
@@ -79,11 +413,11 @@ def Transform():
 
     # ------------- SAVE ------------------- #
     # display(df)
-    # print(df.count())
     Save(df)
     #DisplaySelf()
 pass
 Transform()
 
+# COMMAND ----------
 
 

@@ -13,7 +13,7 @@ TARGET = DEFAULT_TARGET
 
 # COMMAND ----------
 
-CleanSelf()
+# CleanSelf()
 
 # COMMAND ----------
 
@@ -169,9 +169,6 @@ def Transform():
 pass
 Transform()
 
-# COMMAND ----------
-
-spark.sql(f"""create or replace view {get_table_namespace('curated', 'dimasset')} AS (select * from {get_table_namespace('curated', 'dimAsset')})""")
 
 # COMMAND ----------
 

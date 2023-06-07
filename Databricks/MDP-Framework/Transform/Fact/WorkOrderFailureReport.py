@@ -17,21 +17,19 @@ def Transform():
     global df
     # ------------- TABLES ----------------- #
     df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'maximo_failurereport')}")
-    asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetNumber","assetSK","sourcevalidFromTimestamp","sourcevalidToTimestamp")
-    factworkorder_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factWorkOrder')}").select("workOrderCreationId","workOrderSK","workOrderChangeTimestamp")
+    factworkorder_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factWorkOrder')}").select("workOrderCreationId","workOrderSK","assetFK","workOrderChangeTimestamp")
     failureCode_df = GetTable(get_table_name(f"{SOURCE}","maximo","failureCode")).select("failureCode",col("description").alias("failureDescription"))
     
     # ------------- JOINS ------------------ #
     df = df.join(failureCode_df,"failureCode", "left") \
-    .join(factworkorder_df,df.workOrder == factworkorder_df.workOrderCreationId,"inner") \
-    .join(asset_df,(df.asset == asset_df.assetSK) & (factworkorder_df.workOrderChangeTimestamp.between(asset_df.sourcevalidFromTimestamp,asset_df.sourcevalidToTimestamp )),"left")
+    .join(factworkorder_df,df.workOrder == factworkorder_df.workOrderCreationId,"inner") 
    
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
         f"failureReportId||'|'||workOrderChangeTimestamp {BK}"
         ,"failureReportId workOrderFailureReportId"
         ,"workOrderChangeTimestamp workOrderFailureReportChangeTimestamp"
-        ,"assetSK assetFK"
+        ,"assetFK"
         ,"workOrderSK workOrderFK"
         ,"ticket workOrderFailureReportTicketIdentifier"
         ,"ticketClass workOrderFailureReportTicketClass"
@@ -63,9 +61,7 @@ Transform()
 
 # COMMAND ----------
 
-spark.sql(
-    f"""create or replace view  {get_table_namespace('curated', 'factworkOrderfailurereport')} as (select * from {get_table_namespace('curated', 'factWorkOrderFailureReport')})
-    """)
+
 
 # COMMAND ----------
 

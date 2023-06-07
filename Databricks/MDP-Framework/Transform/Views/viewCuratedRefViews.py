@@ -38,20 +38,6 @@ where mapTypeCode = 'Service Category'
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewRefAssetPerformanceServiceType')} AS
-(
-   select 
-lookup1Code as serviceTypeCode,
-return1Code as serviceTypeGroup
-from {get_table_namespace(f'{DEFAULT_TARGET}', 'refreportconfiguration')}
-where mapTypeCode = 'Service Category'
-)
-""")
-
-
-# COMMAND ----------
-
-spark.sql(f"""
 CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewRefAssetPerformanceWorkType')} AS
 (
    select 

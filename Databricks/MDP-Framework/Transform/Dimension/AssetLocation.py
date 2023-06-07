@@ -57,7 +57,7 @@ def Transform():
         ,"status assetLocationStatusDescription"
         ,"statusDate assetLocationStatusTimestamp"
         ,"masteredInGis assetLocationMasteredInGISIndicator"
-        ,"level assetLocationPrimaryHierarchyLevelCode"
+        ,"locoperLevel assetLocationPrimaryHierarchyLevelCode"
         ,"maintenanceStrategy assetMaintenanceStrategyCode"
         ,"allowableDowntimeHrs assetLocationMaxDowntimeAllowableHourQuantity"
         ,"operationalArea assetLocationOperationalAreaCode"
@@ -100,16 +100,6 @@ Transform()
 
 # MAGIC %sql
 # MAGIC select count(1),assetLocationSK from {get_table_namespace('curated', 'dimassetlocation')} GROUP BY assetLocationSK having count(1) >1
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC drop view if exists {get_table_namespace('curated', 'dimassetlocation')}
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC create or replace view {get_table_namespace('curated', 'dimassetlocation')} As (select * from {get_table_namespace('curated', 'dimassetlocation')})
 
 # COMMAND ----------
 

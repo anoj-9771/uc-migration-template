@@ -5,7 +5,6 @@
 
 table_list = [
 'dimAssetContract'
-,'dimAssetLocationAncestor'
 ,'dimAssetLocation'
 ,'dimAssetMeter'
 ,'dimAssetSpec'
@@ -30,6 +29,12 @@ for table in table_list:
         print(f"*******VIEW Creation FAIL {new_table_namespace} Error: {e}")
         pass
   
+
+# COMMAND ----------
+
+spark.sql(
+    f"""create or replace view  {get_table_namespace('curated', 'viewdimAssetLocationAncestor')} as (select * from {get_table_namespace('curated', 'dimAssetLocationAncestor')} where _recordCurrent = 1 and sourceRecordCurrent = 1)
+    """)
 
 # COMMAND ----------
 

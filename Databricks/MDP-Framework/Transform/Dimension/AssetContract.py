@@ -94,15 +94,4 @@ Transform()
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC drop view if exists {get_table_namespace('curated', 'dimAssetContract')}
-
-# COMMAND ----------
-
-spark.sql(f"""
-          create or replace view {get_table_namespace('curated', 'dimAssetContract')} As (select * from {get_table_namespace('curated', 'dimAssetContract')})
-          """)
-
-# COMMAND ----------
-
 

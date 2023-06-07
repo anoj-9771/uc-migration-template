@@ -1,16 +1,12 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-helpers
-
-# COMMAND ----------
-
 # MAGIC %run ../../Common/common-transform
 
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewAncestorLocationHierarchyPivot')} AS
+CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewDimAssetLocationAncestorHierarchyPivot')} AS
 (
-    SELECT
+   SELECT
     assetLocationIdentifier,
     assetLocationFK,
     assetLocationAncestorHierarchySystemName,
@@ -39,7 +35,11 @@ CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewAncestorLo
     assetLocationAncestorLevel90Name,
     assetLocationAncestorLevel90Description,
     assetLocationAncestorLevel93Name,
-    assetLocationAncestorLevel93Description
+    assetLocationAncestorLevel93Description,
+    assetLocationAncestorLevel95Name,
+    assetLocationAncestorLevel95Description,
+    assetLocationAncestorLevel97Name,
+    assetLocationAncestorLevel97Description    
     FROM 
     (
     select 
@@ -123,7 +123,19 @@ CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewAncestorLo
     ) as assetLocationAncestorLevel93Name,    
     max(case
     when assetLocationAncestorLevelCode = 93 then assetLocationAncestorDescription end
-    ) as assetLocationAncestorLevel93Description
+    ) as assetLocationAncestorLevel93Description,
+    max(case
+    when assetLocationAncestorLevelCode = 95 then assetLocationAncestorName end
+    ) as assetLocationAncestorLevel95Name,    
+    max(case
+    when assetLocationAncestorLevelCode = 95 then assetLocationAncestorDescription end
+    ) as assetLocationAncestorLevel95Description,
+    max(case
+    when assetLocationAncestorLevelCode = 97 then assetLocationAncestorName end
+    ) as assetLocationAncestorLevel97Name,    
+    max(case
+    when assetLocationAncestorLevelCode = 97 then assetLocationAncestorDescription end
+    ) as assetLocationAncestorLevel97Description          
     from {get_table_namespace(f'{DEFAULT_TARGET}', 'dimAssetLocationAncestor')}
     where sourceRecordCurrent = 1
     group by assetLocationIdentifier, assetLocationFK, assetLocationAncestorHierarchySystemName
@@ -133,10 +145,4 @@ CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewAncestorLo
 
 
 # COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from  {get_table_namespace('curated', 'viewAncestorLocationHierarchyPivot')} limit 10
-
-# COMMAND ----------
-
 
