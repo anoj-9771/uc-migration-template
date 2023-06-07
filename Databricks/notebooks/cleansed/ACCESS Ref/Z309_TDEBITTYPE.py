@@ -220,10 +220,9 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 # COMMAND ----------
 
 # DBTITLE 1,The framework doesn't allow allocation of SKs to null keys. So, now the table exists, change na to null
-# MAGIC %sql
-# MAGIC update {ADS_DATABASE_CLEANSED}.access.z309_tdebittype
-# MAGIC set debitTypeCode = Null 
-# MAGIC where debitTypecode = 'na'
+spark.sql(f"""update {ADS_DATABASE_CLEANSED}.access.z309_tdebittype
+ set debitTypeCode = Null 
+ where debitTypecode = 'na'""")
 
 # COMMAND ----------
 

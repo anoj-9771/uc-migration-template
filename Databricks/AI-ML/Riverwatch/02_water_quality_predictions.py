@@ -22,6 +22,10 @@ print(CURRENT_MODEL_RUNTIME)
 
 # COMMAND ----------
 
+# MAGIC %run /build/includes/global-variables-python
+
+# COMMAND ----------
+
 # MAGIC %md # Load model
 
 # COMMAND ----------
@@ -44,7 +48,7 @@ loaded_model = mlflow.pyfunc.spark_udf(spark, model_uri=logged_model, env_manage
 # COMMAND ----------
 
 # # ----------------------- input data---------------------------
-df_up_water_quality_features = (spark.table("cleansed.urbanplunge_water_quality_features")
+df_up_water_quality_features = (spark.table(f"{ADS_DATABASE_CLEANSED}.urbanplunge.water_quality_features")
                                 .drop("_DLCleansedZoneTimeStamp")
                                 .dropDuplicates()
                                )
@@ -94,9 +98,13 @@ display(df_water_quality_prediction)
 
 # COMMAND ----------
 
+spark.conf.set("c.catalog_name", ADS_DATABASE_CLEANSED)
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC -- Create urbanplunge_water_quality_predictions table in cleansed layer
-# MAGIC CREATE TABLE IF NOT EXISTS cleansed.urbanplunge_water_quality_predictions
+# MAGIC CREATE TABLE IF NOT EXISTS ${c.catalog_name}.urbanplunge.water_quality_predictions
 # MAGIC (locationId INT,
 # MAGIC siteName STRING,
 # MAGIC timestamp TIMESTAMP,
@@ -105,8 +113,7 @@ display(df_water_quality_prediction)
 # MAGIC _DLCleansedZoneTimeStamp TIMESTAMP
 # MAGIC )
 # MAGIC USING DELTA 
-# MAGIC LOCATION 'dbfs:/mnt/datalake-cleansed/urbanplunge/urbanplunge_water_quality_predictions'
 
 # COMMAND ----------
 
-df_water_quality_prediction.write.mode("append").insertInto('cleansed.urbanplunge_water_quality_predictions')
+df_water_quality_prediction.write.mode("append").insertInto(f"{spark.conf.get('c.catalog_name')}.urbanplunge.water_quality_predictions")

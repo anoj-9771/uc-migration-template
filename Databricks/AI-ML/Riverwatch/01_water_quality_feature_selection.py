@@ -13,6 +13,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run /build/includes/util-general
+
+# COMMAND ----------
+
 dbutils.widgets.text(name="current_model_runtime", defaultValue="2022-02-10T08:33:00.000", label="current_model_runtime")
 dbutils.widgets.text(name="last_model_runtime", defaultValue="2022-02-09T08:00:00.000", label="last_model_runtime")
 
@@ -36,45 +40,50 @@ print(CURRENT_MODEL_RUNTIME)
 
 # COMMAND ----------
 
-table_names_in_cleansed_db = [t.name for t in spark.catalog.listTables("cleansed")]
-table_names_in_datalab_db = [t.name for t in spark.catalog.listTables("datalab")]
+# table_names_in_cleansed_db = [t.name for t in spark.catalog.listTables("cleansed")]
+# table_names_in_datalab_db = [t.name for t in spark.catalog.listTables("datalab")]
 
 
 #----- Load IICATS Hierarchy Configuration table -----
-if "iicats_hierarchy_cnfgn" in table_names_in_cleansed_db:
-    df_hierarchy_cnfgn = spark.table("cleansed.iicats_hierarchy_cnfgn").alias("hcnfg")
+# if "iicats_hierarchy_cnfgn" in table_names_in_cleansed_db:
+if TableExists(f"{ADS_DATABASE_CLEANSED}.iicats.hierarchy_cnfgn")
+    df_hierarchy_cnfgn = spark.table(f"{ADS_DATABASE_CLEANSED}.iicats_hierarchy_cnfgn").alias("hcnfg")
     print("IICATS Hierarchy Config loaded from cleansed")
 else:
     print("Cleansed tables for IICATS Hierarchy Config do not exist.")
 
     
 #----- Load IICATS TSV Point Configuration table -----    
-if "iicats_tsv_point_cnfgn" in table_names_in_cleansed_db:
-    df_time_series_values_cnfgn = spark.table("cleansed.iicats_tsv_point_cnfgn").alias("tsvptcnfg")
+# if "iicats_tsv_point_cnfgn" in table_names_in_cleansed_db:
+if TableExists(f"{ADS_DATABASE_CLEANSED}.iicats.tsv_point_cnfgn")
+    df_time_series_values_cnfgn = spark.table(f"{ADS_DATABASE_CLEANSED}.iicats.tsv_point_cnfgn").alias("tsvptcnfg")
     print("IICATS TSV Point Config loaded from cleansed")
 else:
     print("Cleansed tables for IICATS TSV Config do not exist.")
     
     
 #----- Load IICATS TSV table -----        
-if "iicats_tsv" in table_names_in_cleansed_db:
-    df_time_series_values = spark.table("cleansed.iicats_tsv").alias("tsv")
+# if "iicats_tsv" in table_names_in_cleansed_db:
+if TableExists(f"{ADS_DATABASE_CLEANSED}.iicats.tsv")
+    df_time_series_values = spark.table(f"{ADS_DATABASE_CLEANSED}.iicats.tsv").alias("tsv")
     print("IICATS TSV loaded from cleansed")
 else:
     print("Cleansed tables for IICATS TSV do not exist.")
     
     
 #----- Load BoM Daily Weather Observations - Sydney Airport -----        
-if "bom_dailyweatherobservation_sydneyairport" in table_names_in_cleansed_db:
-    df_sun = spark.table("cleansed.bom_dailyweatherobservation_sydneyairport")
+# if "bom_dailyweatherobservation_sydneyairport" in table_names_in_cleansed_db:
+if TableExists(f"{ADS_DATABASE_CLEANSED}.bom.dailyweatherobservation_sydneyairport")
+    df_sun = spark.table(f"{ADS_DATABASE_CLEANSED}.bom.dailyweatherobservation_sydneyairport")
     print("BoM Weather Observations loaded from cleansed")
 else:
     print("Cleansed table for BoM Daily Weather Observation does not exist.")     
     
     
 #----- Load BoM Daily Climate Data - Sydney Airport -----        
-if "bom_dailyclimatedata_sydneyairport" in table_names_in_cleansed_db:
-    df_solar = spark.table("cleansed.bom_dailyclimatedata_sydneyairport")
+# if "bom_dailyclimatedata_sydneyairport" in table_names_in_cleansed_db:
+if TableExists(f"{ADS_DATABASE_CLEANSED}.bom.dailyclimatedata_sydneyairport")
+    df_solar = spark.table(f"{ADS_DATABASE_CLEANSED}.bom.dailyclimatedata_sydneyairport")
     print("BoM Climate Data loaded from cleansed")
 else:
     schema = StructType([
@@ -674,9 +683,13 @@ infer_input_cato= (model_realtime_input
 
 # COMMAND ----------
 
+spark.conf.set("c.catalog_name", ADS_DATABASE_CLEANSED)
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC -- Create urbanplunge_water_quality_predictions table in cleansed layer
-# MAGIC CREATE TABLE IF NOT EXISTS cleansed.urbanplunge_water_quality_features
+# MAGIC CREATE TABLE IF NOT EXISTS ${c.catalog_name}.urbanplunge.water_quality_features
 # MAGIC (
 # MAGIC locationId INT,
 # MAGIC siteName STRING,
@@ -704,11 +717,10 @@ infer_input_cato= (model_realtime_input
 # MAGIC _DLCleansedZoneTimeStamp TIMESTAMP
 # MAGIC )
 # MAGIC USING DELTA 
-# MAGIC LOCATION 'dbfs:/mnt/datalake-cleansed/urbanplunge/urbanplunge_water_quality_features'
 # MAGIC
 # MAGIC -- df_model_output.write.mode("append").insertInto('cleansed.urbanplunge_water_quality_predictions')
 
 # COMMAND ----------
 
 # #data inserted to the video metadata table
-infer_input_cato.write.mode("append").insertInto('cleansed.urbanplunge_water_quality_features')
+infer_input_cato.write.mode("append").insertInto(f"{spark.conf.get('c.catalog_name')}.urbanplunge.water_quality_features")

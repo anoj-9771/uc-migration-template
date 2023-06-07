@@ -246,15 +246,15 @@ def runQuery(table, source):
             a._RecordDeleted, \
             a._RecordCurrent \
         FROM {table} a \
-             left outer join CLEANSED.access_Z309_TMeterType b on b.meterTypeCode = a.C_METE_TYPE \
+             left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMeterType b on b.meterTypeCode = a.C_METE_TYPE \
              left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETEREADFREQ ref2 on a.C_METE_READ_FREQ = ref2.meterReadingFrequencyCode \
              left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERGRIDLOCA ref3 on a.C_METE_GRID_LOCA = ref3.meterGridLocationCode \
              left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETEREADINST ref4 on a.C_READ_INST_NUM1 = ref4.meterReadingInstructionCode \
              left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETEREADINST ref5 on a.C_READ_INST_NUM2 = ref5.meterReadingInstructionCode \
              left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERCHANGEREAS ref6 on a.C_METE_CHAN_REAS = ref6.meterExchangeReasonCode \
-             left outer join CLEANSED.access_Z309_TMeterClass c on c.meterClassCode = a.C_METE_CLAS \
-             left outer join CLEANSED.access_Z309_TMeterCategory d on d.meterCategoryCode = a.C_METE_CATE \
-             left outer join CLEANSED.access_Z309_TMeterGroup e on e.meterGroupCode = a.C_METE_GROU \
+             left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMeterClass c on c.meterClassCode = a.C_METE_CLAS \
+             left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMeterCategory d on d.meterCategoryCode = a.C_METE_CATE \
+             left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMeterGroup e on e.meterGroupCode = a.C_METE_GROU \
              left outer join {ADS_DATABASE_CLEANSED}.access.Z309_TMETERGRIDLOCA ref10 on a.C_METE_READ_LOCA = ref10.meterGridLocationCode \
              ")
     
@@ -370,20 +370,6 @@ df_cleansed = df_cleansed.drop('rn')
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * 
-# MAGIC from BIComplement
-# MAGIC where propertyNumber = 5568937
-
-# COMMAND ----------
-
-# %sql
-# select *
-# from mtr
-# where propertyNumber = 3100078
-
-# COMMAND ----------
-
 # print('Current Data:',df_current.count())
 # print('BI Data:',df_BI_data.count())
 # print('BI complement:',df_BI_complement.count())
@@ -445,11 +431,6 @@ newSchema = StructType([
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select count(*) from {ADS_DATABASE_CLEANSED}.access.Z309_TPROPMETER where dataSource = 'BI'
 
 # COMMAND ----------
 

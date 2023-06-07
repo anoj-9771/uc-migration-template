@@ -409,20 +409,18 @@ TemplateEtlSCD(df_, entity="dim.property", businessKey="propertyNumber", schema=
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC with t1 as (select cp.propertyNumber, waterNetworkSK_drinkingWater, waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK 
-# MAGIC             from   {ADS_DATABASE_CURATED}.dim.property p,
-# MAGIC                    curated.ACCESSCancelledActiveProps cp
-# MAGIC             where  p.propertyNumber = cp.activeProperty and p._RecordCurrent = 1)
-# MAGIC
-# MAGIC merge into {ADS_DATABASE_CURATED}.dim.property p
-# MAGIC using      t1
-# MAGIC on         p.propertyNumber = t1.propertyNumber and p._RecordCurrent = 1
-# MAGIC when matched then update 
-# MAGIC              set p.waterNetworkSK_drinkingWater = t1.waterNetworkSK_drinkingWater,
-# MAGIC                  p.waterNetworkSK_recycledWater = t1.waterNetworkSK_recycledWater,
-# MAGIC                  p.sewerNetworkSK = t1.sewerNetworkSK,
-# MAGIC                  p.stormWaterNetworkSK = t1.stormWaterNetworkSK
+spark.sql(f"""with t1 as (select cp.propertyNumber, waterNetworkSK_drinkingWater, waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK 
+             from   {ADS_DATABASE_CURATED}.dim.property p,
+                    curated.ACCESSCancelledActiveProps cp
+             where  p.propertyNumber = cp.activeProperty and p._RecordCurrent = 1)
+         merge into {ADS_DATABASE_CURATED}.dim.property p
+         using      t1
+         on         p.propertyNumber = t1.propertyNumber and p._RecordCurrent = 1
+         when matched then update 
+              set p.waterNetworkSK_drinkingWater = t1.waterNetworkSK_drinkingWater,
+                  p.waterNetworkSK_recycledWater = t1.waterNetworkSK_recycledWater,
+                  p.sewerNetworkSK = t1.sewerNetworkSK,
+                  p.stormWaterNetworkSK = t1.stormWaterNetworkSK""")
 
 # COMMAND ----------
 

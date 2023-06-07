@@ -150,6 +150,15 @@ def get_table_name(table_name):
   except Exception as e:
       return f"{source_system}_{table}"
 
+# COMMAND ----------
+
+def TableExists(tableFqn):
+    return (
+        spark.sql(f"show tables in {'.'.join(tableFqn.split('.')[:-1])} like '{tableFqn.split('.')[-1]}'").count() == 1
+    )
+
+# COMMAND ----------
+
 def GeneralAlignTableName(table_name):
   import re
   

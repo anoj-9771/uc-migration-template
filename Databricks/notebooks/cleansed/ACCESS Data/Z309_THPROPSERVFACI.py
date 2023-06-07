@@ -244,11 +244,5 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * 
-# MAGIC from   {ADS_DATABASE_CLEANSED}.access.Z309_THPROPSERVFACI
-
-# COMMAND ----------
-
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")

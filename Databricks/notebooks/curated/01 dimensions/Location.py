@@ -314,17 +314,15 @@ TemplateEtlSCD(df_, entity="dim.location", businessKey="locationId", schema=sche
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC with t1 as (select cp.propertyNumber, LGA
-# MAGIC             from   {ADS_DATABASE_CURATED}.dim.location l,
-# MAGIC                    curated.ACCESSCancelledActiveProps cp
-# MAGIC             where  l.locationId = cp.activeProperty and l._RecordCurrent = 1)
-# MAGIC
-# MAGIC merge into {ADS_DATABASE_CURATED}.dim.location l
-# MAGIC using      t1
-# MAGIC on         l.locationId = t1.propertyNumber and l._RecordCurrent = 1
-# MAGIC when matched then update 
-# MAGIC              set l.LGA = t1.LGA
+spark.sql(f"""with t1 as (select cp.propertyNumber, LGA
+             from   {ADS_DATABASE_CURATED}.dim.location l,
+                    curated.ACCESSCancelledActiveProps cp
+             where  l.locationId = cp.activeProperty and l._RecordCurrent = 1)
+             merge into {ADS_DATABASE_CURATED}.dim.location l
+             using      t1
+             on         l.locationId = t1.propertyNumber and l._RecordCurrent = 1
+             when matched then update 
+             set l.LGA = t1.LGA""")
 
 # COMMAND ----------
 

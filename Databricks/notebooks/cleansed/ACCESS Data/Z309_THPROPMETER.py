@@ -312,24 +312,22 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select count(*) from {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter pm 
-# MAGIC where exists (select 1 from {ADS_DATABASE_CLEANSED}.access.z309_thpropmeter hpm 
-# MAGIC               where pm.propertyNumber = hpm.propertyNumber 
-# MAGIC               and pm.propertyMeterNumber = hpm.propertyMeterNumber 
-# MAGIC               and pm.meterMakerNumber = hpm.meterMakerNumber)
-# MAGIC and pm.dataSource = 'BI'
+spark.sql(f"""select count(*) from {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter pm 
+ where exists (select 1 from {ADS_DATABASE_CLEANSED}.access.z309_thpropmeter hpm 
+               where pm.propertyNumber = hpm.propertyNumber 
+               and pm.propertyMeterNumber = hpm.propertyMeterNumber 
+               and pm.meterMakerNumber = hpm.meterMakerNumber)
+ and pm.dataSource = 'BI'""")
 
 # COMMAND ----------
 
 # DBTITLE 1,TPropMeter contains rows from BI but we only want to keep these where there are no meter details in ACCESS
-# MAGIC %sql
-# MAGIC delete from {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter pm 
-# MAGIC where exists (select 1 from {ADS_DATABASE_CLEANSED}.access.z309_thpropmeter hpm 
-# MAGIC               where pm.propertyNumber = hpm.propertyNumber 
-# MAGIC               and pm.propertyMeterNumber = hpm.propertyMeterNumber 
-# MAGIC               and pm.meterMakerNumber = hpm.meterMakerNumber)
-# MAGIC and pm.dataSource = 'BI'
+spark.sql(f"""delete from {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter pm 
+ where exists (select 1 from {ADS_DATABASE_CLEANSED}.access.z309_thpropmeter hpm 
+               where pm.propertyNumber = hpm.propertyNumber 
+               and pm.propertyMeterNumber = hpm.propertyMeterNumber 
+               and pm.meterMakerNumber = hpm.meterMakerNumber)
+ and pm.dataSource = 'BI'""")
 
 # COMMAND ----------
 
@@ -338,11 +336,5 @@ dbutils.notebook.exit("1")
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * 
-# MAGIC from {ADS_DATABASE_CLEANSED}.access.Z309_thpropmeter
-# MAGIC where propertyNumber = 5568937
-
-# COMMAND ----------
 
 

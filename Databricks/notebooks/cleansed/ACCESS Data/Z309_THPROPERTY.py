@@ -163,11 +163,6 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC -- drop table stage.access_z309_thproperty
-
-# COMMAND ----------
-
 # DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
 #This method uses the source table to load data into target Delta Table
 DeltaSaveToDeltaTable_Access (

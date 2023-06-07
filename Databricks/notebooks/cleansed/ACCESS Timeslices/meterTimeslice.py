@@ -8,6 +8,10 @@
 
 # COMMAND ----------
 
+spark.conf.set("c.catalog_name", ADS_DATABASE_CLEANSED)
+
+# COMMAND ----------
+
 # df = spark.sql("select distinct 'C' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, \
 #                              meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, waterMeterType, propertyMeterUpdatedDate, \
 #                              row_number() over (partition by propertyNumber, propertyMeterNumber, metermakernumber order by meterRemovedDate nulls first) as rn \
@@ -283,27 +287,6 @@ dbutils.notebook.exit('0')
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select *
-# MAGIC from ts
-# MAGIC where propertyNumber = 4995495
-# MAGIC order by propertyNumber, meterMakerNumber, validFrom
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC show create table datalab.view_devicecharacteristic
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select *
-# MAGIC from cleansed.meterTimesliceACCESS
-# MAGIC where propertyNumber = 3230020
-# MAGIC and propertyMeterNumber = 1
-
-# COMMAND ----------
-
-# MAGIC %sql
 # MAGIC --> new code 14/10/22 <--
 # MAGIC             with t0 as (select cast(3130313 as int) as propertyNumber, cast(1 as int) as propertyMeterNumber),
 # MAGIC                   history as( 
@@ -312,11 +295,11 @@ dbutils.notebook.exit('0')
 # MAGIC                               hpm.meterMakerNumber, hpm.meterClass, hpm.meterCategory, hpm.meterGroup, hpm.isMasterMeter, hpm.isCheckMeter, hpm.waterMeterType, hpm.propertyMeterUpdatedDate, hpm.rowSupersededDate,
 # MAGIC                               row_number() over (partition by hpm.propertyNumber, hpm.propertyMeterNumber, hpm.meterSize, hpm.meterFittedDate, hpm.meterMakerNumber, 
 # MAGIC                               hpm.meterClass, hpm.meterCategory, hpm.meterGroup, hpm.isMasterMeter, hpm.isCheckMeter, hpm.waterMeterType, hpm.rowSupersededDate order by hpm.rowSupersededTime desc) as rn_latestUpdate 
-# MAGIC                       FROM {ADS_DATABASE_CLEANSED}.access.z309_thpropmeter_cleansed hpm, t0 
-# MAGIC                            left outer join {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter_cleansed pm on hpm.propertyNumber = pm.propertyNumber and hpm.propertyMeterNumber = pm.propertyMeterNumber and hpm.meterMakerNumber = pm.meterMakerNumber 
+# MAGIC                       FROM ${c.catalog_name}.access.z309_thpropmeter_cleansed hpm, t0 
+# MAGIC                            left outer join ${c.catalog_name}.access.z309_tpropmeter_cleansed pm on hpm.propertyNumber = pm.propertyNumber and hpm.propertyMeterNumber = pm.propertyMeterNumber and hpm.meterMakerNumber = pm.meterMakerNumber 
 # MAGIC                                            --and pm.meterRemovedDate is not null 
 # MAGIC --                       where exists (select 1 
-# MAGIC --                                     from {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter_cleansed pm 
+# MAGIC --                                     from ${c.catalog_name}.access.z309_tpropmeter_cleansed pm 
 # MAGIC --                                     where pm.propertyNumber = hpm.propertyNumber and pm.propertyMeterNumber = hpm.propertyMeterNumber and pm.meterMakerNumber = hpm.meterMakerNumber) 
 # MAGIC                       where hpm.propertyNumber = t0.propertyNumber
 # MAGIC                       and   hpm.propertyMeterNumber = t0.propertyMeterNumber
@@ -324,20 +307,20 @@ dbutils.notebook.exit('0')
 # MAGIC --                  metersFitted as(
 # MAGIC --                      select propertyNumber, propertyMeterNumber, meterMakerNumber, meterFittedDate
 # MAGIC --                      from   (select distinct propertyNumber, propertyMeterNumber, meterMakerNumber, meterFittedDate, 1 as rnk
-# MAGIC --                              from   {ADS_DATABASE_CLEANSED}.access.Z309_tpropmeter_cleansed
+# MAGIC --                              from   ${c.catalog_name}.access.Z309_tpropmeter_cleansed
 # MAGIC --                              union all
 # MAGIC --                              select distinct propertyNumber, propertyMeterNumber, meterMakerNumber, meterFittedDate, 2 as rnk
-# MAGIC --                              from   {ADS_DATABASE_CLEANSED}.access.Z309_tpropmeter_cleansed
+# MAGIC --                              from   ${c.catalog_name}.access.Z309_tpropmeter_cleansed
 # MAGIC --                              ) as t
 # MAGIC --                      ),
 # MAGIC                  nextMeterFitted as(
 # MAGIC                      select distinct propertyNumber, propertyMeterNumber, meterMakerNumber, meterFittedDate,
 # MAGIC                             max(meterFittedDate) over (partition by propertyNumber, propertyMeterNumber order by meterFittedDate rows between 1 following and 1 following) as nextMeterFitted
 # MAGIC                      from   (select propertyNumber, propertyMeterNumber, meterMakerNumber, meterFittedDate
-# MAGIC                              from   {ADS_DATABASE_CLEANSED}.access.Z309_thpropmeter_cleansed
+# MAGIC                              from   ${c.catalog_name}.access.Z309_thpropmeter_cleansed
 # MAGIC                              union all
 # MAGIC                              select propertyNumber, propertyMeterNumber, meterMakerNumber, meterFittedDate
-# MAGIC                              from   {ADS_DATABASE_CLEANSED}.access.Z309_tpropmeter_cleansed
+# MAGIC                              from   ${c.catalog_name}.access.Z309_tpropmeter_cleansed
 # MAGIC                              ) as t
 # MAGIC                      ),
 # MAGIC                  bestRemovalDates as(
@@ -350,7 +333,7 @@ dbutils.notebook.exit('0')
 # MAGIC                                                                                               and   b.meterMakerNumber = a.meterMakerNumber)) as newMeterRemovedDate
 # MAGIC                       from   history a, nextMeterFitted mf
 # MAGIC                       where  not exists (select 1 
-# MAGIC                                          from   {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter_cleansed pm
+# MAGIC                                          from   ${c.catalog_name}.access.z309_tpropmeter_cleansed pm
 # MAGIC                                          where  pm.propertyNumber = a.propertyNumber
 # MAGIC                                          and    pm.propertyMeterNumber = a.propertyMeterNumber
 # MAGIC                                          and    pm.meterMakerNumber = a.meterMakerNumber)
@@ -363,7 +346,7 @@ dbutils.notebook.exit('0')
 # MAGIC                              if(dataSource = 'BI',coalesce(meterRemovedDate,mf.nextMeterFitted,to_date('2018-06-15')),meterRemovedDate) as meterRemovedDate, 
 # MAGIC                              pm.meterMakerNumber, meterClass, meterCategory, meterGroup, isMasterMeter, isCheckMeter, waterMeterType, propertyMeterUpdatedDate,
 # MAGIC                              row_number() over (partition by pm.propertyNumber, pm.propertyMeterNumber, pm.meterFittedDate order by dataSource) as rn_source
-# MAGIC                       from   {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter_cleansed pm,
+# MAGIC                       from   ${c.catalog_name}.access.z309_tpropmeter_cleansed pm,
 # MAGIC                              nextMeterFitted mf, t0
 # MAGIC                       where  pm.propertyNumber = t0.propertyNumber
 # MAGIC                       and    pm.propertyMeterNumber = t0.propertyMeterNumber
@@ -489,7 +472,7 @@ dbutils.notebook.exit('0')
 
 # MAGIC %sql
 # MAGIC select meterMakerNumber, dataSource, meterFittedDate, meterRemovedDate, lead(meterfittedDate,1) over (partition by propertyNumber, propertyMeterNumber order by meterFittedDate) as leads --meterMakerNumber, meterfittedDate, meterRemovedDate, propertyMeterUpdatedDate 
-# MAGIC from   {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter
+# MAGIC from   ${c.catalog_name}.access.z309_tpropmeter
 # MAGIC where  propertyNumber = 3230020
 # MAGIC and    propertyMeterNumber = 1
 
@@ -602,7 +585,7 @@ with t1 as(
 
 # MAGIC %sql
 # MAGIC select mr.*, mts.meterMakerNumber, mts.meterFittedDate
-# MAGIC from   {ADS_DATABASE_CLEANSED}.access.z309_tmeterreading mr left outer join cleansed.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber 
+# MAGIC from   ${c.catalog_name}.access.z309_tmeterreading mr left outer join cleansed.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber 
 # MAGIC                                                                                                and mts.propertyMeterNumber = mr.propertyMeterNumber
 # MAGIC                                                                                                and mr.readingToDate between mts.validFrom and mts.validTo
 # MAGIC                                                                                                and mr.readingToDate != mts.validFrom
@@ -615,7 +598,7 @@ with t1 as(
 
 # MAGIC %sql
 # MAGIC select * 
-# MAGIC from {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter_cleansed
+# MAGIC from ${c.catalog_name}.access.z309_tpropmeter_cleansed
 # MAGIC where propertyNumber = 4995495
 
 # COMMAND ----------
@@ -626,13 +609,13 @@ with t1 as(
 # MAGIC                   meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, propertyMeterUpdatedDate, 
 # MAGIC                   rank() over (partition by propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, metermakernumber, 
 # MAGIC                   meterClass, meterCategory, meterGroup, isCheckMeter, rowSupersededDate order by rowSupersededTime desc) as rnk 
-# MAGIC           FROM {ADS_DATABASE_CLEANSED}.access.Z309_thpropmeter_cleansed
+# MAGIC           FROM ${c.catalog_name}.access.Z309_thpropmeter_cleansed
 # MAGIC           where meterMakerNumber = 'DTED0028'
 # MAGIC           ),
 # MAGIC      t2 as(
 # MAGIC           select 'C' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
 # MAGIC                   meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, propertyMeterUpdatedDate
-# MAGIC           from {ADS_DATABASE_CLEANSED}.access.z309_tpropmeter_cleansed 
+# MAGIC           from ${c.catalog_name}.access.z309_tpropmeter_cleansed 
 # MAGIC           where meterMakerNumber = 'DTED0028'
 # MAGIC           union all
 # MAGIC           select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
@@ -705,7 +688,7 @@ with t1 as(
 # MAGIC %sql
 # MAGIC SELECT propertyNumber, propertyMeterNumber, rowSupersededDate, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory,  
 # MAGIC                   coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, propertyMeterUpdatedDate 
-# MAGIC            FROM {ADS_DATABASE_CLEANSED}.access.Z309_thpropmeter_cleansed
+# MAGIC            FROM ${c.catalog_name}.access.Z309_thpropmeter_cleansed
 # MAGIC            where meterMakerNumber = 'DTED0028'
 # MAGIC            order by propertyMeterUpdatedDate
 
@@ -717,7 +700,7 @@ with t1 as(
 # MAGIC                   coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, propertyMeterUpdatedDate, 
 # MAGIC                   --row_number() over (partition by propertyNumber, propertyMeterNumber, metermakernumber, meterfitteddate, meterClass, meterGroup, isCheckMeter, rowsupersededDate order by rowSupersededTime desc) as rn 
 # MAGIC                   rank() over (partition by propertyNumber, propertyMeterNumber, metermakernumber, meterfitteddate, meterClass, meterGroup, isCheckMeter order by rowsupersededDate desc) as rnk 
-# MAGIC            FROM {ADS_DATABASE_CLEANSED}.access.Z309_thpropmeter_cleansed
+# MAGIC            FROM ${c.catalog_name}.access.Z309_thpropmeter_cleansed
 # MAGIC            where meterMakerNumber = 'DTED0028'
 # MAGIC        )
 # MAGIC        select * from t1

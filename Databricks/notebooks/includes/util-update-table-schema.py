@@ -34,7 +34,7 @@ def lookup_curated_namespace(env:str, current_database_name: str, current_table_
         future_namespace['database_name'] = future_database_name
         future_namespace['table_name'] = future_table_name
     except Exception as e:
-        future_namespace['database_name'] = 'dim' if 'dim' in current_table_name else 'fact' if 'fact' in current_table_name else 'uncategorized'
+        future_namespace['database_name'] = 'dim' if 'dim' in current_table_name else 'fact' if 'fact' in current_table_name else 'bridge' if 'bridge' in current_table_name else 'uncategorized'
         future_namespace['table_name'] = current_table_name.replace('dim', '') if 'dim' in current_table_name else current_table_name.replace('fact', '') if 'fact' in current_table_name else current_table_name
         print (f'Warning! Issue occurred while looking up the future namespace for table: {current_database_name}.{current_table_name}')
     return future_namespace

@@ -90,9 +90,6 @@ def DeltaSaveDataframeDirect(dataframe, source_group, table_name, database_name,
   print("table_name_fq: "+table_name_fq)
     
   if is_uc():
-    query = "CREATE CATALOG IF NOT EXISTS {0}".format(table_name_fq.split('.')[0])
-    spark.sql(query)
-
     query = "CREATE SCHEMA IF NOT EXISTS {0}.{1}".format(table_name_fq.split('.')[0], table_name_fq.split('.')[1])
     spark.sql(query)
 
@@ -200,12 +197,6 @@ def DeltaCreateTableIfNotExists(delta_target_table, delta_source_table, data_lak
   partition_table = False
   
   if is_uc():
-  
-    catalog_name = delta_target_table.split(".")[0]
-    #Create catalog if it does not already exists
-    query = "CREATE CATALOG IF NOT EXISTS {0}".format(catalog_name)
-    spark.sql(query)
-
     schema_name = delta_target_table.split(".")[1]
     #Create schema if it does not already exists
     query = "CREATE SCHEMA IF NOT EXISTS {0}.{1}".format(catalog_name, schema_name)

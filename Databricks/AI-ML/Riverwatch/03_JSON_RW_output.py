@@ -24,6 +24,14 @@ dbutils.widgets.text(name="process_timestamp", defaultValue="2022-02-10 08:33:00
 
 # COMMAND ----------
 
+# MAGIC %run /build/includes/global-variables-python
+
+# COMMAND ----------
+
+# MAGIC %run /build/includes/util-general
+
+# COMMAND ----------
+
 def delete_multiple_element(outerlayer, indices):
     list_object=outerlayer['locations']
     indices = sorted(indices, reverse=True)
@@ -35,12 +43,12 @@ def delete_multiple_element(outerlayer, indices):
 # COMMAND ----------
 
 #---------1
-bom_weatherforecast_original = (spark.table("cleansed.bom_weatherforecast")
+bom_weatherforecast_original = (spark.table(f"{ADS_DATABASE_CLEANSED}.bom.weatherforecast")
                                 .withColumn("forecastperiod", psf.when(psf.col("forecastperiod").isNull(), psf.col("forecastperiod")).otherwise(psf.col(("forecastperiod"))))
                       )
 # display(bom_weatherforecast_original)
 #---------2
-bom_dailyweatherobservation_original = (spark.table("cleansed.bom_dailyweatherobservation_sydneyairport")
+bom_dailyweatherobservation_original = (spark.table(f"{ADS_DATABASE_CLEANSED}.bom.dailyweatherobservation_sydneyairport")
                                         .withColumn("Minimum_temperature_C", psf.col("Minimum_temperature_C").cast('float'))
                                         .withColumn("Maximum_temperature_C", psf.col("Maximum_temperature_C").cast('float'))
                                         .withColumn("Rainfall_mm", psf.col("Rainfall_mm").cast('float'))
@@ -53,14 +61,14 @@ bom_dailyweatherobservation_original = (spark.table("cleansed.bom_dailyweatherob
                                        )
 # display(bom_dailyweatherobservation_original.orderBy("date",ascending=False))
 #---------3
-vw_beachwatch_info_original=(spark.table("cleansed.vw_beachwatch_pollution_weather_forecast")
+vw_beachwatch_info_original=(spark.table(f"{ADS_DATABASE_CLEANSED}.beachwatch.pollution_weather_forecast")
                             )
 # display(vw_beachwatch_info_original.orderBy(psf.col("updated"),ascending=False))
 #---------4
 # rw_tide_temp_info_original=(spark.table("cleansed.bom_fortdenision_tide"))
 # display(rw_tide_temp_info_original)
 #---------5
-df_rwBN_water_quality = (spark.table("cleansed.urbanplunge_water_quality_predictions")
+df_rwBN_water_quality = (spark.table(f"{ADS_DATABASE_CLEANSED}.urbanplunge.water_quality_predictions")
                         )
 display(df_rwBN_water_quality)
 

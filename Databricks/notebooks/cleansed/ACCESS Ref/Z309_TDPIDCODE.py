@@ -217,14 +217,13 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC -- reduce the valid ones to only the longest description
-# MAGIC with t1 as (select itemCode, itemName, itemNameAbbreviation, rank() over (partition by itemCode, itemNameAbbreviation order by length(itemName) desc) as rnk
-# MAGIC             from   {ADS_DATABASE_CLEANSED}.access.Z309_TDPIDCODE
-# MAGIC             where  validForUse = 'V')
-# MAGIC update {ADS_DATABASE_CLEANSED}.access.Z309_TDPIDCODE
-# MAGIC set    validForUse = 'Y'
-# MAGIC where  itemCode||itemName||itemNameAbbreviation in (select itemCode||itemName||itemNameAbbreviation from t1 where rnk > 1)
+#reduce the valid ones to only the longest description
+spark.sql(f""" with t1 as (select itemCode, itemName, itemNameAbbreviation, rank() over (partition by itemCode, itemNameAbbreviation order by length(itemName) desc) as rnk
+             from   {ADS_DATABASE_CLEANSED}.access.Z309_TDPIDCODE
+             where  validForUse = 'V')
+ update {ADS_DATABASE_CLEANSED}.access.Z309_TDPIDCODE
+ set    validForUse = 'Y'
+ where  itemCode||itemName||itemNameAbbreviation in (select itemCode||itemName||itemNameAbbreviation from t1 where rnk > 1)""")
 
 # COMMAND ----------
 
