@@ -20,7 +20,7 @@ clusterTemplate = {
     "autotermination_minutes": 20,
     "cluster_source": "UI",
     "init_scripts": [],
-    "instance_pool_id": "0324-054808-mikes9-pool-5e3idhnc",
+    "instance_pool_id": GetPoolIdByName("pool-small"),
     "single_user_name": "3012901b-9b8c-4100-a6bf-a1a2ec010def",
     "data_security_mode": "SINGLE_USER",
     "runtime_engine": "PHOTON"
@@ -62,7 +62,6 @@ clusterTemplate = {
     "cluster_name": "interactive-o3bj",
     "spark_version": "12.2.x-scala2.12",
     "spark_conf": {
-        "spark.databricks.delta.preview.enabled": "true"
     },
     "azure_attributes": {},
     "ssh_public_keys": [],
@@ -71,9 +70,9 @@ clusterTemplate = {
     },
     "autotermination_minutes": 20,
     "init_scripts": [],
-    "instance_pool_id": "0324-054808-mikes9-pool-5e3idhnc",
+    "instance_pool_id": GetPoolIdByName("pool-small"),
     "single_user_name": "o3bj@sydneywater.com.au",
-    "driver_instance_pool_id": "0324-054808-mikes9-pool-5e3idhnc",
+    "driver_instance_pool_id": GetPoolIdByName("pool-small"),
     "data_security_mode": "SINGLE_USER",
     "runtime_engine": "PHOTON"
 }

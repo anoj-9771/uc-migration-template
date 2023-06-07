@@ -4,11 +4,18 @@ import re
 
 # COMMAND ----------
 
-def GetCatalogPrefix():
+def GetEnvironmentTag():
+    j = json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags"))
+    return [x['value'] for x in j if x['key'] == 'Environment'][0]
+
+# COMMAND ----------
+
+def GetPrefix(suffix="_"):
     try:
-        return dbutils.secrets.get("ADS" if not(any([i for i in json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags")) if i["key"] == "Application" and "hackathon" in i["value"].lower()])) else "ADS-AKV", 'databricks-env')
+        prefix = dbutils.secrets.get("ADS" if not(any([i for i in json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags")) if i["key"] == "Application" and "hackathon" in i["value"].lower()])) else "ADS-AKV", 'databricks-env')
+        return prefix if suffix in prefix else prefix.replace("_", "-")
     except:
-        return ""
+        return None
 
 # COMMAND ----------
 
@@ -23,7 +30,7 @@ def LoadCuratedMap():
                 .option("multiline", "true")
                 .option("quote", "\"") 
                 .load(path))
-        prefix = GetCatalogPrefix()
+        prefix = GetPrefix()
         for i in df.collect():
             _CURATED_MAP[f"{i.current_database_name}.{i.current_table_name}"] = f"{prefix}curated.{i.future_database_name}.{i.future_table_name}"
     except:
@@ -35,7 +42,7 @@ LoadCuratedMap()
 def GetCatalog(namespace):
     if "." not in namespace or not(any([i for i in ["raw", "cleansed", "curated"] if namespace.lower().startswith(i)])):
         return ""
-    prefix = GetCatalogPrefix()
+    prefix = GetPrefix()
     c = namespace.split(".")
     return prefix+c[0]
 
@@ -44,10 +51,12 @@ def GetCatalog(namespace):
 def GetSchema(namespace):
     list = ["dim", "fact", "brg"]
     if "_" not in namespace and not(any([i for i in list if i in namespace])):
-        return ""
+        return namespace.split(".", -1)[-2]
     
     s = namespace.lower().replace("hive_metastore.", "")
-    if "." in namespace:
+    if "." in namespace and namespace.count(".") == 2:
+        s = namespace.split(".", -1)[-2]
+    elif "." in namespace:
         s = namespace.split(".", -1)[-1]
     if "_" in s:
         s = s.split("_", 1)[0]
@@ -72,7 +81,7 @@ def GetTable(namespace):
 def ConvertTableName(tableFqn):
     if "datalab" in tableFqn:
         return tableFqn
-    prefix = GetCatalogPrefix()
+    prefix = GetPrefix()
     if "hive_metastore" not in tableFqn.lower() and tableFqn.count(".") == 2 and not tableFqn.startswith(prefix):
         return prefix+tableFqn
 

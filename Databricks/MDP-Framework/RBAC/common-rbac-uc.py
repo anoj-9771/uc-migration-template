@@ -3,18 +3,12 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../Common/common-spark
+# MAGIC %run ../Common/common-unity-catalog-helper
 
 # COMMAND ----------
 
 CUSTOM_GROUPS = []
 RBAC_TABLE = "edp.f_rbac_commands"
-
-# COMMAND ----------
-
-def GetEnvironmentTag():
-    j = json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags"))
-    return [x['value'] for x in j if x['key'] == 'Environment'][0]
 
 # COMMAND ----------
 
@@ -30,7 +24,6 @@ def PopuateGroups():
             CUSTOM_GROUPS.extend(j["CUSTOM_GROUPS"])
         except Exception as e:
             print(e)
-#PopuateGroups()
 
 # COMMAND ----------
 
@@ -43,6 +36,7 @@ CUSTOM_GROUPS = [
         ,"TableFilter" : [
             "cleansed.bom_*"
             ,"cleansed.beachwatch_*"
+            ,"cleansed.iicats_groups"
         ]
         ,"Users" : []
         ,"AADGroups" : [ "cleansed-official" ]
@@ -53,6 +47,7 @@ CUSTOM_GROUPS = [
         ,"ParentGroup" : "L1-Official"
         ,"TableFilter" : [
             "cleansed.iicats_event"
+            ,"curated.dimcontract"
         ]
         ,"Users" : []
         ,"AADGroups" : [ "cleansed-sensitive" ]
@@ -62,7 +57,7 @@ CUSTOM_GROUPS = [
         ,"Level" : 3
         ,"ParentGroup" : "L2-Sensitive"
         ,"TableFilter" : [
-            "cleansed.maximo_servrectrans"
+            "cleansed.maximo_workorder"
         ]
         ,"Users" : []
         ,"AADGroups" : [ "sensitive-others" ]
@@ -71,89 +66,35 @@ CUSTOM_GROUPS = [
 
 # COMMAND ----------
 
-CUSTOM_GROUPS = [
-    {
-        "Name" : "L1-Official"
-        ,"Level" : 1
-        ,"OtherCommands" : [
-        ]
-        ,"TableFilter" : [
-            "cleansed.bom_*"
-        ]
-        ,"Users" : []
-        ,"AADGroups" : [ "cleansed-official" ]
-    },
-    {
-        "Name" : "L2-Sensitive"
-        ,"Level" : 2
-        ,"ParentGroup" : "L1-Official"
-        ,"TableFilter" : [
-            "cleansed.bom_fortdenision_tide"
-        ]
-        ,"Users" : []
-        ,"AADGroups" : [ "cleansed-sensitive" ]
-    },
-    {
-        "Name" : "L3-Sensitive-Other"
-        ,"Level" : 3
-        ,"ParentGroup" : "L2-Sensitive"
-        ,"TableFilter" : [
-            "cleansed.bom_weatherforecast"
-        ]
-        ,"Users" : []
-        ,"AADGroups" : [ "sensitive-others" ]
-    }
-]
+def GetDistinctCatalogs(customGroups):
+    list = []
+    for i in [ i.get("TableFilter") for i in customGroups if i.get("Level") is not None ]:
+        for j in i:
+            list.append(GetCatalog(j))
+    return set(list)
 
 # COMMAND ----------
 
-def GetCatalogPrefix():
-    try:
-        return dbutils.secrets.get("ADS" if not(any([i for i in json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags")) if i["key"] == "Application" and "hackathon" in i["value"].lower()])) else "ADS-AKV", 'databricks-env')
-    except:
-        return None
+def GetDistinctCatalogSchemas(customGroups):
+    list = []
+    for i in [ i.get("TableFilter") for i in customGroups if i.get("Level") is not None ]:
+        for j in i:
+            list.append(GetCatalog(j) + "." + GetSchema(j))
+    return set(list)
 
 # COMMAND ----------
 
-def UpdatePermission(securable_type, full_name, grants):
-    headers = GetAuthenticationHeader()
-    url = f'{INSTANCE_NAME}/api/2.1/unity-catalog/permissions/{securable_type}/{full_name}'
-    permissions = { "changes": [ *grants ] }
-    response = requests.patch(url, json=permissions, headers=headers)
-    return response.json()
-
-# COMMAND ----------
-
-def GetCatalog(namespace):
-    prefix = GetCatalogPrefix()
-    s = namespace.replace("_", ".").split(".")
-    return prefix+s[0]
-
-# COMMAND ----------
-
-def GetSchema(namespace):
-    return namespace.replace("_", ".").split(".")[1]
-
-# COMMAND ----------
-
-def GetTable(namespace):
-    return namespace.replace(namespace.split( "_" )[:1][0]+"_", "")
-
-# COMMAND ----------
-
-def ConvertTableName(tableFqn):
-    catalog = GetCatalog(tableFqn)
-    schema = GetSchema(tableFqn)
-    table = GetTable(tableFqn)
-    return f"{catalog}.{schema}.{table}"
-
-# COMMAND ----------
-
-def GenerateRbacCommands():
+def GenerateRbacCommands(customGroups):
     _grants = []
-    prefix = GetCatalogPrefix()
-    groupPrefix = prefix.replace("_", "-")
-    for g in CUSTOM_GROUPS:
+    prefix = GetPrefix()
+    groupPrefix = GetPrefix("-")
+
+    # CATALOG
+    _grants.extend([{ "Group" : f"{groupPrefix}L1-Official", "Child" : i, "Type" : "CATALOG", "Command" : "USE_CATALOG", "Operation" : "add" } for i in GetDistinctCatalogs(customGroups)])
+    # SCHEMA
+    _grants.extend([{ "Group" : f"{groupPrefix}L1-Official", "Child" : i, "Type" : "SCHEMA", "Command" : "USE_SCHEMA", "Operation" : "add" } for i in GetDistinctCatalogSchemas(customGroups)])
+
+    for g in customGroups:
         groupName = groupPrefix+g["Name"]
         parentGroup = g.get("ParentGroup")
         level = 0 if g.get("Level") is None else int(g.get("Level"))
@@ -162,11 +103,6 @@ def GenerateRbacCommands():
         tableFilter = g.get("TableFilter")
         otherCommands = g.get("OtherCommands")
         
-        # CATALOG
-        _grants.extend([{ "Group" : groupName, "Child" : i, "Type" : "CATALOG", "Command" : "USE_CATALOG", "Operation" : "add" } for i in set([GetCatalog(i) for i in tableFilter])]) if tableFilter is not None and (level or 1) == 1 else ()
-        # SCHEMA
-        _grants.extend([{ "Group" : groupName, "Child" : i, "Type" : "SCHEMA", "Command" : "USE_SCHEMA", "Operation" : "add" } for i in set([ GetCatalog(i)+"."+GetSchema(i) for i in tableFilter ])]) if tableFilter is not None and (level or 1) == 1 else ()
-
         if tableFilter is not None:
             for t in tableFilter:
                 catalog = GetCatalog(t)
@@ -184,13 +120,9 @@ def GenerateRbacCommands():
                     _grants.extend([{ "Group" : f"{groupPrefix}L1-Official", "Child" : f"{catalog}.{schema}.{i.tableName}",  "Type" : "TABLE", "Command" : "SELECT", "Operation" : "remove" } for i in spark.sql(f"SHOW TABLES FROM {catalog}.{schema} LIKE '{table}'").collect()] ) 
     for g in _grants:
         print(g)
-        #UpdatePermission(g["Type"], g["Child"], [ {"principal" : g["Group"], g["Operation"] : [ g["Command"] ]} ])
+        print(UpdatePermission(g["Type"], g["Child"], [ {"principal" : g["Group"], g["Operation"] : [ g["Command"] ]} ]))
         #UpdatePermission(g["Type"], g["Child"], [ {"principal" : g["Group"], "remove" : [ g["Command"] ]} ])
-GenerateRbacCommands()
-
-# COMMAND ----------
-
-#UpdatePermission("CATALOG", "dev_raw", [ {"principal" : "dev-Admins", "add" : [ "ALL_PRIVILEGES" ]} ])
+GenerateRbacCommands(CUSTOM_GROUPS)
 
 # COMMAND ----------
 
