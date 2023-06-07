@@ -1,13 +1,26 @@
 # Databricks notebook source
+# MAGIC %md # Helper Functions
+
+# COMMAND ----------
+
 import re
 import pandas as pd
+import numpy as np
 import pyspark.sql.functions as F
+
+# COMMAND ----------
+
+# MAGIC %md ## read_run_sheet
 
 # COMMAND ----------
 
 def read_run_sheet(excel_path, sheet_name):
     p_df = pd.read_excel(io = excel_path, engine='openpyxl', sheet_name = sheet_name, header=0)
     return p_df
+
+# COMMAND ----------
+
+# MAGIC %md ## log_to_json
 
 # COMMAND ----------
 
@@ -33,6 +46,10 @@ def log_to_json(source_table_name:str, target_table_name:str, start_time:str, en
 
 # COMMAND ----------
 
+# MAGIC %md ## lookup_curated_namespace
+
+# COMMAND ----------
+
 def lookup_curated_namespace(env:str, current_database_name: str, current_table_name: str, excel_path:str) -> str:
     """looks up the target table namespace based on the current_table_name provided. note that this function assumes that there are no duplicate 'current_table_name' entries in the excel sheet."""
     future_namespace = {}
@@ -41,17 +58,23 @@ def lookup_curated_namespace(env:str, current_database_name: str, current_table_
     current_table_name = current_table_name.lower()
     try:
         p_df = read_run_sheet(excel_path, f'{env}curated_mapping')
-        future_database_name = p_df[(p_df['current_table_name'] == current_table_name) & (p_df['current_database_name'].str.contains('curated'))]['future_database_name'].tolist()[0]
-        future_table_name = p_df[(p_df['current_table_name'] == current_table_name) & (p_df['current_database_name'].str.contains('curated'))]['future_table_name'].tolist()[0]
+        future_database_name = p_df[(p_df['current_table_name'] == current_table_name) & (p_df['current_database_name'].str.contains('curated'))]['future_database_name'].replace(np.nan, None).tolist()[0]
+        future_table_name = p_df[(p_df['current_table_name'] == current_table_name) & (p_df['current_database_name'].str.contains('curated'))]['future_table_name'].replace(np.nan, None).tolist()[0]
         future_namespace['database_name'] = future_database_name
         future_namespace['table_name'] = future_table_name
     except Exception as e:
-        future_namespace['database_name'] = 'dim' if 'dim' in current_table_name else 'fact' if 'fact' in current_table_name else 'uncategorized'
-        future_namespace['table_name'] = current_table_name.replace('dim', '') if 'dim' in current_table_name else current_table_name.replace('fact', '') if 'fact' in current_table_name else current_table_name
+        future_namespace['database_name'] = None
+        future_namespace['table_name'] = None
+        # future_namespace['database_name'] = 'dim' if 'dim' in current_table_name else 'fact' if 'fact' in current_table_name else 'brg' if 'brg' in current_table_name else 'uncategorized'
+        # future_namespace['table_name'] = current_table_name.replace('dim', '') if 'dim' in current_table_name else current_table_name.replace('fact', '') if 'fact' in current_table_name else current_table_name
         print (f'Warning! Issue occurred while looking up the future namespace for table: {current_database_name}.{current_table_name}')
     return future_namespace
     
 # lookup_curated_namespace('ppd_', 'semantic', 'vw_maximo_workorder', excel_path=excel_path)
+
+# COMMAND ----------
+
+# MAGIC %md ## get_target_catalog
 
 # COMMAND ----------
 
@@ -60,11 +83,16 @@ def get_target_catalog(env:str, layer:str):
 
 # COMMAND ----------
 
+# MAGIC %md ## get_target_namespace
+
+# COMMAND ----------
+
 def get_target_namespace(env:str, layer:str, table_name:str, excel_path:str="/dbfs/FileStore/uc/uc_scope.xlsx") -> str:
     """generates target namespace based on the table attributes provided."""
     catalog_name = f'{env}{layer}'
     new_namespace_obj = {}
-    if layer == 'raw' or layer == 'cleansed':
+    # if layer == 'raw' or layer == 'cleansed':
+    if layer in ['raw', 'cleansed', 'stage', 'rejected']:
         #use pattern to convert raw.source_tablename to raw.source.table_name
         new_namespace_obj['catalog_name'] = catalog_name
         new_namespace_obj['database_name'] = table_name.split('_')[0]
@@ -94,28 +122,95 @@ def get_target_namespace(env:str, layer:str, table_name:str, excel_path:str="/db
 
 # COMMAND ----------
 
+# MAGIC %md ## create_managed_table
+
+# COMMAND ----------
+
 def create_managed_table(env:str, layer:str, table_name:str) -> None:
     """Converts given external table to a managed table in Unity Catalog catalog."""
     hive_metastore_namespace = f'hive_metastore.{layer}.{table_name}'
     new_namespace_obj = get_target_namespace(env, layer, table_name)
     new_namespace = f"{new_namespace_obj['catalog_name']}.{new_namespace_obj['database_name']}.{new_namespace_obj['table_name']}"
+    
+    start_time = str(datetime.now())
+
+    if new_namespace_obj['database_name'] is None:
+        print (f'Lookup for failed for this table: {hive_metastore_namespace}. So not attempting a migration.')
+        log_to_json(f'{layer}.{table_name}', new_namespace, start_time, end_time='9999-12-31 23:59', clone_stats=None, error=f'Lookup failed for this table.')
+    else:
+        spark.sql(f"CREATE DATABASE IF NOT EXISTS {new_namespace_obj['catalog_name']}.{new_namespace_obj['database_name']}")
+        try:
+            print (f'converting table {hive_metastore_namespace} to {new_namespace}')
+            spark.table(hive_metastore_namespace).count()
+            # using the sql command here because only the sql command (and not the python equivalent) generates the desired info dataframe
+            df = spark.sql(f"""CREATE TABLE {new_namespace} CLONE {hive_metastore_namespace}""")
+            clone_stats = df.collect()[0].asDict()
+            end_time = str(datetime.now())
+            log_to_json(f'{layer}.{table_name}', new_namespace, start_time, end_time, clone_stats=clone_stats, error=None)        
+            time.sleep(4)  #putting some sleep in order to avoid clogging the data transfer
+        except Exception as e:
+            print (f'Error: {e}')
+            log_to_json(f'{layer}.{table_name}', new_namespace, start_time, end_time='9999-12-31 23:59', clone_stats=None, error=f'{e}')
+
+# create_managed_table(env, 'datalab', 'storage_test_927')
+# create_managed_table('ppd_', 'raw', 'iicats_groups')
+
+# COMMAND ----------
+
+def getXMLExtendedProperties(table_name:str) -> dict:
+    import json
+    sql = "select concat(lower(DestinationSchema),'_',lower(DestinationTableName)) as TableName,ExtendedProperties from hive_metastore.controldb.dbo_extractloadmanifest where RawHandler='raw-load' and RawPath like '%.xml'"
+    df = spark.sql(sql)
+    return json.loads(df.filter(f"TableName = '{table_name}'").select("ExtendedProperties").collect()[0]['ExtendedProperties'])
+
+
+# COMMAND ----------
+
+# MAGIC %md ## create_external_table
+
+# COMMAND ----------
+
+def create_external_table(env:str, layer:str, table_name:str, target_location:str, provider:str) -> None:
+    """Converts given hive metastore external table to an external table in Unity Catalog"""  
+    hive_metastore_namespace = f'hive_metastore.{layer}.{table_name}'
+    new_namespace_obj = get_target_namespace(env, layer, table_name)
+    new_namespace = f"{new_namespace_obj['catalog_name']}.{new_namespace_obj['database_name']}.{new_namespace_obj['table_name']}"    
+    fileFormat = provider
+    fileOptions = ""
+    env = env.replace('_','')
+    if env == '':
+        env = 'prod'
+    target_path = target_location.replace(f'dbfs:/mnt/datalake-{layer}',f'abfss://{layer}@sadaf{env}01.dfs.core.windows.net')
+    if(fileFormat =="XML"):
+        extendedProperties = getXMLExtendedProperties(table_name)
+        rowTag = extendedProperties["rowTag"]
+        fileOptions = f", ignoreNamespace \"true\", rowTag \"{rowTag}\""
+    elif (fileFormat =="CSV"):
+        fileOptions = ", header \"true\", inferSchema \"true\", multiline \"true\""
+    elif (fileFormat == "JSON"):
+        spark.conf.set("spark.sql.caseSensitive", "true")
+        fileOptions = ", multiline \"true\", inferSchema \"true\""
+    else:
+        fileFormat = "PARQUET"     
     spark.sql(f"CREATE DATABASE IF NOT EXISTS {new_namespace_obj['catalog_name']}.{new_namespace_obj['database_name']}")
     start_time = str(datetime.now())
     try:
         print (f'converting table {hive_metastore_namespace} to {new_namespace}')
         spark.table(hive_metastore_namespace).count()
-        # using the sql command here because only the sql command (and not the python equivalent) generates the desired info dataframe
-        df = spark.sql(f"""CREATE TABLE {new_namespace} CLONE {hive_metastore_namespace}""")
-        clone_stats = df.collect()[0].asDict()
+        sql = f"DROP TABLE IF EXISTS {new_namespace};"
+        spark.sql(sql)
+        sql = f"CREATE TABLE {new_namespace} USING {fileFormat} OPTIONS (path \"{target_path}\" {fileOptions});"
+        df = spark.sql(sql)
+        try:
+            clone_stats = df.collect()[0].asDict()
+        except:
+            clone_stats = {}
         end_time = str(datetime.now())
         log_to_json(f'{layer}.{table_name}', new_namespace, start_time, end_time, clone_stats=clone_stats, error=None)        
         time.sleep(4)  #putting some sleep in order to avoid clogging the data transfer
     except Exception as e:
         print (f'Error: {e}')
-        log_to_json(f'{layer}.{table_name}', new_namespace, start_time, end_time='9999-12-31 23:59', clone_stats=None, error=f'{e}')
-
-# create_managed_table(env, 'datalab', 'storage_test_927')
-# create_managed_table('ppd_', 'raw', 'iicats_groups')
+        log_to_json(f'{layer}.{table_name}', new_namespace, start_time, end_time='9999-12-31 23:59', clone_stats=None, error=f'{e}')            
 
 # COMMAND ----------
 
@@ -124,11 +219,19 @@ def create_managed_table(env:str, layer:str, table_name:str) -> None:
 
 # COMMAND ----------
 
+# MAGIC %md ## parallel_run
+
+# COMMAND ----------
+
 def parallel_run(mapper, env_list, layer_list, table_list, apply_flat_map=False):
     """Invoke the parallel execution of a function."""
     with ThreadPoolExecutor() as executor:
         results = executor.map(mapper, env_list, layer_list, table_list)
         return results
+
+# COMMAND ----------
+
+# MAGIC %md ## create_managed_table_parallel
 
 # COMMAND ----------
 
@@ -154,6 +257,10 @@ def create_managed_table_parallel(layer:str):
 
 # COMMAND ----------
 
+# MAGIC %md ## clean_up_catalog
+
+# COMMAND ----------
+
 def clean_up_catalog(catalog):
     """Clean up all databases so you can start fresh migration."""
     print (f'dropping all databases in {catalog}')
@@ -162,6 +269,10 @@ def clean_up_catalog(catalog):
     db_list.remove('information_schema')
     for db in db_list:
         spark.sql(f"drop database if exists {catalog}.{db} cascade")
+
+# COMMAND ----------
+
+# MAGIC %md ## drop_datalab_tables
 
 # COMMAND ----------
 
@@ -175,6 +286,10 @@ def drop_datalab_tables():
     datalab_tables = [f"{datalab_table.asDict()['table_catalog']}.{datalab_table.asDict()['table_schema']}.{datalab_table.asDict()['table_name']}" for datalab_table in datalab_tables]
     for table in datalab_tables:
         spark.sql(f"drop table {table}")
+
+# COMMAND ----------
+
+# MAGIC %md ## get_diff_tables
 
 # COMMAND ----------
 

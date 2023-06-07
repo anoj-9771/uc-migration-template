@@ -17,7 +17,9 @@ schemaName = j.get("DestinationSchema")
 tableName = j.get("DestinationTableName")
 rawPath = j.get("RawPath").replace("/raw", "/mnt/datalake-raw")
 rawTargetPath = j.get("RawPath")
-rawFolderPath = "/".join(rawPath.split("/")[0:-1])
+# changed for UC migration - new function in common-helpers
+# rawFolderPath = "/".join(rawPath.split("/")[0:-1])
+rawFolderPath = get_raw_folder_path(rawPath)
 
 fileFormat = ""
 fileOptions = ""
@@ -26,14 +28,14 @@ if("xml" in rawTargetPath):
     extendedProperties = json.loads(j.get("ExtendedProperties"))
     rowTag = extendedProperties.get("rowTag")
     fileFormat = "XML"
-    fileOptions = f", ignoreNamespace \"true\", rowTag \"{rowTag}\""
+    fileOptions = f"ignoreNamespace \"true\", rowTag \"{rowTag}\""
 elif ("csv" in rawTargetPath):
     fileFormat = "CSV"
-    fileOptions = ", header \"true\", inferSchema \"true\", multiline \"true\""
+    fileOptions = "header \"true\", inferSchema \"true\", multiline \"true\""
 elif ("json" in rawTargetPath):
     spark.conf.set("spark.sql.caseSensitive", "true")
     fileFormat = "JSON"
-    fileOptions = ", multiline \"true\", inferSchema \"true\""
+    fileOptions = "multiline \"true\", inferSchema \"true\""
 else:
     fileFormat = "PARQUET"
 
@@ -42,7 +44,7 @@ else:
 tableFqn = get_table_name('raw', schemaName, tableName)
 sql = f"DROP TABLE IF EXISTS {tableFqn};"
 spark.sql(sql)
-sql = f"CREATE TABLE {tableFqn} USING {fileFormat} OPTIONS (path \"{rawFolderPath}\" {fileOptions});"
+sql = f"CREATE TABLE {tableFqn} USING {fileFormat} LOCATION \"{rawFolderPath}\" OPTIONS ({fileOptions});"
 print(sql)
 spark.sql(sql)
 

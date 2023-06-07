@@ -84,7 +84,6 @@ def is_uc():
 
 # COMMAND ----------
 
-    
 def lookup_curated_namespace(env:str, current_database_name: str, current_table_name: str, csv_path:str) -> str:
     """looks up the target table namespace based on the current_table_name provided. note that this function assumes that there are no duplicate 'current_table_name' entries in the excel sheet."""
     future_namespace = {}
@@ -111,6 +110,7 @@ def get_table_name(layer:str, j_schema: str, j_table: str) -> str:
         return f"{layer}.{j_schema}_{j_table}"
 
 # COMMAND ----------
+
 
     
 def get_table_namespace(layer:str, table: str) -> str:
@@ -150,3 +150,14 @@ def ConvertBlankRecordsToNull(df):
         if "struct" not in i[1]:
             df = df.withColumn(i[0],when(col(i[0])=="" ,None).otherwise(col(i[0])))
     return df
+
+# COMMAND ----------
+
+def get_raw_folder_path(currentPath) -> str:
+    if is_uc():
+        env = dbutils.secrets.get('ADS','databricks-env')
+        if env == '':
+            env = 'prod'
+        return "/".join(currentPath.split("/")[0:-1]).replace('/mnt/datalake-raw',f"abfss://raw@sadaf{env.strip('_')}01.dfs.core.windows.net")
+    else:
+        return "/".join(currentPath.split("/")[0:-1])

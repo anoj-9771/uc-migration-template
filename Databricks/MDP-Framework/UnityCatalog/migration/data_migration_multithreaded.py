@@ -1,6 +1,11 @@
 # Databricks notebook source
 # MAGIC %md
+# MAGIC # data migration for Unity Catalog
 # MAGIC The logging part of the migration script requires a single user cluster since writing json files isn't supported in shared cluster. Technically, we could take the data, convert to spark dataframe and then let spark to write the json files but this has been deprioritized since we are using purpose built clusters during migration anyways 
+
+# COMMAND ----------
+
+pip install openpyxl
 
 # COMMAND ----------
 
@@ -38,7 +43,7 @@ dbs_to_migrate.remove('curated_v2')
 dbs_to_migrate.remove('curated_v3')
 #add curated_v2 and curated_v3 resources as necessary
 # dbs_to_migrate.remove('cleansed')
-# dbs_to_migrate = ["raw"]
+dbs_to_migrate = ["stage"]
 
 # COMMAND ----------
 
@@ -52,7 +57,7 @@ migration_logs_path = f"/dbfs/mnt/{datalake_mount}/uc_migration/uc_migration_log
 # COMMAND ----------
 
 # DBTITLE 1,Clear the log storage location.
-dbutils.fs.rm(f"/mnt/{datalake_mount}/uc_migration/", True)
+dbutils.fs.rm(f"/mnt/{datalake_mount}/uc_migration/uc_migration_logs/", True)
 dbutils.fs.mkdirs(f'/mnt/{datalake_mount}/uc_migration/uc_migration_logs/')
 
 # COMMAND ----------
@@ -73,6 +78,21 @@ for db in dbs_to_migrate:
 # DBTITLE 1,Iterate through target dbs and deep clone data to Unity Catalog tables.
 for db in dbs_to_migrate:
     create_managed_table_parallel(db)
+
+# COMMAND ----------
+
+# DBTITLE 1,Special treatment for non-delta tables in raw layer
+df_tables = spark.catalog.listTables('raw')
+
+for table in df_tables:
+    try:    
+        df_table_data = spark.sql(f'describe extended raw.{table.name}')
+        location = df_table_data.filter("col_name = 'Location'").select('data_type').collect()[0]['data_type']    
+        provider = df_table_data.filter("col_name = 'Provider'").select('data_type').collect()[0]['data_type'] 
+        if (provider) != 'delta':          
+            create_external_table(env, 'raw', table.name, location, provider)
+    except Exception as e:        
+        pass
 
 # COMMAND ----------
 
