@@ -386,7 +386,11 @@ def ApplyTransformRules(dataFrame, transform_rules):
 from pyspark.sql.functions import expr, col
 def CleansedTransformByRules(dataFrame, tableFqn, systemCode, showTransform=False):
     global transforms
-    tableFqn = tableFqn.lower()
+
+    if len(tableFqn.split('.')) > 2:
+        tableFqn = f"raw.{tableFqn.split('.')[1]}_{tableFqn.split('.')[2]}".lower()
+    else:
+        tableFqn = tableFqn.lower()
     dataFrame = spark.table(tableFqn) if dataFrame is None else dataFrame
     systemCode = systemCode.lower()
     
