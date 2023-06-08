@@ -1,11 +1,9 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
-
 
 # COMMAND ----------
 
@@ -29,7 +27,7 @@ def create_temp_table(dataframe):
 
     pivot_meter_df = astmeter_df.groupBy("asset").pivot("meter").agg(min(col("lastReading")))
     
-    locspc_df = spark.sql(f"""select lsp.location, lsp.numericValue as loc_numericValue from {0} lsp where lsp.attribute = 'COF_SCORE'""".format(get_table_name(f"{SOURCE}","maximo","locationspec"))).select("location","loc_numericValue")
+    locspc_df = spark.sql(f"""select lsp.location, lsp.numericValue as loc_numericValue from {get_table_name(f"{SOURCE}","maximo","locationspec")} lsp where lsp.attribute = 'COF_SCORE'""").select("location","loc_numericValue")
     
     asset_spec_df =spark.sql(f"""select * except(rownumb) from ((select asset, attribute, alphanumericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from {get_table_namespace('cleansed', 'maximo_assetspec')} where attribute in ("MAIN_TYPE","SEWER_FUNCTION","PURPOSE","PIPE_SIZE","VALVE_SIZE","HORIZONTAL_LENGTH","SEWER_MATERIAL","WATER_TYPE","LATESTREHABTYPE","CROSS_SECTION","MAINTENANCE_STRATEGY","WATERMAIN_PIPETYPE"))
     UNION
@@ -44,7 +42,7 @@ def create_temp_table(dataframe):
     .join(classification_df,"classification","left") \
     .join(pivot_meter_df,"asset","left") \
     .join(pivot_df,"asset","left") \
-    .withColumn("linearFlag",when(temp_df.masteredInGis == 'Y','Y').when(asset_location_df.assetLocationTypeCode == "SYSAREA",'Y').otherwise('N'))
+    .withColumn("assetLinearMaintenanceFlag",when(temp_df.masteredInGis == 'Y','Y').when(asset_location_df.assetLocationTypeCode == "SYSAREA",'Y').otherwise('N'))
     
     temp_df = temp_df.withColumn("assetSpecMainTypeName",temp_df.MAIN_TYPE)\
     .withColumn("assetSewerFunctionName",temp_df.SEWER_FUNCTION)\
@@ -82,18 +80,33 @@ def Transform():
     windowSpec  = Window.partitionBy("asset")
     create_temp_table(get_recent_cleansed_records(f"{SOURCE}","maximo","asset",business_date,target_date).withColumn("rank",rank().over(windowSpec.orderBy(col(business_date).desc()))).filter("rank == 1").drop("rank"))
     df = spark.sql(f"""select
-        da.*, COALESCE(rrc.return1Code,rrc2.return1Code,"Other") as assetTypeGroupDescription
+        da.*, COALESCE(rrc.return1Code,rrc2.return1Code,"Other") as assetTypeGroupDescription,
+        case
+        when atc.assetTypeClass is NULL and da.assetLinearMaintenanceFlag = 'Y' then 'Linear Asset'
+        when da.assetLinearMaintenanceFlag <> 'Y' and da.assetLocationTypeCode = 'SYSAREA' then 'Linear Asset'
+        when atc.assetTypeClass is not NULL then atc.assetTypeClass
+        end assetTypeClass
+
         from temp.dimAsset_temp da
-        left join {TARGET}.refReportConfiguration rrc
+        
+        left join {get_table_namespace(f'{DEFAULT_TARGET}', 'refreportconfiguration')} rrc
         on rrc.mapTypeCode = 'Asset Type'
         and trim((coalesce(da.assetLocationFacilityShortCode,''))||trim(coalesce(da.assetSpecMainTypeName,''))
         ||trim(coalesce(da.assetSewerFunctionName,''))||trim(coalesce(da.assetSewerPurposeValue,'')))=
         trim(COALESCE(rrc.lookup1Code, da.assetLocationFacilityShortCode,''))||trim(COALESCE(rrc.lookup2Code, da.assetSpecMainTypeName,''))
         ||trim(COALESCE(rrc.lookup3Code, da.assetSewerFunctionName,''))||trim(COALESCE(rrc.lookup4Code, da.assetSewerPurposeValue,''))
-        left join  {TARGET}.refReportConfiguration rrc2
+        
+        left join {get_table_namespace(f'{DEFAULT_TARGET}', 'refreportconfiguration')} rrc2
         on rrc2.mapTypeCode = 'Asset Type 2'
         and rrc2.lookup4Code = da.assetSewerPurposeValue
-        and rrc.return1Code is NULL""")
+        and rrc.return1Code is NULL
+        
+        left join (select 
+        lookup1Code as assetFacilityTypeCode, 
+        return1Code as assetTypeClass
+        from {get_table_namespace(f'{DEFAULT_TARGET}', 'refreportconfiguration')}
+        where mapTypeCode = 'Facility Type') atc
+        on da.assetLocationFacilityShortCode = assetFacilityTypeCode""")                                                                  
     df = df \
     .withColumn("sourceBusinessKey",df.asset) \
     .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \
@@ -117,7 +130,7 @@ def Transform():
         ,"classification assetClassificationCode"
         ,"classificationPath assetClassificationPathDescription"
         ,"classificationDescription assetClassificationDescription"
-        ,"linearFlag assetLinearMaintenanceFlag"
+        ,"assetLinearMaintenanceFlag"
         ,"assetSpecMainTypeName"
         ,"assetSewerFunctionName"
         ,"assetSewerPurposeValue"
@@ -135,6 +148,7 @@ def Transform():
         ,"assetConsequenceOfFailureScoreCode"
         ,"assetNetworkLengthPerKilometerValue"
         ,"assetTypeGroupDescription"
+        ,"assetTypeClass"
         ,"changedDate assetChangedTimestamp"
         ,"sourceValidFromTimestamp"
         ,"sourceValidToTimestamp"

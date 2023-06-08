@@ -109,7 +109,11 @@ CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewFactWorkOr
 ,	_recordCurrent
 ,	_recordDeleted  
     from (
-            select * from {get_table_namespace(f'{DEFAULT_TARGET}', 'factWorkOrder')} where _recordCurrent=1
+            select * from {get_table_namespace(f'{DEFAULT_TARGET}', 'factWorkOrder')} where _recordCurrent=1 and snapshotDate >= 
+            (SELECT CASE WHEN (month(date_check) > 6) THEN 
+            to_date(concat_ws("-",year(date_check)+1,"07","01"),"yyyy-MM-dd")  ELSE 
+            to_date(concat_ws("-",year(date_check),"07","01"),"yyyy-MM-dd") end 
+            from (select add_months(current_date(),-(5*12)) as date_check))
             )
 )
 """)
