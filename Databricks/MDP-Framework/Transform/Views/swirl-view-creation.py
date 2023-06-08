@@ -1,5 +1,5 @@
 # Databricks notebook source
- # MAGIC %run ../../Common/common-helpers
+# MAGIC %run ../../Common/common-helpers
 
 # COMMAND ----------
 
@@ -208,7 +208,7 @@ WHERE inc.incidentNumber IS NOT NULL
 
 # COMMAND ----------
 
-#Curated view SWIRL open action report -non personal
+#Curated view SWIRL open action report -exclude personal
 spark.sql(f"""
 CREATE OR REPLACE VIEW {get_table_namespace('curated', 'viewswirlopenactionnonpersonal')} AS
 SELECT DISTINCT Dept.businessArea AS businessArea ,
@@ -332,7 +332,7 @@ WHERE inc.incidentNumber IS NOT NULL
 
 # COMMAND ----------
 
-#Curated view SWIRL open incident report-non personal
+#Curated view SWIRL open incident report-exclude personal
 spark.sql(f"""
 CREATE OR REPLACE VIEW {get_table_namespace('curated', 'viewswirlopenincidentnonpersonal')} AS
 SELECT DISTINCT inc.incidentNumber AS incidentNumber ,
@@ -382,72 +382,6 @@ AND NOT EXISTS (SELECT 1
             AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
             AND inner_tbl.incidentId = inc.id)
 """)
-
-# COMMAND ----------
-
-#Curated view SWIRL bypass and reportable incidents
-#spark.sql(f"""
-#CREATE OR REPLACE VIEW {get_table_namespace('curated', 'viewswirlbypassandreportableincidents')} AS
-#SELECT DISTINCT 
-# inc.incidentNumber
-#,NULL as incidentEventType
-#,inc.incidentShortDescription as incidentShortDescription
-#,bps.doesTheIncidentResultInLicenceNonCompliance as isItNonCompliance
-#, cast(inc.incidentDate as date) as incidentDate
-#,cast(stnf.dateNotificationReported as date) as dateNotificationReported
-#,date_format(inc.incidentTime ,'HH:mm') as incidentTime
-#,date_format(stnf.timeNotificationReported ,'HH:mm') as timeNotificationReported
-#,stnf.externalAgencyRegulator as externalAgencyRegulator
-#,stnf.externalStakeholderContactChannel as externalStakeholderContactChannel
-#,stnf.externalStakeholderReferenceNumber as externalStakeholderReferenceNumber
-#,stnf.notificationNumber as notificationNumber
-#,stnf.notificationDetails as notificationDetails
-#,stnf.notificationType as notificationType
-#,bps.sendEmailNotificationToDepartmentOfHealthCode as sendEmailNotificationToDepartmentOfHealthCode
-#,licnc.commentsToExternalStakeholders as commentsToExternalStakeholders
-#,log.notificationMethod as notificationMethod
-#,date_format(log.timeNotified ,'HH:mm') as timeNotified
-#,cast(log.dateNotified as date) as dateNotified
-#,env_req.regulationOrConditionNotCompliedWith as regulationOrConditionNotCompliedWith
-#,env_req.regulatoryNoticeYesNoPotentially as regulatoryNoticeYesNoPotentially
-#,reg_notice.regulatoryNoticeType as regulatoryNoticeType
-#,file.fileName as fileName
-#,bps.cause as cause
-#,bps.incidentClass as incidentClass
-#,bps.potentialPublicHealthImpact as potentialPublicHealthImpact
-#,NULL as treatmentType 
-#FROM {get_table_namespace('cleansed', 'swirl_incident')} inc
-#INNER JOIN {get_table_namespace('cleansed', 'swirl_incident_bypass_and_partial_treatment')} bps on inc.id = bps.incident_FK 
-#LEFT JOIN {get_table_namespace('cleansed', 'swirl_stakeholder_notification')} stnf on bps.id = stnf.bypassIncident_FK
-#LEFT JOIN {get_table_namespace('cleansed', 'swirl_licence_noncompliance')} licnc on inc.id = licnc.incident_FK 
-#LEFT JOIN {get_table_namespace('cleansed', 'swirl_notification_log')} log on inc.id = log.incident_FK  
-#LEFT JOIN ( SELECT env.incident_FK as incident_FK
-#                  ,req.id as environmentRequirementsNotMetId
-#                  ,req.regulationOrConditionNotCompliedWith
-#                  ,req.regulatoryNoticeYesNoPotentially
-#            FROM {get_table_namespace('cleansed', 'swirl_incident_environment')} env
-#            INNER JOIN 
-#            {get_table_namespace('cleansed', 'swirl_incident_environment_requirements_not_met')} req
-#            ON env.id = req.environmentIncident_FK
-#          ) env_req ON inc.id = env_req.incident_FK
-#LEFT JOIN {get_table_namespace('cleansed', 'swirl_regulatory_notice_received')} reg_notice on env_req.environmentRequirementsNotMetId = reg_notice.environmentRequirementsNotMet_FK
-#LEFT JOIN ( SELECT invest.incidentAsSourceOfInvestigation_FK as incidentAsSourceOfInvestigation_FK
-#                   ,file.investigation_FK as investigation_FK
-#                   ,file.fileName as fileName
-#            FROM {get_table_namespace('cleansed', 'swirl_investigation')} invest
-#            INNER JOIN
-#            {get_table_namespace('cleansed', 'swirl_file')} file 
-#            ON invest.id = file.investigation_FK
-#          ) file ON inc.id = file.incidentAsSourceOfInvestigation_FK
-#--Left join {get_table_namespace('cleansed', 'swirl_treatment_plan')} treat_plan on 
-#WHERE inc.incidentNumber IS NOT NULL
-#AND EXISTS (SELECT 1 
-#            FROM {get_table_namespace('cleansed', 'swirl_ref_lookup')} as inner_tbl
-#            WHERE UPPER(lookupName) = UPPER('Incident Event Type')
-#            AND lookupItemId <> '0'
-#            AND UPPER(description) IN ('PERSONNEL', 'HEALTH AND SAFETY')
-#            AND inner_tbl.incidentId = inc.id)
-#""")
 
 # COMMAND ----------
 
@@ -524,7 +458,7 @@ WHERE inc.incidentNumber IS NOT NULL
 
 # COMMAND ----------
 
-#All incidents and events -non personal
+#All incidents and events -exclude personal
 spark.sql(f"""
 CREATE OR REPLACE VIEW {get_table_namespace('curated', 'viewswirlallincidentsandeventsnonpersonal')} AS 
 SELECT DISTINCT inc.id,
