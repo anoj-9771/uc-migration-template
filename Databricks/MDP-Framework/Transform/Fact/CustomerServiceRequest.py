@@ -1,11 +1,36 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
 
+# COMMAND ----------
+
+##Move this to controlDB config if its not complex to derive the change columns needed####
+changeColumns = ["serviceRequestID", "serviceRequestGUID", "coherentAspectIdD", "coherentCategoryIdD", "lastChangedDateTime", "source", "sourceCode", "serviceTeamCode", "issueResponsibility" 
+                 ,"issueResponsibilityCode", "postingDate", "requestStartDate", "coherentAspectIdC", "coherentCategoryIdC", "statusProfile", "statusCode" , "reportedByPersonNumber", "contactPersonNumber"
+                 ,"salesEmployeeNumber", "propertyNumber", "contractID", "communicationChannelCode", "requestEndDate", "numberOfInteractionRecords", "notificationNumber","transactionDescription", "direction"
+                 ,"directionCode", "maximoWorkOrderNumber", "projectID", "processTypeCode","agreementNumber",  "responsibleEmployeeNumber", "recommendedPriority", "impact", "urgency", "serviceLifeCycle"
+                 ,"serviceLifeCycleUnit", "activityPriorityCode", "createdDateTime","createdBy", "changedBy"]
+
+###############################
+driverTable1 = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h')}")
+
+if TableExists(_.Destination):
+    isDeltaLoad = False
+    #####Table Full Load #####################
+    derivedDF1 = driverTable1
+else:
+    #####CDF for eligible tables#####################
+    isDeltaLoad = True
+    derivedDF1 = getSourceCDF(driverTable1, changeColumns).withColumn("changeType", lit("None"))
+    if derivedDF1 is None:
+        print("No derivedDF1 Returned")
+        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} -- Destinatiion {_.Destination}")
+    elif derivedDF1.count() == 0:
+        print("no CDF to process")
+        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} -- Destinatiion {_.Destination}")
 
 # COMMAND ----------
 
@@ -68,7 +93,7 @@ publicHolidaysPD = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'datagov_austra
 # COMMAND ----------
 
 #####-----------DIRECT DATAFRAMES CRM--------------------------###############
-coreDF =(( GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h')}")
+coreDF =(( derivedDF1
            .withColumn("sourceSystemCode",lit("CRM"))
            .withColumn("receivedBK", concat(col("coherentAspectIdD"),lit("|"),col("coherentCategoryIdD")))
            .withColumn("resolutionBK", concat(col("coherentAspectIdC"),lit("|"),col("coherentCategoryIdC")))
@@ -205,10 +230,10 @@ crmLinkDF = ( GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_link')}")
              
             )
 
-crmSappSegDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_scapptseg')}").filter(col("apptType").isin(['ZCLOSEDATE', 'SRV_RREADY', 'SRV_RFIRST', 'VALIDTO','ZRESPONDED']))                                                   
+crmSappSegDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_scapptseg')}").filter(col("apptType").isin(['ZCLOSEDATE', 'SRV_RREADY', 'SRV_RFIRST', 'VALIDTO']))                                                   
                                                    .select(col("applicationGUID"), col("apptType"), col("apptStartDatetime"))
                                                    .groupBy("applicationGUID")
-                                                   .pivot("apptType", ['ZCLOSEDATE', 'SRV_RREADY', 'SRV_RFIRST', 'VALIDTO','ZRESPONDED'])
+                                                   .pivot("apptType", ['ZCLOSEDATE', 'SRV_RREADY', 'SRV_RFIRST', 'VALIDTO'])
                                                    .agg(max("apptStartDatetime"))
                ) 
 
@@ -323,43 +348,40 @@ aurionDF = ( (((
 ##############################Main DATAFRAME / Join FOR CRM ###############################
 finalCRMDF = (((busDF.alias("core") 
   .join(crmLinkDF.alias("cl"), (col("core.serviceRequestGUID") == col("cl.hiGUID")), how= "left")  
- .join(crmSappSegDF.alias("css"), (col("cl.setGUID") == col("css.applicationGUID")), how= "left").drop("cl.setGUID", "cl.hiGUID", "css.applicationGUID")
- .withColumn("endDate", coalesce(when(col("core.processTypeCode") == lit("ZCMP"), 
-                         col("css.VALIDTO")).otherwise(col("css.ZRESPONDED")), 
-                                                     col("core.requestEndDate"))))  
- .join(contractDF.alias("sv"), (col("core.contractBK") == col("sv._BusinessKey")), "left").drop("core.contractBK", "sv._BusinessKey")
- .join(procTypeDF.alias("pc"), (col("core.processTypeBK") == col("pc._BusinessKey")), "left").drop("core.processTypeBK","pc._BusinessKey") 
- .join(channelDF.alias("ch"), (col("core.channelCodeBK") == col("ch._BusinessKey")), "left").drop("core.channelCodeBK", "ch._BusinessKey")
- .join(dateDF.alias("dt1"), (to_date(col("core.requestStartDate")) == col("dt1.calendarDate")), "left").drop("dt1.calendarDate", "dt1.serviceRequestEndDateFK", "dt1.snapshotDateFK")
- .join(dateDF.alias("dt2"), (to_date(col("core.requestEndDate")) == col("dt2.calendarDate")), "left").drop("dt2.calendarDate", "dt2.serviceRequestStartDateFK", "dt2.snapshotDateFK") 
- .join(dateDF.alias("dt3"), (to_date(col("core.lastChangedDateTime")) == col("dt3.calendarDate")), "left").drop("dt3.calendarDate", "dt3.serviceRequestStartDateFK","dt3.serviceRequestEndDateFK") 
- .join(aurUserDF.alias("au1"), (col("core.createdBy") == col("au1.userid")), "left").drop("au1.userid", "au1.changedByName")
- .join(aurUserDF.alias("au2"), (col("core.changedBy") == col("au2.userid")), "left").drop("au2.userid", "au2.createdByName")
+ .join(crmSappSegDF.alias("css"), (col("cl.setGUID") == col("css.applicationGUID")), how= "left").drop(col("cl.setGUID"), col("cl.hiGUID"), col("css.applicationGUID"))
+ .withColumn("endDate", coalesce(col("css.VALIDTO"), col("core.requestEndDate"))))
+ .join(contractDF.alias("sv"), (col("core.contractBK") == col("sv._BusinessKey")), "left").drop(col("core.contractBK"), col("sv._BusinessKey"))
+ .join(procTypeDF.alias("pc"), (col("core.processTypeBK") == col("pc._BusinessKey")), "left").drop(col("core.processTypeBK"),col("pc._BusinessKey"))
+ .join(channelDF.alias("ch"), (col("core.channelCodeBK") == col("ch._BusinessKey")), "left").drop(col("core.channelCodeBK"), col("ch._BusinessKey"))
+ .join(dateDF.alias("dt1"), (to_date(col("core.requestStartDate")) == col("dt1.calendarDate")), "left").drop(col("dt1.calendarDate"), col("dt1.serviceRequestEndDateFK"), col("dt1.snapshotDateFK"))
+ .join(dateDF.alias("dt2"), (to_date(col("core.requestEndDate")) == col("dt2.calendarDate")), "left").drop(col("dt2.calendarDate"), col("dt2.serviceRequestStartDateFK"), col("dt2.snapshotDateFK")) 
+ .join(dateDF.alias("dt3"), (to_date(col("core.lastChangedDateTime")) == col("dt3.calendarDate")), "left").drop(col("dt3.calendarDate"), col("dt3.serviceRequestStartDateFK"),col("dt3.serviceRequestEndDateFK")) 
+ .join(aurUserDF.alias("au1"), (col("core.createdBy") == col("au1.userid")), "left").drop(col("au1.userid"), col("au1.changedByName"))
+ .join(aurUserDF.alias("au2"), (col("core.changedBy") == col("au2.userid")), "left").drop(col("au2.userid"), col("au2.createdByName"))
  .join(aurionDF.alias("au"), 
        ((col("core.responsibleEmployeeNumber") == col("au.businessPartnerNumber")) &
            (col("core.lastChangedDateTime").between(col("au.DateEffective"), 
-                                                          col("au.DateTo")))), "left").drop("au.businessPartnerNumber", "au.DateEffective", "au.DateTo")  
+                                                          col("au.DateTo")))), "left").drop(col("au.businessPartnerNumber"), col("au.DateEffective"), col("au.DateTo")) 
  .join(propertyDF.alias("pr"), ((col("core.propertyNoBK") == col("pr._BusinessKey")) &  
                  (col("core.lastChangedDateTime").between(col("pr._recordStart"), 
-                                                          col("pr._recordEnd")))), "left").drop("pr._BusinessKey", "pr._recordStart", "pr._recordEnd")  
+                                                          col("pr._recordEnd")))), "left").drop(col("pr._BusinessKey"), col("pr._recordStart"), col("pr._recordEnd")) 
  .join(locationDF.alias("lo"), ((col("core.propertyNoBK") == col("lo.locationID")) &  
                  (col("core.lastChangedDateTime").between(col("lo._recordStart"), 
-                                                          col("lo._recordEnd")))),"left").drop("lo.locationID", "lo._recordStart", "lo._recordEnd") 
+                                                          col("lo._recordEnd")))),"left").drop(col("lo.locationID"), col("lo._recordStart"), col("lo._recordEnd")) 
  .join(busPartGrpDF.alias("bgp"), ((col("core.propertyNoBK") == col("bgp.businessPartnerGroupNumber")) &  
                  (col("core.lastChangedDateTime").between(col("bgp._recordStart"), 
-                                                col("bgp._recordEnd")))), "left").drop("bgp.businessPartnerGroupNumber", "bgp._recordStart", "bgp._recordEnd")
+                                                col("bgp._recordEnd")))), "left").drop(col("bgp.businessPartnerGroupNumber"), col("bgp._recordStart"), col("bgp._recordEnd"))
  .join(servCatDF.alias("sc1"), ((col("core.receivedBK") == col("sc1.sourceBusinessKey")) &
            (col("core.lastChangedDateTime").between(col("sc1.sourceValidFromDatetime"), 
-                                                          col("sc1.sourceValidToDatetime")))), "left").drop("sc1.sourceBusinessKey", "sc1.sourceValidFromDatetime", "sc1.sourceValidToDatetime", "sc1.resolutionCategoryFK") 
+                                                          col("sc1.sourceValidToDatetime")))), "left").drop(col("sc1.sourceBusinessKey"), col("sc1.sourceValidFromDatetime"), col("sc1.sourceValidToDatetime"), col("sc1.resolutionCategoryFK")) 
  .join(servCatDF.alias("sc2"), ((col("core.resolutionBK") == col("sc2.sourceBusinessKey")) &
            (col("core.lastChangedDateTime").between(col("sc2.sourceValidFromDatetime"), 
-                                                          col("sc2.sourceValidToDatetime")))), "left").drop("sc2.sourceBusinessKey", "sc2.sourceValidFromDatetime", "sc2.sourceValidToDatetime","sc2.receivedCategoryFK")  
- .join(statusDF.alias("st"), (col("core.statusBK") == col("st._BusinessKey")), "left").drop("core.statusBK", "st._BusinessKey")
+                                                          col("sc2.sourceValidToDatetime")))), "left").drop(col("sc2.sourceBusinessKey"), col("sc2.sourceValidFromDatetime"), col("sc2.sourceValidToDatetime") ,col("sc2.receivedCategoryFK"))  
+ .join(statusDF.alias("st"), (col("core.statusBK") == col("st._BusinessKey")), "left").drop(col("core.statusBK"), col("st._BusinessKey"))
  .withColumn("BusinessKey", concat_ws("|", col("serviceRequestGUID").cast("string"), col("lastChangedDateTime").cast("string")
                                           ,when(col("seqNo").isNull(), lit('')).otherwise(col("seqNo"))))
  .withColumn("respondByDateTime", col("css.SRV_RFIRST")) 
- .withColumn("respondedDateTime", when(col("core.processTypeCode") == lit("ZCMP"), 
-                                  col("css.VALIDTO")).otherwise(col("css.ZRESPONDED"))) 
+ .withColumn("respondedDateTime", col("css.VALIDTO")) 
  .withColumn("serviceRequestClosedDateTime", col("css.ZCLOSEDATE")) 
  .withColumn("toDoByDateTime", col("css.SRV_RREADY")) 
  .withColumn("interimResponseDays", 
@@ -388,8 +410,8 @@ finalCRMDF = (((busDF.alias("core")
                  ,col("serviceTeamFK")
                  ,col("contractFK")
                  ,col("responsibleEmployeeFK")
-                 ,col("reportToManagerFK")
-                 ,col("organisationUnitFK")
+                 ,when(col("reportToManagerFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("reportToManagerFK")).alias("reportToManagerFK")
+                 ,when(col("organisationUnitFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("organisationUnitFK")).alias("organisationUnitFK")
                  ,when(col("processTypeFK").isNull(), lit('-1')).otherwise(col("processTypeFK")).alias("customerServiceProcessTypeFK")
                  ,col("propertyFK")
                  ,col("locationFK")
@@ -572,26 +594,26 @@ df2 = ( df2.withColumn("receivedBK",expr("concat(coherentAspectIdD,'|',coherentC
         )
 
 finalMAXDF = ((df2.alias("core")           
-      .join(procTypeDF.alias("pc"), (col("core.processTypeBK") == col("pc._BusinessKey")), "left").drop("core.processTypeBK","pc._BusinessKey") 
-      .join(statusDF.alias("st"), (col("core.statusBK") == col("st._BusinessKey")), "left").drop("core.statusBK", "st._BusinessKey")
-      .join(dateDF.alias("dt1"), (to_date(col("core.requestStartDate")) == col("dt1.calendarDate")), "left").drop("dt1.calendarDate", "dt1.serviceRequestEndDateFK", "dt1.snapshotDateFK")
-      .join(dateDF.alias("dt2"), (to_date(col("core.requestEndDate")) == col("dt2.calendarDate")), "left").drop("dt2.calendarDate", "dt2.serviceRequestStartDateFK", "dt2.snapshotDateFK") 
-      .join(dateDF.alias("dt3"), (to_date(col("core.lastChangedDateTime")) == col("dt3.calendarDate")), "left").drop("dt3.calendarDate", "dt3.serviceRequestStartDateFK","dt3.serviceRequestEndDateFK") 
+      .join(procTypeDF.alias("pc"), (col("core.processTypeBK") == col("pc._BusinessKey")), "left").drop(col("core.processTypeBK"),col("pc._BusinessKey")) 
+      .join(statusDF.alias("st"), (col("core.statusBK") == col("st._BusinessKey")), "left").drop(col("core.statusBK"), col("st._BusinessKey"))
+      .join(dateDF.alias("dt1"), (to_date(col("core.requestStartDate")) == col("dt1.calendarDate")), "left").drop(col("dt1.calendarDate"), col("dt1.serviceRequestEndDateFK"), col("dt1.snapshotDateFK"))
+      .join(dateDF.alias("dt2"), (to_date(col("core.requestEndDate")) == col("dt2.calendarDate")), "left").drop(col("dt2.calendarDate"), col("dt2.serviceRequestStartDateFK"), col("dt2.snapshotDateFK"))
+      .join(dateDF.alias("dt3"), (to_date(col("core.lastChangedDateTime")) == col("dt3.calendarDate")), "left").drop(col("dt3.calendarDate"), col("dt3.serviceRequestStartDateFK"),col("dt3.serviceRequestEndDateFK")) 
       .join(propertyDF.alias("pr"), ((col("core.propertyNoBK") == col("pr._BusinessKey")) &  
                  (col("core.lastChangedDateTime").between(col("pr._recordStart"), 
-                                                          col("pr._recordEnd")))), "left").drop("pr._BusinessKey", "pr._recordStart", "pr._recordEnd") 
+                                                          col("pr._recordEnd")))), "left").drop(col("pr._BusinessKey"), col("pr._recordStart"), col("pr._recordEnd")) 
       .join(locationDF.alias("lo"), ((col("core.propertyNoBK") == col("lo.locationID")) &  
                  (col("core.lastChangedDateTime").between(col("lo._recordStart"), 
-                                                          col("lo._recordEnd")))),"left").drop("lo.locationID", "lo._recordStart", "lo._recordEnd") 
+                                                          col("lo._recordEnd")))),"left").drop(col("lo.locationID"), col("lo._recordStart"), col("lo._recordEnd"))
       .join(busPartGrpDF.alias("bgp"), ((col("core.propertyNoBK") == col("bgp.businessPartnerGroupNumber")) &  
                  (col("core.lastChangedDateTime").between(col("bgp._recordStart"), 
-                                                col("bgp._recordEnd")))), "left").drop("bgp.businessPartnerGroupNumber", "bgp._recordStart", "bgp._recordEnd")
+                                                col("bgp._recordEnd")))), "left").drop(col("bgp.businessPartnerGroupNumber"), col("bgp._recordStart"), col("bgp._recordEnd"))
       .join(servCatDF.alias("sc1"), ((col("core.receivedBK") == col("sc1.sourceBusinessKey")) &
            (col("core.lastChangedDateTime").between(col("sc1.sourceValidFromDatetime"), 
-                                                          col("sc1.sourceValidToDatetime")))), "left").drop("sc1.sourceBusinessKey", "sc1.sourceValidFromDatetime", "sc1.sourceValidToDatetime", "sc1.resolutionCategoryFK") 
+                                                          col("sc1.sourceValidToDatetime")))), "left").drop(col("sc1.sourceBusinessKey"), col("sc1.sourceValidFromDatetime"), col("sc1.sourceValidToDatetime"), col("sc1.resolutionCategoryFK")) 
       .join(servCatDF.alias("sc2"), ((col("core.resolutionBK") == col("sc2.sourceBusinessKey")) &
            (col("core.lastChangedDateTime").between(col("sc2.sourceValidFromDatetime"), 
-                                                          col("sc2.sourceValidToDatetime")))), "left").drop("sc2.sourceBusinessKey", "sc2.sourceValidFromDatetime", "sc2.sourceValidToDatetime","sc2.receivedCategoryFK") 
+                                                          col("sc2.sourceValidToDatetime")))), "left").drop(col("sc2.sourceBusinessKey"), col("sc2.sourceValidFromDatetime"), col("sc2.sourceValidToDatetime"),col("sc2.receivedCategoryFK")) 
        .withColumn("BusinessKey", concat_ws("|", col("core.serviceRequestGUID").cast("string"), col("core.lastChangedDateTime").cast("string"),lit('')))
       ).select(col("BusinessKey").alias(f"{BK}")
                  ,col("sourceSystemCode")
@@ -670,5 +692,5 @@ def Transform():
     #display(df)
     #CleanSelf()
     Save(df)
-    busDF.unpersist()
+    #busDF.unpersist()
 Transform()

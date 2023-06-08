@@ -106,6 +106,29 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, BK, SK):
 
 # COMMAND ----------
 
+def processCDFTableSCD(sourceDataFrame, targetTableFqn, BK, SK):
+    targetTable = spark.table(targetTableFqn)
+    print("Merging...")
+    (DeltaTable.forName(spark, targetTableFqn).alias("t").merge(sourceDataFrame.alias("s"), f"t.{BK} = s.BK") \
+        .whenMatchedUpdate(
+          condition = "s._change_type = 'update_preimage'", 
+          set = {"_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
+                 "_recordCurrent": "0",
+                }
+        )
+        .whenMatchedUpdate(
+          condition = "s._change_type = 'delete'", 
+          set = {"_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
+                 "_recordDeleted": "1",
+                }
+        ) 
+        .whenNotMatchedInsert(
+          condition = "s._change_type IN ('insert','update_postimage')", 
+          values = {col: f"s.{col}" for col in s.columns}
+        ).execute())
+
+# COMMAND ----------
+
 def CreateOrMerge(sourceDataFrame, targetTableFqn, dataLakePath, businessKey=None, createTableConstraints = True, mergeWithUpdate = True):
     if (TableExists(targetTableFqn)):
         if mergeWithUpdate: 

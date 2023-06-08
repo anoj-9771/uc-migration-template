@@ -269,8 +269,8 @@ if destinationTableName.endswith('Responses'):
     sourceDataFrame = EnrichResponses(sourceDataFrame)
 
 # MASK TABLE
-if maskColumns:
-    sourceDataFrame = MaskTable(sourceDataFrame)
+# if maskColumns:
+#     sourceDataFrame = MaskTable(sourceDataFrame) -- Take out table Mask 
     
     
 ####Add SurveyID and Survery name for question and Answers

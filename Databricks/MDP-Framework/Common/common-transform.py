@@ -11,6 +11,8 @@
 
 # COMMAND ----------
 
+from delta.tables import DeltaTable
+import pandas as pd
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
 from pyspark.sql.window import *
@@ -368,6 +370,53 @@ def saveSchemaAndData(currentDataFrame, joinColumnsO, joinColumnsN):
         spark.sql(f"DROP VIEW IF EXISTS adfTemp")
         EndNotebook(createDF)
         return
+
+# COMMAND ----------
+
+#Mags -- Change DataFeed handling. Logic: Get all the datafeed version of source after the last version of Target Delta Table.
+         #Ensure DataFeed for the table is turned off when the table is (dropped and created or any schema changes involving entire table/ and turn it on once complete.
+         #Assumption raw Cleansed and curated or loaded.
+         #Last-Mile ETL logic will be handled seperately
+
+#Handle duplicate Business Data, if exist 
+def handleDuplicateBusinessData(cdf, checkColumns):
+    window = window.partitionBy(*columns)
+    cdf = cdf.withColumn("changeCount", count('*').over(window))
+    cdf = cdf.filter(col("changeCount") == 1)
+    return cdf
+
+def getSourceCDF(sourceTableName, changeColumns):
+    destDF = DeltaTable.forName(spark, _.Destination)
+    history = destDF.history().toPandas()
+    lastTimeStamp = pd.to_datetime(history['timestamp'].max())
+    srcDF = DeltaTable.forName(spark, sourceTableName)
+    srcHistory = srcDF.history().toPandas()
+    processVers = srcHistory[pd.to_datetime(srcHistory['timestamp']) > lastTimeStamp ] ['version']
+    if processVers.empty:
+        return None        
+    cdfDF = spark.sql(f""" SELECT * FROM table_changes({sourceTableName}, {versFrm}, {versTo}) """)
+    cdfDF = handleDuplicateBusinessData(cdfDF, changeColumns)
+    return cdfDF
+    
+
+def SaveWithCDF(sourceDataFrame,append=False):
+    targetTableFqn = f"{_.Destination}"
+    print(f"Saving {targetTableFqn}...")
+    if (not(TableExists(targetTableFqn))):
+        print(f"Creating {targetTableFqn}...")
+        # Adjust _RecordStart date for first load
+        sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
+        sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
+        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        EndNotebook(sourceDataFrame)
+        return
+    sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
+    if append:
+        AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+    else:    
+        processCDFTableSCD(sourceDataFrame, targetTableFqn,_.BK,_.SK)
+    EndNotebook(sourceDataFrame)
+    return    
 
 # COMMAND ----------
 
