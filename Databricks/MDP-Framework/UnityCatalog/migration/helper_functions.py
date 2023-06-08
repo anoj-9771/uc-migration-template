@@ -271,6 +271,67 @@ def create_external_table(env:str, layer:str, table_name:str, target_location:st
 
 # COMMAND ----------
 
+def getXMLExtendedProperties(table_name:str) -> dict:
+    import json
+    sql = "select concat(lower(DestinationSchema),'_',lower(DestinationTableName)) as TableName,ExtendedProperties from hive_metastore.controldb.dbo_extractloadmanifest where RawHandler='raw-load' and RawPath like '%.xml'"
+    df = spark.sql(sql)
+    return json.loads(df.filter(f"TableName = '{table_name}'").select("ExtendedProperties").collect()[0]['ExtendedProperties'])
+
+
+# COMMAND ----------
+
+# MAGIC %md ## create_external_table
+
+# COMMAND ----------
+
+def create_external_table(env:str, layer:str, table_name:str, target_location:str, provider:str) -> None:
+    """Converts given hive metastore external table to an external table in Unity Catalog"""  
+    hive_metastore_namespace = f'hive_metastore.{layer}.{table_name}'
+    new_namespace_obj = get_target_namespace(env, layer, table_name)
+    new_namespace = f"{new_namespace_obj['catalog_name']}.{new_namespace_obj['database_name']}.{new_namespace_obj['table_name']}"    
+    fileFormat = provider
+    fileOptions = ""
+    env = env.replace('_','')
+    if env == '':
+        env = 'prod'
+    target_path = target_location.replace(f'dbfs:/mnt/datalake-{layer}',f'abfss://{layer}@sadaf{env}01.dfs.core.windows.net')
+    if(fileFormat =="XML"):
+        extendedProperties = getXMLExtendedProperties(table_name)
+        rowTag = extendedProperties["rowTag"]
+        fileOptions = f", ignoreNamespace \"true\", rowTag \"{rowTag}\""
+    elif (fileFormat =="CSV"):
+        fileOptions = ", header \"true\", inferSchema \"true\", multiline \"true\""
+    elif (fileFormat == "JSON"):
+        spark.conf.set("spark.sql.caseSensitive", "true")
+        fileOptions = ", multiline \"true\", inferSchema \"true\""
+    else:
+        fileFormat = "PARQUET"     
+    spark.sql(f"CREATE DATABASE IF NOT EXISTS {new_namespace_obj['catalog_name']}.{new_namespace_obj['database_name']}")
+    start_time = str(datetime.now())
+    try:
+        print (f'converting table {hive_metastore_namespace} to {new_namespace}')
+        spark.table(hive_metastore_namespace).count()
+        sql = f"DROP TABLE IF EXISTS {new_namespace};"
+        spark.sql(sql)
+        if fileFormat =='XML':
+            df = spark.read.format('xml').option('rowTag',f'{rowTag}').option('ignoreNamespace','True').load(f'{rawFolderPath}')
+            df.write.saveAsTable(f'{tableFqn}')            
+        else:
+            sql = f"CREATE TABLE {new_namespace} USING {fileFormat} OPTIONS (path \"{target_path}\" {fileOptions});"
+            df = spark.sql(sql)
+        try:
+            clone_stats = df.collect()[0].asDict()
+        except:
+            clone_stats = {}
+        end_time = str(datetime.now())
+        log_to_json(f'{layer}.{table_name}', new_namespace, start_time, end_time, clone_stats=clone_stats, error=None)        
+        time.sleep(4)  #putting some sleep in order to avoid clogging the data transfer
+    except Exception as e:
+        print (f'Error: {e}')
+        log_to_json(f'{layer}.{table_name}', new_namespace, start_time, end_time='9999-12-31 23:59', clone_stats=None, error=f'{e}')            
+
+# COMMAND ----------
+
 #debug
 # log_to_json('test', 'test', 'test', 'test')
 

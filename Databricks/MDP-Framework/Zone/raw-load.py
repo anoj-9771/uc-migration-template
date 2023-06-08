@@ -27,15 +27,15 @@ fileOptions = ""
 if("xml" in rawTargetPath):
     extendedProperties = json.loads(j.get("ExtendedProperties"))
     rowTag = extendedProperties.get("rowTag")
-    fileFormat = "XML"
+    fileFormat = "xml"
     fileOptions = f"ignoreNamespace \"true\", rowTag \"{rowTag}\""
 elif ("csv" in rawTargetPath):
     fileFormat = "CSV"
-    fileOptions = "header \"true\", inferSchema \"true\", multiline \"true\""
+    fileOptions = ", header \"true\", inferSchema \"true\", multiline \"true\""
 elif ("json" in rawTargetPath):
     spark.conf.set("spark.sql.caseSensitive", "true")
     fileFormat = "JSON"
-    fileOptions = "multiline \"true\", inferSchema \"true\""
+    fileOptions = ", multiline \"true\", inferSchema \"true\""
 else:
     fileFormat = "PARQUET"
 
@@ -44,8 +44,18 @@ else:
 tableFqn = get_table_name('raw', schemaName, tableName)
 sql = f"DROP TABLE IF EXISTS {tableFqn};"
 spark.sql(sql)
-sql = f"CREATE TABLE {tableFqn} USING {fileFormat} LOCATION \"{rawFolderPath}\" OPTIONS ({fileOptions});"
-print(sql)
-spark.sql(sql)
 
-print(spark.table(f"{tableFqn}").count())
+# COMMAND ----------
+
+if fileFormat == 'xml':
+    df = spark.read.format(fileFormat).option('rowTag',f'{rowTag}').option('ignoreNamespace','True').load(f'{rawFolderPath}')
+    df.write.saveAsTable(f'{tableFqn}')
+else:
+    sql = f"CREATE TABLE {tableFqn} USING {fileFormat} OPTIONS (path=\"{rawFolderPath}\" {fileOptions});"
+    spark.sql(sql)
+
+# print(spark.table(f"{tableFqn}").count())
+
+# COMMAND ----------
+
+
