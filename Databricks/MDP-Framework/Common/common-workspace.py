@@ -17,6 +17,11 @@ def CurrentNotebookPath():
 
 # COMMAND ----------
 
+def GetServicePrincipalId():
+    return dbutils.secrets.get(scope = SECRET_SCOPE, key = "daf-serviceprincipal-app-id")
+
+# COMMAND ----------
+
 def GetAuthenticationHeader(key=DATABRICKS_PAT_SECRET_NAME):
     pat = dbutils.secrets.get(scope = SECRET_SCOPE, key = key)
     headers = {
@@ -168,8 +173,7 @@ def PinCluster(id):
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/clusters/pin'
     response = requests.post(url, json={ "cluster_id": id }, headers=headers)
-    jsonResponse = response.json()
-    print(jsonResponse)
+    return response.json()
 
 # COMMAND ----------
 
@@ -218,14 +222,23 @@ def GetPoolIdByName(name):
 
 # COMMAND ----------
 
-def CreateCluster(cluster, pin=True, installLibraries=False):
+def TerminateCluster(clusterId):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/clusters/delete'
+    response = requests.post(url, json = { "cluster_id" : clusterId }, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
+def CreateCluster(cluster, pin=True, librariesList=None):
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/clusters/create'
     response = requests.post(url, json=cluster, headers=headers)
     jsonResponse = response.json()
     clusterId = jsonResponse["cluster_id"]
     PinCluster(clusterId) if pin else ()
-    InstallLibraries(clusterId) if installLibraries else ()
+    InstallLibraries(clusterId, librariesList) if librariesList is not None else ()
+    TerminateCluster(clusterId)
     return jsonResponse
 
 # COMMAND ----------
@@ -268,13 +281,12 @@ def EditCluster(id, clusterTemplate):
 
 # COMMAND ----------
 
-def InstallLibraries(clusterId):
+def InstallLibraries(clusterId, libraryList):
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/libraries/install'
     libraryTemplate["cluster_id"] = clusterId
-    response = requests.post(url, json=libraryTemplate, headers=headers)
-    jsonResponse = response.json()
-    print(jsonResponse)
+    response = requests.post(url, json=libraryList, headers=headers)
+    return response.json()
 
 # COMMAND ----------
 
@@ -298,7 +310,6 @@ def CreateClusterForPool(clusterName, poolName):
     cluster["cluster_name"] = clusterName
     cluster["instance_pool_id"] = GetPoolIdByName(poolName)
     CreateCluster(cluster)
-#CreateClusterForPool("interactive", "pool-small")
 
 # COMMAND ----------
 
