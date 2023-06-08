@@ -230,11 +230,26 @@ def TerminateCluster(clusterId):
 
 # COMMAND ----------
 
-def CreateCluster(cluster, pin=True, librariesList=None):
+def CreateCluster(cluster):
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/clusters/create'
     response = requests.post(url, json=cluster, headers=headers)
-    jsonResponse = response.json()
+    return response.json()
+
+# COMMAND ----------
+
+def EditCluster(clusterTemplate):
+    cluster = [i for i in ListClusters()["clusters"] if i["cluster_name"] == clusterTemplate["cluster_name"] ][0]
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/clusters/edit'
+    clusterTemplate["cluster_id"] = cluster["cluster_id"]
+    response = requests.post(url, json=clusterTemplate, headers=headers)
+    return clusterTemplate
+
+# COMMAND ----------
+
+def CreateOrEditCluster(cluster, pin=True, createNew=False, librariesList=None):
+    jsonResponse = EditCluster(cluster) if createNew and any([i for i in ListClusters()["clusters"] if i["cluster_name"] == clusterTemplate["cluster_name"] ] ) else CreateCluster(cluster)
     clusterId = jsonResponse["cluster_id"]
     PinCluster(clusterId) if pin else ()
     InstallLibraries(clusterId, librariesList) if librariesList is not None else ()
@@ -268,16 +283,6 @@ def UpdateClusterPermission(id, list, overwrite=False):
 def UpdateClusterPermissionByName(clusterName, permissionList, overwrite=False):
     id = GetClusterByName(clusterName)["cluster_id"]
     return UpdateClusterPermission(id, permissionList)
-
-# COMMAND ----------
-
-def EditCluster(id, clusterTemplate):
-    headers = GetAuthenticationHeader()
-    url = f'{INSTANCE_NAME}/api/2.0/clusters/edit'
-    clusterTemplate["cluster_id"] = id
-    response = requests.post(url, json=clusterTemplate, headers=headers)
-    jsonResponse = response.json()
-    print(jsonResponse)
 
 # COMMAND ----------
 

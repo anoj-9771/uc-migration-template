@@ -36,7 +36,7 @@ clusterTemplate = {
     "data_security_mode": "SINGLE_USER",
     "runtime_engine": "PHOTON"
 }
-#CreateCluster(clusterTemplate, librariesList=libraryTemplate)
+#print(CreateOrEditCluster(clusterTemplate, librariesList=libraryTemplate))
 
 # COMMAND ----------
 
@@ -88,7 +88,7 @@ clusterTemplate = {
     "data_security_mode": "SINGLE_USER",
     "runtime_engine": "PHOTON"
 }
-#CreateCluster(clusterTemplate)
+#print(CreateOrEditCluster(clusterTemplate))
 
 # COMMAND ----------
 
