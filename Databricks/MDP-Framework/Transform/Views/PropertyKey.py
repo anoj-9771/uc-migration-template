@@ -194,7 +194,7 @@ left outer join {get_table_namespace('curated', 'dimLocation')} dimLocation
         --AND dimLocation._recordDeleted = 0
 left outer join {get_table_namespace('curated', 'dimwaternetwork')} dimwaternetwork on dimwaternetwork.waterNetworkSK = dimProperty.waterNetworkSK_drinkingWater
 left outer join {get_table_namespace('curated', 'dimwaternetwork')} dimrecycledwaternetwork on dimrecycledwaternetwork.waterNetworkSK = dimProperty.waterNetworkSK_recycledWater
-left outer join curated_V2.dimsewernetwork dimsewernetwork on dimsewernetwork.sewerNetworkSK = dimProperty.sewerNetworkSK
+left outer join {get_table_namespace('curated', 'dimsewernetwork')} dimsewernetwork on dimsewernetwork.sewerNetworkSK = dimProperty.sewerNetworkSK
 left outer join {get_table_namespace('curated', 'dimstormwaternetwork')} dimstormwaternetwork on dimstormwaternetwork.stormWaterNetworkSK = dimProperty.stormWaterNetworkSK
 ) ORDER BY _effectiveFrom;
 """)
