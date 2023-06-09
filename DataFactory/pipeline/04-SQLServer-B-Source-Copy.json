@@ -432,7 +432,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"on": {
-						"value": "@pipeline().parameters.TaskDetails.SourceName",
+						"value": "@pipeline().parameters.TaskDetails.TaskName",
 						"type": "Expression"
 					},
 					"cases": [
@@ -458,7 +458,7 @@
 												{
 													"name": "_DLRawZoneTimeStamp",
 													"value": {
-														"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyy-MM-dd HH:mm:ss')",
+														"value": "@variables('ExtractDateTime')",
 														"type": "Expression"
 													}
 												}
@@ -894,8 +894,8 @@
 													"value": "@pipeline().parameters.TaskDetails.SourceServer",
 													"type": "Expression"
 												},
-												"tableName": "AUSP",
-												"schemaName": "dbo"
+												"tableName": "z",
+												"schemaName": "z"
 											}
 										}
 									],
@@ -1015,7 +1015,7 @@
 										{
 											"name": "_DLRawZoneTimeStamp",
 											"value": {
-												"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyy-MM-dd HH:mm:ss')",
+												"value": "@variables('ExtractDateTime')",
 												"type": "Expression"
 											}
 										}
@@ -1065,8 +1065,8 @@
 											"value": "@pipeline().parameters.TaskDetails.SourceServer",
 											"type": "Expression"
 										},
-										"tableName": "erch",
-										"schemaName": "eq1"
+										"tableName": "z",
+										"schemaName": "z"
 									}
 								}
 							],
@@ -1410,7 +1410,7 @@
 				"typeProperties": {
 					"variableName": "TargetDatalakePath",
 					"value": {
-						"value": "@toLower(concat('raw', '//', \npipeline().parameters.TaskDetails.TargetLocation, '//', \nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy'), '//',\nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'MM'), '//',\nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'dd'), '//',\nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'HH'), \nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'mm'), '//', pipeline().parameters.TaskDetails.SourceName, '_', \nguid(), '.parquet'))",
+						"value": "@toLower(concat('raw', '//', \npipeline().parameters.TaskDetails.TargetLocation, '//', \nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy'), '//',\nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'MM'), '//',\nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'dd'), '//',\nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'HH'), \nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'mm'), '//', guid(), '.parquet'))",
 						"type": "Expression"
 					}
 				}
@@ -1448,7 +1448,7 @@
 							"value": "@variables('TargetDatalakePath')",
 							"type": "Expression"
 						},
-						"extractDateTimestamp": {
+						"extractDateTime": {
 							"value": "@variables('ExtractDateTime')",
 							"type": "Expression"
 						}
