@@ -44,7 +44,8 @@ def RemoveDuplicateColumns(dataFrame):
 
 # COMMAND ----------
 
-template = f"RIGHT(SHA2(CAST($c$ AS STRING), 256), 16)"
+#template = f"RIGHT(SHA2(CAST($c$ AS STRING), 256), 16)"
+template = f"CAST($c$ AS STRING)"
 masks = {
     "redacted" : "'[*** REDACTED ***]'"
     ,"firstname" : template
@@ -269,8 +270,8 @@ if destinationTableName.endswith('Responses'):
     sourceDataFrame = EnrichResponses(sourceDataFrame)
 
 # MASK TABLE
-# if maskColumns:
-#     sourceDataFrame = MaskTable(sourceDataFrame) -- Take out table Mask 
+if maskColumns:
+    sourceDataFrame = MaskTable(sourceDataFrame)
     
     
 ####Add SurveyID and Survery name for question and Answers

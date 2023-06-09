@@ -12,6 +12,7 @@
 # COMMAND ----------
 
 from delta.tables import DeltaTable
+from pyspark.sql.utils import AnalysisException
 import pandas as pd
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
@@ -373,10 +374,23 @@ def saveSchemaAndData(currentDataFrame, joinColumnsO, joinColumnsN):
 
 # COMMAND ----------
 
-#Mags -- Change DataFeed handling. Logic: Get all the datafeed version of source after the last version of Target Delta Table.
-         #Ensure DataFeed for the table is turned off when the table is (dropped and created or any schema changes involving entire table/ and turn it on once complete.
-         #Assumption raw Cleansed and curated or loaded.
-         #Last-Mile ETL logic will be handled seperately
+#Mags -- Change DataFeed handling. 
+         #Ensure DataFeed for the table is turned off when the table is (dropped and created or any schema changes involving entire table/ and turn it on once complete. #Assumption raw Cleansed and curated or loaded. #Last-Mile ETL logic will be handled seperately
+
+def isCDFEnabled(TableName):
+    deltaTab = spark.sql(f"DESC DETAIL {TableName}")
+    cdfProperties = deltaTab.first()["properties"]
+    if "delta.enableChangeDataFeed" in cdfProperties:
+        cdfEnabled = cdfProperties["delta.enableChangeDataFeed"].lower() == 'true'
+    else:
+        cdfEnabled = False
+    return cdfEnabled
+
+def enableCDF(TableName):
+    if TableExists(TableName):
+        spark.sql(f"ALTER TABLE {TableName} SET TBLPROPERTIES (delta.enableChangeDataFeed = true)")
+    else:
+        return
 
 #Handle duplicate Business Data, if exist 
 def handleDuplicateBusinessData(cdf, checkColumns):
@@ -385,7 +399,9 @@ def handleDuplicateBusinessData(cdf, checkColumns):
     cdf = cdf.filter(col("changeCount") == 1)
     return cdf
 
-def getSourceCDF(sourceTableName, changeColumns):
+
+#Get all the datafeed version of source after the last version of Target Delta Table.
+def getSourceCDF(sourceTableName, changeColumns, catchUpMode = True):
     destDF = DeltaTable.forName(spark, _.Destination)
     history = destDF.history().toPandas()
     lastTimeStamp = pd.to_datetime(history['timestamp'].max())
@@ -393,12 +409,31 @@ def getSourceCDF(sourceTableName, changeColumns):
     srcHistory = srcDF.history().toPandas()
     processVers = srcHistory[pd.to_datetime(srcHistory['timestamp']) > lastTimeStamp ] ['version']
     if processVers.empty:
-        return None        
-    cdfDF = spark.sql(f""" SELECT * FROM table_changes({sourceTableName}, {versFrm}, {versTo}) """)
-    cdfDF = handleDuplicateBusinessData(cdfDF, changeColumns)
-    return cdfDF
+        return None 
+    versFrm = processVers.min()
+    versTo  = processVers.max() 
+    if catchUpMode:
+        try:
+            cdfDF = spark.sql(f"""SELECT * FROM table_changes({sourceTableName}, {versFrm}, {versTo})""")
+            cdfDF = handleDuplicateBusinessData(cdfDF, changeColumns)
+            return cdfDF
+        except AnalysisException as e:
+            return None
+    else:
+        cdfDF = None
+        for vers in processVers:
+            try:
+                vDF = spark.sql(f"""SELECT * FROM table_changes({sourceTableName}, {vers})""")
+                vDF = handleDuplicateBusinessData(vDF, changeColumns)
+                if cdfDF is None:
+                    cdfDF = vDF
+                else:
+                    cdfDF = cdfDF.unionByName(vDF)
+            except AnalysisException as e:
+                pass
+        return cdfDF
     
-
+#call to process CDF
 def SaveWithCDF(sourceDataFrame,append=False):
     targetTableFqn = f"{_.Destination}"
     print(f"Saving {targetTableFqn}...")
