@@ -6,7 +6,7 @@
 # notebookPath = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
 # view = notebookPath[-1:][0]
 # db = notebookPath[-3:][0]
-schema_name = 'consumption'
+schema_name = 'water_consumption'
 view_name = 'viewdevice'
 view_fqn = f"{ADS_DATABASE_CURATED}.{schema_name}.{view_name}"
 

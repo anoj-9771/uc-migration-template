@@ -17,6 +17,8 @@ sqlContext = SQLContext(sc)
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.appName("test").getOrCreate()
 
+import pyspark.sql.functions as F
+
 # COMMAND ----------
 
 if is_uc():
@@ -24,7 +26,7 @@ if is_uc():
     source_catalog = f"{env}curated"
     target_catalog = f"{env}semantic"
     schema_list = []
-    schemas = spark.sql(f"show schemas in {source_catalog}")
+    schemas = spark.sql(f"show schemas in {source_catalog}").filter(F.col('databasename') != 'information_schema')
     for schema in schemas.collect():
         spark.sql(f"CREATE schema IF NOT EXISTS {target_catalog}.{schema.databaseName}")
         schema_list.append(schema.databaseName)
@@ -48,7 +50,7 @@ for schema in schema_list:
 #List tables in curated layer
 # for table in spark.catalog.listTables("curated"):
 for table in table_list:
-    if table.tableName != '' and not table.tableName.startswith("vw") and table.tableName.startswith(("brg", "meter", "view", "dim", "fact")):
+    if table.tableName != '':
         table_name_seperated = ' '.join(re.sub( r"([A-Z])", r" \1", table.tableName).split())
         table_name_formatted = table_name_seperated[0:1].capitalize() + table_name_seperated[1:100]
         if is_uc:
