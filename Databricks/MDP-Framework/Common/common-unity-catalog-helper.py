@@ -22,19 +22,16 @@ def GetPrefix(suffix="_"):
 _CURATED_MAP = {}
 def LoadCuratedMap():
     global _CURATED_MAP
-    try:
-        path = "dbfs:/FileStore/uc/curated_map.csv"
-        df = (spark.read.format("csv")
-                .option("header", "true")
-                .option("inferSchema", "true")
-                .option("multiline", "true")
-                .option("quote", "\"") 
-                .load(path))
-        prefix = GetPrefix()
-        for i in df.collect():
-            _CURATED_MAP[f"{i.current_database_name}.{i.current_table_name}"] = f"{prefix}curated.{i.future_database_name}.{i.future_table_name}"
-    except:
-        pass
+    path = "/mnt/datalake-raw/cleansed_csv/curated_mapping.csv"
+    df = (spark.read.format("csv")
+            .option("header", "true")
+            .option("inferSchema", "true")
+            .option("multiline", "true")
+            .option("quote", "\"") 
+            .load(path))
+    prefix = GetPrefix()
+    for i in df.collect():
+        _CURATED_MAP[f"{i.current_database_name}.{i.current_table_name}"] = f"{prefix}curated.{i.future_database_name}.{i.future_table_name}"
 LoadCuratedMap()
 
 # COMMAND ----------
