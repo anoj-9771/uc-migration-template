@@ -91,7 +91,8 @@ def lookup_curated_namespace(env:str, current_database_name: str, current_table_
     current_database_name = current_database_name.lower()
     current_table_name = current_table_name.lower()
     try:
-        p_df = pd.read_csv(csv_path)
+        # p_df = pd.read_csv(csv_path)
+        p_df = spark.read.option('header', True).csv(csv_path).toPandas() 
         future_database_name = p_df[(p_df['current_table_name'] == current_table_name) & (p_df['current_database_name'].str.contains('curated'))]['future_database_name'].tolist()[0]
         future_table_name = p_df[(p_df['current_table_name'] == current_table_name) & (p_df['current_database_name'].str.contains('curated'))]['future_table_name'].tolist()[0]
         future_namespace['database_name'] = future_database_name
