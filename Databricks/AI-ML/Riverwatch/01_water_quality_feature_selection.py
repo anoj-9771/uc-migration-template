@@ -46,8 +46,8 @@ print(CURRENT_MODEL_RUNTIME)
 
 #----- Load IICATS Hierarchy Configuration table -----
 # if "iicats_hierarchy_cnfgn" in table_names_in_cleansed_db:
-if TableExists(f"{ADS_DATABASE_CLEANSED}.iicats.hierarchy_cnfgn")
-    df_hierarchy_cnfgn = spark.table(f"{ADS_DATABASE_CLEANSED}.iicats_hierarchy_cnfgn").alias("hcnfg")
+if TableExists(f"{ADS_DATABASE_CLEANSED}.iicats.hierarchy_cnfgn"):
+    df_hierarchy_cnfgn = spark.table(f"{ADS_DATABASE_CLEANSED}.iicats.hierarchy_cnfgn").alias("hcnfg")
     print("IICATS Hierarchy Config loaded from cleansed")
 else:
     print("Cleansed tables for IICATS Hierarchy Config do not exist.")
@@ -55,7 +55,7 @@ else:
     
 #----- Load IICATS TSV Point Configuration table -----    
 # if "iicats_tsv_point_cnfgn" in table_names_in_cleansed_db:
-if TableExists(f"{ADS_DATABASE_CLEANSED}.iicats.tsv_point_cnfgn")
+if TableExists(f"{ADS_DATABASE_CLEANSED}.iicats.tsv_point_cnfgn"):
     df_time_series_values_cnfgn = spark.table(f"{ADS_DATABASE_CLEANSED}.iicats.tsv_point_cnfgn").alias("tsvptcnfg")
     print("IICATS TSV Point Config loaded from cleansed")
 else:
@@ -64,7 +64,7 @@ else:
     
 #----- Load IICATS TSV table -----        
 # if "iicats_tsv" in table_names_in_cleansed_db:
-if TableExists(f"{ADS_DATABASE_CLEANSED}.iicats.tsv")
+if TableExists(f"{ADS_DATABASE_CLEANSED}.iicats.tsv"):
     df_time_series_values = spark.table(f"{ADS_DATABASE_CLEANSED}.iicats.tsv").alias("tsv")
     print("IICATS TSV loaded from cleansed")
 else:
@@ -73,7 +73,7 @@ else:
     
 #----- Load BoM Daily Weather Observations - Sydney Airport -----        
 # if "bom_dailyweatherobservation_sydneyairport" in table_names_in_cleansed_db:
-if TableExists(f"{ADS_DATABASE_CLEANSED}.bom.dailyweatherobservation_sydneyairport")
+if TableExists(f"{ADS_DATABASE_CLEANSED}.bom.dailyweatherobservation_sydneyairport"):
     df_sun = spark.table(f"{ADS_DATABASE_CLEANSED}.bom.dailyweatherobservation_sydneyairport")
     print("BoM Weather Observations loaded from cleansed")
 else:
@@ -82,7 +82,7 @@ else:
     
 #----- Load BoM Daily Climate Data - Sydney Airport -----        
 # if "bom_dailyclimatedata_sydneyairport" in table_names_in_cleansed_db:
-if TableExists(f"{ADS_DATABASE_CLEANSED}.bom.dailyclimatedata_sydneyairport")
+if TableExists(f"{ADS_DATABASE_CLEANSED}.bom.dailyclimatedata_sydneyairport"):
     df_solar = spark.table(f"{ADS_DATABASE_CLEANSED}.bom.dailyclimatedata_sydneyairport")
     print("BoM Climate Data loaded from cleansed")
 else:

@@ -8,8 +8,7 @@
 				"defaultValue": "databricks-token"
 			},
 			"clusterId": {
-				"type": "string",
-				"defaultValue": "1103-023442-me8nqcm9"
+				"type": "string"
 			}
 		},
 		"annotations": [],

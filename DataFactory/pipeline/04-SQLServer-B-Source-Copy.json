@@ -11,6 +11,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "Set-TargetDatalakePath",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"policy": {
@@ -121,7 +127,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Switch-SLT-Tables",
+						"activity": "run-databricks-notebook-cluster",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -168,7 +174,7 @@
 						},
 						"RecordsTargetTable": {
 							"value": {
-								"value": "@variables('RowCount')",
+								"value": "@activity('run-databricks-notebook-cluster').output.runOutput",
 								"type": "Expression"
 							},
 							"type": "Int64"
@@ -349,7 +355,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Switch-SLT-Tables",
+						"activity": "run-databricks-notebook-cluster",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -473,25 +479,15 @@
 											}
 										},
 										"sink": {
-											"type": "AzureDatabricksDeltaLakeSink",
-											"importSettings": {
-												"type": "AzureDatabricksDeltaLakeImportCommand",
-												"dateFormat": "yyyy-MM-dd HH:mm:ss",
-												"timestampFormat": "yyyy-MM-dd HH:mm:ss"
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
 											}
 										},
-										"enableStaging": true,
-										"stagingSettings": {
-											"linkedServiceName": {
-												"referenceName": "LS_AzureDatalake",
-												"type": "LinkedServiceReference"
-											},
-											"path": {
-												"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
-												"type": "Expression"
-											},
-											"enableCompression": false
-										},
+										"enableStaging": false,
 										"parallelCopies": 32,
 										"dataIntegrationUnits": 8,
 										"translator": {
@@ -881,7 +877,12 @@
 														"type": "DateTime"
 													}
 												}
-											]
+											],
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
 										}
 									},
 									"inputs": [
@@ -900,11 +901,11 @@
 									],
 									"outputs": [
 										{
-											"referenceName": "DS_RAW_ADLS_DELTALAKE",
+											"referenceName": "DLS_Parquet",
 											"type": "DatasetReference",
 											"parameters": {
-												"TableName": {
-													"value": "@pipeline().parameters.TaskDetails.TargetName",
+												"BlobPath": {
+													"value": "@variables('TargetDatalakePath')",
 													"type": "Expression"
 												}
 											}
@@ -1035,27 +1036,25 @@
 									}
 								},
 								"sink": {
-									"type": "AzureDatabricksDeltaLakeSink",
-									"importSettings": {
-										"type": "AzureDatabricksDeltaLakeImportCommand",
-										"dateFormat": "yyyy-MM-dd HH:mm:ss",
-										"timestampFormat": "yyyy-MM-dd HH:mm:ss"
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
 									}
 								},
-								"enableStaging": true,
-								"stagingSettings": {
-									"linkedServiceName": {
-										"referenceName": "LS_AzureDatalake",
-										"type": "LinkedServiceReference"
-									},
-									"path": {
-										"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
-										"type": "Expression"
-									},
-									"enableCompression": false
-								},
+								"enableStaging": false,
 								"parallelCopies": 32,
-								"dataIntegrationUnits": 8
+								"dataIntegrationUnits": 8,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
 							},
 							"inputs": [
 								{
@@ -1073,11 +1072,11 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "DS_RAW_ADLS_DELTALAKE",
+									"referenceName": "DLS_Parquet",
 									"type": "DatasetReference",
 									"parameters": {
-										"TableName": {
-											"value": "@pipeline().parameters.TaskDetails.TargetName",
+										"BlobPath": {
+											"value": "@variables('TargetDatalakePath')",
 											"type": "Expression"
 										}
 									}
@@ -1402,6 +1401,70 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "Set-TargetDatalakePath",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "TargetDatalakePath",
+					"value": {
+						"value": "@toLower(concat('raw', '//', \npipeline().parameters.TaskDetails.TargetLocation, '//', \nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy'), '//',\nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'MM'), '//',\nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'dd'), '//',\nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'HH'), \nformatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'mm'), '//', pipeline().parameters.TaskDetails.SourceName, '_', \nguid(), '.parquet'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "run-databricks-notebook-cluster",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "Switch-SLT-Tables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "/build/raw/raw-load-delta-slt",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"taskDetails": {
+							"value": "@{pipeline().parameters.TaskDetails}",
+							"type": "Expression"
+						},
+						"rawPath": {
+							"value": "@variables('TargetDatalakePath')",
+							"type": "Expression"
+						},
+						"extractDateTimestamp": {
+							"value": "@variables('ExtractDateTime')",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureDatabricks_DefinedCluster",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "databricks-token",
+						"clusterId": {
+							"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+							"type": "Expression"
+						}
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -1459,6 +1522,9 @@
 				"type": "String"
 			},
 			"ExtractDateTime": {
+				"type": "String"
+			},
+			"TargetDatalakePath": {
 				"type": "String"
 			}
 		},
