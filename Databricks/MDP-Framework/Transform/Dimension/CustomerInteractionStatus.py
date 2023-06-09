@@ -21,7 +21,7 @@ def Transform():
     global df 
     
     # ------------- TABLES ----------------- #   
-    srStatus = GetTable(f"{SOURCE}.crm_0crm_sales_act_1").select("statusProfile").distinct().filter("statusProfile IS NOT NULL") 
+    srStatus = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_sales_act_1')}").select("statusProfile").distinct().filter("statusProfile IS NOT NULL") 
     
     recStatus = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_tj30t')}") \
     .select("statusProfile", "statusCode", "statusShortDescription","status").dropDuplicates() 

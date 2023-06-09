@@ -13,7 +13,7 @@ def Transform():
     global df
     # ------------- TABLES ----------------- #
     df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_scapptseg')}")
-#     desc_df = GetTable(f"{SOURCE}.crm_scapttxt").select('apptType','apptTypeDescription')
+#     desc_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_scapttxt')}").select('apptType','apptTypeDescription')
   
     # ------------- JOINS ------------------ #
 #     df = df.join(desc_df,"apptType","inner") 

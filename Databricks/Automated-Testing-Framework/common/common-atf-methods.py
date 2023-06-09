@@ -841,7 +841,7 @@ def SrcVsTgtCountChk():
 
         tablename = GetSelfFqn().split(".")[1]
 
-        sourceDf = spark.table(f"{source}.{tablename}").drop_duplicates()
+        sourceDf = spark.table(f"""{get_table_namespace(f'{source}',f'{tablename}')}""").drop_duplicates()
         targetDf = spark.table(f"{GetSelfFqn()}")
 
         sourceCount = sourceDf.count()

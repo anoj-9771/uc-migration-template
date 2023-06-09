@@ -14,9 +14,9 @@ from pyspark.sql.functions import col, row_number, monotonically_increasing_id
 
 def Transform():
     # ------------- TABLES ----------------- #
-    crmorderphf_df = GetTable(f"{SOURCE}.crm_crmorderphf").selectExpr("documentFileName as fileName","documentType as fileType","documentFileSize as fileSize","documentID as documentId")
-    crmorderphio_df = GetTable(f"{SOURCE}.crm_crmorderphio").selectExpr("createdByUser","creationDatetime","changedByUser","changeDateTime","documentID")
-    aurion_employee_df = spark.sql(f"""Select userid, givenNames, surname from {SOURCE}.aurion_active_employees union Select userid, givenNames, surname from {SOURCE}.aurion_terminated_employees""")
+    crmorderphf_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmorderphf')}").selectExpr("documentFileName as fileName","documentType as fileType","documentFileSize as fileSize","documentID as documentId")
+    crmorderphio_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmorderphio')}").selectExpr("createdByUser","creationDatetime","changedByUser","changeDateTime","documentID")
+    aurion_employee_df = spark.sql(f"""Select userid, givenNames, surname from {get_table_namespace(f'{SOURCE}', 'aurion_active_employees')} union Select userid, givenNames, surname from {get_table_namespace(f'{SOURCE}', 'aurion_terminated_employees')}""")
     
     aurion_employee_df = aurion_employee_df.withColumn("uniqueId", monotonically_increasing_id())
     windowStatement = Window.partitionBy("userid").orderBy(col("uniqueId").desc())

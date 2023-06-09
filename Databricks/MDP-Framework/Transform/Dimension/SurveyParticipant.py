@@ -40,7 +40,7 @@ required_columns = ["recipientEmail", "recipientFirstName", "recipientLastName",
 union_df = None
 
 for table in table_name:
-    df = GetTable(f"{SOURCE}.{table}")
+    df = GetTable(f"{get_table_namespace(f'{SOURCE}', f'{table}')}")
     df = add_missing_columns(df, required_columns) 
     
     if union_df is None:

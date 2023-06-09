@@ -18,7 +18,7 @@ from pyspark.sql.functions import col
 # ------------- TABLES ----------------- #    
 factSurveyMisc_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factsurveymiscellaneousinformation')}").filter(col("surveyAttributeName") == lit('serviceRequestNumber')).select("surveyResponseInformationFK", "surveyAttributeValue").alias('svyInfo')    
 factServiceRequest_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerservicerequest')}").select("customerServiceRequestId", "customerServiceRequestSK").alias('SR')    
-dimSuveyResp_df = GetTable(f"{TARGET}.dimsurveyresponseinformation").withColumn("relationshipType", lit("Service Request - Survey")).select("surveyResponseInformationSK", "surveyResponseId", "relationshipType").alias('DSI')
+dimSuveyResp_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimsurveyresponseinformation')}").withColumn("relationshipType", lit("Service Request - Survey")).select("surveyResponseInformationSK", "surveyResponseId", "relationshipType").alias('DSI')
 
     
 # ------------- JOINS ------------------ #

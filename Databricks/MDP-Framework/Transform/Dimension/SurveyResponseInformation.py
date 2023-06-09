@@ -38,7 +38,7 @@ required_columns = ["surveyID", "recordId", "startDate", "endDate", "finished", 
 qualtricsDF = None
 
 for table in table_name:
-    df = GetTable(f"{SOURCE}.{table}")
+    df = GetTable(f"{get_table_namespace(f'{SOURCE}', f'{table}')}")
     df = add_missing_columns(df, required_columns)
     df = ( df.select(col("surveyID").alias("surveyId")
                      ,col("recordId").alias("surveyResponseId")

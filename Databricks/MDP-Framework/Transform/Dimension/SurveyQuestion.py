@@ -44,7 +44,7 @@ Choiceschema = MapType(
     ])
 )
 
-DimSurvey  = GetTable(f"{DEFAULT_TARGET}.dimSurvey").select("surveySK", "surveyName") 
+DimSurvey  = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimSurvey')}").select("surveySK", "surveyName") 
 
 Survey1  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_billpaidsuccessfullyquestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
@@ -61,7 +61,7 @@ Survey4  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_contactcentre
 Survey5  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_customercarequestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
-Survey6  = GetTable(f"{SOURCE}.qualtrics_developerapplicationreceivedquestions").withColumn("sourceSystem", lit("Qualtrics")) \
+Survey6  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_developerapplicationreceivedquestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
                 .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "answers", "choices", "surveyName", "sourceSystem")
 
 Survey7  = GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_p4sonlinefeedbackquestions')}").withColumn("sourceSystem", lit("Qualtrics")) \
@@ -146,7 +146,7 @@ for df in Surveys:
 #########Added CRM Survey #############################
 union_df = union_df.withColumn("surveyVersion", lit(None).cast("string"))
 
-dimBuss = GetTable(f"{DEFAULT_TARGET}.dimSurvey")
+dimBuss = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimSurvey')}")
 crmQues = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crm_svy_re_quest')}")
 
 split_col = split(col("sourceBusinessKey"), r"\|")

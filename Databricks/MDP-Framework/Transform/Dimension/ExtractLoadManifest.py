@@ -11,7 +11,7 @@
 
 def Transform():
     # ------------- TABLES ----------------- #
-    df = GetTable(f"{SOURCE}.dbo_extractloadmanifest")
+    df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'dbo_extractloadmanifest')}")
     # ------------- JOINS ------------------ #
 
     # ------------- TRANSFORMS ------------- #

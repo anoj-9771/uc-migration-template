@@ -79,13 +79,13 @@ def Transform():
     # ------------- TABLES ----------------- #
     # SAP application has option to choose hierarchy upto 4 levels
 # LEVEL 1
-    main_df = GetTable(f"{SOURCE}.crm_crmv_erms_cat_ca").select("categoryTreeID","categoryTreeDescription","categoryTreeGUID").dropDuplicates()
-    category_df = GetTable(f"{SOURCE}.crm_crmd_srv_subject").select(col("categoryTreeID").alias("subjectCatogoryTreeId"),"catalogType").dropna().dropDuplicates()
-    time_slice_df = GetTable(f"{SOURCE}.crm_crmc_erms_cat_as").select("categoryTreeGUID","categoryTreeID","validFromDatetime","validToDatetime").dropDuplicates()
+    main_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmv_erms_cat_ca')}").select("categoryTreeID","categoryTreeDescription","categoryTreeGUID").dropDuplicates()
+    category_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_srv_subject')}").select(col("categoryTreeID").alias("subjectCatogoryTreeId"),"catalogType").dropna().dropDuplicates()
+    time_slice_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmc_erms_cat_as')}").select("categoryTreeGUID","categoryTreeID","validFromDatetime","validToDatetime").dropDuplicates()
 #     time_slice_df = time_slice_df.withColumn("currentRecord",when(time_slice_df.validToDatetime > parser.parse('9999-12-31'), lit(1)).otherwise(lit(0)))
-    hierarchy_df = GetTable(f"{SOURCE}.crm_crmc_erms_cat_hi").select("categoryTreeGUID","parentGuid","childGuid","nodeLeafFlag").dropDuplicates()
-    category_level_df = GetTable(f"{SOURCE}.crm_crmc_erms_cat_ca").select("categoryGUID","categoryId","categoryTreeGUID").dropDuplicates()
-    category_level_desc_df = GetTable(f"{SOURCE}.crm_crmc_erms_cat_ct").select("categoryGUID","categoryDescription").dropDuplicates()
+    hierarchy_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmc_erms_cat_hi')}").select("categoryTreeGUID","parentGuid","childGuid","nodeLeafFlag").dropDuplicates()
+    category_level_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmc_erms_cat_ca')}").select("categoryGUID","categoryId","categoryTreeGUID").dropDuplicates()
+    category_level_desc_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmc_erms_cat_ct')}").select("categoryGUID","categoryDescription").dropDuplicates()
     
 # LEVEL 2 
     h2=hierarchy_df.select(col("categoryTreeGUID").alias("L2categoryTreeGUID"),col("parentGuid").alias("L2parentGuid"),col("childGuid").alias("L2childGuid"),col("nodeLeafFlag").alias("L2nodeLeafFlag"))

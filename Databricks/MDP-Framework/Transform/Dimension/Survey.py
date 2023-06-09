@@ -76,7 +76,7 @@ surveyCRM = spark.sql(f"""
 
 
 createdByDF= spark.sql(f"""Select userid, concat_ws(' ',givenNames,surname) as createdBy 
-                              from {SOURCE}.vw_aurion_employee_details""").drop_duplicates()
+                              from {get_table_namespace(f'{SOURCE}', 'vw_aurion_employee_details')}""").drop_duplicates()
 
 #remove duplicates USERID assignments has aurion data has duplicates #
 windowSpec = Window.partitionBy("userid").orderBy(col("createdBy").desc())

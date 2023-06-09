@@ -19,7 +19,7 @@
 from pyspark.sql.functions import row_number, col, lit, when
 from pyspark.sql import Window
 
-isuDF = (GetTable(f"{SOURCE}.isu_0bpartner_attr")
+isuDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'isu_0bpartner_attr')}")
                                     .filter((col("businessPartnerCategoryCode").isin("1", "2")) & 
                                             (col("_RecordCurrent")== 1))  
                                     .withColumn("sourceSystemCode",lit("ISU"))                                   
@@ -112,7 +112,7 @@ crmDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0bpartner_attr')}")
 
 
 
-aurDF = (GetTable(f"{SOURCE}.vw_aurion_employee_details")
+aurDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'vw_aurion_employee_details')}")
                     .withColumn("sourceSystemCode",lit("AURION"))
                     .withColumn("priority", when(col("aurionfilename") == "active", 0)
                                             .when(col("aurionfilename") == "terminated", 1)

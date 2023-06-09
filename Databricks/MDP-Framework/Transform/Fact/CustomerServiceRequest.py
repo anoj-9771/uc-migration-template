@@ -176,7 +176,7 @@ busPartDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimBusinessP
                  
             )
 
-busPartGrpDF = ( GetTable(f"{DEFAULT_TARGET}.dimBusinessPartnerGroup")
+busPartGrpDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimBusinessPartnerGroup')}")
                              .select( col("businessPartnerGroupSK").alias("businessPartnerGroupFK")
                                      ,col("businessPartnerGroupNumber")
                                      ,col("_recordStart")
