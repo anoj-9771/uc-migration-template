@@ -140,6 +140,12 @@ def GeneralGetSQLColumnChange(file_url, dataframe, tsFormat = ""):
 
 # COMMAND ----------
 
+def RemoveBadCharacters(text, replacement=""):
+    [text := text.replace(c, replacement) for c in "/%� ,;{}()?\n\t=-"]
+    return text
+
+# COMMAND ----------
+
 def get_table_name(table_name):
   """gets correct table namespace based on the UC migration/databricks-env secret being available in keyvault."""
   source_system = table_name.split('_')[0]

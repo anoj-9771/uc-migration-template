@@ -190,7 +190,7 @@ LEFT JOIN {ADS_DATABASE_CURATED}.dim.businesspartneraddress ADDR ON
     DR._effectiveFrom <= ADDR._RecordEnd AND
     DR._effectiveTo >= ADDR._RecordStart 
 )
-""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewsExists(view_fqn) else "CREATE OR REPLACE VIEW"))
+""".replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewExists(view_fqn) else "CREATE OR REPLACE VIEW"))
 
 # COMMAND ----------
 

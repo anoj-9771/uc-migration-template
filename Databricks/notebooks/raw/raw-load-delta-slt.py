@@ -1,6 +1,7 @@
 # Databricks notebook source
 import json
 from datetime import datetime
+import pyspark.sql.functions as F
 
 # COMMAND ----------
 
@@ -17,13 +18,8 @@ dbutils.widgets.text("extractDateTime", "")
 taskDetails = dbutils.widgets.get("taskDetails")
 rawPath     = dbutils.widgets.get("rawPath")
 extractDateTime = dbutils.widgets.get("extractDateTime")
-print(extractDateTime)
-
-# COMMAND ----------
-
-def RemoveBadCharacters(text, replacement=""):
-    [text := text.replace(c, replacement) for c in "/%� ,;{}()?\n\t=-"]
-    return text
+print('rawPath  : ', rawPath)
+print('extractDateTime  : ', extractDateTime)
 
 # COMMAND ----------
 
@@ -35,17 +31,18 @@ targetTable     = j.get("TargetName")
 targetTableFqn  = f"{ADS_DATABASE_RAW}.{targetTable}"
 extractDateTime = datetime.strptime(extractDateTime, '%Y%m%d%H%M%S')
 
-print('rawTargetPath    : ', rawPath)
+print('rawPath          : ', rawPath)
 print('targetTableFqn   : ', targetTableFqn)
-print('taskDetails      : ', j)
 print('extractDateTime  : ', extractDateTime)
+print('taskDetails      : ', j)
+
 
 # COMMAND ----------
 
 
 df = spark.read.format(fileFormat).load(rawPath)
 df = df.toDF(*(RemoveBadCharacters(c) for c in df.columns))
-df = df.withColumn("_DLRawZoneTimeStamp", df._DLRawZoneTimeStamp.cast('timestamp'))
+df = df.withColumn("_DLRawZoneTimeStamp", to_timestamp(df._DLRawZoneTimeStamp, 'yyyyMMddHHmmss'))
 df.write \
             .format("delta") \
             .option("mergeSchema", "true") \

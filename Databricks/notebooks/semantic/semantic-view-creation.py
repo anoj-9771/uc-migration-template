@@ -1,4 +1,8 @@
 # Databricks notebook source
+# MAGIC %run ../curated/common/common-curated-includeMain
+
+# COMMAND ----------
+
 # DBTITLE 1,Create Semantic schema if it doesn't exist
 # database_name = 'semantic'
 # query = "CREATE DATABASE IF NOT EXISTS {0}".format(database_name)
@@ -12,16 +16,6 @@ sqlContext = SQLContext(sc)
 
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.appName("test").getOrCreate()
-
-# COMMAND ----------
-
-def is_uc():
-    """check if the current databricks environemnt is Unity Catalog enabled"""
-    try:
-        dbutils.secrets.get('ADS', 'databricks-env')
-        return True
-    except Exception as e:
-        return False
 
 # COMMAND ----------
 
@@ -58,7 +52,8 @@ for table in table_list:
         table_name_seperated = ' '.join(re.sub( r"([A-Z])", r" \1", table.tableName).split())
         table_name_formatted = table_name_seperated[0:1].capitalize() + table_name_seperated[1:100]
         if is_uc:
-            sql_statement = "CREATE OR REPLACE VIEW " + target_catalog + "." + table.database + "." + table.tableName + " as select "
+            view_fqn = target_catalog + "." + table.database + "." + table.tableName
+            sql_statement = "CREATE OR REPLACE VIEW " + view_fqn + " as select "
         else:
             sql_statement = "CREATE OR REPLACE VIEW semantic." + table.tableName + " as select "
         #indexing the column
@@ -86,7 +81,7 @@ for table in table_list:
                     sql_statement = sql_statement + " , " + column.col_name + " as `" + col_name_formatted + "`"
         if is_uc:
             sql_statement = sql_statement + "  from " + source_catalog + "." + table.database + "." + table.tableName + ";"
-            sql_statement = sql_statement.replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {target_catalog}.{table.database} LIKE '{table.tableName}'").count() == 1 else "CREATE OR REPLACE VIEW")
+            sql_statement = sql_statement.replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewExists(view_fqn) else "CREATE OR REPLACE VIEW")
         else:
             sql_statement = sql_statement + "  from curated." + table.tableName + ";"
             sql_statement = sql_statement.replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {table.database} LIKE '{table.tableName}'").count() == 1 else "CREATE OR REPLACE VIEW")
