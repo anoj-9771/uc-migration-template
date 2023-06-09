@@ -1,8 +1,4 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-helpers
-
-# COMMAND ----------
-
 # MAGIC %run ../../Common/common-transform
 
 # COMMAND ----------
@@ -18,8 +14,11 @@ def CreateView(db: str, view: str, content: str, transform: dict):
 
     table_namespace = get_table_namespace(db, view)
     schema_name = '.'.join(table_namespace.split('.')[:-1])
-    
-    if spark.sql(f"SHOW VIEWS FROM {schema_name} LIKE '{view}'").count() == 1:
+    object_name = table_namespace.split('.')[-1]
+    catalog_name = schema_name.split('.')[0]
+
+    spark.sql(f"USE CATALOG {catalog_name}")
+    if spark.sql(f"SHOW VIEWS FROM {schema_name} LIKE '{object_name}'").count() == 1:
         sqlLines = f"ALTER VIEW {table_namespace} AS"
     else:
         sqlLines = f"CREATE VIEW {table_namespace} AS"

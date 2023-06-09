@@ -1,11 +1,4 @@
 # Databricks notebook source
-# DBTITLE 1,Delete this once this is defined in common-helpers
-def get_table_namespace(layer:str, table: str) -> str:
-    """gets correct table namespace based on the UC migration/databricks-env secret being available in keyvault, used primarily for pipelines other than raw and cleansed ETL"""
-    return f"{layer}.{table}"
-
-# COMMAND ----------
-
 # MAGIC %run ../../Common/common-transform
 
 # COMMAND ----------
@@ -17,11 +10,14 @@ db = DEFAULT_TARGET
 def CreateView(db: str, view: str, sql_: str):
     table_namespace = get_table_namespace(db, view)
     schema_name = '.'.join(table_namespace.split('.')[:-1])
-    
-    if spark.sql(f"SHOW VIEWS FROM {schema_name} LIKE '{view}'").count() == 1:
+    object_name = table_namespace.split('.')[-1]
+    catalog_name = schema_name.split('.')[0]
+
+    spark.sql(f"USE CATALOG {catalog_name}")
+    if spark.sql(f"SHOW VIEWS FROM {schema_name} LIKE '{object_name}'").count() == 1:
         sqlLines = f"ALTER VIEW {table_namespace} AS"
     else:
-        sqlLines = f"CREATE VIEW {table_namespace} AS"
+        sqlLines = f"CREATE VIEW {table_namespace} AS"        
 
     sqlLines += sql_
     print(sqlLines)
