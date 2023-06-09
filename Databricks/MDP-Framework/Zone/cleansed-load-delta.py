@@ -75,7 +75,8 @@ if(extendedProperties):
     deleteRecordsQuery = extendedProperties.get("deleteRecordsQuery")
     groupOrderBy = extendedProperties.get("GroupOrderBy")
     if(deleteRecordsTable):
-        deleteRecordsTable = f"cleansed.{deleteRecordsTable}"
+        # deleteRecordsTable = f"cleansed.{deleteRecordsTable}"
+        deleteRecordsTable = get_table_namespace('cleansed', deleteRecordsTable)
         deletedRecordsDataFrame = SourceDeletedRecords(cleansedTableName,businessKey,groupOrderBy,deleteRecordsTable,systemCode,lastLoadTimeStamp)
         if (deletedRecordsDataFrame):
             cleanseDataFrame = cleanseDataFrame.unionByName(deletedRecordsDataFrame, allowMissingColumns=True)                                                  
