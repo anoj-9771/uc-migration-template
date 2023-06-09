@@ -589,9 +589,9 @@ def GetCommandStatus(commandId, contextId, clusterId):
 
 # COMMAND ----------
 
-def ExecuteCommand(sql, clusterId, contextId=None, waitOnCompletion=True):
+def ExecuteCommand(sql, clusterId=None, contextId=None, waitOnCompletion=True):
     import time
-    #clusterId = clusterId if clusterId is not None else [c["cluster_id"] for c in ListClusters()["clusters"] if c["cluster_source"] == "UI"][0]
+    clusterId = clusterId if clusterId is not None else spark.conf.get("spark.databricks.clusterUsageTags.clusterId")
     contextId = contextId if contextId is not None else CreateContext(clusterId)["id"]
     
     command = {

@@ -13,7 +13,7 @@ def GetEnvironmentTag():
 def GetPrefix(suffix="_"):
     try:
         prefix = dbutils.secrets.get("ADS" if not(any([i for i in json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags")) if i["key"] == "Application" and "hackathon" in i["value"].lower()])) else "ADS-AKV", 'databricks-env')
-        return prefix if suffix in prefix else prefix.replace("_", "-")
+        return prefix.replace("_", suffix)
     except:
         return None
 
