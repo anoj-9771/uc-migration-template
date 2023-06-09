@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -11,8 +17,8 @@ def Transform():
     global df
     
     # ------------- TABLES ----------------- #
-    worknote_df = GetTable(f"{TARGET}.factcustomerserviceworknote").alias('WN')
-    factinteraction_df = GetTable(f"{TARGET}.factcustomerinteraction").alias('IR') 
+    worknote_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerserviceworknote')}").alias('WN')
+    factinteraction_df =GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerinteraction')}").alias('IR') 
                                 
     # ------------- JOINS ------------------ #
     

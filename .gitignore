@@ -19,3 +19,4 @@ Deploy-AzureResourceGroup.ps1
 .vscode
 Databricks/uc_migration/*
 *.pyc
+ 

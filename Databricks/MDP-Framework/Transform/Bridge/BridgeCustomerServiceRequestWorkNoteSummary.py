@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -12,7 +18,7 @@ def Transform():
  
     # ------------- TABLES ----------------- #
     worknote_df = GetTable(f"{TARGET}.factcustomerServiceWorknote").alias('WN')
-    factservicerequest_df = GetTable(f"{TARGET}.factcustomerservicerequest").alias('SR')   
+    factservicerequest_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerservicerequest')}").alias('SR')   
                                 
     # ------------- JOINS ------------------ #
     wn_summary_df = (

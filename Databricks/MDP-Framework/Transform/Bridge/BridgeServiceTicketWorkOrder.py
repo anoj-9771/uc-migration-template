@@ -6,7 +6,13 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -18,9 +24,9 @@ def Transform():
     global transformQuery
     
     # ------------- TABLES ----------------- #   
-    table1 = GetTableName(f"{SOURCE}.maximo_relatedrecord")
-    #table2 = GetTableName(f"{DEFAULT_TARGET}.factWorkOrder")
-    #table3 = GetTableName(f"{DEFAULT_TARGET}.factserviceTicket")
+    table1 = GetTable(f"{get_table_namespace(f'{SOURCE}', 'maximo_relatedrecord')}")
+    #table2 = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'factWorkOrder')}")
+    #table3 = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'factserviceTicket')}")
     
     # ------------- JOIN AND SELECT ----------------- #
     transformQuery = f"""SELECT recordKey workOrderSK, relatedRecordKey serviceTicketSK, relatedRecordClass, relatedRecordKey, recordKey 

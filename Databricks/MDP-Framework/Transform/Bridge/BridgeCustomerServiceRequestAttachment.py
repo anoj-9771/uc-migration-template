@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -11,10 +17,10 @@ def Transform():
     global df 
 
     # ------------- TABLES ----------------- #    
-    factservicerequest_df = GetTable(f"{TARGET}.factcustomerservicerequest").alias('SR')    
-    crm_crmorderphio_df = GetTable(f"{SOURCE}.crm_crmorderphio").alias('O')
-    dimattachmentinfo_df = GetTable(f"{TARGET}.dimcustomerserviceattachmentinfo").alias('A')
-    crm_skwg_brel_df = GetTable(f"{SOURCE}.crm_skwg_brel").alias('B')
+    factservicerequest_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerservicerequest')}").alias('SR')    
+    crm_crmorderphio_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmorderphio')}").alias('O')
+    dimattachmentinfo_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimcustomerserviceattachmentinfo')}").alias('A')
+    crm_skwg_brel_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_skwg_brel')}").alias('B')
     
                                 
     # ------------- JOINS ------------------ #

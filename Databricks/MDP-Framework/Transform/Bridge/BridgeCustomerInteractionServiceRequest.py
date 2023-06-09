@@ -1,5 +1,11 @@
 # Databricks notebook source
-# MAGIC %run ../../Common/common-transform
+# MAGIC %run ../../Common/common-transform 
+
+# COMMAND ---------- 
+
+# MAGIC %run ../../Common/common-helpers 
+# COMMAND ---------- 
+
 
 # COMMAND ----------
 
@@ -14,9 +20,9 @@ def Transform():
     global factinteraction_df
     # ------------- TABLES ----------------- #
 
-    factservicerequest_df = GetTable(f"{TARGET}.factcustomerservicerequest").alias('SR')
-    crm_crmd_brelvonae_df = GetTable(f"{SOURCE}.crm_crmd_brelvonae").alias('B')    
-    factinteraction_df = GetTable(f"{TARGET}.factcustomerinteraction").alias('IR')    
+    factservicerequest_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerservicerequest')}").alias('SR')
+    crm_crmd_brelvonae_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_brelvonae')}").alias('B')    
+    factinteraction_df =GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerinteraction')}").alias('IR')    
                                 
     # ------------- JOINS ------------------ #    
     intern_servReq_df = (
