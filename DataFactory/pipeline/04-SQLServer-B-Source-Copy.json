@@ -174,7 +174,7 @@
 						},
 						"RecordsTargetTable": {
 							"value": {
-								"value": "@activity('run-databricks-notebook-cluster').output.runOutput",
+								"value": "@activity('run-databricks-notebook-cluster').output.runOutput.TargetTableRecordCount",
 								"type": "Expression"
 							},
 							"type": "Int64"
