@@ -36,9 +36,7 @@ print('targetTableFqn   : ', targetTableFqn)
 print('extractDateTime  : ', extractDateTime)
 print('taskDetails      : ', j)
 
-
 # COMMAND ----------
-
 
 df = spark.read.format(fileFormat).load(rawPath)
 df = df.toDF(*(RemoveBadCharacters(c) for c in df.columns))
@@ -51,6 +49,14 @@ df.write \
 if (not(TableExists(targetTableFqn))):
     spark.sql(f"CREATE TABLE IF NOT EXISTS {targetTableFqn}") 
 
+# COMMAND ----------
+
+spark.conf.set("c.table_name", targetTableFqn)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC OPTIMIZE ${c.table_name}
 
 # COMMAND ----------
 
@@ -63,6 +69,7 @@ if TableExists(targetTableFqn):
 else:
   output["TargetTableRecordCount"] = -1
 
+print(sql_query)
 print(output)
 
 # COMMAND ----------
