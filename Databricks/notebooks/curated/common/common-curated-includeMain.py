@@ -291,7 +291,7 @@ def appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk
 
 def updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk):
     
-    if (not(TableExists(curnt_table))):
+    if (not(TableExistsUC(curnt_table))):
         return
 
     df_db = spark.sql(f"""
