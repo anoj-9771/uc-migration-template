@@ -7,8 +7,8 @@ libraryTemplate = {
     "libraries": [
         { "maven" : { "coordinates": "com.microsoft.azure:azure-sqldb-spark:1.0.2" } }
         ,{ "maven" : { "coordinates": "com.databricks:spark-xml_2.12:0.15.0" } }
-        ,{ "maven" : { "coordinates": "com.crealytics:spark-excel_2.12:3.1.2_0.16.5-pre1" } }
-        ,{ "jar" : "dbfs:/FileStore/jars/edda63ff_ead1_4e79_8aff_fc35161ab4eb-azure_cosmos_spark_3_1_2_12_4_8_0-53136.jar" }
+        #,{ "maven" : { "coordinates": "com.crealytics:spark-excel_2.12:3.1.2_0.16.5-pre1" } }
+        #,{ "jar" : "dbfs:/FileStore/jars/edda63ff_ead1_4e79_8aff_fc35161ab4eb-azure_cosmos_spark_3_1_2_12_4_8_0-53136.jar" }
     ]
 }
 
@@ -17,11 +17,15 @@ libraryTemplate = {
 clusterTemplate = {
     "autoscale": {
         "min_workers": 1,
-        "max_workers": 6
+        "max_workers": 1
     },
     "cluster_name": "interactive-sp",
     "spark_version": "12.2.x-scala2.12",
-    "spark_conf": {},
+    "spark_conf": {
+        "spark.databricks.libraries.enableMavenResolution": "false",
+        "spark.sql.session.timeZone": "Australia/Sydney",
+        "spark.databricks.delta.preview.enabled": "true"
+    },
     "azure_attributes": {},
     "ssh_public_keys": [],
     "custom_tags": {

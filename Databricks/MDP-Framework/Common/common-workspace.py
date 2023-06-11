@@ -218,7 +218,9 @@ def ListPools():
 
 def GetPoolIdByName(name):
     v = [a for a in ListPools()['instance_pools'] if a["instance_pool_name"]==name]
-    return "" if len(v) == 0 else v[0]["instance_pool_id"] 
+    if len(v) == 0:
+        raise Exception(f"{name} Not found!")
+    return v[0]["instance_pool_id"] 
 
 # COMMAND ----------
 
