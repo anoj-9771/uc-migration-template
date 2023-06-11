@@ -36,14 +36,15 @@ dbutils.fs.ls(excel_path)
 # COMMAND ----------
 
 # DBTITLE 1,Change the env for each of the environment during runtime. 
-env = "dev_"
+env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')
 p_df = read_run_sheet(excel_path, f'{env}schemas')
+p_df = p_df.drop_duplicates()
 dbs_to_migrate = p_df[p_df['in_scope'] == 'Y']['database_name'].tolist()
 dbs_to_migrate.remove('curated_v2')
 dbs_to_migrate.remove('curated_v3')
 #add curated_v2 and curated_v3 resources as necessary
 # dbs_to_migrate.remove('cleansed')
-dbs_to_migrate = ["stage"]
+# dbs_to_migrate = ["stage"]
 
 # COMMAND ----------
 

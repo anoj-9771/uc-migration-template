@@ -108,7 +108,7 @@ def lookup_curated_namespace(env:str, current_database_name: str, current_table_
 def get_table_name(layer:str, j_schema: str, j_table: str) -> str:
     """gets correct table namespace based on the UC migration/databricks-env secret being available in keyvault, used primarily for raw and cleansed ETL pipelines where the 3 part arguments are derived from controldb"""
     if is_uc():
-        env = dbutils.secrets.get('ADS', 'databricks-env')
+        env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')
         return f"{env}{layer}.{j_schema}.{j_table}"
     else:
         return f"{layer}.{j_schema}_{j_table}"
@@ -120,7 +120,7 @@ def get_table_name(layer:str, j_schema: str, j_table: str) -> str:
 def get_table_namespace(layer:str, table: str) -> str:
     """gets correct table namespace based on the UC migration/databricks-env secret being available in keyvault, used primarily for pipelines other than raw and cleansed ETL"""
     if is_uc():
-        env = dbutils.secrets.get('ADS', 'databricks-env')
+        env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')
         if layer == 'raw' or layer == 'cleansed':
             #use pattern to convert raw.source_tablename to raw.source.table_name
             catalog_name = f'{env}{layer}'
@@ -159,7 +159,7 @@ def ConvertBlankRecordsToNull(df):
 
 def get_raw_folder_path(currentPath) -> str:
     if is_uc():
-        env = dbutils.secrets.get('ADS','databricks-env')
+        env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')
         if env == '':
             env = 'prod'
         return "/".join(currentPath.split("/")[0:-1]).replace('/mnt/datalake-raw',f"abfss://raw@sadaf{env.strip('_')}01.dfs.core.windows.net")

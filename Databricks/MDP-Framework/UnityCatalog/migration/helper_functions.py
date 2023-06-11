@@ -50,14 +50,15 @@ def log_to_json(source_table_name:str, target_table_name:str, start_time:str, en
 
 # COMMAND ----------
 
-def lookup_curated_namespace(env:str, current_database_name: str, current_table_name: str, excel_path:str) -> str:
+
+def lookup_curated_namespace(env:str, current_database_name: str, current_table_name: str, csv_path:str= "/mnt/datalake-raw/cleansed_csv/curated_mapping.csv") -> str:
     """looks up the target table namespace based on the current_table_name provided. note that this function assumes that there are no duplicate 'current_table_name' entries in the excel sheet."""
     future_namespace = {}
     #convert the given database_name and table_name to lower so they can be compared with the migration spreadsheet
     current_database_name = current_database_name.lower()
     current_table_name = current_table_name.lower()
     try:
-        p_df = read_run_sheet(excel_path, f'{env}curated_mapping')
+        p_df = spark.read.option('header', True).csv(csv_path).toPandas() 
         future_database_name = p_df[(p_df['current_table_name'] == current_table_name) & (p_df['current_database_name'].str.contains('curated'))]['future_database_name'].replace(np.nan, None).tolist()[0]
         future_table_name = p_df[(p_df['current_table_name'] == current_table_name) & (p_df['current_database_name'].str.contains('curated'))]['future_table_name'].replace(np.nan, None).tolist()[0]
         future_namespace['database_name'] = future_database_name
@@ -65,8 +66,6 @@ def lookup_curated_namespace(env:str, current_database_name: str, current_table_
     except Exception as e:
         future_namespace['database_name'] = None
         future_namespace['table_name'] = None
-        # future_namespace['database_name'] = 'dim' if 'dim' in current_table_name else 'fact' if 'fact' in current_table_name else 'brg' if 'brg' in current_table_name else 'uncategorized'
-        # future_namespace['table_name'] = current_table_name.replace('dim', '') if 'dim' in current_table_name else current_table_name.replace('fact', '') if 'fact' in current_table_name else current_table_name
         print (f'Warning! Issue occurred while looking up the future namespace for table: {current_database_name}.{current_table_name}')
     return future_namespace
     
@@ -91,7 +90,6 @@ def get_target_namespace(env:str, layer:str, table_name:str, excel_path:str="/db
     """generates target namespace based on the table attributes provided."""
     catalog_name = f'{env}{layer}'
     new_namespace_obj = {}
-    # if layer == 'raw' or layer == 'cleansed':
     if layer in ['raw', 'cleansed', 'stage', 'rejected']:
         #use pattern to convert raw.source_tablename to raw.source.table_name
         new_namespace_obj['catalog_name'] = catalog_name
@@ -100,8 +98,8 @@ def get_target_namespace(env:str, layer:str, table_name:str, excel_path:str="/db
     elif 'curated' in layer or 'semantic' in layer:
         #use lookup_curated_namespace to find the target database and table based on mapping sheet
         new_namespace_obj['catalog_name'] = f'{env}{layer}'
-        new_namespace_obj['database_name'] = lookup_curated_namespace(env, layer, table_name, excel_path)['database_name']
-        new_namespace_obj['table_name'] = lookup_curated_namespace(env, layer, table_name, excel_path)['table_name']
+        new_namespace_obj['database_name'] = lookup_curated_namespace(env, layer, table_name)['database_name']
+        new_namespace_obj['table_name'] = lookup_curated_namespace(env, layer, table_name)['table_name']
     elif layer == 'datalab':
         #datalab tables are simply moved to datalab.datalab_env database
         trimmed_env = env.replace('_', '')

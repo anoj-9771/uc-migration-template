@@ -22,7 +22,7 @@ import pyspark.sql.functions as F
 # COMMAND ----------
 
 if is_uc():
-    env = dbutils.secrets.get('ADS', 'databricks-env')
+    env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')
     source_catalog = f"{env}curated"
     target_catalog = f"{env}semantic"
     schema_list = []
