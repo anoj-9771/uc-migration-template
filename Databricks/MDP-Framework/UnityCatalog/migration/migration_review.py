@@ -4,6 +4,10 @@
 
 # COMMAND ----------
 
+pip install openpyxl
+
+# COMMAND ----------
+
 import time, math, json, random
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
@@ -20,18 +24,9 @@ import pandas as pd
 
 # COMMAND ----------
 
-excel_path = '/dbfs/FileStore/uc/uc_scope.xlsx'
-
-# COMMAND ----------
-
 # DBTITLE 1,Change the env for each of the environment during runtime. 
-env = "dev_"
-p_df = read_run_sheet(excel_path, f'{env}schemas')
-dbs_to_migrate = p_df[p_df['in_scope'] == 'Y']['database_name'].tolist()
-dbs_to_migrate.remove('curated_v2')
-dbs_to_migrate.remove('curated_v3')
-#add curated_v2 and curated_v3 resources as necessary
-# dbs_to_migrate.remove('cleansed')
+env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')
+dbs_to_migrate = ['raw', 'cleansed', 'curated', 'datalab']
 # dbs_to_migrate = ["raw"]
 
 # COMMAND ----------
@@ -45,77 +40,31 @@ migration_logs_path = f"/dbfs/mnt/{datalake_mount}/uc_migration/uc_migration_log
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from uc_migration.data_migration.dev_logs
-# MAGIC where error not like "%Unsupported DEEP clone%"
-# MAGIC
-# MAGIC -- where error is not null
-# MAGIC -- and
-# MAGIC -- where error not like '%`dev_curated`.`nan`.`nan`%'
-# MAGIC -- and error not like "%doesn't exist%"
-# MAGIC -- where error is not null
-# MAGIC -- and error not like "%Unsupported DEEP clone%"
+# DBTITLE 1,Check table count in hive metastore vs Unity Catalog. Views are not migrated!
+for db in dbs_to_migrate:
+    assert_table_counts_post_migration(env, db)
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC describe extended curated.view_installation
+# DBTITLE 1,Check row counts in hive metastore tables vs those in Unity Catalog.
+assert_row_counts_random_tables('raw')
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC show tables in semantic
+
+assert_row_counts_random_tables('cleansed')   
 
 # COMMAND ----------
 
-spark.table('cleansed.maximo_a_asset')
+assert_row_counts_random_tables('curated')
 
-# COMMAND ----------
-
-spark.table('semantic.dimwaternetwork')
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from stage.ocr_extract
-
-# COMMAND ----------
-
-spark.table('curated.view_installation').columns
-
-# COMMAND ----------
-
-create_managed_table(env, 'cleansed', 'vwbeachpollutionweatherforecast')
-
-# COMMAND ----------
-
-for db in ['raw', 'cleansed']:
-    print (db)
-    spark.sql(f"show tables in {db}").filter("tableName not like '%\_%'").display()
 
 # COMMAND ----------
 
 # DBTITLE 1,Retry the migration for failed tables
 tables_to_upgrade = spark.table(f'uc_migration.data_migration.{table}').filter(F.col('error').isNotNull()).select('source_table_name').collect()
-# tables_to_upgrade = [table.asDict()['source_table_name'] for table in tables_to_upgrade]
-tables_to_upgrade = ['curated.f_scdcomplex']
-for table in tables_to_upgrade:
-    layer = table.split(".")[0]
-    table = table.split(".")[1]
-    create_managed_table(env, layer, table)
-
-# COMMAND ----------
-
-lookup_curated_namespace('dev_', 'curated', 'f_scdcomplex', excel_path='/mnt/datalake-raw/cleansed_csv/curated_mapping.csv')['table_name']
-
-# COMMAND ----------
-
-get_target_namespace('dev_', 'curated', 'f_scdcomplex')
-
-# COMMAND ----------
-
-# lookup_curated_namespace('dev_', 'curated', 'f_scdcomplex', excel_path='/mnt/datalake-raw/cleansed_csv/curated_mapping.csv')
-
-# COMMAND ----------
-
-
+tables_to_upgrade = [table.asDict()['source_table_name'] for table in tables_to_upgrade]
+# for table in tables_to_upgrade:
+#     layer = table.split(".")[0]
+#     table = table.split(".")[1]
+#     create_managed_table(env, layer, table)

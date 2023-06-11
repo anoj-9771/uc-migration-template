@@ -25,26 +25,10 @@ import pandas as pd
 
 # COMMAND ----------
 
-excel_path = '/dbfs/FileStore/uc/uc_scope.xlsx'
-excel_path_blob = 'abfss://ucmigration@sadafprod03.dfs.core.windows.net/files/uc_scope.xlsx'
-dbutils.fs.cp(excel_path_blob, excel_path)
-
-# COMMAND ----------
-
-dbutils.fs.ls(excel_path)
-
-# COMMAND ----------
-
 # DBTITLE 1,Change the env for each of the environment during runtime. 
 env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')
-p_df = read_run_sheet(excel_path, f'{env}schemas')
-p_df = p_df.drop_duplicates()
-dbs_to_migrate = p_df[p_df['in_scope'] == 'Y']['database_name'].tolist()
-dbs_to_migrate.remove('curated_v2')
-dbs_to_migrate.remove('curated_v3')
-#add curated_v2 and curated_v3 resources as necessary
-# dbs_to_migrate.remove('cleansed')
-# dbs_to_migrate = ["stage"]
+dbs_to_migrate = ['raw', 'cleansed', 'curated', 'datalab']
+# dbs_to_migrate = ["raw"]
 
 # COMMAND ----------
 
@@ -64,9 +48,9 @@ dbutils.fs.mkdirs(f'/mnt/{datalake_mount}/uc_migration/uc_migration_logs/')
 # COMMAND ----------
 
 # DBTITLE 1,Iterate through target dbs and clean any data in them.
-for db in dbs_to_migrate:
-    if db in ['raw', 'cleansed', 'curated', 'curated_v2', 'curated_v3', 'semantic']:
-        clean_up_catalog(f'{env}{db}')
+# for db in dbs_to_migrate:
+#     if db in ['raw', 'cleansed', 'curated', 'curated_v2', 'curated_v3', 'semantic']:
+#         clean_up_catalog(f'{env}{db}')
 
 # COMMAND ----------
 
@@ -94,20 +78,6 @@ for table in df_tables:
             create_external_table(env, 'raw', table.name, location, provider)
     except Exception as e:        
         pass
-
-# COMMAND ----------
-
-# DBTITLE 1,Check table count in hive metastore vs Unity Catalog. Views are not migrated!
-for db in dbs_to_migrate:
-    assert_table_counts_post_migration(env, db)
-
-# COMMAND ----------
-
-# DBTITLE 1,Check row counts in hive metastore tables vs those in Unity Catalog.
-for db in dbs_to_migrate:
-    assert_row_counts_random_tables('raw')
-    assert_row_counts_random_tables('cleansed')   
-    assert_row_counts_random_tables('curated')
 
 # COMMAND ----------
 
