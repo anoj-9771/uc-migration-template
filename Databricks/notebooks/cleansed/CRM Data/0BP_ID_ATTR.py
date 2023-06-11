@@ -331,7 +331,7 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 
 # spark.sql(f" \
-#     MERGE INTO {ADS_DATABASE_CLEANSED}.crm.0BP_ID_ATTR \
+#     MERGE INTO {ADS_DATABASE_CLEANSED}.crm.0BP_ID_ATTR crm_0BP_ID_ATTR \
 #     using crm_bp_id_deleted_records \
 #     on crm_0BP_ID_ATTR.businessPartnerNumber = crm_bp_id_deleted_records.PARTNER \
 #     and crm_0BP_ID_ATTR.identificationTypeCode = crm_bp_id_deleted_records.TYPE \

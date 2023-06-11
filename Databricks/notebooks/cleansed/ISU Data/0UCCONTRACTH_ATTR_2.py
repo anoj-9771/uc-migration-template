@@ -375,7 +375,7 @@ df.unpersist()
 # CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 
 # spark.sql(f" \
-#     MERGE INTO {ADS_DATABASE_CLEANSED}.isu.0UCCONTRACTH_ATTR_2 \
+#     MERGE INTO {ADS_DATABASE_CLEANSED}.isu.0UCCONTRACTH_ATTR_2 isu_0UCCONTRACTH_ATTR_2 \
 #     using isu_contract_deleted_records \
 #     on isu_0UCCONTRACTH_ATTR_2.contractId = isu_contract_deleted_records.VERTRAG \
 #     and isu_0UCCONTRACTH_ATTR_2.validFromDate = isu_contract_deleted_records.AB \

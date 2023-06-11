@@ -276,7 +276,7 @@ CurrentTimeStamp = GeneralLocalDateTime()
 CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 
 spark.sql(f" \
-    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.AUSP \
+    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.AUSP isu_AUSP \
     using isu_ausp_deleted_records \
     on isu_AUSP.characteristicInternalId = isu_ausp_deleted_records.ATINN \
     and isu_AUSP.classificationObjectInternalId = isu_ausp_deleted_records.OBJEK \

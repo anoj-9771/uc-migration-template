@@ -243,7 +243,7 @@ CurrentTimeStamp = GeneralLocalDateTime()
 CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 
 spark.sql(f" \
-    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.ERCHC \
+    MERGE INTO {ADS_DATABASE_CLEANSED}.isu.ERCHC isu_ERCHC \
     using isu_erchc_deleted_records \
     on isu_ERCHC.billingDocumentNumber = isu_erchc_deleted_records.BELNR \
     and isu_ERCHC.sequenceNumber = isu_erchc_deleted_records.LFDNR \
