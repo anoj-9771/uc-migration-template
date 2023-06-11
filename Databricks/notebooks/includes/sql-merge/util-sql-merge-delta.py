@@ -584,7 +584,7 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
   ALIAS_TABLE_TARGET = "TGT"
   ALIAS_TABLE_STAGE = "STG"
   #ALIAS_TABLE_MAIN = "MN"
-  ALIAS_TABLE_MAIN = target_table_name.split(".",1)[1]
+  ALIAS_TABLE_MAIN = target_table_name.split(".",1)[1].replace('.', '_')
   
   #If Delta Column is a combination of Created and Upated Date then use the _transaction_date as delta column
   delta_column = GeneralGetUpdatedDeltaColumn(delta_column)
