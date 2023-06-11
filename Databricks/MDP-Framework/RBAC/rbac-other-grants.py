@@ -14,6 +14,14 @@ def GetLegacyGroupName(groupName):
 
 # COMMAND ----------
 
+def GetDatalabSchema():
+    schema = GetPrefix("")
+    map = { "" : "swc", "ppd" : "preprod"}
+    mapped = map.get(schema)
+    return mapped if mapped is not None else schema
+
+# COMMAND ----------
+
 def G3Admins(groupName):
     prefix = GetPrefix()
     groupName = GetPrefix("-")+groupName
@@ -22,14 +30,13 @@ def G3Admins(groupName):
         sql.append(f"ALTER CATALOG {prefix}{i} SET OWNER TO `{groupName}`;")
         print(UpdatePermission("CATALOG", f"{prefix}{i}", [ {"principal" : f"{groupName}", "add" : [ "ALL_PRIVILEGES" ]} ]))
     # DATALAB
-    datalabSchema = GetPrefix("")
-    datalabSchema = "swc" if datalabSchema == "" else datalabSchema
+    datalabSchema = GetDatalabSchema()
     sql.append(f"ALTER SCHEMA `datalab`.`{datalabSchema}` SET OWNER TO `{groupName}`;")
     #print(UpdatePermission("SCHEMA", f"datalab.{datalabSchema}", [ {"principal" : f"{groupName}", "add" : [ "ALL_PRIVILEGES" ]} ]))
     sql = "\n".join(sql)
     #print(sql)
     ExecuteCommand(sql)
-G3Admins("G3-Admins")
+#G3Admins("G3-Admins")
 
 # COMMAND ----------
 
@@ -39,28 +46,27 @@ def G1DataDeveloper(groupName):
     for i in ["cleansed", "curated"]:
         print(UpdatePermission("CATALOG", f"{prefix}{i}", [ {"principal" : f"{groupName}", "add" : [ "USE_CATALOG", "USE_SCHEMA", "SELECT" ]} ]))
     # DATALAB
-    datalabSchema = GetPrefix("")
-    datalabSchema = "swc" if datalabSchema == "" else datalabSchema
+    datalabSchema = GetDatalabSchema()
     print(UpdatePermission("SCHEMA", f"datalab.{datalabSchema}", [ {"principal" : f"{groupName}", "add" : [ "ALL_PRIVILEGES" ]} ]))
-G1DataDeveloper("G1-Data-Developer")
+#G1DataDeveloper("G1-Data-Developer")
 
 # COMMAND ----------
 
 def ComputeGrants(groupName):
     groupName =groupName
     print(UpdateWarehousePermissionByName([c["name"] for c in ListWarehouses()["warehouses"]][0], [{ "group_name": groupName, "permission_level": "CAN_USE" }]))
-    print(UpdateClusterPermissionByName("interactive-uc", [{ "group_name": groupName, "permission_level": "CAN_RESTART" }]))
-ComputeGrants(GetPrefix("-")+"L1-Official")
-ComputeGrants(GetPrefix("-")+"G1-Data-Developer")
+    print(UpdateClusterPermissionByName("cluster_analyst_UAT (SQL & Python)", [{ "group_name": groupName, "permission_level": "CAN_RESTART" }]))
+#ComputeGrants(GetPrefix("-")+"L1-Official")
+#ComputeGrants(GetPrefix("-")+"G1-Data-Developer")
 
 # COMMAND ----------
 
 def DataLabGrants(groupName):
-    prefix = GetPrefix("")
+    datalabSchema = GetDatalabSchema()
     print(UpdatePermission("CATALOG", f"datalab", [ {"principal" : f"{groupName}", "add" : [ "USE_CATALOG" ]} ]))
-    print(UpdatePermission("SCHEMA", f"datalab.{prefix}", [ {"principal" : f"{groupName}", "add" : [ "ALL_PRIVILEGES" ]} ]))
+    print(UpdatePermission("SCHEMA", f"datalab.{datalabSchema}", [ {"principal" : f"{groupName}", "add" : [ "ALL_PRIVILEGES" ]} ]))
 #DataLabGrants(GetPrefix("-")+"L1-Official")
-DataLabGrants(GetLegacyGroupName("DataAnalystAdvUsr"))
+#DataLabGrants(GetLegacyGroupName("DataAnalystAdvUsr"))
 
 # COMMAND ----------
 
