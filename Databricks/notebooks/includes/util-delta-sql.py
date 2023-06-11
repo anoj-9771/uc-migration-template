@@ -197,6 +197,7 @@ def DeltaCreateTableIfNotExists(delta_target_table, delta_source_table, data_lak
   partition_table = False
   
   if is_uc():
+    catalog_name = delta_target_table.split(".")[0]
     schema_name = delta_target_table.split(".")[1]
     #Create schema if it does not already exists
     query = "CREATE SCHEMA IF NOT EXISTS {0}.{1}".format(catalog_name, schema_name)
