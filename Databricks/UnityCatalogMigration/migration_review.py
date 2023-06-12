@@ -27,7 +27,6 @@ import pandas as pd
 # DBTITLE 1,Change the env for each of the environment during runtime. 
 env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')
 dbs_to_migrate = ['raw', 'cleansed', 'curated', 'datalab']
-# dbs_to_migrate = ["raw"]
 
 # COMMAND ----------
 
@@ -61,10 +60,41 @@ assert_row_counts_random_tables('curated')
 
 # COMMAND ----------
 
+spark.sql(f"select * from uc_migration.data_migration.{env}logs").display()
+
+# COMMAND ----------
+
+real_errors_df = spark.sql(
+    f"""
+with error_entries as (
+  select
+    *
+  from
+    uc_migration.data_migration.{env}logs
+  where
+    error is not null
+    and source_table_name not like '%semantic%'
+)
+select
+  *
+from
+  error_entries
+where
+  error not like "%doesn\'t exist%"
+  and error not like '%Lookup failed for this table.%'
+  and error not like '%already exists.%'
+  and error not like '%Unsupported DEEP clone source%'
+  and error not like '%UNRESOLVED_COLUMN%'
+  """)
+
+real_errors_df.display()
+
+# COMMAND ----------
+
 # DBTITLE 1,Retry the migration for failed tables
-tables_to_upgrade = spark.table(f'uc_migration.data_migration.{table}').filter(F.col('error').isNotNull()).select('source_table_name').collect()
-tables_to_upgrade = [table.asDict()['source_table_name'] for table in tables_to_upgrade]
-# for table in tables_to_upgrade:
+problem_tables = real_errors_df.select('source_table_name').collect()
+problem_tables = [table.asDict()['source_table_name'] for table in problem_tables]
+# for table in problem_tables:
 #     layer = table.split(".")[0]
 #     table = table.split(".")[1]
 #     create_managed_table(env, layer, table)

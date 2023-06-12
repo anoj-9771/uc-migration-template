@@ -28,7 +28,7 @@ import pandas as pd
 # DBTITLE 1,Change the env for each of the environment during runtime. 
 env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')
 dbs_to_migrate = ['raw', 'cleansed', 'curated', 'datalab']
-# dbs_to_migrate = ["raw"]
+# dbs_to_migrate = ['datalab', 'cleansed']
 
 # COMMAND ----------
 
@@ -42,8 +42,8 @@ migration_logs_path = f"/dbfs/mnt/{datalake_mount}/uc_migration/uc_migration_log
 # COMMAND ----------
 
 # DBTITLE 1,Clear the log storage location.
-dbutils.fs.rm(f"/mnt/{datalake_mount}/uc_migration/uc_migration_logs/", True)
-dbutils.fs.mkdirs(f'/mnt/{datalake_mount}/uc_migration/uc_migration_logs/')
+# dbutils.fs.rm(f"/mnt/{datalake_mount}/uc_migration/uc_migration_logs/", True)
+# dbutils.fs.mkdirs(f'/mnt/{datalake_mount}/uc_migration/uc_migration_logs/')
 
 # COMMAND ----------
 
@@ -61,8 +61,8 @@ dbutils.fs.mkdirs(f'/mnt/{datalake_mount}/uc_migration/uc_migration_logs/')
 # COMMAND ----------
 
 # DBTITLE 1,Iterate through target dbs and deep clone data to Unity Catalog tables.
-for db in dbs_to_migrate:
-    create_managed_table_parallel(db)
+# for db in dbs_to_migrate:
+#     create_managed_table_parallel(db)
 
 # COMMAND ----------
 
@@ -106,11 +106,6 @@ df = (spark.readStream
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC show tables in uc_migration.data_migration
-
-# COMMAND ----------
-
 # DBTITLE 1,Display the migration logs table filtering on the ones that errored.
 #when this cell runs back to back to above cell, the table may not have eventuated (since the above is a streaming action), hence the time.sleep
 time.sleep(30)
@@ -120,9 +115,3 @@ time.sleep(30)
  .filter(F.col('error').isNotNull())
  .display()
 )
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from uc_migration.data_migration.dev_logs
-# MAGIC where error is not null
