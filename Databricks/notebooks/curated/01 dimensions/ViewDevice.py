@@ -180,3 +180,7 @@ WHERE dimregisterinstallationhistory.registerNotRelevantToBilling = 'N' or dimde
 )
 ORDER BY _effectiveFrom
 """.replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewExists(view_fqn) else "CREATE OR REPLACE VIEW"))
+
+# COMMAND ----------
+
+# MAGIC %run ./ViewDeviceCharacteristics

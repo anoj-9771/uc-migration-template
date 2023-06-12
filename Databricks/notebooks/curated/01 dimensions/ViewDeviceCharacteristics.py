@@ -181,7 +181,7 @@ SELECT
       ELSE 'N'
       END AS currentFlag
     ,if(dimDeviceCharacteristics._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
-FROM  {ADS_DATABASE_CURATED}.dim.deviceCharacteristics dimDeviceCharacteristics where deviceNumber in (select distinct deviceNumber from {ADS_DATABASE_CURATED}.consumption.viewDevice) 
+FROM  {ADS_DATABASE_CURATED}.dim.deviceCharacteristics dimDeviceCharacteristics where deviceNumber in (select distinct deviceNumber from {ADS_DATABASE_CURATED}.water_consumption.viewDevice) 
 )
 group by  deviceNumber,classifiedEntityType,classTypeCode,classType,archivingObjectsInternalId,currentFlag,currentRecordFlag
 ORDER BY _effectiveFrom
