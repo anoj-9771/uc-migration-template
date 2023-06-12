@@ -43,7 +43,7 @@ for i in df.collect():
     whereClause = 'where sourceRecordSystemId in(89,90)' if sourceRecordSystemFilterList.count(i.SourceTableName) > 0 else ''
     if dedupeList.count(i.SourceTableName) > 0:        
         sql = (f"""
-        create or replace view {get_table_namespace('cleansed', f'{i.DestinationSchema}_{i.DestinationTableName}_current)'} as
+        create or replace view {get_table_namespace('cleansed', f'{i.DestinationSchema}_{i.DestinationTableName}_current')} as
         with cteDedup as(
           select *, row_number() over (partition by {partitionKey} order by {i.WatermarkColumnMapped} desc) dedupe
           from {get_table_namespace('cleansed', f'{i.DestinationSchema}_{i.DestinationTableName}')}

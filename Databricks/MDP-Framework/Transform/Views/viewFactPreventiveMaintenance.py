@@ -39,7 +39,7 @@ CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewFactpreven
 ,	prevnetiveMaintenanceServiceDepartmentCode
 ,	preventiveMaintenanceWorkCategoryCode
 ,	preventiveMaintenanceWorkTypeCode
-,	preventiveMaintenanceLAlertLeadDaysQuantity
+,	preventiveMaintenanceAlertLeadDaysQuantity
 ,	preventiveMaintenanceServiceTypeCode
 ,	preventiveMaintenanceCategoryCode
 ,	preventiveMaintenanceStatutoryIndicator

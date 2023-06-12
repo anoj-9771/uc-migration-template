@@ -43,7 +43,7 @@ CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewRefAssetPe
    select 
 lookup1Code as workTypeCode,
 return1Code as workTypeDescription
-from curated.refreportconfiguration
+from from {get_table_namespace(f'{DEFAULT_TARGET}', 'refreportconfiguration')}
 where mapTypeCode = 'Asset Performance Work Type Filter'
 )
 """)
