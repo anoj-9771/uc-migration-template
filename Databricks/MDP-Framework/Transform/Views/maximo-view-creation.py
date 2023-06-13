@@ -98,7 +98,7 @@ for i in df.collect():
     if dedupeList.count(i.SourceTableName) > 0:
         whereClause = 'where dedupe = 1'
         sql = (f"""
-        create or replace view {get_table_namespace('cleansed', f'{i.DestinationSchema}_{i.DestinationTableName}_current')} as
+        create or replace view {get_table_namespace('cleansed', f'{i.DestinationSchema}_{i.DestinationTableName}current')} as
         with cteDedup as(
           select *, row_number() over (partition by {partitionKey} order by {i.WatermarkColumnMapped} desc) dedupe
           from {get_table_namespace('cleansed', f'{i.DestinationSchema}_{i.DestinationTableName}')}
