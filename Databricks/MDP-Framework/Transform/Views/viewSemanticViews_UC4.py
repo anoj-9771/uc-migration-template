@@ -8,7 +8,7 @@
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace('semantic','viewAssetKeyPerformanceMeasures')} AS
+CREATE OR REPLACE VIEW {get_table_namespace('curated','viewAssetKeyPerformanceMeasures')} AS
 (
    SELECT
 fwo.workorderWorkTypeCode,
