@@ -12,10 +12,6 @@ WITH _Base AS
 )
 SELECT '0INM_INITIATIVE_GUID_TEXT' SourceTableName, 'ppmref/0INM_INITIATIVE_GUID_TEXT' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
 UNION 
-SELECT '0INM_INITIATIVE_GUID_ATTR' SourceTableName, 'ppmref/0INM_INITIATIVE_GUID_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
-UNION 
-SELECT '0WBS_ELEMT_ATTR' SourceTableName, 'ppmdata/0WBS_ELEMT_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
-UNION 
 SELECT '0RPM_PORT_GUID_ID_TEXT' SourceTableName, 'ppmref/0RPM_PORT_GUID_ID_TEXT' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
 UNION 
 SELECT '0RPM_ITEM_TYPE_TEXT' SourceTableName, 'ppmref/0RPM_ITEM_TYPE_TEXT' SourceQuery, '' WatermarkColumn, * FROM _Base
@@ -36,6 +32,9 @@ UNION
 SELECT 'TCJ4T' SourceTableName, 'ppmref/TCJ4T' SourceQuery, '' WatermarkColumn, * FROM _Base  
 UNION
 SELECT 'ZEPT_SUB_DELPART' SourceTableName, 'ppmref/ZEPT_SUB_DELPART' SourceQuery, '' WatermarkColumn, * FROM _Base  
+UNION
+SELECT 'CGPL_TEXT' SourceTableName, 'ppmref/CGPL_TEXT' SourceQuery, '' WatermarkColumn, * FROM _Base
+
 --End of tables that may get converted to SLT later
 UNION
 (
@@ -58,13 +57,20 @@ UNION
 SELECT 'RPSCO' SourceTableName, 'ppmdata/RPSCO' SourceQuery, '' WatermarkColumn, * FROM _Base  
 UNION
 SELECT 'RPM_RELATION_D' SourceTableName, 'ppmdata/RPM_RELATION_D' SourceQuery, '' WatermarkColumn, * FROM _Base  
+UNION 
+SELECT '0WBS_ELEMT_ATTR' SourceTableName, 'ppmdata/0WBS_ELEMT_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+UNION 
+SELECT '0INM_INITIATIVE_GUID_ATTR' SourceTableName, 'ppmref/0INM_INITIATIVE_GUID_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+UNION 
+SELECT '0RPM_BUCKET_GUID_ATTR' SourceTableName, 'ppmref/0RPM_BUCKET_GUID_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+
 --End of tables that may get converted to SLT later
 )    
 ORDER BY SourceSchema, SourceTableName
 """)
 
 #Delta Tables with delete image. These tables would have di_operation_type column. 
-tables = ['0inm_initiative_guid_attr','0inm_initiative_guid_text','0project_attr','0project_text','0rpm_bucket_guid_id_text','0rpm_decision_guid_attr','0rpm_port_guid_attr','0rpm_port_guid_id_text','0wbs_elemt_attr','0wbs_elemt_text']
+tables = ['0inm_initiative_guid_attr','0inm_initiative_guid_text','0project_attr','0project_text','0rpm_bucket_guid_id_text','0rpm_decision_guid_attr','0rpm_port_guid_attr','0rpm_port_guid_id_text','0wbs_elemt_attr','0wbs_elemt_text','0rpm_bucket_guid_attr']
 tablesWithNullableKeys = ['rpsco']
 #Non-Prod "DeleteSourceFiles" : "False" while testing
 deleteSourceFiles = "False"
@@ -102,24 +108,26 @@ for system_code in ['ppmref','ppmdata']:
 ExecuteStatement("""
 update dbo.extractLoadManifest set
 businessKeyColumn = case sourceTableName
-when '0INM_INITIATIVE_GUID_ATTR' then 'GUID'
-when '0INM_INITIATIVE_GUID_TEXT' then 'uniqueIdentifier'
-when '0PROJECT_ATTR' then 'projectDefinition'
-when '0PROJECT_TEXT' then 'projectDefinition'
-when '0RPM_BUCKET_GUID_ID_TEXT' then 'projectPlanningGUID'
-when '0RPM_DECISION_GUID_ATTR' then 'guidforApplicationObjects'
-when '0RPM_DECISION_GUID_ID_TEXT' then 'cgpl_GUID'
+when '0INM_INITIATIVE_GUID_ATTR' then 'initiativeGuid'
+when '0INM_INITIATIVE_GUID_TEXT' then 'initiativeGuid'
+when '0PROJECT_ATTR' then 'projectIdDefinition'
+when '0PROJECT_TEXT' then 'projectIdDefinition'
+when '0RPM_BUCKET_GUID_ID_TEXT' then 'bucketGuid'
+when '0RPM_BUCKET_GUID_ATTR' then 'bucketGuid'
+when '0RPM_DECISION_GUID_ATTR' then 'decisionGuid'
+when '0RPM_DECISION_GUID_ID_TEXT' then 'decisionGuid'
 when '0RPM_DECISION_ID_TEXT' then 'decisionPointId,itemType'
 when '0RPM_ITEM_TYPE_TEXT' then 'itemType'
-when '0RPM_PORT_GUID_ATTR' then 'applicationObjectGUID'
-when '0RPM_PORT_GUID_ID_TEXT' then 'projectPlanningGUID'
-when '0WBS_ELEMT_ATTR' then 'projectDefinition,workBreakdownStructureElement'
+when '0RPM_PORT_GUID_ATTR' then 'portGuid'
+when '0RPM_PORT_GUID_ID_TEXT' then 'portGuid'
+when '0WBS_ELEMT_ATTR' then 'projectDefinition,wbsElement'
 when '0WBS_ELEMT_TEXT' then 'wbsElement'
-when 'RPM_ITEM_D' then 'applicationObjectsGuid'
-when 'IHPA' then 'objectNumber,partnerFunction,counterDigit'
-when 'RPSCO' then 'objectNumber,budgerLedger,valueType,objectIndicator,fiscalYear,valuecategory,budgetPlanning,planningVersion,analysisCategory,fund,transactionCurrency,periodBlock'
-when 'RPM_RELATION_D' then 'Guid'
-when 'RPM_STATUS_T' then 'status'
+when 'RPM_ITEM_D' then 'itemDetailGuid'
+when 'IHPA' then 'objectNumber,partnerFunctionId,counterDigitId'
+when 'RPSCO' then 'objectNumber,budgetLedger,valueType,objectIndicator,fiscalYear,valuecategory,budgetPlanning,planningVersion,analysisCategory,fund,transactionCurrency,periodBlock'
+when 'RPM_RELATION_D' then 'guid'
+when 'RPM_STATUS_T' then 'projectApprovalStatusId'
+when 'CGPL_TEXT' then 'projectPlanningGuid'
 when 'TCJ4T' then 'projectProfile'
 when 'ZEPT_SUB_DELPART' then 'projectType,subDeliveryPartner'
 else businessKeyColumn
