@@ -19,7 +19,7 @@ def is_uc():
 # COMMAND ----------
 
 if is_uc():
-    ADS_DATABRICKS_ENV = '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')
+    ADS_DATABRICKS_ENV = '' if dbutils.secrets.get('ADS', 'databricks-env') == '~~' else dbutils.secrets.get('ADS', 'databricks-env')
 else:
     ADS_DATABRICKS_ENV = ''
 
