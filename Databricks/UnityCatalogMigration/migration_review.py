@@ -25,7 +25,7 @@ import pandas as pd
 # COMMAND ----------
 
 # DBTITLE 1,Change the env for each of the environment during runtime. 
-env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')
+env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '~~' else dbutils.secrets.get('ADS', 'databricks-env')
 dbs_to_migrate = ['raw', 'cleansed', 'curated', 'datalab']
 
 # COMMAND ----------

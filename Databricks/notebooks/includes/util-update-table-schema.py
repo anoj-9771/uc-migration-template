@@ -54,7 +54,7 @@ def get_table_name(layer:str, j_schema: str, j_table: str) -> str:
 def get_table_namespace(layer:str, table: str) -> str:
     """gets correct table namespace based on the UC migration/databricks-env secret being available in keyvault, used primarily for pipelines other than raw and cleansed ETL"""
     if is_uc():
-        env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')
+        env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '~~' else dbutils.secrets.get('ADS', 'databricks-env')
         if layer == 'raw' or layer == 'cleansed':
             #use pattern to convert raw.source_tablename to raw.source.table_name
             catalog_name = f'{env}{layer}'
