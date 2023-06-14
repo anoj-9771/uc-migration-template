@@ -48,6 +48,7 @@ where mapTypeCode = 'Asset Performance Work Type Filter'
 )
 """)
 
+
 # COMMAND ----------
 
 

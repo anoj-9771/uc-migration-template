@@ -22,6 +22,7 @@ def GetDeltaTablePath(tableFqn):
   return df.collect()[0].data_type
 
 # COMMAND ----------
+
     
 def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints=True):
     if is_uc():
@@ -86,7 +87,6 @@ def AppendDeltaTableStream(dataFrame, targetTableFqn, dataLakePath, businessKeys
         .outputMode("append")
         .option("mergeSchema", "true")
         .option("checkpointLocation", f"{rawPath}/checkpoints")
-        .option("path", dataLakePath)
         .queryName(targetTableFqn.split(".")[1] + "_stream")
         .trigger(**kwArgs)
         .table(targetTableFqn)
