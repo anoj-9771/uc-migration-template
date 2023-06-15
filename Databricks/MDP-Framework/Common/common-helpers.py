@@ -167,3 +167,8 @@ def get_raw_folder_path(currentPath) -> str:
         return "/".join(currentPath.split("/")[0:-1]).replace('/mnt/datalake-raw',f"abfss://raw@sadaf{env.strip('_')}01.dfs.core.windows.net")
     else:
         return "/".join(currentPath.split("/")[0:-1])
+
+# COMMAND ----------
+
+def get_env():
+    return '' if dbutils.secrets.get('ADS', 'databricks-env') == '_' else dbutils.secrets.get('ADS', 'databricks-env')

@@ -8,7 +8,7 @@
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace('curated','viewAssetKeyPerformanceMeasures')} AS
+CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.assetkeyperformancemeasures AS
 (
    SELECT
 fwo.workorderWorkTypeCode,
@@ -64,7 +64,7 @@ CASE
   THEN SUM(da.assetNetworkLengthPerKilometerValue) 
 END breakdownMaintenanceWorkOrderFailedLengthValue
 
-from {get_table_namespace('curated', 'viewfactWorkOrder')} fwo
+from {get_table_namespace('curated', 'viewfactworkordercurrent')} fwo
 
 left join {get_table_namespace('curated', 'dimAsset')} da
 on fwo.assetFK = da.assetSK
@@ -78,7 +78,7 @@ left join {get_table_namespace('curated', 'dimassetcontract')} dac
 on dac.assetContractSK = fwo.assetContractFK
 and dac.sourceRecordCurrent = 1
 
-inner join {get_table_namespace('curated_v3', 'dimdate')} dd
+inner join {get_table_namespace('curated', 'dimdate')} dd
 on to_date(fwo.workOrderFinishedDate) = dd.calendardate
 
 left join {get_table_namespace('curated', 'viewdimassetlocationancestorhierarchypivot')} loc_hier

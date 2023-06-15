@@ -8,7 +8,7 @@
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewFactWorkOrdercurrent')} AS
+CREATE OR REPLACE VIEW {get_env()}curated.fact.workOrderCurrentLast10FY AS
 (
    select 
       	workOrderSK
@@ -109,8 +109,12 @@ CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewFactWorkOr
 ,	_recordCurrent
 ,	_recordDeleted  
     from (
-            select * from {get_table_namespace(f'{DEFAULT_TARGET}', 'factWorkOrder')} where _recordCurrent=1 
-        )
+            select *, row_number() over(partition by workOrderCreationId order by snapshotDate desc) as rownumb from {get_table_namespace(f'{DEFAULT_TARGET}', 'factWorkOrder')} where _recordCurrent=1 and workOrderCreationTimestamp >= 
+            (SELECT CASE WHEN (month(date_check) > 6) THEN 
+            to_date(concat_ws("-",year(date_check)+1,"07","01"),"yyyy-MM-dd")  ELSE 
+            to_date(concat_ws("-",year(date_check),"07","01"),"yyyy-MM-dd") end 
+            from (select add_months(current_date(),-(10*12)) as date_check))
+            )dt where rownumb = 1
 )
 """)
 
