@@ -39,7 +39,7 @@ cleansedTableName = get_table_name('cleansed', destinationSchema, destinationTab
 #GET LAST CLEANSED LOAD TIMESTAMP
 lastLoadTimeStamp = '2022-01-01'
 try:
-    lastLoadTimeStamp = spark.sql(f"select date_format(max(_DLCleansedZoneTimeStamp),'yyyy-MM-dd HH:mm:ss') as lastLoadTimeStamp from {cleansedTableName}").collect()[0][0]
+    lastLoadTimeStamp = spark.sql(f"select coalesce(date_format(max(_DLCleansedZoneTimeStamp),'yyyy-MM-dd HH:mm:ss'),'{lastLoadTimeStamp}') as lastLoadTimeStamp from {cleansedTableName}").collect()[0][0]
     print(lastLoadTimeStamp)
 except Exception as e:
     print(str(e))
