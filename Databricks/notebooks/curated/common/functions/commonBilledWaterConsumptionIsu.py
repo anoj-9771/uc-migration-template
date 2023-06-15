@@ -56,7 +56,7 @@ def getBilledWaterConsumptionIsu():
                                 ,statisticalAnalysisRateType as statisticalAnalysisRateTypeCode, statisticalAnalysisRateTypeDescription as statisticalAnalysisRateType
                                 ,validFromDate as meterActiveStartDate, validToDate as meterActiveEndDate
                                 ,billingQuantityPlaceBeforeDecimalPoint
-                             from {ADS_DATABASE_CLEANSED}.isu.dberchz1 left outer join cleansed.isu.zcd_tinfprty_tx infprty on infprty.inferiorPropertyTypeCode = isu_dberchz1.industryCode
+                             from {ADS_DATABASE_CLEANSED}.isu.dberchz1 isu_dberchz1 left outer join cleansed.isu.zcd_tinfprty_tx infprty on infprty.inferiorPropertyTypeCode = isu_dberchz1.industryCode
                              where lineItemTypeCode in ('ZDQUAN', 'ZRQUAN') """)
   
     dberchz2Df = spark.sql(f"""select billingDocumentNumber, billingDocumentLineItemId
