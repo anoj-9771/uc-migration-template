@@ -1,11 +1,9 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
-
 
 # COMMAND ----------
 
@@ -31,8 +29,8 @@ def Transform():
     _.Transforms = [
         f"right(emailId, 17) {BK}"
         ,"right(emailId, 17)                        customerServiceEmailId"
-        ,"case when connectionDirection = 1 then 'externalEmailAddress' when connectionDirection = 2 then 'internalEmailAddress' end customerServiceEmailSenderAddress"
-        ,"case when connectionDirection = 1 then 'internalEmailAddress' when connectionDirection = 2 then 'externalEmailAddress' end customerServiceEmailRecipientAddress"
+        ,"case when connectionDirection = 1 then externalEmailAddress when connectionDirection = 2 then  internalEmailAddress end customerServiceEmailSenderAddress"
+        ,"case when connectionDirection = 1 then internalEmailAddress when connectionDirection = 2 then externalEmailAddress end customerServiceEmailRecipientAddress"
         ,"emailStatusCode                           customerServiceEmailStatusCode"
         ,"emailStatus                               customerServiceEmailStatusDescription"
         ,"case when connectionDirection = 1 then 'Inbound' when connectionDirection = 2 then 'Outbound' end customerServiceEmailConnectionDirection"

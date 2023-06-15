@@ -59,7 +59,8 @@ class CuratedTransform( BlankClass ):
     #   self.BK = f"{self.Name}_BK"      
       self.BK = "_BusinessKey"
     #   self.EntityName = f"{self.EntityType[0:1]}_{self.Name}"
-      self.EntityName = f"{'dim' if self.EntityType == 'Dimension' else 'fact' if self.EntityType == 'Fact' else ''}{self.Name}"
+      self.EntityName = f"""{'dim' if self.EntityType == 'Dimension' else 'fact' if self.EntityType == 'Fact' 
+                              else 'brg' if self.EntityType == 'Bridge' else ''}{self.Name} """
       self.Destination = get_table_namespace(DEFAULT_TARGET, self.EntityName)
       self.DataLakePath = f"/mnt/datalake-{DEFAULT_TARGET}/{self.EntityType}/{self.EntityName}"
       self.Tables = []
@@ -394,7 +395,7 @@ def enableCDF(TableName):
 
 #Handle duplicate Business Data, if exist 
 def handleDuplicateBusinessData(cdf, checkColumns):
-    window = window.partitionBy(*columns)
+    window = Window.partitionBy(*checkColumns)
     cdf = cdf.withColumn("changeCount", count('*').over(window))
     cdf = cdf.filter(col("changeCount") == 1)
     return cdf

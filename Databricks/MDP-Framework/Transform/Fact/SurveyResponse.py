@@ -22,7 +22,8 @@ from pyspark.sql.functions import *
 
 def transpose_df(df, quesdf, duplicate_columns):     
     cols_to_transpose = [col for col in df.columns if col.lower().startswith("question")]
-    #cols_to_transpose = [col for col in df.columns if any (col.startswith(prefix) for prefix in ["Question", "question"])]    
+    #cols_to_transpose = [col for col in df.columns if any (col.startswith(prefix) for prefix in ["Question", "question"])]  
+    df.fillna('NOT_ANSWERED_SKIPPED')
     stack_expr = f"stack({len(cols_to_transpose)}, " + ", ".join([f"'{col}', cast({col} as string)" for col in cols_to_transpose]) + ")"
 
     respdf = df.selectExpr(
@@ -87,7 +88,8 @@ def transpose_df(df, quesdf, duplicate_columns):
 
 def transpose_feedback_df(df, quesdf, duplicate_columns):     
     cols_to_transpose = [col for col in df.columns if col.lower().startswith("question")]
-    #cols_to_transpose = [col for col in df.columns if any (col.startswith(prefix) for prefix in ["Question", "question"])]    
+    #cols_to_transpose = [col for col in df.columns if any (col.startswith(prefix) for prefix in ["Question", "question"])]  
+    df.fillna('NOT_ANSWERED_SKIPPED')  
     stack_expr = f"stack({len(cols_to_transpose)}, " + ", ".join([f"'{col}', cast({col} as string)" for col in cols_to_transpose]) + ")"
 
     respdf = df.selectExpr(
@@ -253,8 +255,8 @@ df_complaintsClosed = add_missing_columns(df_complaintsClosed, duplicate_columns
 df_contactCentreInteract  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_contactcentreinteractionmeasurementsurveyresponses')}")
 df_contactCentreInteract = add_missing_columns(df_contactCentreInteract, duplicate_columns)
 
-df_Customercareresponses  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_customercareresponses')}")
-df_Customercareresponses = add_missing_columns(df_Customercareresponses, duplicate_columns)
+# df_Customercareresponses  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_customercareresponses')}")
+# df_Customercareresponses = add_missing_columns(df_Customercareresponses, duplicate_columns)
 
 df_devApplicationreceived  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_developerapplicationreceivedresponses')}")
 df_devApplicationreceived = add_missing_columns(df_devApplicationreceived, duplicate_columns)
@@ -316,15 +318,15 @@ contactCentreInteract_df = contactCentreInteract_df.join(dsv.filter(dsv._recordC
                                                     .withColumn("sourceSystem", lit('Qualtrics'))
 
 
-Customercareresponses_df = transpose_df(df_Customercareresponses, df_dimQues, duplicate_columns)
-Customercareresponses_df = Customercareresponses_df.join(dsv.filter(dsv._recordCurrent == 1), (Customercareresponses_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) \
-                                                         & (Customercareresponses_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) \
-                                                         & (Customercareresponses_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') \
-                                                    .select(Customercareresponses_df["*"], dsv["surveyParticipantSK"]) \
-                                                    .withColumn("businessPartnerSK", lit(uc1DefaultSK)) \
-                                                    .withColumn("surveyResponseInformationSK", lit('-1')) \
-                                                    .withColumn("propertySK", lit(uc1DefaultSK)) \
-                                                    .withColumn("sourceSystem", lit('Qualtrics'))
+# Customercareresponses_df = transpose_df(df_Customercareresponses, df_dimQues, duplicate_columns)
+# Customercareresponses_df = Customercareresponses_df.join(dsv.filter(dsv._recordCurrent == 1), (Customercareresponses_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) \
+#                                                          & (Customercareresponses_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) \
+#                                                          & (Customercareresponses_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') \
+#                                                     .select(Customercareresponses_df["*"], dsv["surveyParticipantSK"]) \
+#                                                     .withColumn("businessPartnerSK", lit(uc1DefaultSK)) \
+#                                                     .withColumn("surveyResponseInformationSK", lit('-1')) \
+#                                                     .withColumn("propertySK", lit(uc1DefaultSK)) \
+#                                                     .withColumn("sourceSystem", lit('Qualtrics'))
 
 waterfixpost_df = transpose_df(df_waterfixpost, df_dimQues, duplicate_columns)
 waterfixpost_df = waterfixpost_df.join(dsv.filter(dsv._recordCurrent == 1), (waterfixpost_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) \
@@ -383,18 +385,17 @@ feedbacktabgolive_df = feedbacktabgolive_df.withColumn("businessPartnerSK", lit(
                                                      .withColumn("sourceSystem", lit('Qualtrics')) \
                                                      .withColumn("surveyParticipantSK", lit('-1'))
 
-
-finaldf = billpaid_df.union(businessXconn_df) \
-                     .union(complaintsClosed_df) \
-                     .union(contactCentreInteract_df) \
-                     .union(Customercareresponses_df) \
-                     .union(waterfixpost_df) \
-                     .union(devApplicationreceived_df) \
-                     .union(p4sonlinefeedback_df) \
-                     .union(s73surveyresponse_df) \
-                     .union(websitegolive_df) \
-                     .union(wscs73exp_df) \
-                     .union(feedbacktabgolive_df) 
+#.union(Customercareresponses_df) 
+finaldf = (billpaid_df.union(businessXconn_df) 
+                     .union(complaintsClosed_df) 
+                     .union(contactCentreInteract_df)                      
+                     .union(waterfixpost_df) 
+                     .union(devApplicationreceived_df) 
+                     .union(p4sonlinefeedback_df) 
+                     .union(s73surveyresponse_df) 
+                     .union(websitegolive_df) 
+                     .union(wscs73exp_df) 
+                     .union(feedbacktabgolive_df))
 
 #finaldf.count()
 

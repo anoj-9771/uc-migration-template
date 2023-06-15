@@ -108,8 +108,8 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, BK, SK):
 
 def processCDFTableSCD(sourceDataFrame, targetTableFqn, BK, SK):
     targetTable = spark.table(targetTableFqn)
-    print("Merging...")
-    (DeltaTable.forName(spark, targetTableFqn).alias("t").merge(sourceDataFrame.alias("s"), f"t.{BK} = s.BK") \
+    print("Merging CDF")
+    (DeltaTable.forName(spark, targetTableFqn).alias("t").merge(sourceDataFrame.alias("s"), f"t.{BK} = s.{BK}") 
         .whenMatchedUpdate(
           condition = "s._change_type = 'update_preimage'", 
           set = {"_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
@@ -124,7 +124,7 @@ def processCDFTableSCD(sourceDataFrame, targetTableFqn, BK, SK):
         ) 
         .whenNotMatchedInsert(
           condition = "s._change_type IN ('insert','update_postimage')", 
-          values = {col: f"s.{col}" for col in s.columns}
+          values = {col: f"s.{col}" for col in sourceDataFrame.columns if col != "_change_type"}
         ).execute())
 
 # COMMAND ----------
