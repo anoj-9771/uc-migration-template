@@ -251,8 +251,8 @@ source_key_vault_secret = "daf-oracle-swirl-connectionstring"
 source_handler = 'oracle-load'
 raw_handler = 'raw-load-delta'
 cleansed_handler = 'cleansed-load-delta'
-#extended_properties = '{"RawTableNameMatchSource" : "True"}'
-extended_properties = '{"RawTableNameMatchSource" : "True", "GroupOrderBy" : "_DLRawZoneTimeStamp Desc"}'
+extended_properties = '{"RawTableNameMatchSource" : "True"}'
+#extended_properties = '{"RawTableNameMatchSource" : "True", "GroupOrderBy" : "_DLRawZoneTimeStamp Desc"}'
 
 # COMMAND ----------
 
