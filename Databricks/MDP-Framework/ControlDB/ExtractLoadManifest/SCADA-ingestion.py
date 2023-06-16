@@ -39,6 +39,25 @@ df15Min = df.where("sourceTableName in ('event','tsv')")
 
 # COMMAND ----------
 
+def ConfigureManifest(df):
+    # ------------- CONSTRUCT QUERY ----------------- #
+    
+    # ------------- DISPLAY ----------------- #
+    ShowQuery(df)
+
+    # ------------- SAVE ----------------- #
+    AddIngestion(df)
+    
+    # ------------- ShowConfig ----------------- #
+    ShowConfig()
+    
+ConfigureManifest(dfDaily)
+
+SYSTEM_CODE = "scada|15min"
+ConfigureManifest(df15Min)
+
+# COMMAND ----------
+
 # ------------- POST LOAD UPDATE ----------------- #  
 #ADD BUSINESS KEY AND SET DESTINATION SCHEMA TO SCADA
 ExecuteStatement(f"""
