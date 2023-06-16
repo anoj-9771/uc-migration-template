@@ -10,8 +10,8 @@
 					"type": "PipelineReference"
 				},
 				"parameters": {
-					"SystemCodes": "maximo",
-					"RunParallel": "Y"
+					"SystemCodes": "maximoref,maximo",
+					"RunParallel": "N"
 				}
 			}
 		],

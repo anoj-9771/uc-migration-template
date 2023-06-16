@@ -93,7 +93,7 @@ dedupQuery = 'dedupe = 1'
 excludedColumns = 'dedupe'
 
 for i in df.collect():
-    partitionKey = i.BusinessKeyColumn.replace(f",{i.WatermarkColumnMapped}","").replace(f", {i.WatermarkColumnMapped}","")
+    partitionKey = i.BusinessKeyColumn.replace(f",{i.WatermarkColumnMapped}","").replace(f"{i.WatermarkColumnMapped},","")
     # if in dedup list create a view containing dedupe logic
     if dedupeList.count(i.SourceTableName) > 0:
         whereClause = 'where dedupe = 1'
