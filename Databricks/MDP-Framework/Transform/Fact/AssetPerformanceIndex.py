@@ -1,15 +1,17 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
+
+# COMMAND ----------
+
 
 
 # COMMAND ----------
 
-# CleanSelf()
+CleanSelf()
 
 # COMMAND ----------
 
@@ -31,7 +33,7 @@ comparisonPeriodBreakdownMaintenanceCount,
 yearlyAverageBreakdownMaintenanceCount, 
 selectedPeriodFailedAssetsCount,
 selectedPeriodRepeatedlyFailedAssetsCount,
-CLASSTYPE
+assetClassType
 FROM(
 SELECT
     dt.assetNumber,
@@ -49,17 +51,17 @@ SELECT
     COUNT( CASE WHEN fwo.workOrderReportedTimestamp BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )/5 yearlyAverageBreakdownMaintenanceCount,
     CASE WHEN COUNT( CASE WHEN fwo.workOrderReportedTimestamp BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END selectedPeriodFailedAssetsCount,
     CASE WHEN COUNT( CASE WHEN fwo.workOrderReportedTimestamp BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 AND COUNT( CASE WHEN fwo.workOrderReportedTimestamp BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END selectedPeriodRepeatedlyFailedAssetsCount,
-	'NONLINEAR' as classType 
+	'NONLINEAR' as assetClassType 
     FROM
 ( 
 SELECT
     astloc.assetNumber,
     astloc.assetSK,
 	MONTHS.M ORDER_ID,
-    (ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-12)+1) SELECTED_PERIOD_START_DATE,
-    (ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1)) SELECTED_PERIOD_END_DATE,
-    (ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-72)+1) COMPARISON_PERIOD_START_DATE,
-    (ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-12)) COMPARISON_PERIOD_END_DATE
+    LAST_DAY(ADD_MONTHS(current_date(),-MONTHS.M+1-12))+1 SELECTED_PERIOD_START_DATE,
+    LAST_DAY(ADD_MONTHS(current_date(),-MONTHS.M+1)) SELECTED_PERIOD_END_DATE,
+    LAST_DAY(ADD_MONTHS(current_date(),-MONTHS.M+1-72))+1 COMPARISON_PERIOD_START_DATE,
+    LAST_DAY(ADD_MONTHS(current_date(),-MONTHS.M+1-12)) COMPARISON_PERIOD_END_DATE
 FROM
   (
     SELECT DISTINCT da.assetNumber, da.assetSK
@@ -134,7 +136,7 @@ COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE
 CASE WHEN COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END selectedPeriodFailedAssetsCount,
 CASE WHEN COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 AND 
 COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END selectedPeriodRepeatedlyFailedAssetsCount
-, 'LINEAR' as classType
+, 'LINEAR' as assetClassType
  
 FROM  
  
@@ -142,10 +144,10 @@ FROM
  ASSETLIST.ASSETNUM,
 ASSETLIST.assetSK,
 MONTHS.M ORDER_ID,
-(ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-12)+1) SELECTED_PERIOD_START_DATE,
-(ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1)) SELECTED_PERIOD_END_DATE,
-(ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-72)+1) COMPARISON_PERIOD_START_DATE,
-(ADD_MONTHS(LAST_DAY(CURRENT_DATE),-MONTHS.M+1-12)) COMPARISON_PERIOD_END_DATE
+LAST_DAY(ADD_MONTHS(current_date(),-MONTHS.M+1-12))+1 SELECTED_PERIOD_START_DATE,
+LAST_DAY(ADD_MONTHS(current_date(),-MONTHS.M+1)) SELECTED_PERIOD_END_DATE,
+LAST_DAY(ADD_MONTHS(current_date(),-MONTHS.M+1-72))+1 COMPARISON_PERIOD_START_DATE,
+LAST_DAY(ADD_MONTHS(current_date(),-MONTHS.M+1-12)) COMPARISON_PERIOD_END_DATE
 
     FROM ( 
             SELECT DISTINCT (da.assetNumber) as ASSETNUM, da.assetSK
@@ -153,7 +155,7 @@ MONTHS.M ORDER_ID,
             ( 
             select *  
             from {get_table_namespace('curated', 'factworkorder')}
-            qualify row_number() over(partition by workOrderCreationId order by workOrderChangeDate desc)=1
+            qualify row_number() over(partition by workOrderCreationId order by workOrderChangeTimestamp desc)=1
             ) fwo
             inner join {get_table_namespace('curated', 'dimasset')} da
             ON da.assetSK = fwo.assetFK  
@@ -199,9 +201,9 @@ MONTHS.M ORDER_ID,
         WORKORDER.reportedDateTime,b.failurecode, parentWO.asset as parentAsset, oriWO.asset as oriAsset
         from 
         (
-        select workOrder, asset, worktype, taskcode, parentWo, originatingRecord, reportedDateTime, Class as workorderClass, fCId, serviceType, STATUS
+        select workOrder, asset, worktype, taskcode, parentWo, originatingRecord, reportedDateTime, workorderClass, fCId, serviceType, STATUS
         from {get_table_namespace('cleansed', 'maximo_workorder')} 
-        qualify row_number() over(partition by workOrder order by changeDate desc) =1
+        qualify row_number() over(partition by workOrder order by changedDate desc) =1
         ) WORKORDER
         left join 
         (
@@ -213,14 +215,14 @@ MONTHS.M ORDER_ID,
         (
         select asset, workOrder 
         from {get_table_namespace('cleansed', 'maximo_workorder')} 
-        qualify row_number() over(partition by workOrder order by changeDate desc) =1
+        qualify row_number() over(partition by workOrder order by changedDate desc) =1
         )parentWO 
         on parentWO.workOrder = WORKORDER.parentWo
         left join 
         (
         select asset,workorder  
         from {get_table_namespace('cleansed', 'maximo_workorder')} 
-        qualify row_number() over(partition by workOrder order by changeDate desc) =1
+        qualify row_number() over(partition by workOrder order by changedDate desc) =1
         )oriWO
         on oriWO.workorder = WORKORDER.originatingRecord
         where 
@@ -412,7 +414,7 @@ COMPARISON_PERIOD_BM as comparisonPeriodBreakdownMaintenanceCount,
 YEARLY_BM as yearlyAverageBreakdownMaintenanceCount, 
 NO_OF_FAILED_ASSETS_SELECTED_PERIOD as selectedPeriodFailedAssetsCount,
 NO_OF_REPEATEDLY_FAILED_ASSETS_SELECTED_PERIOD selectedPeriodRepeatedlyFailedAssetsCount,
-CLASSTYPE
+assetClassType
 FROM(
  
 SELECT 
@@ -432,7 +434,7 @@ COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE
 CASE WHEN COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END NO_OF_FAILED_ASSETS_SELECTED_PERIOD,
 CASE WHEN COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 AND 
 COUNT( CASE WHEN WORKORDER.reportedDateTime BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END NO_OF_REPEATEDLY_FAILED_ASSETS_SELECTED_PERIOD
-, 'LINEAR' as classType
+, 'LINEAR' as assetClassType
  
 FROM  
  
@@ -455,7 +457,7 @@ CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRA
             ( 
             select *  
             from {get_table_namespace('curated', 'factworkorder')}
-            qualify row_number() over(partition by workOrderCreationId order by workOrderChangeDate desc)=1
+            qualify row_number() over(partition by workOrderCreationId order by workOrderChangeTimestamp desc)=1
             ) fwo
             inner join {get_table_namespace('curated', 'dimasset')} da
             ON da.assetSK = fwo.assetFK  
@@ -498,9 +500,9 @@ CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRA
         WORKORDER.reportedDateTime,b.failurecode, parentWO.asset as parentAsset, oriWO.asset as oriAsset
         from 
         (
-        select workOrder, asset, worktype, taskcode, parentWo, originatingRecord, reportedDateTime, Class as workorderClass, fCId, serviceType, STATUS
+        select workOrder, asset, worktype, taskcode, parentWo, originatingRecord, reportedDateTime, workorderClass, fCId, serviceType, STATUS
         from {get_table_namespace('cleansed', 'maximo_workorder')} 
-        qualify row_number() over(partition by workOrder order by changeDate desc) =1
+        qualify row_number() over(partition by workOrder order by changedDate desc) =1
         ) WORKORDER
         left join 
         (
@@ -512,14 +514,14 @@ CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRA
         (
         select asset, workOrder 
         from {get_table_namespace('cleansed', 'maximo_workorder')} 
-        qualify row_number() over(partition by workOrder order by changeDate desc) =1
+        qualify row_number() over(partition by workOrder order by changedDate desc) =1
         )parentWO 
         on parentWO.workOrder = WORKORDER.parentWo
         left join 
         (
         select asset,workorder  
         from {get_table_namespace('cleansed', 'maximo_workorder')} 
-        qualify row_number() over(partition by workOrder order by changeDate desc) =1
+        qualify row_number() over(partition by workOrder order by changedDate desc) =1
         )oriWO
         on oriWO.workorder = WORKORDER.originatingRecord
         where 
@@ -694,7 +696,7 @@ CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRA
     COUNT( CASE WHEN WORKORDER.REPORTDATE BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )/5 YEARLY_BM,
     CASE WHEN COUNT( CASE WHEN WORKORDER.REPORTDATE BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END NO_OF_FAILED_ASSETS_SELECTED_PERIOD,
     CASE WHEN COUNT( CASE WHEN WORKORDER.REPORTDATE BETWEEN SELECTED_PERIOD_START_DATE AND SELECTED_PERIOD_END_DATE THEN 1 END )>0 AND COUNT( CASE WHEN WORKORDER.REPORTDATE BETWEEN COMPARISON_PERIOD_START_DATE AND COMPARISON_PERIOD_END_DATE THEN 1 END )>0 THEN 1 ELSE 0 END NO_OF_REPEATEDLY_FAILED_ASSETS_SELECTED_PERIOD
-    , 'NONLINEAR' as classType
+    , 'NONLINEAR' as assetClassType
     FROM  
     
     (
@@ -718,7 +720,7 @@ CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRA
             ( 
             select *  
             from {get_table_namespace('curated', 'factworkorder')}
-            qualify row_number() over(partition by workOrderCreationId order by workOrderChangeDate desc)=1
+            qualify row_number() over(partition by workOrderCreationId order by workOrderChangeTimestamp desc)=1
             ) fwo
             inner join {get_table_namespace('curated', 'dimasset')} da
             ON da.assetSK = fwo.assetFK  
@@ -748,14 +750,13 @@ CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRA
         select asset as ASSETNUM,
         workorder , 
         WORKTYPE, 
-        Class as WOCLASS,
-        --workOrderClass as WOCLASS, 
+        workOrderClass as WOCLASS, 
         status,
         serviceType as SWCSERVTYPE, 
         fcid as FINCNTRLID, 
         reportedDateTime as REPORTDATE
         from {get_table_namespace('cleansed', 'maximo_workorder')} 
-        qualify row_number() over(partition by workOrder order by changeDate desc) =1
+        qualify row_number() over(partition by workOrder order by changedDate desc) =1
         ) WORKORDER
     ON DT.ASSETNUM = WORKORDER.ASSETNUM
     WHERE
@@ -783,7 +784,3 @@ CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRA
     #DisplaySelf()
 pass
 yearly_Transform()
-
-# COMMAND ----------
-
-

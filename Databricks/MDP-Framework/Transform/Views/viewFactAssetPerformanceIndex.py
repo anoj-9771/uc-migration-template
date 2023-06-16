@@ -12,6 +12,7 @@ CREATE OR REPLACE VIEW {get_table_namespace('curated', 'viewFactAssetPerformance
 (
     select 	assetPerformanceIndexSK
 ,	assetNumber
+,   assetFK
 ,	reportingYear
 ,	reportingMonth
 ,	calculationTypeCode
@@ -25,7 +26,7 @@ CREATE OR REPLACE VIEW {get_table_namespace('curated', 'viewFactAssetPerformance
 ,	yearlyAverageBreakdownMaintenanceCount
 ,	selectedPeriodFailedAssetsCount
 ,	selectedPeriodRepeatedlyFailedAssetsCount
-,	CLASSTYPE
+,	assetClassType
 ,	_recordStart
 ,	_BusinessKey
 ,	_DLCuratedZoneTimeStamp
