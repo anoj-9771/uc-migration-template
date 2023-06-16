@@ -748,27 +748,26 @@ verifyTableSchema(table_name_fq, schema)
 
 # COMMAND ----------
 
-dbutils.widgets.text("table_name", f"{table_name_fq}")
+spark.conf.set("c.table_name", table_name_fq)
 
 # COMMAND ----------
 
 # %sql
 # --THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
-# OPTIMIZE ${table_name}
+# OPTIMIZE ${c.table_name}
 # WHERE sourceSystemCode = 'ACCESS'
 
 # COMMAND ----------
 
-
 # MAGIC %sql
-# MAGIC OPTIMIZE ${table_name}
+# MAGIC OPTIMIZE ${c.table_name}
 # MAGIC WHERE sourceSystemCode = 'ISU'
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
-# MAGIC VACUUM ${table_name} RETAIN 0 HOURS;
+# MAGIC VACUUM ${c.table_name} RETAIN 0 HOURS;
 # MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
 
 # COMMAND ----------
