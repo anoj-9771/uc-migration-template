@@ -179,7 +179,7 @@ df = spark.sql(f"""
                     PARTITION BY BELNR 
                     ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC
                 ) AS _RecordVersion 
-            FROM raw.isu_ERCH
+            FROM {delta_raw_tbl_name}
             WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' 
         )
         WHERE _RecordVersion = 1
