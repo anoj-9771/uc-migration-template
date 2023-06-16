@@ -61,7 +61,7 @@ WHERE
 
 #Curated view WOACTIVITY
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace('curated', 'viewmaximowoactivity')} as
+CREATE OR REPLACE VIEW {get_table_namespace('cleansed', 'maximo_viewmaximowoactivitycurrent')} as
         with cteDedup as(
           select *, row_number() over (partition by site,workOrder order by rowStamp desc) dedupe
           from {get_table_namespace('cleansed', 'maximo_viewmaximowoactivity')}
