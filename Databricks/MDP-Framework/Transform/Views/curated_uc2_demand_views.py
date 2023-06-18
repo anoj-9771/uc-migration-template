@@ -194,8 +194,8 @@ CreateView(db, view, sql_)
 
 # COMMAND ----------
 
-# DBTITLE 1,viewFactWaterNetworkDemand
-view = "viewFactWaterNetworkDemand"
+# DBTITLE 1,viewInterimFactWaterNetworkDemand
+view = "viewInterimFactWaterNetworkDemand"
 sql_ = f"""
 WITH v AS
 (
@@ -286,12 +286,42 @@ CreateView(db, view, sql_)
 
 # COMMAND ----------
 
+# DBTITLE 1,viewFactWaterNetworkDemand
+view = "viewFactWaterNetworkDemand"
+sql_ = f"""
+SELECT reportDate
+       ,deliverySystem
+       ,distributionSystem
+       ,supplyZone
+       ,pressureArea
+       ,networkTypeCode
+       ,demandQuantity
+       ,manualInputDate
+       ,alternateFlag
+       ,manualDemandFlag
+       ,demandErrorText
+       ,flowmeterErrorText
+       ,reservoirErrorText
+       ,flowmeterWarningText
+       ,reservoirWarningText
+       ,flowmeterErrorCount
+       ,reservoirErrorCount
+       ,flowmeterWarningCount
+       ,reservoirWarningCount
+       ,exportCompensatedFlag
+FROM {get_table_namespace(DEFAULT_TARGET, 'viewInterimFactWaterNetworkDemand')};
+"""
+
+CreateView(db, view, sql_)
+
+# COMMAND ----------
+
 # DBTITLE 1,viewSWCDemand
 view = "viewSWCDemand"
 sql_ = f"""
 WITH v AS
 ( 
-  -- SELECT  reportDatej
+  -- SELECT  reportDate
   --       ,SUM(demandQuantity) demandQuantity
   --       ,collect_set(case when manualDemandFlag = 'Y'
   --                           then deliverySystem||' => Overwritten by Manual process'
@@ -308,8 +338,9 @@ WITH v AS
           coalesce(transform(manualOverrides,x -> if(x<>'',x||' => Overwritten by Manual process',x)),array())
           ,coalesce(transform(falseReadings,x -> if(x<>'',x||' => False Reading',x)),array())
         )))) errorText
-  FROM {get_table_namespace(DEFAULT_TARGET, 'viewFactWaterNetworkDemand')}
+  FROM {get_table_namespace(DEFAULT_TARGET, 'viewInterimFactWaterNetworkDemand')}
   WHERE networkTypeCode IN ('Delivery System', 'Delivery System Combined')
+    AND deliverySystem NOT IN ('DEL_CASCADE','DEL_ORCHARD_HILLS')
   GROUP BY  reportDate    
 )
 SELECT * except(errorText)
