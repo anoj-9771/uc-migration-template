@@ -27,47 +27,23 @@ def GetDeltaTablePath(tableFqn):
 def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints=True):
     if is_uc():
         # write to table directly post UC migration
-        dataFrame.write \
-            .option("mergeSchema", "true") \
-            .option("delta.minReaderVersion", "1") \
-            .option("delta.minWriterVersion", "4") \
-            .mode("overwrite") \
-            .saveAsTable(targetTableFqn)
+        (dataFrame.write 
+            .option("mergeSchema", "true") 
+            .option("delta.minReaderVersion", "3") 
+            .option("delta.minWriterVersion", "7") 
+            .mode("overwrite") 
+            .saveAsTable(targetTableFqn))
         CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints) 
     else:
         # continue existing workflow (write to a path)
-        dataFrame.write \
-                .format("delta") \
-                .option("delta.minReaderVersion", "1") \
-                .option("delta.minWriterVersion", "4") \
-                .option("mergeSchema", "true") \
-                .mode("overwrite") \
-                .save(dataLakePath)
+        (dataFrame.write 
+                .format("delta") 
+                .option("delta.minReaderVersion", "3") 
+                .option("delta.minWriterVersion", "7") 
+                .option("mergeSchema", "true") 
+                .mode("overwrite") 
+                .save(dataLakePath))
         CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints) 
-
-# COMMAND ----------
-
-def CreateDeltaTableR1W4(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints=True):
-    if is_uc():
-    # write to table directly post UC migration
-        dataFrame.write \
-                .format("delta") \
-                .option("delta.minReaderVersion", "1") \
-                .option("delta.minWriterVersion", "4") \
-                .option("mergeSchema", "true") \
-                .mode("overwrite") \
-                .saveAsTable(targetTableFqn)
-        CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints)
-    else:
-    # continue existing workflow            
-        dataFrame.write \
-                .format("delta") \
-                .option("delta.minReaderVersion", "1") \
-                .option("delta.minWriterVersion", "4") \
-                .option("mergeSchema", "true") \
-                .mode("overwrite") \
-                .save(dataLakePath)
-        CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints)
 
 # COMMAND ----------
 
@@ -189,3 +165,11 @@ def GetTableRowCount(tableFqn):
 def RemoveBadCharacters(text, replacement=""):
     [text := text.replace(c, replacement) for c in "/%� ,;{}()?\n\t=-"]
     return text
+
+# COMMAND ----------
+
+import json
+def getClusterEnv():
+    clustTags = json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags"))
+    env = [x['value'] for x in clustTags if x['key'] == 'Environment'][0]
+    return env

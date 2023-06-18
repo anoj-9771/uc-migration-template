@@ -1,5 +1,6 @@
 # Databricks notebook source
 from delta.tables import *
+from pyspark.sql.functions import *
 
 # COMMAND ----------
 
@@ -101,30 +102,44 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, BK, SK):
         .whenNotMatchedInsert(
           values = insertValues
         ).execute()
-    
-    
 
 # COMMAND ----------
 
-def processCDFTableSCD(sourceDataFrame, targetTableFqn, BK, SK):
-    targetTable = spark.table(targetTableFqn)
+##Both scenario of _recordDelete on Upstream is handled in the merge
+def mergeCDFTableSCD2(sourceDataFrame, targetTableFqn, BK, SK):
+    sourceMergeDF = (sourceDataFrame.withColumn("_mergeBK", 
+                                when((col("_change_type") == lit("update_preimage")) | (col("_change_type") == lit("delete")) 
+                                     ,col(BK)).otherwise (lit(None))))
+    selectColumns = [col for col in sourceMergeDF.columns if not (col.endswith('SK') or (col.startswith('_') and col not in [BK]))]
+    
+
     print("Merging CDF")
-    (DeltaTable.forName(spark, targetTableFqn).alias("t").merge(sourceDataFrame.alias("s"), f"t.{BK} = s.{BK}") 
+    (DeltaTable.forName(spark, targetTableFqn).alias("t")
+                        .merge(sourceMergeDF.alias("s")
+                        ,f"t.{BK} = s._mergeBK") 
         .whenMatchedUpdate(
-          condition = "s._change_type = 'update_preimage'", 
+          condition = "s._change_type = 'update_preimage' and t._recordCurrent = 1", 
           set = {"_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
                  "_recordCurrent": "0",
                 }
         )
         .whenMatchedUpdate(
-          condition = "s._change_type = 'delete'", 
+          condition = "s._change_type = 'delete' and t._recordCurrent = 1", 
           set = {"_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
                  "_recordDeleted": "1",
+                 "_recordCurrent": "0",
                 }
         ) 
         .whenNotMatchedInsert(
-          condition = "s._change_type IN ('insert','update_postimage')", 
-          values = {col: f"s.{col}" for col in sourceDataFrame.columns if col != "_change_type"}
+          condition = "s._change_type in ('update_postimage', 'insert')", 
+          values = {**{col: f"s.{col}" for col in sourceMergeDF.columns if col in selectColumns}, 
+                       f"{SK}": md5(expr(f"concat({_.BK},'|',{DEFAULT_START_DATE})")),
+                       "_DLCuratedZoneTimeStamp": expr("now()"),
+                       "_recordStart": "current_timestamp()",
+                       "_recordEnd": "to_timestamp('9999-12-31 00:00:00')",
+                       "_recordCurrent": "1",
+                       "_recordDeleted": "0"
+                    }
         ).execute())
 
 # COMMAND ----------

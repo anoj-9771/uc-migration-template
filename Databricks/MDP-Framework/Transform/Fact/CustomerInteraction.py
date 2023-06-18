@@ -82,7 +82,7 @@ propertyDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimProperty
                  
             )
     
-statusDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomerservicerequestStatus')}")
+statusDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomerinteractionstatus')}")
                                         .filter(col("_recordCurrent") == lit("1"))
                            .select( col("customerServiceRequestStatusSK").alias("StatusFK")
                                      ,col("_BusinessKey")
@@ -227,71 +227,3 @@ def Transform():
     Save(df)
     #DisplaySelf()
 Transform()
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC Create view curated.viewdimbusinesspartnergroupL2 as
-# MAGIC
-# MAGIC Select  
-# MAGIC
-# MAGIC businessPartnerGroupSK,
-# MAGIC
-# MAGIC sourceSystemCode,
-# MAGIC
-# MAGIC businessPartnerGroupNumber,
-# MAGIC
-# MAGIC businessPartnerGroupCode,
-# MAGIC
-# MAGIC businessPartnerCategoryCode,
-# MAGIC
-# MAGIC businessPartnerCategory,
-# MAGIC
-# MAGIC businessPartnerTypeCode,
-# MAGIC
-# MAGIC businessPartnerType,
-# MAGIC
-# MAGIC externalNumber,
-# MAGIC
-# MAGIC businessPartnerGUID,
-# MAGIC
-# MAGIC businessPartnerGroupName1,
-# MAGIC
-# MAGIC businessPartnerGroupName2,
-# MAGIC
-# MAGIC consent1Indicator,
-# MAGIC
-# MAGIC indicatorCreatedUserId,
-# MAGIC
-# MAGIC indicatorCreatedDate,
-# MAGIC
-# MAGIC createdBy,
-# MAGIC
-# MAGIC createdDateTime,
-# MAGIC
-# MAGIC lastUpdatedBy,
-# MAGIC
-# MAGIC lastUpdatedDateTime,
-# MAGIC
-# MAGIC validFromDate,
-# MAGIC
-# MAGIC validToDate,
-# MAGIC
-# MAGIC _BusinessKey,
-# MAGIC
-# MAGIC _DLCuratedZoneTimeStamp,
-# MAGIC
-# MAGIC _RecordStart,
-# MAGIC
-# MAGIC _RecordEnd,
-# MAGIC
-# MAGIC _RecordDeleted,
-# MAGIC
-# MAGIC _RecordCurrent
-# MAGIC
-# MAGIC from curated.dimbusinesspartnergroup
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from curated.viewdimbusinesspartnergroupL2

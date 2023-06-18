@@ -150,6 +150,15 @@ def _ValidateBK(sourceDataFrame):
 
 # COMMAND ----------
 
+def dummyRecord(schema):
+    rows = [lit(-1) if field.name.endswith('SK')
+            else lit('UNKNOWN') if isinstance(field.dataType, StringType)
+            else None for field in schema]
+    df = spark.createDataFrame([tuple(rows)], schema)
+    return df
+
+# COMMAND ----------
+
 def Update(sourceDataFrame):
     targetTableFqn = f"{_.Destination}"
     dt = DeltaTable.forName(spark, targetTableFqn)
@@ -304,6 +313,7 @@ def SaveDefaultSource(sourceDataFrame):
 ####Mags#### to load/alter/modify drop columns without changing the existing content of the table
 ###################Drops and recreates entire table to retain onlyt the new schema ##Write Intensive ############
 from functools import reduce
+
 def filter_columns(df, columns_to_match=None):
     if columns_to_match:
         return [col for col in df.columns if not (col.endswith('SK') or col.startswith('_')) and col in columns_to_match]
@@ -400,9 +410,7 @@ def handleDuplicateBusinessData(cdf, checkColumns):
     cdf = cdf.filter(col("changeCount") == 1)
     return cdf
 
-
-#Get all the datafeed version of source after the last version of Target Delta Table.
-def getSourceCDF(sourceTableName, changeColumns, catchUpMode = True):
+def getCDFFromToVersion(sourceTableName):
     destDF = DeltaTable.forName(spark, _.Destination)
     history = destDF.history().toPandas()
     lastTimeStamp = pd.to_datetime(history['timestamp'].max())
@@ -410,47 +418,69 @@ def getSourceCDF(sourceTableName, changeColumns, catchUpMode = True):
     srcHistory = srcDF.history().toPandas()
     processVers = srcHistory[pd.to_datetime(srcHistory['timestamp']) > lastTimeStamp ] ['version']
     if processVers.empty:
-        return None 
+        return 0, 0 
     versFrm = processVers.min()
-    versTo  = processVers.max() 
-    if catchUpMode:
-        try:
-            cdfDF = spark.sql(f"""SELECT * FROM table_changes({sourceTableName}, {versFrm}, {versTo})""")
-            cdfDF = handleDuplicateBusinessData(cdfDF, changeColumns)
-            return cdfDF
-        except AnalysisException as e:
-            return None
-    else:
-        cdfDF = None
-        for vers in processVers:
-            try:
-                vDF = spark.sql(f"""SELECT * FROM table_changes({sourceTableName}, {vers})""")
-                vDF = handleDuplicateBusinessData(vDF, changeColumns)
-                if cdfDF is None:
-                    cdfDF = vDF
-                else:
-                    cdfDF = cdfDF.unionByName(vDF)
-            except AnalysisException as e:
-                pass
-        return cdfDF
+    versTo  = processVers.max()
+    return versFrm, versTo 
+
+#Unable to test below --REDACTED catalog not working with table_changes
+#Get all the datafeed version of source after the last version of Target Delta Table.
+# def getSourceCDF(sourceTableName, changeColumns, catchUpMode = True):
+#     destDF = DeltaTable.forName(spark, _.Destination)
+#     history = destDF.history().toPandas()
+#     lastTimeStamp = pd.to_datetime(history['timestamp'].max())
+#     srcDF = DeltaTable.forName(spark, f"{get_env()}{sourceTableName}")
+#     srcHistory = srcDF.history().toPandas()
+#     processVers = srcHistory[pd.to_datetime(srcHistory['timestamp']) > lastTimeStamp ] ['version']
+#     if processVers.empty:
+#         return None 
+#     versFrm = processVers.min()
+#     versTo  = processVers.max()
+#     env = getClusterEnv() 
+#     if catchUpMode:
+#         try:
+#             if env == 'PREPROD':
+#                 cdfDF = spark.sql(f"""SELECT * FROM table_changes('ppd_'{sourceTableName}, {versFrm}, {versTo} )""")
+#             elif env == 'PROD':
+#                 cdfDF = spark.sql(f"""SELECT * FROM table_changes({sourceTableName}, {versFrm}, {versTo} )""")
+
+#             cdfDF = handleDuplicateBusinessData(cdfDF, changeColumns)
+#             return cdfDF
+#         except AnalysisException as e:
+#             return None
+#     else:
+#         cdfDF = None
+#         for vers in processVers:
+#             try:
+#                 if env == 'PREPROD':
+#                     cdfDF = spark.sql(f"""SELECT * FROM table_changes('ppd_'{sourceTableName}, {versFrm}, {versTo} )""")
+#                 elif env == 'PROD':
+#                     cdfDF = spark.sql(f"""SELECT * FROM table_changes({sourceTableName}, {versFrm}, {versTo} )""")
+
+#                 vDF = handleDuplicateBusinessData(vDF, changeColumns)
+#                 if cdfDF is None:
+#                     cdfDF = vDF
+#                 else:
+#                     cdfDF = cdfDF.unionByName(vDF)
+#             except AnalysisException as e:
+#                 pass
+#         return cdfDF
     
 #call to process CDF
-def SaveWithCDF(sourceDataFrame,append=False):
+def SaveWithCDFSCD2(sourceDataFrame,append=False):
     targetTableFqn = f"{_.Destination}"
     print(f"Saving {targetTableFqn}...")
     if (not(TableExists(targetTableFqn))):
         print(f"Creating {targetTableFqn}...")
         # Adjust _RecordStart date for first load
-        sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
+        sourceDataFrame = (sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
+                           .drop(col('_change_type')))
         sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
         CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
         EndNotebook(sourceDataFrame)
         return
-    sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
-    if append:
-        AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
     else:    
-        processCDFTableSCD(sourceDataFrame, targetTableFqn,_.BK,_.SK)
+        mergeCDFTableSCD2(sourceDataFrame, targetTableFqn,_.BK,_.SK)
     EndNotebook(sourceDataFrame)
     return    
 
