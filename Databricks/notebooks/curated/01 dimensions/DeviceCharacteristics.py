@@ -36,11 +36,11 @@ def getDeviceCharacteristics():
                                                 ),
                                         isu_ausp_cawnt AS (
                                                 SELECT isu_ausp.*, isu_cawnt.characteristicValueDescription
-                                                 FROM isu_ausp LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.cawn
+                                                 FROM isu_ausp LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.cawn isu_cawn
                                                      ON isu_ausp.characteristicInternalId = isu_cawn.internalcharacteristic
                                                          AND isu_ausp.characteristicValueCode = isu_cawn.characteristicValue
                                                          AND isu_cawn._RecordCurrent = 1 
-                                                 LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.cawnt
+                                                 LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.cawnt isu_cawnt
                                                       ON isu_cawn.internalCharacteristic = isu_cawnt.internalcharacteristic
                                                           AND isu_cawn.internalCounter = isu_cawnt.internalCounter 
                                                           AND isu_cawnt._RecordCurrent = 1 
@@ -66,10 +66,10 @@ def getDeviceCharacteristics():
                                                  ),
                                          ausp_cabnt_cawnt AS (
                                               SELECT DISTINCT ausp_cawnt.*, isu_cabn.characteristicName, isu_cabnt.characteristicDescription 
-                                              FROM ausp_cawnt INNER JOIN {ADS_DATABASE_CLEANSED}.isu.cabn
+                                              FROM ausp_cawnt INNER JOIN {ADS_DATABASE_CLEANSED}.isu.cabn isu_cabn
                                                   ON ausp_cawnt.characteristicInternalId = isu_cabn.internalcharacteristic
                                                       AND isu_cabn._RecordCurrent = 1 
-                                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.cabnt
+                                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu.cabnt isu_cabnt
                                                   ON isu_cabn.internalcharacteristic = isu_cabnt.internalcharacteristic
                                                       AND isu_cabn.internalCounterforArchivingObjectsbyECM = isu_cabnt.internalCounterforArchivingObjectsbyECM
                                                       AND isu_cabnt._RecordCurrent = 1 
