@@ -43,11 +43,12 @@ def G3Admins(groupName):
 def G1DataDeveloper(groupName):
     prefix = GetPrefix()
     groupName = GetPrefix("-")+groupName
-    for i in ["cleansed", "curated"]:
+    for i in ["raw", "cleansed", "curated", "semantic"]:
         print(UpdatePermission("CATALOG", f"{prefix}{i}", [ {"principal" : f"{groupName}", "add" : [ "USE_CATALOG", "USE_SCHEMA", "SELECT" ]} ]))
     # DATALAB
     datalabSchema = GetDatalabSchema()
     print(UpdatePermission("SCHEMA", f"datalab.{datalabSchema}", [ {"principal" : f"{groupName}", "add" : [ "ALL_PRIVILEGES" ]} ]))
+    ExecuteCommand(f"GRANT SELECT ON ANY FILE TO `{groupName}`")
 #G1DataDeveloper("G1-Data-Developer")
 
 # COMMAND ----------

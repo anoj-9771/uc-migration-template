@@ -70,11 +70,18 @@ def UpdateAccountGroupMembers(groupName, members):
             ]}
     for m in members:
         u = USERS.get(f"{m}@sydneywater.com.au")
-        print(f"{m} not found!") if u is None else ()
+        
+        if u is None:
+            print(f"{m} not found!") 
+            AddAccountUser(f"{m}@sydneywater.com.au")
         body["Operations"][0]["value"]["members"].append({ "value" : u })
 
     response = requests.patch(url, json=body, headers=headers)
     return response.json()
+
+# COMMAND ----------
+
+UpdateAccountGroupMembers("ppd-UAT-L2", [ "0id","eus","y1x","v7j","al4","4ff","4m7","f1x","jho","7fk","39a","3vu","em9","tob"])
 
 # COMMAND ----------
 

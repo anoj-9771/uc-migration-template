@@ -37,15 +37,31 @@ LoadCuratedMap()
 # COMMAND ----------
 
 def GetCatalog(namespace):
+    if "." not in namespace:
+        return namespace
+    namespace = namespace.replace("hive_metastore.", "")
+    
+    if (len(namespace.split(".")) == 3):
+        return namespace.split(".")[0]
+
+
     if "." not in namespace or not(any([i for i in ["raw", "cleansed", "curated"] if namespace.lower().startswith(i)])):
         return ""
     prefix = GetPrefix()
     c = namespace.split(".")
     return prefix+c[0]
+#print(GetCatalog("curated.water_balance.swcdemand"))
 
 # COMMAND ----------
 
 def GetSchema(namespace):
+    if "." not in namespace:
+        return namespace
+    namespace = namespace.replace("hive_metastore.", "")
+    
+    if (len(namespace.split(".")) == 3):
+        return namespace.split(".")[1]
+
     list = ["dim", "fact", "brg"]
     if "_" not in namespace and not(any([i for i in list if i in namespace])):
         return namespace.split(".", -1)[-2]
@@ -59,6 +75,7 @@ def GetSchema(namespace):
         s = s.split("_", 1)[0]
     startsWith = [i for i in list if s.startswith(i)]
     return startsWith[0] if any(startsWith) else s
+#print(GetSchema("curated.water_balance.swcdemand"))
 
 # COMMAND ----------
 
@@ -76,6 +93,11 @@ def GetTable(namespace):
 # COMMAND ----------
 
 def ConvertTableName(tableFqn):
+    if "." not in tableFqn:
+        return tableFqn
+    
+    tableFqn = tableFqn.replace("hive_metastore.", "")
+
     if "datalab" in tableFqn:
         return tableFqn
     prefix = GetPrefix()
@@ -98,14 +120,32 @@ def ConvertTableName(tableFqn):
 # COMMAND ----------
 
 def ReplaceQuery(sql):
-    repalcedSql = sql
-    for m in re.finditer("(?i)[ |\r|\n](from|join)[ |\r|\n]*[a-zA-Z0-9_.]+", repalcedSql, re.S | re.IGNORECASE):
+    replacedSql = sql.replace("hive_metastore.", "").replace("`", "")
+    for m in re.finditer("(?i)[ |\r|\n](from|join)[ |\r|\n]*[a-zA-Z0-9_.]+", replacedSql, re.S | re.IGNORECASE):
             operation = re.split("[ |\r|\n]", m.group(0))[1]
             table = re.split("[ |\r|\n]", m.group(0))[-1]
+
             if len(table) <= 7 or "datalab" in table:
                 continue
-            repalcedSql = re.sub(m.group(0), f" {operation} " + ConvertTableName(table), repalcedSql, re.IGNORECASE)
-    return repalcedSql
+            replacedSql = replacedSql.replace(table, ConvertTableName(table))
+            #print(table)
+            #print(ConvertTableName(table))
+            #replacedSql = re.sub(m.group(0), f" {operation} " + ConvertTableName(table), replacedSql, re.IGNORECASE)
+    return replacedSql
+
+# COMMAND ----------
+
+def TablesUsed(sql):
+    tables = []
+    replacedSql = sql.replace("hive_metastore.", "").replace("`", "")
+    for m in re.finditer("(?i)[ |\r|\n](from|join)[ |\r|\n]*[a-zA-Z0-9_.]+", replacedSql, re.S | re.IGNORECASE):
+            operation = re.split("[ |\r|\n]", m.group(0))[1]
+            table = re.split("[ |\r|\n]", m.group(0))[-1]
+
+            if len(table) <= 7 or "datalab" in table:
+                continue
+            tables.append({"before" : table, "after" : ConvertTableName(table)})
+    return tables
 
 # COMMAND ----------
 
