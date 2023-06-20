@@ -11,10 +11,6 @@ DEFAULT_TARGET = 'curated'
 
 # COMMAND ----------
 
-DEFAULT_TARGET = 'curated_v3'
-
-# COMMAND ----------
-
 def Transform():
     global df
     # ------------- TABLES ----------------- #

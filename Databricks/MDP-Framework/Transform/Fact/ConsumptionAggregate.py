@@ -1,19 +1,13 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
-
 
 # COMMAND ----------
 
 DEFAULT_TARGET = 'curated'
-
-# COMMAND ----------
-
-DEFAULT_TARGET = 'curated_v3'
 
 # COMMAND ----------
 
