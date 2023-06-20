@@ -322,4 +322,7 @@ def updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk):
 # COMMAND ----------
 
 def viewExists(viewFqn):
-    return (spark.table(f'{viewFqn.split(".")[0]}.information_schema.views').filter(f"""table_schema = '{viewFqn.split('.')[1]}' and table_name = '{viewFqn.split('.')[-1]}'""").count () > 0)
+    spark.sql(f"use catalog {viewFqn.split('.')[0]}")
+    return (
+        spark.sql(f"show views in {'.'.join(viewFqn.split('.')[:-1])} like '{viewFqn.split('.')[-1]}'").count() == 1
+    )

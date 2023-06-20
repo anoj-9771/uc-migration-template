@@ -101,7 +101,9 @@ def TableExists(tableFqn):
     return spark._jsparkSession.catalog().tableExists(tableFqn.split(".")[0], tableFqn.split(".")[1])
 
 def TableExistsUC(tableFqn):
-    return (spark.table(f'{tableFqn.split(".")[0]}.information_schema.tables').filter(f"""table_schema = '{tableFqn.split('.')[1]}' and table_name = '{tableFqn.split('.')[-1]}'""").count () > 0)
+    return (
+        spark.sql(f"show tables in {'.'.join(tableFqn.split('.')[:-1])} like '{tableFqn.split('.')[-1]}'").count() == 1
+    )
 
 def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath):
     dataFrame.write \
