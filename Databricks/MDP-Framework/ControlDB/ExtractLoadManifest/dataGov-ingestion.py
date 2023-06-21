@@ -28,7 +28,7 @@ def ConfigureManifest(df):
     
     ExecuteStatement("""
     update dbo.extractLoadManifest
-    set ExtendedProperties = '{"GroupOrderBy" : "Id Desc", "CleansedQuery" : "select * from raw.datagov_australiapublicholidays where upper(jurisdiction) like ''%NSW%'' or upper(jurisdiction) like ''%NAT%''"}',
+    set ExtendedProperties = '{"GroupOrderBy" : "Id Desc", "CleansedQuery" : "select * from {tableFqn} where upper(jurisdiction) like ''%NSW%'' or upper(jurisdiction) like ''%NAT%''"}',
     BusinessKeyColumn = 'date'
     where SystemCode = 'datagov'
     """)
