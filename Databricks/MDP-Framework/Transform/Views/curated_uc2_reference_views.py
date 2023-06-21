@@ -12,12 +12,16 @@ def CreateView(db: str, view: str, content: str, transform: dict):
     content_header = content_list[0]
     content_data = content_list[1:]
 
-    table_namespace = get_table_namespace(db, view)
-    schema_name = '.'.join(table_namespace.split('.')[:-1])
-    object_name = table_namespace.split('.')[-1]
+    if db:
+        table_namespace = get_table_namespace(db, view)
+        schema_name = '.'.join(table_namespace.split('.')[:-1])
+        object_name = table_namespace.split('.')[-1]        
+    elif len(view.split('.')) == 3:
+        layer,schema_name,object_name = view.split('.')
+        table_namespace = get_table_name(layer,schema_name,object_name)
 
     if len(table_namespace.split('.')) > 2:
-        catalog_name = schema_name.split('.')[0]
+        catalog_name = table_namespace.split('.')[0]
         spark.sql(f"USE CATALOG {catalog_name}")
     
     if spark.sql(f"SHOW VIEWS FROM {schema_name} LIKE '{object_name}'").count() == 1:
@@ -1139,3 +1143,36 @@ DESALINATION PLANT,,,,,WT0155.WF1091.FTX01.Flowmeter,,Desalination Plant,Y,1900-
 """
 
 CreateView(db, view, content, transform)
+
+# COMMAND ----------
+
+view = "curated.water_balance.ApportionedRecycledWaterNetworkLookup"
+transform = {}
+content = """
+deliverySystem,distributionSystem,supplyZone,pressureZone
+DEL_HOMEBUSH_WRAMS_REC,,,
+DEL_ST_MARYS_REC,,,
+DEL_GLENFIELD_REC,,,
+DEL_QUAKERS_HILL_REC,,,
+DEL_WEST_CAMDEN_REC,,,
+,DIS_HOMEBUSH_WRAMS_REC,,
+,DIS_ST_MARYS_REC,,
+,DIS_HOXTON_PARK_REC ,,
+,DIS_QUAKERS_HILL_REC,,
+,DIS_WEST_CAMDEN_REC,,
+,,Z_BAY_WEST_REC,
+,,Z_COLEBEE_REC,
+,,Z_EDMONDSON_PARK_REC,
+,,Z_NEWINGTON_REC,
+,,Z_ORAN_PARK_REC,
+,,Z_RHODES_PENINSULA_REC,
+,,Z_ROPES_CROSSING_REC,
+,,Z_SOUTH_HOXTON_PARK_REC,
+,,Z_SYDNEY_OLYMPIC_PARK_REC,
+"""
+
+CreateView(None, view, content, transform)
+
+# COMMAND ----------
+
+a,b,c,d='curated.water_balance.ApportionedRecycledWaterNetworkLookup'.split('.')
