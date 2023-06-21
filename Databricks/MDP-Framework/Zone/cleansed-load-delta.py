@@ -3,7 +3,7 @@ dbutils.widgets.text(name="task", defaultValue="", label="task")
 
 # COMMAND ----------
 
-# MAGIC %run ../Common/common-include-all
+# MAGIC %run ../Common/common-include-all   
 
 # COMMAND ----------
 
@@ -87,6 +87,7 @@ if(extendedProperties):
             cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
         deletedRecordsDataFrame = spark.sql(deleteRecordsQuery.replace("{lastLoadTimeStamp}", lastLoadTimeStamp)
                                                               .replace("{vwCleanseDataFrame}", "vwCleanseDataFrame")
+                                                              .replace("{get_env()}", get_env())
                                            )
         deletedRecordsDataFrame = deletedRecordsDataFrame.withColumn("_DLCleansedZoneTimeStamp",current_timestamp()) \
                                                          .withColumn("_RecordCurrent",lit('1')) \
