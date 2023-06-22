@@ -1172,7 +1172,3 @@ DEL_WEST_CAMDEN_REC,,,
 """
 
 CreateView(None, view, content, transform)
-
-# COMMAND ----------
-
-a,b,c,d='curated.water_balance.ApportionedRecycledWaterNetworkLookup'.split('.')
