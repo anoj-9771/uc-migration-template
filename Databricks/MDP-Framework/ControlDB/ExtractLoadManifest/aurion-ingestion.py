@@ -23,9 +23,7 @@ df = spark.sql("""
     SELECT 'employee_history' SourceTableName, '70098_emp_pos_hist' as SourceQuery, * FROM _Base
     """)
 
-# COMMAND ----------
 
-ExecuteStatement(f"delete from dbo.extractLoadManifest where systemCode = '{SYSTEM_CODE}'")
 
 # COMMAND ----------
 
@@ -62,7 +60,7 @@ where systemCode in ('aurion')
 
 # COMMAND ----------
 
-ExecuteStatement(f"update dbo.extractLoadManifest set enabled = 1 where systemCode = '{SYSTEM_CODE}'")
+ExecuteStatement(f"update dbo.extractLoadManifest set enabled = 1 where systemCode = '{SYSTEM_CODE}' and sourceTableName <> 'employee_history' ")
 
 # COMMAND ----------
 
