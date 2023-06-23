@@ -57,7 +57,22 @@ from pyspark.sql.functions import lit, when, lower, expr, col
 transform_df = spark.sql("""
     SELECT * FROM VALUES
     (1,'Fact','AssetDemandValue','databricks-notebook','',null,'iicats',1),
-    (2,'Fact','Demand','databricks-notebook','',1,null,1)
+    (2,'Fact','Demand','databricks-notebook','',1,null,1),
+    (3,'Dim','AssetContract','databricks-notebook','',null,'maximo',1),
+    (4,'Dim','AssetLocation','databricks-notebook','',null,'maximo',1),
+    (5,'Dim','WorkOrderJobPlan','databricks-notebook','',null,'maximo',1),
+    (6,'Dim','WorkOrderProblemType','databricks-notebook','',null,'maximo',1),
+    (7,'Dim','Asset','databricks-notebook','',4,null,1),
+    (8,'Dim','AssetLocationAncestor','databricks-notebook','',4,null,1),
+    (9,'Dim','LocationSpec','databricks-notebook','',4,null,1),
+    (10,'Dim','AssetMeter','databricks-notebook','',7,null,1),
+    (11,'Dim','AssetSpec','databricks-notebook','',7,null,1),
+    (12,'Fact','WorkOrder','databricks-notebook','',7,null,1),
+    (13,'Fact','PreventiveMaintenance','databricks-notebook','',6,null,1),
+    (14,'Fact','WorkOrderFailureReport','databricks-notebook','',12,null,1),
+    (15,'Fact','AssetPerformance','databricks-notebook','',12,null,1),
+    (16,'Fact','AssetPerformanceIndex','databricks-notebook','',12,null,1),
+    (17,'Bridge','BridgeWorkOrderPreventiveMaintenance','databricks-notebook','',12,null,1)
     AS (TransformID,EntityType,EntityName,ProcessorType,TargetKeyVaultSecret,InternalDependency,ExternalDependency,Enabled)
 """)
 
