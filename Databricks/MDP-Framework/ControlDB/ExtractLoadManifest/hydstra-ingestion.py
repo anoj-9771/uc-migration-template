@@ -77,4 +77,7 @@ where systemCode in ('hydstraRef','hydstraData')
 
 # COMMAND ----------
 
-
+ExecuteStatement("""
+update dbo.extractLoadManifest set systemCode = 'hydstra|15Min'
+where systemCode = 'hydstraData' and sourceTableName = 'TSV_Provisional'
+""")
