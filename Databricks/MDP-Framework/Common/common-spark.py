@@ -25,25 +25,16 @@ def GetDeltaTablePath(tableFqn):
 
     
 def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints=True):
-    if is_uc():
-        # write to table directly post UC migration
-        (dataFrame.write 
-            .option("mergeSchema", "true") 
-            .option("delta.minReaderVersion", "3") 
-            .option("delta.minWriterVersion", "7") 
-            .mode("overwrite") 
-            .saveAsTable(targetTableFqn))
-        CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints) 
-    else:
-        # continue existing workflow (write to a path)
-        (dataFrame.write 
-                .format("delta") 
-                .option("delta.minReaderVersion", "3") 
-                .option("delta.minWriterVersion", "7") 
-                .option("mergeSchema", "true") 
-                .mode("overwrite") 
-                .save(dataLakePath))
-        CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints) 
+    #with introduction of Unity Catalog, function needs to be able to create new schema
+    spark.sql(f"CREATE SCHEMA IF NOT EXISTS {targetTableFqn.split('.')[0]}.{targetTableFqn.split('.')[1]}")
+    
+    (dataFrame.write 
+        .option("mergeSchema", "true") 
+        .option("delta.minReaderVersion", "3") 
+        .option("delta.minWriterVersion", "7") 
+        .mode("overwrite") 
+        .saveAsTable(targetTableFqn))
+    CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints) 
 
 # COMMAND ----------
 
@@ -87,23 +78,17 @@ def AppendDeltaTableStream(dataFrame, targetTableFqn, dataLakePath, businessKeys
 # COMMAND ----------
 
 def AppendDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None):
-    if is_uc():
-        dataFrame.write \
-                .format("delta") \
-                .option("mergeSchema", "true") \
-                .mode("append") \
-                .saveAsTable(targetTableFqn)
-        if (not(TableExists(targetTableFqn))):
-            CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys)
-    else:
-        dataFrame.write \
-                .format("delta") \
-                .option("mergeSchema", "true") \
-                .mode("append") \
-                .save(dataLakePath)
-        if (not(TableExists(targetTableFqn))):
-            CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys)
+    #with introduction of Unity Catalog, function needs to be able to create new schema
+    spark.sql(f"CREATE SCHEMA IF NOT EXISTS {targetTableFqn.split('.')[0]}.{targetTableFqn.split('.')[1]}")
 
+    #although below code block is to "append", in case of no table existing, a new one will be created
+    dataFrame.write \
+            .option("mergeSchema", "true") \
+            .mode("append") \
+            .saveAsTable(targetTableFqn)
+    
+    CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys)
+    
 # COMMAND ----------
 
 def delete_files_recursive(file_path: str) -> None:
@@ -118,10 +103,6 @@ def delete_files_recursive(file_path: str) -> None:
 # COMMAND ----------
 
 def CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints = True):
-    if is_uc():
-        spark.sql(f"CREATE TABLE IF NOT EXISTS {targetTableFqn}") 
-    else:
-        spark.sql(f"CREATE TABLE IF NOT EXISTS {targetTableFqn} USING DELTA LOCATION \'{dataLakePath}\'") 
     if businessKeys is not None and createTableConstraints:
         for businessKey in businessKeys.split(","):
             spark.sql(f"ALTER TABLE {targetTableFqn} ALTER COLUMN {businessKey} SET NOT NULL")
