@@ -41,7 +41,9 @@ df.display()
 
 dfHydstraRef = df.where("SourceTableName = 'MetaData'")
 
-dfHydstraData = df.where("SourceTableName <> 'MetaData'")
+dfHydstraData15Min = df.where("SourceTableName = 'TSV_Provisional'")
+
+dfHydstraData = df.where("SourceTableName NOT IN ('MetaData','TSV_Provisional')")
 
 # COMMAND ----------
 
@@ -60,6 +62,9 @@ def ConfigureManifest(df):
 SYSTEM_CODE = 'hydstraRef'
 ConfigureManifest(dfHydstraRef)
 
+SYSTEM_CODE = 'hydstra|15Min'
+ConfigureManifest(dfHydstraData15Min)
+
 SYSTEM_CODE = "hydstraData"
 ConfigureManifest(dfHydstraData)
 
@@ -72,12 +77,5 @@ when 'GaugeDetails' then 'gaugeIdentifier'
 when 'TSV_Provisional' then 'gaugeId,variableNameUnit,measurementResultDateTime'
 when 'TSV_Verified' then 'gaugeId,variableNameUnit,measurementResultDateTime'
 end
-where systemCode in ('hydstraRef','hydstraData')
-""")
-
-# COMMAND ----------
-
-ExecuteStatement("""
-update dbo.extractLoadManifest set systemCode = 'hydstra|15Min'
-where systemCode = 'hydstraData' and sourceTableName = 'TSV_Provisional'
+where systemCode in ('hydstraRef','hydstraData','hydstra|15Min')
 """)

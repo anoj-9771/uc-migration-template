@@ -1,0 +1,37 @@
+{
+	"name": "BATCH_DAILY_HYDSTRA",
+	"properties": {
+		"description": "Load Hydstra GaugeDetails. TSV_Verified and Metadata files",
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Main",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"SystemCodes": "hydstraref,hydstradata",
+					"RunParallel": "N"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2023-06-26T02:26:00",
+				"timeZone": "AUS Eastern Standard Time",
+				"schedule": {
+					"minutes": [
+						5
+					],
+					"hours": [
+						5
+					]
+				}
+			}
+		}
+	}
+}
