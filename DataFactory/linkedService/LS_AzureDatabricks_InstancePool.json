@@ -42,6 +42,9 @@
 			"newClusterSparkEnvVars": {
 				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
 			},
+			"newClusterCustomTags": {
+				"Product": "Framework ETL"
+			},
 			"newClusterVersion": "@linkedService().DatabricksVersion",
 			"newClusterInitScripts": [],
 			"clusterOption": "Autoscaling"
