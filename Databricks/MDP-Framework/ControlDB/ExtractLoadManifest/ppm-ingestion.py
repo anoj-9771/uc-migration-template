@@ -34,6 +34,12 @@ UNION
 SELECT 'ZEPT_SUB_DELPART' SourceTableName, 'ppmref/ZEPT_SUB_DELPART' SourceQuery, '' WatermarkColumn, * FROM _Base  
 UNION
 SELECT 'CGPL_TEXT' SourceTableName, 'ppmref/CGPL_TEXT' SourceQuery, '' WatermarkColumn, * FROM _Base
+UNION
+SELECT 'ZEPT_MPALIST' SourceTableName, 'ppmref/ZEPT_MPALIST' SourceQuery, '' WatermarkColumn, * FROM _Base
+UNION
+SELECT 'ZEPT_DEL_PARTNER' SourceTableName, 'ppmref/ZEPT_DEL_PARTNER' SourceQuery, '' WatermarkColumn, * FROM _Base
+UNION
+SELECT 'ZEPT_CIP_TYP' SourceTableName, 'ppmref/ZEPT_CIP_TYP' SourceQuery, '' WatermarkColumn, * FROM _Base
 
 --End of tables that may get converted to SLT later
 UNION
@@ -60,9 +66,11 @@ SELECT 'RPM_RELATION_D' SourceTableName, 'ppmdata/RPM_RELATION_D' SourceQuery, '
 UNION 
 SELECT '0WBS_ELEMT_ATTR' SourceTableName, 'ppmdata/0WBS_ELEMT_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
 UNION 
-SELECT '0INM_INITIATIVE_GUID_ATTR' SourceTableName, 'ppmref/0INM_INITIATIVE_GUID_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+SELECT '0INM_INITIATIVE_GUID_ATTR' SourceTableName, 'ppmdata/0INM_INITIATIVE_GUID_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
 UNION 
-SELECT '0RPM_BUCKET_GUID_ATTR' SourceTableName, 'ppmref/0RPM_BUCKET_GUID_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+SELECT '0RPM_BUCKET_GUID_ATTR' SourceTableName, 'ppmdata/0RPM_BUCKET_GUID_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+UNION 
+SELECT 'ZPS_PSF_COMMLOG' SourceTableName, 'ppmdata/ZPS_PSF_COMMLOG' SourceQuery, '' WatermarkColumn, * FROM _Base
 
 --End of tables that may get converted to SLT later
 )    
@@ -130,6 +138,10 @@ when 'RPM_STATUS_T' then 'projectApprovalStatusId'
 when 'CGPL_TEXT' then 'projectPlanningGuid'
 when 'TCJ4T' then 'projectProfile'
 when 'ZEPT_SUB_DELPART' then 'projectType,subDeliveryPartner'
+when 'ZEPT_MPALIST' then 'ZZ_MPA_ID'
+when 'ZEPT_DEL_PARTNER' then 'DEL_PART_KEY,DEL_PARTNER'
+when 'ZEPT_CIP_TYP' then 'ZZ_CIP_TYP'
+when 'ZPS_PSF_COMMLOG' then 'PROJECT,STATUS,CALYEAR,CALMONTH'
 else businessKeyColumn
 end
 where systemCode in ('ppmref','ppmdata')
