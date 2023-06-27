@@ -7,11 +7,11 @@ from pyspark.sql.functions import lit, when, lower, expr
 df = spark.sql("""
 WITH _Base AS 
 (
-    SELECT 'SharepointListdata' SystemCode, 'SharepointListEDP' SourceSchema, '' SourceKeyVaultSecret, 'sharepointlist-load' SourceHandler, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, '' RawFileExtension, "Modified" WatermarkColumn
-    ,'{"CleansedQuery" : "select * except(dummy) from {tableFqn} where Id is not null and _DLRawZoneTimeStamp > \\'\\'{lastLoadTimeStamp}\\'\\'"}'  ExtendedProperties
-    ,'https://sydneywatercorporation.sharepoint.com/sites/EnterpriseDataPlatform-Adjustments' SourceQuery
+    SELECT 'SharepointListdata' SystemCode, 'SharepointListEDP' SourceSchema, '' SourceKeyVaultSecret, 'sharepointlist-load' SourceHandler, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, '' RawFileExtension, 'https://sydneywatercorporation.sharepoint.com/sites/EnterpriseDataPlatform-Adjustments' SourceQuery
 )
-SELECT 'DemandCalculationAdjustment' SourceTableName, * FROM _Base
+SELECT 'DemandCalculationAdjustment' SourceTableName, "Modified" WatermarkColumn,'{"CleansedQuery" : "select * except(dummy) from {tableFqn} where Id is not null and _DLRawZoneTimeStamp > \\'\\'{lastLoadTimeStamp}\\'\\'"}'  ExtendedProperties, * FROM _Base
+UNION ALL
+SELECT 'AggregatedComponents' SourceTableName, '' WatermarkColumn, '' ExtendedProperties, * FROM _Base
 UNION ALL
 (
 WITH _Base AS 
