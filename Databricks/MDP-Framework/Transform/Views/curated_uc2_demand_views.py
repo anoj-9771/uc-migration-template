@@ -125,12 +125,14 @@ FROM
           ,if(
               sum(
                 if(fd.alternateFlag = 'N'
-                  ,flowmeterErrorCount + reservoirErrorCount + nvl2(demandErrorText,1,0),0))
+                  --,flowmeterErrorCount + reservoirErrorCount + nvl2(demandErrorText,1,0),0))
+                  ,flowmeterErrorCount,0))
                 over waterNetworkPerDay > 0
               and
               sum(
                 if(fd.alternateFlag = 'Y'
-                  ,flowmeterErrorCount + reservoirErrorCount + nvl2(demandErrorText,1,0),0))
+                  --,flowmeterErrorCount + reservoirErrorCount + nvl2(demandErrorText,1,0),0))
+                  ,flowmeterErrorCount,0))                  
                 over waterNetworkPerDay = 0
 			        and
               sum(
