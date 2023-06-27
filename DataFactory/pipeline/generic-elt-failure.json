@@ -65,6 +65,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "set-environment",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"userProperties": [],
@@ -75,7 +81,10 @@
 					},
 					"waitOnCompletion": true,
 					"parameters": {
-						"importance": "High",
+						"importance": {
+							"value": "@if(equals(variables('environment'), ''), 'High', 'Normal')",
+							"type": "Expression"
+						},
 						"body": {
 							"value": "<p>Hi team, we have identified a delay with the EDP refresh today.</p>\n<p>Data will be still available to query and you will be notified shortly when our team have corrected the load.</p>\n\n<p><b>Once data has been refreshed, please validate any results derived in the interim and inform us if you have any further issues.<b></p>\n",
 							"type": "Expression"
@@ -88,11 +97,39 @@
 							"value": "@activity('get-sender').output.value",
 							"type": "Expression"
 						},
-						"subject": "ELT Failure"
+						"subject": {
+							"value": "ELT Failure @{if(equals(variables('environment'), ''), '', concat('(', variables('environment'), ')'))}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "set-environment",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "environment",
+					"value": {
+						"value": "@toUpper(if(equals(split(toLower(pipeline().DataFactory), '-')[3], 'prod'),'',split(pipeline().DataFactory, '-')[3]))",
+						"type": "Expression"
 					}
 				}
 			}
 		],
+		"variables": {
+			"environment": {
+				"type": "String"
+			}
+		},
 		"folder": {
 			"name": "MDP-Framework/Common/Alerting"
 		},
