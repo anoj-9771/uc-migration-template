@@ -79,8 +79,9 @@ CreateView(None, view, content, transform)
 dfcolumns = spark.sql(f"""show columns from {get_env()}cleansed.sharepointlistedp.aggregatedcomponents""")
 unpivotcount = 0
 unpivotcolumns = ''
+excludecolumns = ["ContentTypeID","ColorTag","ComplianceAssetId","Year","Month","Id","ContentType","Modified","Created","CreatedById","ModifiedById","Owshiddenversion","Version","Path"]
 for i in dfcolumns.collect():
-    if i.col_name not in ("ContentTypeID","ColorTag","ComplianceAssetId","Year","Month","Id","ContentType","Modified","Created","CreatedById","ModifiedById","Owshiddenversion","Version","Path") and \
+    if i.col_name not in excludecolumns and \
         not i.col_name.startswith("_"):
         unpivotcount +=1
         unpivotcolumns += f"'{i.col_name}',cast({i.col_name} as double),"
@@ -89,7 +90,7 @@ unpivotcolumns = unpivotcolumns[:-1]
 
 # COMMAND ----------
 
-spark.sql(f"""CREATE OR REPLACE VIEW {get_env()}curated.water_balance.AggregatedComponentsConfiguration as
+spark.sql(f"""CREATE OR REPLACE TABLE {get_env()}curated.water_balance.AggregatedComponentsConfiguration as
                with Base as 
                (Select Year as yearNumber, Month as monthName, stack({unpivotcount},{unpivotcolumns}) as (metricType,metricValueNumber),split(metricType,'_')[0] as metricTypeCategory,case when split(metricType,'_')[1] is not null then split(metricType,'_')[1] else NULL end lookupZoneName               
                FROM  {get_env()}cleansed.sharepointlistedp.aggregatedcomponents)
