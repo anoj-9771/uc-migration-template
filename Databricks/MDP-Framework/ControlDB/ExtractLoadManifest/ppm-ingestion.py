@@ -138,10 +138,10 @@ when 'RPM_STATUS_T' then 'projectApprovalStatusId'
 when 'CGPL_TEXT' then 'projectPlanningGuid'
 when 'TCJ4T' then 'projectProfile'
 when 'ZEPT_SUB_DELPART' then 'projectType,subDeliveryPartner'
-when 'ZEPT_MPALIST' then 'ZZ_MPA_ID'
-when 'ZEPT_DEL_PARTNER' then 'DEL_PART_KEY,DEL_PARTNER'
-when 'ZEPT_CIP_TYP' then 'ZZ_CIP_TYP'
-when 'ZPS_PSF_COMMLOG' then 'PROJECT,STATUS,CALYEAR,CALMONTH'
+when 'ZEPT_MPALIST' then 'majorProjectAssociationId'
+when 'ZEPT_DEL_PARTNER' then 'deliveryPartnerKey,deliveryPartner'
+when 'ZEPT_CIP_TYP' then 'cipAssetType'
+when 'ZPS_PSF_COMMLOG' then 'projectObject,projectStatus,calendarYear,calendarMonth'
 else businessKeyColumn
 end
 where systemCode in ('ppmref','ppmdata')

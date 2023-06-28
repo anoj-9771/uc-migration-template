@@ -74,10 +74,11 @@ if current_record_count == 0 or len(df.columns) <= 1:
 df=df.withColumn("_DLRawZoneTimeStamp",current_timestamp())
 tableFqn = get_table_name('raw', schemaName, tableName)
 dataLakePath = "/".join(rawPath.split("/")[0:5])+"/delta"
-if watermarkColumn:
-    AppendDeltaTable(df, tableFqn, dataLakePath)
-else:
-    CreateDeltaTable(df, tableFqn, dataLakePath)
+AppendDeltaTable(df, tableFqn, dataLakePath)
+# if watermarkColumn:
+#     AppendDeltaTable(df, tableFqn, dataLakePath)
+# else:
+#     CreateDeltaTable(df, tableFqn, dataLakePath)
 
 # COMMAND ----------
 
