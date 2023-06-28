@@ -105,12 +105,23 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, BK, SK):
 
 # COMMAND ----------
 
-##Both scenario of _recordDelete on Upstream is handled in the merge
+##Mags --Both scenario of _recordDelete on Upstream is handled in the merge
 def mergeCDFTableSCD2(sourceDataFrame, targetTableFqn, BK, SK):
-    sourceMergeDF = (sourceDataFrame.withColumn("_mergeBK", 
-                                when((col("_change_type") == lit("update_preimage")) | (col("_change_type") == lit("delete")) 
+    updateDF = ((sourceDataFrame.filter(col("_change_type") == lit("update_postimage")))
+                              .withColumn("_change_type", lit("update")))
+
+    if updateDF is not None:
+        sourceDF = sourceDataFrame.UnionByName(updateDF)
+    else:
+        sourceDF = sourceDataFrame
+
+
+    sourceMergeDF = (sourceDF.withColumn("_mergeBK", 
+                                when((col("_change_type") == lit("update")) | (col("_change_type") == lit("delete")) 
                                      ,col(BK)).otherwise (lit(None))))
-    selectColumns = [col for col in sourceMergeDF.columns if not (col.endswith('SK') or (col.startswith('_') and col not in [BK]))]
+    
+
+    selectColumns = [col for col in sourceMergeDF.columns if not (col.endswith('SK') or (col.startswith('_') and col not in [BK, '_recordDeleted']))]
     
 
     print("Merging CDF")
@@ -118,9 +129,10 @@ def mergeCDFTableSCD2(sourceDataFrame, targetTableFqn, BK, SK):
                         .merge(sourceMergeDF.alias("s")
                         ,f"t.{BK} = s._mergeBK") 
         .whenMatchedUpdate(
-          condition = "s._change_type = 'update_preimage' and t._recordCurrent = 1", 
+          condition = "s._change_type = 'update' and t._recordCurrent = 1", 
           set = {"_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
                  "_recordCurrent": "0",
+                 "_recordDeleted": "s._recordDeleted",
                 }
         )
         .whenMatchedUpdate(
@@ -131,7 +143,48 @@ def mergeCDFTableSCD2(sourceDataFrame, targetTableFqn, BK, SK):
                 }
         ) 
         .whenNotMatchedInsert(
-          condition = "s._change_type in ('update_postimage', 'insert')", 
+          condition = "s._change_type in ('update_postimage', 'insert') and s._recordDeleted != 1", 
+          values = {**{col: f"s.{col}" for col in sourceMergeDF.columns if col in selectColumns}, 
+                       f"{SK}": md5(expr(f"concat({_.BK},'|',{DEFAULT_START_DATE})")),
+                       "_DLCuratedZoneTimeStamp": expr("now()"),
+                       "_recordStart": "current_timestamp()",
+                       "_recordEnd": "to_timestamp('9999-12-31 00:00:00')",
+                       "_recordCurrent": "1",
+                       "_recordDeleted": "0"
+                    }
+        ).execute())
+
+# COMMAND ----------
+
+def mergeCDFSCD1(sourceDataFrame, targetTableFqn, BK, SK):
+    sourceDataFrame = sourceDataFrame.filter(col("_change_type") != lit("update_preimage"))
+                           
+
+    sourceMergeDF = (sourceDF.withColumn("_mergeBK", 
+                                when((col("_change_type") == lit("update_postimage")) | (col("_change_type") == lit("delete")) 
+                                     ,col(BK)).otherwise (lit(None))))
+    
+
+    selectColumns = [col for col in sourceMergeDF.columns if not (col.endswith('SK') or (col in ["_mergeBK"]))]
+    updateExprs = {col: "s." + col for col in selectColumns}
+
+    print("Merging CDF")
+    (DeltaTable.forName(spark, targetTableFqn).alias("t")
+                        .merge(sourceMergeDF.alias("s")
+                        ,f"t.{BK} = s._mergeBK") 
+        .whenMatchedUpdate(
+          condition = "s._change_type = 'update_postimage' and t._recordCurrent = 1", 
+          set = (updateExprs)
+        )
+        .whenMatchedUpdate(
+          condition = "s._change_type = 'delete' and t._recordCurrent = 1", 
+          set = {"_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
+                 "_recordDeleted": "1",
+                 "_recordCurrent": "0",
+                }
+        ) 
+        .whenNotMatchedInsert(
+          condition = "s._change_type ='insert' and s._recordDeleted != 1", 
           values = {**{col: f"s.{col}" for col in sourceMergeDF.columns if col in selectColumns}, 
                        f"{SK}": md5(expr(f"concat({_.BK},'|',{DEFAULT_START_DATE})")),
                        "_DLCuratedZoneTimeStamp": expr("now()"),

@@ -23,7 +23,7 @@ defaultTransformTags = {
     ,"flag-x-true-false" : "case WHEN $c$='X' then 'T' Else 'F' end "
     ,"flag-TorF-yes-no" : "case when $c$='T' then 'Y'   when $c$='F' then 'N'  end "
     ,"flag-1or0-yes-no" : "case WHEN $c$='1' then 'Y' when $c$='0' then 'N' end "
-    ,"flag-int-inbound-outbound" : " case WHEN $c$='0' then 'I' WHEN $c$='1' then 'O' Else NULL end "
+    ,"flag-int-inbound-outbound" : " case WHEN $c$='0' then 'Inbound' WHEN $c$='1' then 'Outbound' Else NULL end "
     ,"flag-trueorfalse-yes-no" : "case when $c$='true' then 'Y'   when $c$='false' then 'N'  end "
     ,"int-utc-to-sydney-datetime" : " case WHEN CAST($c$ AS LONG)='99991231235959' then to_timestamp(substring(CAST($c$ AS LONG),1,4)||'-'||substring(CAST($c$ AS LONG),5,2)||'-'||substring(CAST($c$ AS LONG),7,2) \
     ||' '||substring(CAST($c$ AS LONG),9,2)||':'||substring(CAST($c$ AS LONG),11,2)||':'||substring(CAST($c$ AS LONG),13,2)) else from_utc_timestamp(substring(CAST($c$ AS LONG),1,4)||'-'||substring(CAST($c$ AS LONG),5,2)||'-'||substring(CAST($c$ AS LONG),7,2) \
@@ -484,3 +484,90 @@ def GetRawLatestRecordBK(cleanseDataFrame,businessKey,groupOrderBy,systemCode):
         businessKey = businessKey.replace(', rowStamp','').replace(',rowStamp','')
     cleanseDataFrame = spark.sql(f"select * from (select vwCleanseDataFrame.*, row_number() OVER (Partition By {businessKey} order by {groupOrderBy}) row_num from vwCleanseDataFrame) where row_num = 1 ").drop("row_num")
     return cleanseDataFrame
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select distinct _recordStart from ppd_curated.dim.businesspartner
+
+# COMMAND ----------
+
+df = spark.sql("""
+select 
+to_json(struct(m.SourceID, m.SystemCode, m.SourceSchema, m.SourceTableName, m.SourceQuery, m.SourceFolderPath, m.SourceFileName, m.SourceKeyVaultSecret, m.SourceHandler, m.LoadType, m.BusinessKeyColumn, m.WatermarkColumn, m.RawHandler,m.CleansedHandler, m.CleansedPath, m.DestinationSchema, m.DestinationTableName, m.DestinationKeyVaultSecret, m.ExtendedProperties)) task,
+m.SourceID, m.SystemCode, m.SourceSchema, m.SourceTableName, m.SourceQuery, m.SourceFolderPath, m.SourceFileName, m.SourceKeyVaultSecret, m.SourceHandler, m.LoadType, m.BusinessKeyColumn, m.WatermarkColumn, m.RawHandler, m.CleansedHandler, m.CleansedPath, m.DestinationSchema, m.DestinationTableName, m.DestinationKeyVaultSecret, m.ExtendedProperties
+from controldb.dbo_ExtractLoadManifest m
+where 1=1
+--and m.SystemCode in --('iicatsref')
+--('crmdata')
+-- and s.ID = 3773
+--and SourceTableName = '0RPM_PORT_GUID_ID_TEXT'
+--and SourceTableName = 'iicats_work_orders'
+--and SourceTableName = 'bi_reference_codes'
+--and SourceTableName = 'scapptseg'
+--and SourceTableName in ('0CRM_SRV_REQ_INCI_H')
+-- and SourceTableName in ('crmd_partner')
+--and m.SourceTableName = 'crmdata'
+and SourceTableName in ('0CRM_SALES_ACT_1') --0crm_sales_act_1
+-- and systemcode = 'sltcrmdata'
+"""
+)
+display(df)
+
+# COMMAND ----------
+
+from pathlib import Path
+from pyspark.sql.functions import col
+import re
+import json
+
+path='/MDP-Framework/Zone'
+# raw_handler_path='/Users/o63p@sydneywater.com.au/MDP-Framework/Zone/'
+raw_handler_path=path
+cleansed_handler_path=path
+run_raw=False
+run_clean=True
+#T
+use_biggest_rawfile = True
+for i in df.collect():
+    task = i.task
+    task=task.replace('\\','\\\\').replace('"','\\"')
+#     print('Task after replace',task)
+    if run_raw:
+        if use_biggest_rawfile:
+            rawPath = i.rawPath
+            print("Original RawPath")
+        #     print(i.task)
+            print(i.rawPath)
+            rawPath = Path(rawPath.replace("/raw", "/mnt/datalake-raw"))
+            #list all files in the parent directory
+            files_df = spark.createDataFrame(dbutils.fs.ls(str(rawPath.parent.absolute())))
+            #return the biggest file
+            files_df = files_df.orderBy(col('size').desc()).limit(1)
+            rawPath = re.sub("^dbfs:/mnt/datalake-raw","/raw",files_df.collect()[0][0])
+            #replace RawPath with the biggest file
+            task = json.loads(i.task)
+            task['RawPath'] = rawPath
+            task = json.dumps(task)
+            print("New RawPath")
+    #         print('Task Before replace',task)
+            print(rawPath)        
+        code = f"dbutils.notebook.run('{raw_handler_path}/{i.RawHandler}', 0, {{\"task\": \"{task}\", \"rawPath\": \"{rawPath}\"}})"
+        print(code)
+        exec(code)
+    if run_clean:
+        code = f"dbutils.notebook.run('{cleansed_handler_path}/{i.CleansedHandler}', 0, {{\"task\": \"{task}\"}})"
+        print(code)
+        exec(code)        
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC --DROP TABLE ppd_cleansed.crm.`0crm_sales_act_1`
+# MAGIC select * from ppd_cleansed.crm.`0crm_sales_act_1`
+# MAGIC
+# MAGIC
+
+# COMMAND ----------
+
+

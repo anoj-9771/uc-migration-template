@@ -8,11 +8,9 @@
 
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
-
 
 # COMMAND ----------
 
@@ -76,7 +74,7 @@ surveyCRM = spark.sql(f"""
 
 
 createdByDF= spark.sql(f"""Select userid, concat_ws(' ',givenNames,surname) as createdBy 
-                              from {get_table_namespace(f'{SOURCE}', 'vw_aurion_employee_details')}""").drop_duplicates()
+                              from {get_env()}cleansed.aurion.employee_details """).drop_duplicates()
 
 #remove duplicates USERID assignments has aurion data has duplicates #
 windowSpec = Window.partitionBy("userid").orderBy(col("createdBy").desc())
@@ -88,6 +86,11 @@ surveyCRM = surveyCRM.join(createdByDF, surveyCRM["createdByUserId"] == createdB
 
 #surveyCRM.display()
 survey = surveyQualtrics.unionByName(surveyCRM)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from ppd_curated.dim.survey
 
 # COMMAND ----------
 

@@ -60,8 +60,13 @@ class CuratedTransform( BlankClass ):
       self.BK = "_BusinessKey"
     #   self.EntityName = f"{self.EntityType[0:1]}_{self.Name}"
       self.EntityName = f"""{'dim' if self.EntityType == 'Dimension' else 'fact' if self.EntityType == 'Fact' 
-                              else 'brg' if self.EntityType == 'Bridge' else ''}{self.Name} """
-      self.Destination = get_table_namespace(DEFAULT_TARGET, self.EntityName)
+                              else 'brg' if self.EntityType == 'Bridge' else ''}{self.Name}"""
+                              
+      self.Database = f"""{'dim' if self.EntityType == 'Dimension' else 'fact' if self.EntityType == 'Fact' 
+                              else 'brg' if self.EntityType == 'Bridge' else ''}"""
+    #   self.Destination = get_table_namespace(DEFAULT_TARGET, self.EntityName)
+      self.Destination = f'{get_env()}{DEFAULT_TARGET}.{self.Database}.{self.Name}'
+      #self.Destination = { get_table_namespace(DEFAULT_TARGET, self.EntityName) if self.EntityType != 'Bridge' else self.EntityName }
       self.DataLakePath = f"/mnt/datalake-{DEFAULT_TARGET}/{self.EntityType}/{self.EntityName}"
       self.Tables = []
       #self.Joins = []
@@ -299,7 +304,7 @@ def SaveDefaultSource(sourceDataFrame):
                                              .withColumn("sourceValidToDateTime", when(col("sourceValidToDateTime").isNull(), col("_recordEnd")).otherwise(col("sourceValidToDateTime"))) \
                                              .withColumn("sourceRecordCurrent", when(col("sourceRecordCurrent").isNull(), col("_recordCurrent")).otherwise(col("sourceRecordCurrent")))
 
-        CreateDeltaTableR1W4(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
         EndNotebook(sourceDataFrame)
         return
     sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
@@ -423,51 +428,52 @@ def getCDFFromToVersion(sourceTableName):
     versTo  = processVers.max()
     return versFrm, versTo 
 
-#Unable to test below --REDACTED catalog not working with table_changes
+
 #Get all the datafeed version of source after the last version of Target Delta Table.
-# def getSourceCDF(sourceTableName, changeColumns, catchUpMode = True):
-#     destDF = DeltaTable.forName(spark, _.Destination)
-#     history = destDF.history().toPandas()
-#     lastTimeStamp = pd.to_datetime(history['timestamp'].max())
-#     srcDF = DeltaTable.forName(spark, f"{get_env()}{sourceTableName}")
-#     srcHistory = srcDF.history().toPandas()
-#     processVers = srcHistory[pd.to_datetime(srcHistory['timestamp']) > lastTimeStamp ] ['version']
-#     if processVers.empty:
-#         return None 
-#     versFrm = processVers.min()
-#     versTo  = processVers.max()
-#     env = getClusterEnv() 
-#     if catchUpMode:
-#         try:
-#             if env == 'PREPROD':
-#                 cdfDF = spark.sql(f"""SELECT * FROM table_changes('ppd_'{sourceTableName}, {versFrm}, {versTo} )""")
-#             elif env == 'PROD':
-#                 cdfDF = spark.sql(f"""SELECT * FROM table_changes({sourceTableName}, {versFrm}, {versTo} )""")
+def getSourceCDF(catalogNm, sourceTableName, changeColumns, catchUpMode = True):
+    spark.sql(f"USE CATALOG {get_env()}{catalogNm}")
+    destDF = DeltaTable.forName(spark, _.Destination)
+    history = destDF.history().toPandas()
+    lastTimeStamp = pd.to_datetime(history['timestamp'].max())
+    srcDF = DeltaTable.forName(spark, f"{get_env()}{sourceTableName}")
+    srcHistory = srcDF.history().toPandas()
+    processVers = srcHistory[pd.to_datetime(srcHistory['timestamp']) > lastTimeStamp ] ['version']
+    if processVers.empty:
+        return None 
+    versFrm = processVers.min()
+    versTo  = processVers.max()
+    env = getClusterEnv() 
+    if catchUpMode:
+        try:
+            if env == 'PREPROD':
+                cdfDF = spark.sql(f"""SELECT * FROM table_changes('ppd_'{sourceTableName}, {versFrm}, {versTo} )""")
+            elif env == 'PROD':
+                cdfDF = spark.sql(f"""SELECT * FROM table_changes({sourceTableName}, {versFrm}, {versTo} )""")
 
-#             cdfDF = handleDuplicateBusinessData(cdfDF, changeColumns)
-#             return cdfDF
-#         except AnalysisException as e:
-#             return None
-#     else:
-#         cdfDF = None
-#         for vers in processVers:
-#             try:
-#                 if env == 'PREPROD':
-#                     cdfDF = spark.sql(f"""SELECT * FROM table_changes('ppd_'{sourceTableName}, {versFrm}, {versTo} )""")
-#                 elif env == 'PROD':
-#                     cdfDF = spark.sql(f"""SELECT * FROM table_changes({sourceTableName}, {versFrm}, {versTo} )""")
+            cdfDF = handleDuplicateBusinessData(cdfDF, changeColumns)
+            return cdfDF
+        except AnalysisException as e:
+            return None
+    else:
+        cdfDF = None
+        for vers in processVers:
+            try:
+                if env == 'PREPROD':
+                    cdfDF = spark.sql(f"""SELECT * FROM table_changes('ppd_'{sourceTableName}, {versFrm}, {versTo} )""")
+                elif env == 'PROD':
+                    cdfDF = spark.sql(f"""SELECT * FROM table_changes({sourceTableName}, {versFrm}, {versTo} )""")
 
-#                 vDF = handleDuplicateBusinessData(vDF, changeColumns)
-#                 if cdfDF is None:
-#                     cdfDF = vDF
-#                 else:
-#                     cdfDF = cdfDF.unionByName(vDF)
-#             except AnalysisException as e:
-#                 pass
-#         return cdfDF
+                vDF = handleDuplicateBusinessData(vDF, changeColumns)
+                if cdfDF is None:
+                    cdfDF = vDF
+                else:
+                    cdfDF = cdfDF.unionByName(vDF)
+            except AnalysisException as e:
+                pass
+        return cdfDF
     
 #call to process CDF
-def SaveWithCDFSCD2(sourceDataFrame,append=False):
+def SaveWithCDF(sourceDataFrame, mode):
     targetTableFqn = f"{_.Destination}"
     print(f"Saving {targetTableFqn}...")
     if (not(TableExists(targetTableFqn))):
@@ -479,8 +485,15 @@ def SaveWithCDFSCD2(sourceDataFrame,append=False):
         CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
         EndNotebook(sourceDataFrame)
         return
-    else:    
+    
+    if mode == 'APPEND':
+        sourceDataFrame = sourceDataFrame.drop(col('_change_type'))
+        AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+    elif mode == 'SCD2':    
         mergeCDFTableSCD2(sourceDataFrame, targetTableFqn,_.BK,_.SK)
+    elif mode == 'SCD1':
+        mergeCDFTableSCD1(sourceDataFrame, targetTableFqn,_.BK,_.SK)
+
     EndNotebook(sourceDataFrame)
     return    
 
@@ -514,4 +527,3 @@ def load_sourceValidFromTimeStamp(dataFrame,business_date=None):
         # First load
         df = df.withColumn("sourceValidFromTimestamp", expr("CAST('1900-01-01' AS TIMESTAMP)"))
     return df
-

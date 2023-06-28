@@ -1,11 +1,9 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
-
 
 # COMMAND ----------
 
@@ -183,6 +181,10 @@ def Transform():
     .withColumn("sourceRecordCurrent", when(year(col("validToDatetime")) == '9999', 1).otherwise(0)) \
     .withColumn("sourceValidToDatetime",lag("ValidFromDatetime",1).over( windowSpecSourceBusinessKey.orderBy(col("ValidFromDatetime").desc())))
      
+    windowSpec = Window.partitionBy("sourceBusinessKey").orderBy("validFromDatetime")
+    df = df.withColumn("rownum", row_number().over(windowSpec))
+    df = df.withColumn("validFromDatetime", when(col("rownum") == 1, to_timestamp(lit("1900-01-01 00:00:00"), "yyyy-MM-dd HH:mm:ss")).otherwise(col("validFromDatetime")))
+           
     _.Transforms = [
         f"business_key {BK}"
         ,"categoryUsage             customerServiceCategoryUsageName"
@@ -198,8 +200,8 @@ def Transform():
         ,"categoryLevel4Code        customerServiceCategoryLevel4Code"
         ,"categoryLevel4Description customerServiceCategoryLevel4Description"
         ,"validFromDatetime         sourceValidFromDatetime"
-        ,"CASE WHEN YEAR(validToDatetime) = 9999 THEN validToDatetime ELSE dateadd(millisecond,-1,sourceValidToDatetime) END sourceValidToDatetime"
-        ,"sourceRecordCurrent       sourceRecordCurrent"
+        ,"CASE WHEN sourceValidToDatetime IS NULL THEN TO_DATE('9999-12-31 23:59:59') WHEN YEAR(validToDatetime) = 9999 THEN validToDatetime ELSE dateadd(millisecond,-1,sourceValidToDatetime) END sourceValidToDatetime"
+        ,"CASE WHEN sourceValidToDatetime IS NULL THEN '1' ELSE sourceRecordCurrent END sourceRecordCurrent"
         ,"sourceBusinessKey         sourceBusinessKey"
     ]
     df = df.selectExpr(
@@ -214,7 +216,3 @@ def Transform():
     #DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-
