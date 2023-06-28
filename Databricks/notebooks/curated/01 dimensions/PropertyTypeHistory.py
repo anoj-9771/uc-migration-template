@@ -4,11 +4,8 @@
 # COMMAND ----------
 
 def getPropertyTypeHistory():
-    
-    if is_uc():
-        stage_table_name = "{0}.{1}.{2}".format(ADS_DATABASE_STAGE, ADS_DATABRICKS_ENV.split('_')[0], 'access_property_hist')
-    else:
-        stage_table_name = f"{ADS_DATABASE_STAGE}.access_property_hist"
+
+    stage_table_name = "{0}.{1}.{2}".format(ADS_DATABASE_STAGE, ADS_DATABRICKS_ENV.split('_')[0], 'access_property_hist')
     
     df_isu = spark.sql(f"""select 'ISU' as sourceSystemCode,
                     propertyNumber, 

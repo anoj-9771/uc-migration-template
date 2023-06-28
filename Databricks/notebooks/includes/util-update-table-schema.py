@@ -41,44 +41,32 @@ def lookup_curated_namespace(env:str, current_database_name: str, current_table_
 
 # COMMAND ----------
 
-def get_table_name(layer:str, j_schema: str, j_table: str) -> str:
-    """gets correct table namespace based on the UC migration/databricks-env secret being available in keyvault, used primarily for raw and cleansed ETL pipelines where the 3 part arguments are derived from controldb"""
-    if is_uc():
-        return f"{env}{layer}.{j_schema}.{j_table}"
-    else:
-        return f"{layer}.{j_schema}_{j_table}"
-    
-
-# COMMAND ----------
-
 def get_table_namespace(layer:str, table: str) -> str:
     """gets correct table namespace based on the UC migration/databricks-env secret being available in keyvault, used primarily for pipelines other than raw and cleansed ETL"""
-    if is_uc():
-        env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '~~' else dbutils.secrets.get('ADS', 'databricks-env')
-        if layer == 'raw' or layer == 'cleansed':
-            #use pattern to convert raw.source_tablename to raw.source.table_name
-            catalog_name = f'{env}{layer}'
-            db_name = table.split('_')[0]
-            table_name = '_'.join(table.split('_')[1:])
-            return f'{catalog_name}.{db_name}.{table_name}'
-        elif 'curated' in layer or 'semantic' in layer:
-            #use lookup_curated_namespace to find the target database and table based on mapping sheet
-            catalog_name = f'{env}{layer}'
-            db_name = lookup_curated_namespace(env, layer, table, csv_path)['database_name']
-            table_name = lookup_curated_namespace(env, layer, table, csv_path)['table_name']
-            return f'{catalog_name}.{db_name}.{table_name}'
-        elif layer == 'datalab':
-            #datalab schemas are named after environment except for prepord and prod
-            trimmed_env = env.replace('_', '')
-            catalog_name = layer
-            db_name = 'swc' if trimmed_env == '' else 'preprod' if trimmed_env == 'ppd' else f'{trimmed_env}' 
-            return f'{layer}.{db_name}.{table}'
-        else:
-            #stage/rejected tables follow slightly different database format to datalab
-            trimmed_env = env.replace('_', '')
-            return f'{layer}.{trimmed_env}.{table}'
+    env = ADS_DATABRICKS_ENV
+    if layer == 'raw' or layer == 'cleansed':
+        #use pattern to convert raw.source_tablename to raw.source.table_name
+        catalog_name = f'{env}{layer}'
+        db_name = table.split('_')[0]
+        table_name = '_'.join(table.split('_')[1:])
+        return f'{catalog_name}.{db_name}.{table_name}'
+    elif 'curated' in layer or 'semantic' in layer:
+        #use lookup_curated_namespace to find the target database and table based on mapping sheet
+        catalog_name = f'{env}{layer}'
+        db_name = lookup_curated_namespace(env, layer, table, csv_path)['database_name']
+        table_name = lookup_curated_namespace(env, layer, table, csv_path)['table_name']
+        return f'{catalog_name}.{db_name}.{table_name}'
+    elif layer == 'datalab':
+        #datalab schemas are named after environment except for prepord and prod
+        trimmed_env = env.replace('_', '')
+        catalog_name = layer
+        db_name = 'swc' if trimmed_env == '' else 'preprod' if trimmed_env == 'ppd' else f'{trimmed_env}' 
+        return f'{layer}.{db_name}.{table}'
     else:
-         return f"{layer}.{table}"
+        #stage/rejected tables follow slightly different database format to datalab
+        trimmed_env = env.replace('_', '')
+        return f'{layer}.{trimmed_env}.{table}'
+    
     
 
 # COMMAND ----------

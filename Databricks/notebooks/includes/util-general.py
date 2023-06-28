@@ -150,11 +150,8 @@ def get_table_name(table_name):
   """gets correct table namespace based on the UC migration/databricks-env secret being available in keyvault."""
   source_system = table_name.split('_')[0]
   table = '_'.join(table_name.split('_')[1:])
-  try:
-      if dbutils.secrets.get('ADS', 'databricks-env'):
-        return f"{source_system}.{table}"
-  except Exception as e:
-      return f"{source_system}_{table}"
+  return f"{source_system}.{table}"
+ 
 
 # COMMAND ----------
 

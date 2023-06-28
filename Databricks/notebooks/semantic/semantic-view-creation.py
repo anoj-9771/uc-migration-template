@@ -3,6 +3,11 @@
 
 # COMMAND ----------
 
+# Databricks notebook source
+# MAGIC %run ../../includes/include-all-util
+
+# COMMAND ----------
+
 # DBTITLE 1,Create Semantic schema if it doesn't exist
 # database_name = 'semantic'
 # query = "CREATE DATABASE IF NOT EXISTS {0}".format(database_name)
@@ -21,25 +26,20 @@ import pyspark.sql.functions as F
 
 # COMMAND ----------
 
-if is_uc():
-    env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '~~' else dbutils.secrets.get('ADS', 'databricks-env')
-    source_catalog = f"{env}curated"
-    target_catalog = f"{env}semantic"
-    schema_list = []
-    schemas = spark.sql(f"show schemas in {source_catalog}").filter(F.col('databasename') != 'information_schema')
-    for schema in schemas.collect():
-        spark.sql(f"CREATE schema IF NOT EXISTS {target_catalog}.{schema.databaseName}")
-        schema_list.append(schema.databaseName)
-else:
-    spark.sql("CREATE DATABASE IF NOT EXISTS semantic")
-    schema_list = ['curated']
+
+env = ADS_DATABRICKS_ENV
+source_catalog = f"{env}curated"
+target_catalog = f"{env}semantic"
+schema_list = []
+schemas = spark.sql(f"show schemas in {source_catalog}").filter(F.col('databasename') != 'information_schema')
+for schema in schemas.collect():
+    spark.sql(f"CREATE schema IF NOT EXISTS {target_catalog}.{schema.databaseName}")
+    schema_list.append(schema.databaseName)
+
 
 table_list = []
 for schema in schema_list:
-    if is_uc():
-        qry = f"show tables in {source_catalog}.{schema}"
-    else:
-        qry = f"show tables in {schema}"
+    qry = f"show tables in {source_catalog}.{schema}"
     tables = spark.sql(qry)
     for table in tables.collect():
         table_list.append(table)
@@ -53,18 +53,12 @@ for table in table_list:
     if table.tableName != '':
         table_name_seperated = ' '.join(re.sub( r"([A-Z])", r" \1", table.tableName).split())
         table_name_formatted = table_name_seperated[0:1].capitalize() + table_name_seperated[1:100]
-        if is_uc:
-            view_fqn = target_catalog + "." + table.database + "." + table.tableName
-            sql_statement = "CREATE OR REPLACE VIEW " + view_fqn + " as select "
-        else:
-            sql_statement = "CREATE OR REPLACE VIEW semantic." + table.tableName + " as select "
+        view_fqn = target_catalog + "." + table.database + "." + table.tableName
+        sql_statement = "CREATE OR REPLACE VIEW " + view_fqn + " as select "
         #indexing the column
         curr_column = 0
         #list columns of the table selected
-        if is_uc:
-            qry = f"show columns in {source_catalog}.{table.database}.{table.tableName}"
-        else:
-            qry = f"show columns in curated.{table.tableName}"
+        qry = f"show columns in {source_catalog}.{table.database}.{table.tableName}"
         column_list = spark.sql(qry)
         for column in column_list.collect():
             # formatting column names ignoring metadata columns
@@ -81,12 +75,9 @@ for table in table_list:
                     sql_statement = sql_statement + " " + column.col_name + " as `" + col_name_formatted + "`"
                 elif curr_column != 1:
                     sql_statement = sql_statement + " , " + column.col_name + " as `" + col_name_formatted + "`"
-        if is_uc:
-            sql_statement = sql_statement + "  from " + source_catalog + "." + table.database + "." + table.tableName + ";"
-            sql_statement = sql_statement.replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewExists(view_fqn) else "CREATE OR REPLACE VIEW")
-        else:
-            sql_statement = sql_statement + "  from curated." + table.tableName + ";"
-            sql_statement = sql_statement.replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if spark.sql(f"SHOW VIEWS FROM {table.database} LIKE '{table.tableName}'").count() == 1 else "CREATE OR REPLACE VIEW")
+
+        sql_statement = sql_statement + "  from " + source_catalog + "." + table.database + "." + table.tableName + ";"
+        sql_statement = sql_statement.replace("CREATE OR REPLACE VIEW", "ALTER VIEW" if viewExists(view_fqn) else "CREATE OR REPLACE VIEW")
         #executing the sql statement on spark creating the semantic view
         df = sqlContext.sql(sql_statement)
 

@@ -17,11 +17,14 @@ def is_uc():
         return False
 
 # COMMAND ----------
+def get_env() -> str:
+    """centralised function to get prefix for the environment's catalogs"""
+    return '' if dbutils.secrets.get('ADS', 'databricks-env') == '~~' else dbutils.secrets.get('ADS', 'databricks-env')
 
-if is_uc():
-    ADS_DATABRICKS_ENV = '' if dbutils.secrets.get('ADS', 'databricks-env') == '~~' else dbutils.secrets.get('ADS', 'databricks-env')
-else:
-    ADS_DATABRICKS_ENV = ''
+# COMMAND ----------
+
+
+ADS_DATABRICKS_ENV = get_env()
 
 # COMMAND ----------
 

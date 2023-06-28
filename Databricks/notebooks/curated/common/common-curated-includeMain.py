@@ -103,10 +103,7 @@ def TemplateEtlSCD(df : object, entity, businessKey, schema, target_layer='curat
 
     Entity_Type = 'dimension'
     TARGET_LAYER = ADS_DATABASE_CURATED
-    if is_uc():
-        Entity_Name = entity[4:]
-    else:
-        Entity_Name = entity[3:]
+    Entity_Name = entity[4:]
     BUSINESS_KEY_COLS = businessKey
     SCD_START_DATE = scd_valid_start_date
     SCD_END_DATE = scd_valid_end_date
@@ -208,10 +205,7 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, fromDateCo
     TargetTable = f"{TARGET_LAYER}.{entity}"
     mount_point = DataLakeGetMountPoint(ADS_CONTAINER_CURATED)
     TargetTableDataLakePath = f"dbfs:{mount_point}/{entity.lower()}/delta"
-    if is_uc():
-        EntityName = entity[4:]
-    else:
-        EntityName = entity[3:]
+    EntityName = entity[4:]
     SurrogateKey = f"{EntityName}SK"
     SurrogateKey = SurrogateKey[0].lower() + SurrogateKey[1:]
     
@@ -253,10 +247,8 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, fromDateCo
     df = df.select([field.name for field in schema] + ['_BusinessKey','_DLCuratedZoneTimeStamp','_RecordStart','_RecordEnd','_RecordDeleted','_RecordCurrent'])
     
     print("Overwrite Target Table")
-    if is_uc():
-        df.write.mode("overwrite").saveAsTable(TargetTable)
-    else:
-        df.write.mode("overwrite").saveAsTable(TargetTable, path=TargetTableDataLakePath)
+    df.write.mode("overwrite").saveAsTable(TargetTable)
+
     
     verifyTableSchema(f"{TARGET_LAYER}.{entity}", schema)
 
