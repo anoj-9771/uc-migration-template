@@ -1,6 +1,5 @@
 # Databricks notebook source
-import requests
-import json
+import requests, json
 from ast import literal_eval
 from pyspark.sql.functions import *
 
@@ -116,6 +115,30 @@ def RecursiveListWorkspacePath(path, list = None):
         if (p.object_type == "DIRECTORY"):
             RecursiveListWorkspacePath(p.path, list)
     return list
+
+# COMMAND ----------
+
+def WorkspaceCreateDirectory(path):
+    headers = GetAuthenticationHeader()
+    url = f"{INSTANCE_NAME}/api/2.0/workspace/mkdirs"
+    data = json.dumps( { "path": path } )
+    response = requests.post(url, headers=headers, data=data)
+    return response.json()
+
+# COMMAND ----------
+
+def WorkspaceImport(path, content, language="py", isBase64=False):
+    import base64
+    headers = GetAuthenticationHeader()
+    url = f"{INSTANCE_NAME}/api/2.0/workspace/import"
+    data = json.dumps( { 
+        "path": path
+        ,"content": content if isBase64 else base64.b64encode(bytes(content, "ascii")).decode("utf-8")
+        ,"language": "PYTHON" if language.upper() == "PY" else language.upper()
+        ,"overwrite": "true"
+        ,"format": "SOURCE" })
+    response = requests.post(url, headers=headers, data=data)
+    return response.json()
 
 # COMMAND ----------
 
@@ -251,7 +274,7 @@ def EditCluster(clusterTemplate):
 # COMMAND ----------
 
 def CreateOrEditCluster(cluster, pin=True, createNew=False, librariesList=None):
-    jsonResponse = EditCluster(cluster) if createNew and any([i for i in ListClusters()["clusters"] if i["cluster_name"] == clusterTemplate["cluster_name"] ] ) else CreateCluster(cluster)
+    jsonResponse = EditCluster(cluster) if createNew or not(any([i for i in ListClusters()["clusters"] if i["cluster_name"] == clusterTemplate["cluster_name"]])) == False else CreateCluster(cluster)
     clusterId = jsonResponse["cluster_id"]
     PinCluster(clusterId) if pin else ()
     InstallLibraries(clusterId, librariesList) if librariesList is not None else ()
@@ -730,4 +753,58 @@ def PutObjectPermissions(type, id, aclList):
     url = f'{INSTANCE_NAME}/api/2.0/permissions/{type}/{id}'
     jsonData = { "access_control_list": [ *aclList] }
     response = requests.put(url, json=jsonData, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
+def ListExternalLocations():
+    headers = GetAuthenticationHeader()
+    url = f"{INSTANCE_NAME}/api/2.1/unity-catalog/external-locations"
+    response = requests.get(url, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
+def CreateExternalLocation(name, abfssPath, credential):
+    headers = GetAuthenticationHeader()
+    url = f"{INSTANCE_NAME}/api/2.1/unity-catalog/external-locations"
+    data = {
+        "name" : name,
+        "skip_validation" : True,
+        "url" : abfssPath,
+        "read_only" : False,
+        "credential_name" : credential
+    }
+    response = requests.post(url, json=data, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
+def ListCredentials():
+    headers = GetAuthenticationHeader()
+    url = f"{INSTANCE_NAME}/api/2.1/unity-catalog/storage-credentials"
+    response = requests.get(url, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
+def ListSchemas(name):
+    headers = GetAuthenticationHeader()
+    url = f"{INSTANCE_NAME}/api/2.1/unity-catalog/schemas?catalog_name={name}"
+    response = requests.get(url, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
+def CreateSchema(name, catalogName, storageRoot):
+    headers = GetAuthenticationHeader()
+    url = f"{INSTANCE_NAME}/api/2.1/unity-catalog/schemas"
+    data = {
+        "name": name,
+        "catalog_name": catalogName,
+        "storage_root": storageRoot,
+        "properties": {
+        }
+    }
+    response = requests.post(url, json=data, headers=headers)
     return response.json()
