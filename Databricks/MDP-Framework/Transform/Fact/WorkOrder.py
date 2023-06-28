@@ -1,11 +1,9 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
-
 
 # COMMAND ----------
 
@@ -22,11 +20,14 @@ def Transform():
     # ------------- TABLES ----------------- #
 
     #   Cleansed WorkOrder table has multiple entries for the same date since the history is managed. Curated requirement is to pick the latest record for that specific date.
-    workOrder_windowSpec  = Window.partitionBy("workOrder","changeDate_date_part")
+    workOrder_windowSpec  = Window.partitionBy("workOrder","changedDate_date_part")
     df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder")).alias("wo") \
-    .withColumn("changeDate_date_part",to_date(col("changedDate"))) \
+    .withColumn("changedDate_date_part",to_date(col("changedDate"))) \
     .withColumn("rank",rank().over(workOrder_windowSpec.orderBy(col("changedDate").desc()))) \
     .filter("rank == 1").drop("rank")
+    child_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder")).select(col("workOrder").alias("childWorkOrder"),col("parentWo").alias("childParentWo"),col("workOrderClass").alias("childWorkOrderClass")).filter("childWorkOrderClass == 'WORKORDER'").filter("childParentWo is not null").drop_duplicates().cache()
+    df = df.join(child_df,df.workOrder == child_df.childParentWo,"left")
+    df = df.withColumn("hasChildren", expr("case when childWorkOrder is not null then 'YES' else 'NO' end")).drop("childWorkOrderClass","childParentWo","childWorkOrder").drop_duplicates()
 
     asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetNumber","assetSK","sourceValidFromTimestamp","sourceValidToTimestamp").drop_duplicates().cache()
     assetLocation_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").select("assetLocationName","assetLocationSK","assetLocationTypeCode","sourceValidFromTimestamp","sourceValidToTimestamp").drop_duplicates().cache()
@@ -39,15 +40,15 @@ def Transform():
     
     swchierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","swchierarchy")).select("code",col("description").alias("serviceDepartmentDesc")).drop_duplicates().cache()
     swcwoext_df = GetTable(get_table_name(f"{SOURCE}","maximo","swcwoext")).select("workOrderId","externalStatus","externalStatusDate").drop_duplicates().cache()    
-    child_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder")).select(col("workOrder").alias("childWorkOrder"),col("parentWo").alias("childParentWo")).drop_duplicates().cache()
+    
     pm_df = spark.sql(f"""select * from
-        (select pm.pm, pm.frequency, pm.frequencyUnits, row_number() over(partition by pm.pm order by pm.changeddate desc) as rownumb from {0} pm) dt where rownumb = 1""".format(get_table_name(f"{SOURCE}","maximo","pm"))).cache()
+        (select pm.pm, pm.frequency, pm.frequencyUnits, row_number() over(partition by pm.pm order by pm.changeddate desc) as rownumb from {get_env()}{SOURCE}.maximo.pm pm) dt where rownumb = 1""").cache()
     
     parent_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder")).select(col("workOrder").alias("parentWorkOrder"),col("serviceContract").alias("parentServiceContract"),col("pm").alias("parentpm")) \
     .join(pm_df.select(col("pm").alias("parentpm"), col("frequency").alias("parent_frequency"),col("frequencyUnits").alias("parent_frequencyUnits")),"parentpm","left").cache()
 
 
-    date_df = GetTable(f"{get_table_namespace('curated_v3', 'dimdate')}").select("calendarDate","nextBusinessDay").alias("dte").cache()
+    date_df = GetTable("hive_metastore.curated_v3.dimdate").select("calendarDate","nextBusinessDay").alias("dte").cache()
     
     # WorkOrder Status table has multiple entries for the same date. Curated requirement is to pick the first record when the status changed.
     woStatus_windowSpec  = Window.partitionBy("woWorkOrder","woStatus")
@@ -64,17 +65,17 @@ def Transform():
         .withColumn("workOrderClosedDate",pivot_df.CLOSE)\
         .withColumn("workOrderFinishedDate",pivot_df.FINISHED)
    
-    log_status_minDate_df = spark.sql(f"""SELECT DISTINCT WL.record as workOrder, MIN(to_date(WL.worklogDate)) as workorderAcceptedLogStatusMinDate, WL.status as log_status FROM {0} WL WHERE WL.status = 'ACCEPTED' GROUP BY wl.record,wl.status""".format(get_table_name(f"{SOURCE}","maximo","worklog"))).cache()
+    log_status_minDate_df = spark.sql(f"""SELECT DISTINCT WL.record as workOrder, MIN(to_date(WL.workLogDate)) as workOrderAcceptedLogStatusMinDate, WL.status as log_status FROM {get_table_name(f"{SOURCE}","maximo","worklog")} WL WHERE WL.status = 'ACCEPTED' GROUP BY wl.record,wl.status""").cache()
    
     related_record_df = spark.sql(f"""SELECT                 
-    RR.recordKey, COUNT(DISTINCT(WOR.workOrder)) AS relatedCorrectiveMaintenanceWorkorderCount from
+    RR.recordKey, COUNT(DISTINCT(WOR.workOrder)) AS relatedCorrectiveMaintenanceWorkOrderCount from
     (select * from (
-            select recordKey, row_number() over(partition by recordKey order by rowStamp desc) as rownumb from {0}
+            select recordKey, row_number() over(partition by recordKey order by rowStamp desc) as rownumb from {get_table_name(f"{SOURCE}","maximo","relatedrecord")}
             )dt where rownumb = 1) RR 
-    inner join {1} WOR on RR.recordKey = WOR.originatingRecord
+    inner join {get_table_name(f"{SOURCE}","maximo","workorder")} WOR on RR.recordKey = WOR.originatingRecord
     AND WOR.workType ='CM'
     AND WOR.status NOT IN ('DRAFT','CANDUP','CAN')
-    GROUP BY RR.recordKey""".format(get_table_name(f"{SOURCE}","maximo","relatedrecord"),get_table_name(f"{SOURCE}","maximo","workorder"))).cache()
+    GROUP BY RR.recordKey""").cache()
     
     
     # ------------- JOINS ------------------ #
@@ -86,12 +87,10 @@ def Transform():
     .join(problemType_df, (df.problemType == problemType_df.dim_problemType)& (df.changedDate.between (problemType_df.sourceValidFromTimestamp,problemType_df.sourceValidToTimestamp)),"left") \
     .join(swchierarchy_df, df.serviceDepartment == swchierarchy_df.code ,"left") \
     .join(swcwoext_df,"workOrderId","left")\
-    .join(child_df,df.workOrder == child_df.childParentWo,"left") \
     .join(parent_df,df.parentWo == parent_df.parentWorkOrder,"left") \
     .join(date_df,expr("CAST(wo.reportedDateTime as date) = dte.calendarDate"),"left") \
     .join(pivot_df,df.workOrder == wo_status_df.woWorkOrder,"left") \
     .withColumnRenamed("woStatusDate","workOrderFinishedDate").drop("woWorkOrder","woStatus") \
-    .withColumn("hasChildren", when(child_df.childWorkOrder != None,"YES").otherwise("NO")) \
     .join(log_status_minDate_df,"workOrder","left") \
     .join(pm_df,"pm","left") \
     .join(related_record_df,(df.workOrder == related_record_df.recordKey) & (df.workType == 'PM'),"left").cache()
@@ -107,27 +106,27 @@ def Transform():
     END")).alias("wo")
     df = df.withColumn("calculatedTargetDateTimestamp", \
     expr("CASE WHEN wo.workType ='PM' THEN workOrderTrendDate \
-         WHEN wo.workType IN ('BM','CM','GN') AND wo.initialPriority in (0,1) THEN date_add(wo.workOrderTrendDate, 42)  \
-         WHEN wo.workType IN ('BM','CM','GN') AND wo.initialPriority = 2  THEN date_add(wo.workOrderTrendDate, 21) \
-         WHEN wo.workType IN ('BM','CM','GN') AND wo.initialPriority = 3  THEN date_add(wo.workOrderTrendDate, 5) \
-         WHEN wo.workType IN ('BM','CM','GN') AND wo.initialPriority = 4  THEN date_add(wo.workOrderTrendDate,2) \
+         WHEN wo.workType IN ('BM','CM','GN') AND wo.initialPriority in (0,1) THEN to_timestamp(concat(date_add(wo.workOrderTrendDate, 42),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss')))  \
+         WHEN wo.workType IN ('BM','CM','GN') AND wo.initialPriority = 2  THEN to_timestamp(concat(date_add(wo.workOrderTrendDate, 21),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+         WHEN wo.workType IN ('BM','CM','GN') AND wo.initialPriority = 3  THEN to_timestamp(concat(date_add(wo.workOrderTrendDate, 5),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+         WHEN wo.workType IN ('BM','CM','GN') AND wo.initialPriority = 4  THEN to_timestamp(concat(date_add(wo.workOrderTrendDate,2),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
          WHEN wo.workType IN ('BM','CM','GN') AND wo.initialPriority = 5  THEN wo.workOrderTrendDate + INTERVAL 6 hours \
          WHEN wo.workType IN ('BM','CM','GN') AND wo.initialPriority = 6  THEN wo.workOrderTrendDate + INTERVAL 3 hours \
          END"))
     df = df.withColumn("workOrderStatusCloseDate", least(col("workOrderFinishedDate"),col("workOrderCompletedDate"),col("workOrderClosedDate"))).alias("wo")
     df = df.withColumn("finishDateTimestamp", expr("case when wo.actualFinish <= wo.workOrderStatusCloseDate then wo.actualFinish else wo.workOrderStatusCloseDate end")) \
-    .withColumn("breakdownMaintenancePriorityToleranceDate",expr("CASE WHEN wo.workorderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 6 THEN wo.reportedDateTime + INTERVAL 1 hour \
-    WHEN wo.workorderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 5 THEN wo.reportedDateTime + INTERVAL 3 hours \
-    WHEN wo.workorderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 4 THEN date_add(wo.reportedDateTime,1) \
-    WHEN wo.workorderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 3 THEN wo.nextBusinessDay \
-    WHEN wo.workorderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 2 THEN date_add(wo.reportedDateTime,14) \
-    WHEN wo.workorderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 1 THEN add_months(cast(wo.reportedDateTime as date), 1) \
-    WHEN wo.workorderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 0 THEN add_months(cast(wo.reportedDateTime as date), 1) \
+    .withColumn("breakdownMaintenancePriorityToleranceTimestamp",expr("CASE WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 6 THEN wo.reportedDateTime + INTERVAL 1 hour \
+    WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 5 THEN wo.reportedDateTime + INTERVAL 3 hours \
+    WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 4 THEN to_timestamp(concat(date_add(wo.reportedDateTime,1),' ',date_format(wo.reportedDateTime, 'HH:mm:ss'))) \
+    WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 3 THEN wo.nextBusinessDay \
+    WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 2 THEN to_timestamp(concat(date_add(wo.reportedDateTime,14),' ',date_format(wo.reportedDateTime, 'HH:mm:ss'))) \
+    WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 1 THEN to_timestamp(concat(add_months(cast(wo.reportedDateTime as date), 1),' ',date_format(wo.reportedDateTime, 'HH:mm:ss'))) \
+    WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 0 THEN to_timestamp(concat(add_months(cast(wo.reportedDateTime as date), 1),' ',date_format(wo.reportedDateTime, 'HH:mm:ss'))) \
     END")) 
     df = df.withColumn("actualStartDateTimestamp",expr("COALESCE(actualStart,finishDateTimestamp)")).alias("wo")
     df = df.withColumn("workOrderCompliantIndicator", \
-    expr("case when wo.workorderClass = 'WORKORDER' and wo.workType = 'BM' and wo.actualStartDateTimestamp <= (wo.breakdownMaintenancePriorityToleranceDate) then 'YES' \
-    when wo.workorderClass = 'WORKORDER' and wo.workType = 'BM' and wo.actualStartDateTimestamp > (wo.breakdownMaintenancePriorityToleranceDate) then 'NO'\
+    expr("case when wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.actualStartDateTimestamp <= (wo.breakdownMaintenancePriorityToleranceTimestamp) then 'YES' \
+    when wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.actualStartDateTimestamp > (wo.breakdownMaintenancePriorityToleranceTimestamp) then 'NO'\
     END")) \
     .withColumn("calculatedTargetYear",expr("YEAR(wo.calculatedTargetDateTimestamp)"))\
     .withColumn("calculatedTargetMonth",expr("MONTH(wo.calculatedTargetDateTimestamp)"))\
@@ -136,40 +135,43 @@ def Transform():
     df = df.withColumn("workOrderTargetPeriod",expr("(calculatedTargetYear * 100)  + calculatedTargetMonth"))\
     .withColumn("workOrderFinishPeriod",expr("(workOrderFinishYear * 100)  + workOrderFinishMonth"))
     df  = df.withColumn("workOrderFinishedBeforeTargetMonthIndicator",expr("CASE when (workOrderFinishPeriod < workOrderTargetPeriod) AND (finishDateTimestamp is not NULL) THEN 1 ELSE 0 END")) \
-    .withColumn("breakdownMaintenanceWorkOrderTargetHour",expr("case when wo.WorkType = 'BM' and wo.workorderClass = 'WORKORDER' \
+    .withColumn("breakdownMaintenanceWorkOrderTargetHour",expr("case when wo.WorkType = 'BM' and wo.workOrderClass = 'WORKORDER' \
                      then DATEDIFF(HOUR, wo.reportedDateTime, wo.calculatedTargetDateTimestamp) \
                     end")) \
-    .withColumn("breakdownMaintenanceWorkOrderRepairHour",expr("case when wo.WorkType = 'BM' and wo.workorderClass = 'WORKORDER' \
+    .withColumn("breakdownMaintenanceWorkOrderRepairHour",expr("case when wo.WorkType = 'BM' and wo.workOrderClass = 'WORKORDER' \
                      then DATEDIFF(HOUR, wo.reportedDateTime, wo.finishDateTimestamp) \
                     end")).alias("wo")\
-    .withColumn("actualWorkOrderLaborCostFromActivityAmount",expr("case when wo.workorderClass = 'ACTIVITY' then wo.actualLaborCost end")) \
-    .withColumn("actualWorkOrderMaterialCostFromActivityAmount",expr("case when wo.workorderClass = 'ACTIVITY' then wo.actualMaterialCost end")) \
-    .withColumn("actualWorkOrderServiceCostFromActivityAmount",expr("case when wo.workorderClass = 'ACTIVITY' then wo.actualServiceCost end")) \
+    .withColumn("actualWorkOrderLaborCostAmount",expr("case when wo.workOrderClass = 'WORKORDER' then wo.actualLaborCost end")) \
+    .withColumn("actualWorkOrderMaterialCostAmount",expr("case when wo.workOrderClass = 'WORKORDER' then wo.actualMaterialCost end")) \
+    .withColumn("actualWorkOrderServiceCostAmount",expr("case when wo.workOrderClass = 'WORKORDER' then wo.actualServiceCost end")) \
+    .withColumn("actualWorkOrderLaborCostFromActivityAmount",expr("case when wo.workOrderClass = 'ACTIVITY' then wo.actualLaborCost end")) \
+    .withColumn("actualWorkOrderMaterialCostFromActivityAmount",expr("case when wo.workOrderClass = 'ACTIVITY' then wo.actualMaterialCost end")) \
+    .withColumn("actualWorkOrderServiceCostFromActivityAmount",expr("case when wo.workOrderClass = 'ACTIVITY' then wo.actualServiceCost end")) \
     .withColumn("preventiveMaintenanceWorkOrderFrequencyIndicator",expr("COALESCE(frequency, parent_frequency)")) \
     .withColumn("preventiveMaintenanceWorkOrderFrequencyUnitName",expr("COALESCE(frequencyUnits, parent_frequencyUnits)")).alias("wo")
     df = df.withColumn("workOrderTolerancedDueDate", \
-    expr("case when wo.workType ='PM' and   wo.frequencyUnits = 'YEARS' and wo.frequency >= 5 then add_months(cast(wo.workOrderTrendDate as date), 3) \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'YEARS' and wo.frequency >= 0 and wo.frequency < 5 then add_months(cast(wo.workOrderTrendDate as date),1) \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'MONTHS' and wo.frequency >= 60 then add_months(cast(wo.workOrderTrendDate as date),3) \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'MONTHS' and wo.frequency >= 6 and wo.frequency < 12 then date_add(cast(wo.workOrderTrendDate as date), 14) \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'MONTHS' and wo.frequency >= 12 and wo.frequency < 60 then add_months(cast(wo.workOrderTrendDate as date) ,1) \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'MONTHS' and wo.frequency >= 1 and wo.frequency < 6 then date_add(cast(wo.workOrderTrendDate as date), 7) \
+    expr("case when wo.workType ='PM' and   wo.frequencyUnits = 'YEARS' and wo.frequency >= 5 then to_timestamp(concat(add_months(wo.workOrderTrendDate, 3),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'YEARS' and wo.frequency >= 0 and wo.frequency < 5 then to_timestamp(concat(add_months(wo.workOrderTrendDate,1),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'MONTHS' and wo.frequency >= 60 then to_timestamp(concat(add_months(wo.workOrderTrendDate,3),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'MONTHS' and wo.frequency >= 6 and wo.frequency < 12 then to_timestamp(concat(date_add(wo.workOrderTrendDate, 14),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'MONTHS' and wo.frequency >= 12 and wo.frequency < 60 then to_timestamp(concat(add_months(wo.workOrderTrendDate ,1),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'MONTHS' and wo.frequency >= 1 and wo.frequency < 6 then to_timestamp(concat(date_add(wo.workOrderTrendDate, 7),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
     when wo.workType ='PM' and   wo.frequencyUnits = 'MONTHS' and wo.frequency = 0 then workOrderTrendDate \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'WEEKS' and wo.frequency >= 260 then add_months(cast(wo.workOrderTrendDate as date),3) \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'WEEKS' and wo.frequency >= 52 and wo.frequency < 260 then add_months(cast(wo.workOrderTrendDate as date),1) \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'WEEKS' and wo.frequency >= 26 and wo.frequency < 52 then date_add(cast(wo.workOrderTrendDate as date), 14) \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'WEEKS' and wo.frequency >= 5 and wo.frequency < 26 then date_add(cast(wo.workOrderTrendDate as date), 7) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'WEEKS' and wo.frequency >= 260 then to_timestamp(concat(add_months(wo.workOrderTrendDate,3),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'WEEKS' and wo.frequency >= 52 and wo.frequency < 260 then to_timestamp(concat(add_months(wo.workOrderTrendDate,1),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'WEEKS' and wo.frequency >= 26 and wo.frequency < 52 then to_timestamp(concat(date_add(wo.workOrderTrendDate, 14),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'WEEKS' and wo.frequency >= 5 and wo.frequency < 26 then to_timestamp(concat(date_add(wo.workOrderTrendDate, 7),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
     when wo.workType ='PM' and   wo.frequencyUnits = 'WEEKS' and wo.frequency >= 0 and wo.frequency < 5 then wo.workOrderTrendDate \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'DAYS' and wo.frequency >= 1825 then add_months(cast(wo.workOrderTrendDate as date),3) \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'DAYS' and wo.frequency >= 365 and wo.frequency < 1825 then add_months(cast(wo.workOrderTrendDate as date),1) \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'DAYS' and wo.frequency >= 182 and wo.frequency < 365 then date_add(cast(wo.workOrderTrendDate as date), 14) \
-    when wo.workType ='PM' and   wo.frequencyUnits = 'DAYS' and wo.frequency >= 30 and wo.frequency < 182 then date_add(cast(wo.workOrderTrendDate as date), 7) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'DAYS' and wo.frequency >= 1825 then to_timestamp(concat(add_months(wo.workOrderTrendDate,3),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'DAYS' and wo.frequency >= 365 and wo.frequency < 1825 then to_timestamp(concat(add_months(wo.workOrderTrendDate,1),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'DAYS' and wo.frequency >= 182 and wo.frequency < 365 then to_timestamp(concat(date_add(wo.workOrderTrendDate, 14),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
+    when wo.workType ='PM' and   wo.frequencyUnits = 'DAYS' and wo.frequency >= 30 and wo.frequency < 182 then to_timestamp(concat(date_add(wo.workOrderTrendDate, 7),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss'))) \
     when wo.workType ='PM' and   wo.frequencyUnits = 'DAYS' and wo.frequency >= 0 and wo.frequency < 30 then wo.workOrderTrendDate \
     when wo.workType ='PM' and   wo.frequencyUnits is null then workOrderTrendDate \
-    when wo.workType in ('BM','CM','GN') and   wo.initialPriority in (0,1)  then date_add(cast(wo.workOrderTrendDate as date), 42)\
-    when wo.workType in ('BM','CM','GN') and   wo.initialPriority = 2  then date_add(cast(wo.workOrderTrendDate as date), 21)\
-    when wo.workType in ('BM','CM','GN') and   wo.initialPriority = 3  then date_add(cast(wo.workOrderTrendDate as date), 5)\
-    when wo.workType in ('BM','CM','GN') and   wo.initialPriority = 4  then date_add(cast(wo.workOrderTrendDate as date), 2)\
+    when wo.workType in ('BM','CM','GN') and   wo.initialPriority in (0,1)  then to_timestamp(concat(date_add(wo.workOrderTrendDate, 42),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss')))\
+    when wo.workType in ('BM','CM','GN') and   wo.initialPriority = 2  then to_timestamp(concat(date_add(wo.workOrderTrendDate, 21),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss')))\
+    when wo.workType in ('BM','CM','GN') and   wo.initialPriority = 3  then to_timestamp(concat(date_add(wo.workOrderTrendDate, 5),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss')))\
+    when wo.workType in ('BM','CM','GN') and   wo.initialPriority = 4  then to_timestamp(concat(date_add(wo.workOrderTrendDate, 2),' ',date_format(wo.workOrderTrendDate, 'HH:mm:ss')))\
     when wo.workType in ('BM','CM','GN') and   wo.initialPriority = 5  then wo.workOrderTrendDate + INTERVAL 6 hours \
     when wo.workType in ('BM','CM','GN') and  wo.initialPriority = 6  then wo.workOrderTrendDate + INTERVAL 3 hours end"))\
     .withColumn("workOrderTotalCostAmount",expr("actualLaborCost+ actualMaterialCost+ actualServiceCost+ actualWorkOrderLaborCostFromActivityAmount+ actualWorkOrderMaterialCostFromActivityAmount+ actualWorkOrderServiceCostFromActivityAmount").cast("decimal(38,18)"))
@@ -193,7 +195,7 @@ def Transform():
         ,"status workOrderStatusDescription"
         ,"dispatchSystem workOrderDispatchSystemName"
         ,"workType workOrderWorkTypeCode"
-        ,"workorderClass workOrderClassDescription"
+        ,"workOrderClass workOrderClassDescription"
         ,"initialPriority workOrderInitialPriorityCode"
         ,"serviceDepartment workOrderServiceDepartmentCode"
         ,"serviceDepartmentDesc workOrderServiceDepartmentDescription"
@@ -231,8 +233,8 @@ def Transform():
         ,"serviceProviderNotified workOrderServiceProviderNotifiedTimestamp"
         ,"targetFinish workOrderTargetFinishTimestamp"
         ,"targetStart workOrderTargetStartTimestamp"
-        ,"scheduledStart workOrderscheduledStartTimestamp"
-        ,"scheduledFinish workOrderscheduledFinishTimestamp"
+        ,"scheduledStart workOrderScheduledStartTimestamp"
+        ,"scheduledFinish workOrderScheduledFinishTimestamp"
         ,"targetRespondBy workOrderTargetRespondByTimestamp"
         ,"reportedDateTime workOrderReportedTimestamp"
         ,"externalStatus workOrderExternalStatusCode"
@@ -244,7 +246,7 @@ def Transform():
         ,"workOrderCompletedDate workOrderCompletedTimestamp"
         ,"workOrderClosedDate workOrderClosedTimestamp"
         ,"workOrderFinishedDate workOrderFinishedTimestamp"
-        ,"changeDate_date_part snapshotDate"
+        ,"changedDate_date_part snapshotDate"
         ,"workOrderTrendDate workOrderTrendTimestamp"
         ,"calculatedTargetDateTimestamp calculatedWorkOrderTargetDateTimestamp"
         ,"preventiveMaintenanceWorkOrderFrequencyIndicator"
@@ -253,11 +255,11 @@ def Transform():
         ,"COALESCE(serviceContract, parentServiceContract) workOrderServiceContract"
         ,"workOrderStatusCloseDate workOrderStatusCloseTimestamp"
         ,"finishDateTimestamp workOrderFinishTimestamp"
-        ,"breakdownMaintenancePriorityToleranceDate"
+        ,"breakdownMaintenancePriorityToleranceTimestamp"
         ,"actualStartDateTimestamp"
         ,"workOrderCompliantIndicator"
-        ,"relatedCorrectiveMaintenanceWorkorderCount"
-        ,"workorderAcceptedLogStatusMinDate"
+        ,"relatedCorrectiveMaintenanceWorkOrderCount"
+        ,"workOrderAcceptedLogStatusMinDate"
         ,"calculatedTargetYear calculatedWorkOrderTargetYear"
         ,"calculatedTargetMonth calculatedWorkOrderTargetMonth"
         ,"workOrderFinishYear"
@@ -279,14 +281,9 @@ def Transform():
     # print(df.count())
     Save(df)
     #DisplaySelf()
+    
 pass
 Transform()
-
-# COMMAND ----------
-
-spark.sql(
-        f"""Select workOrderSK, count(1) from {get_table_namespace('curated', 'factWorkOrder')} group by workOrderSK having count(1) >1
-        """)
 
 # COMMAND ----------
 

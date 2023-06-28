@@ -87,10 +87,10 @@ CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewFactWorkOr
 ,	workOrderServiceContract
 ,	TO_DATE(workOrderStatusCloseTimestamp) AS workOrderStatusCloseDate
 ,	TO_DATE(workOrderFinishTimestamp) AS finishDate
-,	TO_DATE(breakdownMaintenancePriorityToleranceDate) AS breakdownMaintenancePriorityToleranceDate
+,	TO_DATE(breakdownMaintenancePriorityToleranceTimestamp) AS breakdownMaintenancePriorityToleranceDate
 ,	TO_DATE(actualStartDateTimestamp) AS actualStartDate
 ,	workOrderCompliantIndicator
-,	relatedCorrectiveMaintenanceWorkorderCount
+,	relatedCorrectiveMaintenanceWorkOrderCount
 ,	TO_DATE(workorderAcceptedLogStatusMinDate) AS workorderAcceptedLogStatusMinDate
 ,	calculatedWorkOrderTargetYear
 ,	calculatedWorkOrderTargetMonth
@@ -109,7 +109,7 @@ CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewFactWorkOr
 ,	_recordCurrent
 ,	_recordDeleted  
     from (
-            select * from {get_table_namespace(f'{DEFAULT_TARGET}', 'factWorkOrder')} where _recordCurrent=1 
+            select * except(rownumb) from (select *, row_number() over(partition by workOrderCreationId order by snapshotDate desc) as rownumb from {get_table_namespace(f'{DEFAULT_TARGET}', 'factWorkOrder')}  where _recordCurrent=1)wo where rownumb = 1 
         )
 )
 """)

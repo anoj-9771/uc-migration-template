@@ -87,10 +87,10 @@ CREATE OR REPLACE VIEW {get_env()}curated.fact.workOrderCurrentLast5FY AS
 ,	workOrderServiceContract
 ,	TO_DATE(workOrderStatusCloseTimestamp) AS workOrderStatusCloseDate
 ,	TO_DATE(workOrderFinishTimestamp) AS finishDate
-,	TO_DATE(breakdownMaintenancePriorityToleranceDate) AS breakdownMaintenancePriorityToleranceDate
+,	TO_DATE(breakdownMaintenancePriorityToleranceTimestamp) AS breakdownMaintenancePriorityToleranceDate
 ,	TO_DATE(actualStartDateTimestamp) AS actualStartDate
 ,	workOrderCompliantIndicator
-,	relatedCorrectiveMaintenanceWorkorderCount
+,	relatedCorrectiveMaintenanceWorkOrderCount
 ,	TO_DATE(workorderAcceptedLogStatusMinDate) AS workorderAcceptedLogStatusMinDate
 ,	calculatedWorkOrderTargetYear
 ,	calculatedWorkOrderTargetMonth
@@ -114,6 +114,8 @@ CREATE OR REPLACE VIEW {get_env()}curated.fact.workOrderCurrentLast5FY AS
             to_date(concat_ws("-",year(date_check)+1,"07","01"),"yyyy-MM-dd")  ELSE 
             to_date(concat_ws("-",year(date_check),"07","01"),"yyyy-MM-dd") end 
             from (select add_months(current_date(),-(5*12)) as date_check))
+            and workOrderServiceTypeCode IN ('M','E','F','C')
+            AND ((workOrderWorkTypeCode IN ('PM','BM','CM','GN') AND workOrderFinancialControlIdentifier IS NULL) OR workOrderWorkTypeCode = 'RN')
             )dt where rownumb = 1
 )
 """)

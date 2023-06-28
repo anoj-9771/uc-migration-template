@@ -14,9 +14,9 @@ wo.assetLocationFK,
 dd.calendardate as snapshotDate,
 'workorderTotalCount' as assetPerformanceMeasureName,
 COUNT (DISTINCT workOrderCreationId) as assetPerformanceMeasureValue
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
 
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderFinishedDate = dd.calendardate
 
 LEFT JOIN
@@ -46,8 +46,8 @@ wo.assetLocationFK,
 dd.calendardate as snapshotDate,
 'breakdownMaintenanceWorkOrderTotalRepairHourQuantity' as assetPerformanceMeasureName,
 SUM(wo.breakdownMaintenanceWorkOrderRepairHour) as assetPerformanceMeasureValue
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderFinishedDate = dd.calendardate
 
 WHERE wo.workOrderClassDescription = 'WORKORDER'
@@ -68,8 +68,8 @@ wo.assetLocationFK,
 dd.calendardate as snapshotDate,
 'breakdownMaintenanceTotalWorkOrderCount' as assetPerformanceMeasureName,
 count( DISTINCT wo.workOrderCreationId) as assetPerformanceMeasureValue
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderFinishedDate = dd.calendardate
 
 WHERE wo.workOrderClassDescription = 'WORKORDER'
@@ -90,8 +90,8 @@ wo.assetLocationFK,
 dd.calendardate as snapshotDate,
 'compliantBreakdownMaintenanceWorkOrderCount' as assetPerformanceMeasureName,
 count( DISTINCT wo.workOrderCreationId) as assetPerformanceMeasureValue
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderFinishedDate = dd.calendardate
 
 WHERE wo.workOrderClassDescription = 'WORKORDER'
@@ -113,8 +113,8 @@ wo.assetLocationFK,
 dd.calendardate as snapshotDate,
 'breakdownMaintenanceWorkOrderTotalTargetHour' as assetPerformanceMeasureName,
 SUM(wo.breakdownMaintenanceWorkOrderTargetHour) as assetPerformanceMeasureValue
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderFinishedDate = dd.calendardate
 
 WHERE wo.workOrderClassDescription = 'WORKORDER'
@@ -133,8 +133,8 @@ wo.assetLocationFK,
 dd.calendardate as snapshotDate,
 'preventiveMaintenanceWorkOrderTotalCount' as assetPerformanceMeasureName,
 count( DISTINCT wo.workOrderCreationId) as assetPerformanceMeasureValue
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderFinishedDate = dd.calendardate
 
 WHERE wo.workOrderClassDescription = 'WORKORDER'
@@ -155,8 +155,8 @@ wo.assetLocationFK,
 dd.calendardate as snapshotDate,
 'breakdownMaintenanceTotalWorkOrderRaisedCount' as assetPerformanceMeasureName,
 count( DISTINCT wo.workOrderCreationId) as assetPerformanceMeasureValue
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderTrendDate = dd.calendardate
 
 WHERE wo.workOrderWorkTypeCode = 'BM'
@@ -180,9 +180,9 @@ nvl(wo.actualWorkOrderServiceCostAmount,0)+
 nvl(wo.actualWorkOrderLaborCostFromActivityAmount,0)+
 nvl(wo.actualWorkOrderMaterialCostFromActivityAmount,0)+
 nvl(wo.actualWorkOrderServiceCostFromActivityAmount,0)) as assetPerformanceMeasureValue 
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
 
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderFinishedDate = dd.calendardate
 
 INNER JOIN {get_table_namespace("curated","dimAssetLocation")} alo 
@@ -210,9 +210,9 @@ nvl(wo.actualWorkOrderServiceCostAmount,0)+
 nvl(wo.actualWorkOrderLaborCostFromActivityAmount,0)+
 nvl(wo.actualWorkOrderMaterialCostFromActivityAmount,0)+
 nvl(wo.actualWorkOrderServiceCostFromActivityAmount,0)) as assetPerformanceMeasureValue 
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
 
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderFinishedDate = dd.calendardate
 
 INNER JOIN {get_table_namespace("curated","dimAssetLocation")} alo 
@@ -240,9 +240,9 @@ nvl(wo.actualWorkOrderServiceCostAmount,0)+
 nvl(wo.actualWorkOrderLaborCostFromActivityAmount,0)+
 nvl(wo.actualWorkOrderMaterialCostFromActivityAmount,0)+
 nvl(wo.actualWorkOrderServiceCostFromActivityAmount,0)) as assetPerformanceMeasureValue
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
 
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderFinishedDate = dd.calendardate
 
 INNER JOIN {get_table_namespace("curated","dimAssetLocation")} alo 
@@ -270,8 +270,8 @@ wo.assetLocationFK,
 dd.calendardate as snapshotDate,
 'preventiveMaintenanceWorkOrderFinishedCount' as assetPerformanceMeasureName,
 count( DISTINCT wo.workOrderCreationId) as assetPerformanceMeasureValue
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderFinishedDate = dd.calendardate
 
 WHERE
@@ -292,8 +292,8 @@ wo.assetLocationFK,
 dd.calendardate as snapshotDate,
 'correctiveMaintenanceWorkOrderFinishedCount' as assetPerformanceMeasureName,
 count( DISTINCT wo.workOrderCreationId) as assetPerformanceMeasureValue
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderFinishedDate = dd.calendardate
 
 WHERE
@@ -313,8 +313,8 @@ wo.assetLocationFK,
 dd.calendardate as snapshotDate,
 'breakdownMaintenanceWorkOrderFailedLengthValue' as assetPerformanceMeasureName,
 SUM(da.assetNetworkLengthPerKilometerValue) as assetPerformanceMeasureValue
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderFinishedDate = dd.calendardate
 
 INNER JOIN {get_table_namespace('curated','dimasset')} da
@@ -337,9 +337,9 @@ wo.assetLocationFK,
 dd.calendardate as snapshotDate,
 'workorderBacklogCount'  as assetPerformanceMeasureName,
 COUNT (DISTINCT workOrderCreationId) as assetPerformanceMeasureValue
-FROM {get_table_namespace('curated','viewfactworkorder')} wo
+FROM {get_table_namespace('curated','viewfactworkordercurrent')} wo
 
-INNER JOIN {get_table_namespace("curated_v3","dimdate")} dd
+INNER JOIN {get_env()}curated.dim.date dd
 on wo.workOrderTolerancedDueDate = dd.calendardate
 
 LEFT JOIN
