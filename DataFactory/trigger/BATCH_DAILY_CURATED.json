@@ -3,7 +3,7 @@
 	"properties": {
 		"description": "BATCH_DAILY_CURATED",
 		"annotations": [],
-		"runtimeState": "Started",
+		"runtimeState": "Stopped",
 		"pipelines": [
 			{
 				"pipelineReference": {

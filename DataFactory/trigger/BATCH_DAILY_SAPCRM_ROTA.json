@@ -1,16 +1,17 @@
 {
-	"name": "DLY1300",
+	"name": "BATCH_DAILY_SAPCRM_ROTA",
 	"properties": {
 		"annotations": [],
 		"runtimeState": "Stopped",
 		"pipelines": [
 			{
 				"pipelineReference": {
-					"referenceName": "01-Main",
+					"referenceName": "Main",
 					"type": "PipelineReference"
 				},
 				"parameters": {
-					"TriggerName": "DLY1300"
+					"SystemCodes": "crmref,crmdata",
+					"RunParallel": "N"
 				}
 			}
 		],
@@ -19,14 +20,11 @@
 			"recurrence": {
 				"frequency": "Day",
 				"interval": 1,
-				"startTime": "2020-12-01T05:10:00",
+				"startTime": "2023-06-29T05:00:00",
 				"timeZone": "AUS Eastern Standard Time",
 				"schedule": {
-					"minutes": [
-						0
-					],
 					"hours": [
-						13
+						6
 					]
 				}
 			}

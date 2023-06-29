@@ -2,7 +2,7 @@
 	"name": "BATCH_DAILY_SAPSLT",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Started",
+		"runtimeState": "Stopped",
 		"pipelines": [
 			{
 				"pipelineReference": {

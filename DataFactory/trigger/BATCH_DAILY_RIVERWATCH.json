@@ -1,32 +1,39 @@
 {
-    "name": "BATCH_DAILY_RIVERWATCH",
-    "properties": {
-        "annotations": [],
-        "runtimeState": "Started",
-        "pipelines": [
-            {
-                "pipelineReference": {
-                    "referenceName": "rw-main-daily-batch-inference",
-                    "type": "PipelineReference"
-                },
-                "parameters": {
-                    "DatabricksJobName": "riverwatch-pipeline",
-                    "BatchPoolName": "RIVERWATCH_POOL"
-                }
-            }
-        ],
-        "type": "ScheduleTrigger",
-        "typeProperties": {
-            "recurrence": {
-                "frequency": "Day",
-                "interval": 1,
-                "startTime": "2022-11-19T07:40:00",
-                "timeZone": "AUS Eastern Standard Time",
-                "schedule": {                    
-                    "hours": [1,8,13,19],
-                    "minutes": [40]
-                }
-            }
-        }
-    }
+	"name": "BATCH_DAILY_RIVERWATCH",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "rw-main-daily-batch-inference",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"DatabricksJobName": "riverwatch-pipeline",
+					"BatchPoolName": "RIVERWATCH_POOL"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2022-11-19T07:40:00",
+				"timeZone": "AUS Eastern Standard Time",
+				"schedule": {
+					"minutes": [
+						40
+					],
+					"hours": [
+						1,
+						8,
+						13,
+						19
+					]
+				}
+			}
+		}
+	}
 }

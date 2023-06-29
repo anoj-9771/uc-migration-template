@@ -2,7 +2,7 @@
 	"name": "BATCH_WEEKLY_HYDRA",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Started",
+		"runtimeState": "Stopped",
 		"pipelines": [
 			{
 				"pipelineReference": {
