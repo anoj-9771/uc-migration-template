@@ -80,16 +80,19 @@ ORDER BY SourceSchema, SourceTableName
 #Delta Tables with delete image. These tables would have di_operation_type column. 
 tables = ['0inm_initiative_guid_attr','0inm_initiative_guid_text','0project_attr','0project_text','0rpm_bucket_guid_id_text','0rpm_decision_guid_attr','0rpm_port_guid_attr','0rpm_port_guid_id_text','0wbs_elemt_attr','0wbs_elemt_text','0rpm_bucket_guid_attr']
 tablesWithNullableKeys = ['rpsco']
+tablesUsingKingCluster = ['rpsco']
 #Non-Prod "DeleteSourceFiles" : "False" while testing
-deleteSourceFiles = "False"
+# deleteSourceFiles = "False"
 #Production
-# deleteSourceFiles = "True"
+deleteSourceFiles = "True"
 df = (
     df.withColumn('ExtendedProperties', lit(f'"DeleteSourceFiles" : "{deleteSourceFiles}"'))
       .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tables),expr('ExtendedProperties ||", "||\'\"SourceRecordDeletion\" : \"True\"\'')) 
                                         .otherwise(expr('ExtendedProperties')))
       .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tablesWithNullableKeys),expr('ExtendedProperties ||", "||\'\"CreateTableConstraints\" : \"False\"\''))
                                         .otherwise(expr('ExtendedProperties')))
+      .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tablesUsingKingCluster),expr('ExtendedProperties ||", "||\'\"OverrideClusterName\" : \"King_Cluster_SingleNode\"\''))
+                                        .otherwise(expr('ExtendedProperties')))      
       .withColumn('ExtendedProperties', expr('"{"||ExtendedProperties ||"}"'))    
 )
 display(df)
@@ -161,21 +164,21 @@ where systemCode in ('ppmref','ppmdata')
 
 # COMMAND ----------
 
-# MAGIC %run /MDP-Framework/Common/common-spark
+# %run /MDP-Framework/Common/common-spark
 
 # COMMAND ----------
 
-df_c = spark.table("controldb.dbo_extractloadmanifest")
-display(df_c.where("SystemCode in ('ppmref','ppmdata')"))
+# df_c = spark.table("controldb.dbo_extractloadmanifest")
+# display(df_c.where("SystemCode in ('ppmref','ppmdata')"))
 
 # COMMAND ----------
 
-# for z in ["raw", "cleansed"]:
-for z in ["cleansed"]:
-    for t in df_c.where("SystemCode in ('ppmref','ppmdata')").collect():
-        tableFqn = f"{z}.{t.DestinationSchema}_{t.SourceTableName}"
-        print(tableFqn)
-#         CleanTable(tableFqn)
+# # for z in ["raw", "cleansed"]:
+# for z in ["cleansed"]:
+#     for t in df_c.where("SystemCode in ('ppmref','ppmdata')").collect():
+#         tableFqn = f"{z}.{t.DestinationSchema}_{t.SourceTableName}"
+#         print(tableFqn)
+# #         CleanTable(tableFqn)
 
 # COMMAND ----------
 

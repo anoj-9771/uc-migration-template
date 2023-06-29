@@ -1163,7 +1163,7 @@ select * from rpscoInter where valueType='11' and fiscalYear<2022
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC ALTER VIEW ppd_cleansed.fin.eppmCospTranspose OWNER TO `ppd-G3-Admins`;
-# MAGIC ALTER VIEW ppd_cleansed.fin.eppmCossTranspose OWNER TO `ppd-G3-Admins`;
-# MAGIC ALTER VIEW ppd_cleansed.ppm.eppmRpscoTranspose OWNER TO `ppd-G3-Admins`;
-# MAGIC ALTER VIEW ppd_cleansed.ppm.eppmWpiConfig OWNER TO `ppd-G3-Admins`;
+# MAGIC -- ALTER VIEW ppd_cleansed.fin.eppmCospTranspose OWNER TO `ppd-G3-Admins`;
+# MAGIC -- ALTER VIEW ppd_cleansed.fin.eppmCossTranspose OWNER TO `ppd-G3-Admins`;
+# MAGIC -- ALTER VIEW ppd_cleansed.ppm.eppmRpscoTranspose OWNER TO `ppd-G3-Admins`;
+# MAGIC -- ALTER VIEW ppd_cleansed.ppm.eppmWpiConfig OWNER TO `ppd-G3-Admins`;

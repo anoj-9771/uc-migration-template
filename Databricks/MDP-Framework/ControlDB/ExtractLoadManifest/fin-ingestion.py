@@ -58,16 +58,19 @@ ORDER BY SourceSchema, SourceTableName
 #Delta Tables with delete image. These tables would have di_operation_type column. 
 tables = ['0profit_ctr_attr','0gl_account_attr','0profit_ctr_text','0costcenter_text']
 tablesWithNullableKeys = ['coss','cosp','cobrb']
+tablesUsingKingCluster = ['coss','cosp']
 #Non-Prod "DeleteSourceFiles" : "False" while testing
-deleteSourceFiles = "False"
+# deleteSourceFiles = "False"
 #Production
-# deleteSourceFiles = "True"
+deleteSourceFiles = "True"
 df = (
     df.withColumn('ExtendedProperties', lit(f'"DeleteSourceFiles" : "{deleteSourceFiles}"'))
       .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tables),expr('ExtendedProperties ||", "||\'\"SourceRecordDeletion\" : \"True\"\'')) 
                                         .otherwise(expr('ExtendedProperties')))
       .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tablesWithNullableKeys),expr('ExtendedProperties ||", "||\'\"CreateTableConstraints\" : \"False\"\''))
                                         .otherwise(expr('ExtendedProperties')))
+      .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tablesUsingKingCluster),expr('ExtendedProperties ||", "||\'\"OverrideClusterName\" : \"King_Cluster_SingleNode\"\''))
+                                        .otherwise(expr('ExtendedProperties')))          
       .withColumn('ExtendedProperties', expr('"{"||ExtendedProperties ||"}"'))    
 )
 display(df)

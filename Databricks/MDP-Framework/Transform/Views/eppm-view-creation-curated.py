@@ -12,8 +12,8 @@ spark.sql(f"""
 CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmProjectStatusCommentary AS 
 (
   WITH projectCommentary AS (
-      SELECT project, status, statusIcon, calyear, calmonth  FROM (
-        SELECT *, ROW_NUMBER() OVER(PARTITION BY project,status ORDER BY calyear DESC,calmonth DESC) as rowNumber 
+      SELECT projectObject, projectStatus, projectStatusIcon, commentary, calendarYear, calendarMonth  FROM (
+        SELECT *, ROW_NUMBER() OVER(PARTITION BY projectObject,projectStatus ORDER BY calendarYear DESC,calendarMonth DESC) as rowNumber 
         FROM {get_env()}cleansed.ppm.zps_psf_commlog
         ) WHERE rowNumber = 1
   ),
@@ -21,9 +21,10 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmProjectStatusCom
       SELECT DISTINCT  calendarYear, monthOfYear, financialYear, monthOfFinancialYear FROM ppd_curated.dim.`date`
   )
   SELECT 
-    comm.project
-    ,comm.status
-    ,comm.statusIcon
+    comm.projectObject as project
+    ,comm.projectStatus
+    ,comm.projectStatusIcon
+    ,comm.commentary
     ,fisc.financialYear
     ,fisc.monthOfFinancialYear
     ,item.itemDetailId
@@ -36,24 +37,13 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmProjectStatusCom
     ,item.portfolioGuid 
     
   FROM projectCommentary comm
-    LEFT JOIN fiscalDate fisc ON fisc.calendarYear = comm.calyear AND fisc.monthOfYear = comm.calmonth 
-    LEFT JOIN {get_env()}cleansed.ppm.rpm_item_d item ON item.itemDetailId = comm.project
+    LEFT JOIN fiscalDate fisc ON fisc.calendarYear = comm.calendarYear AND fisc.monthOfYear = comm.calendarMonth 
+    LEFT JOIN {get_env()}cleansed.ppm.rpm_item_d item ON item.itemDetailId = comm.projectObject
     LEFT JOIN {get_env()}cleansed.ppm.0rpm_bucket_guid_attr buck ON buck.bucketGuid = item.bucketGuid
     LEFT JOIN {get_env()}cleansed.ppm.0inm_initiative_guid_attr init ON init.initiativeGuid = item.initiativeDetailGuid
     LEFT JOIN {get_env()}cleansed.ppm.0rpm_port_guid_attr port on port.portGuid = item.portfolioGuid
 )
 """)
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_curated.asset_performance.eppmProjectStatusCommentary
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_cleansed.ppm.zps_psf_commlog
-# MAGIC
 
 # COMMAND ----------
 
@@ -93,7 +83,8 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceMaste
     ,item.itemTypeId
     ,typeTx.itemTypeText as itemTypeDescription
     ,item.overallStatusId
-    ,CASE WHEN item.overallStatusId = '@5B@' THEN 'GREEN'
+    ,CASE 
+        WHEN item.overallStatusId = '@5B@' THEN 'GREEN'
         WHEN item.overallStatusId = '@5C@' THEN 'RED'
         WHEN item.overallStatusId = '@5D@' THEN 'YELLOW'
     END as itemOverallStatus
@@ -109,17 +100,28 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceMaste
     ,proj.municipality
     ,proj.electorate
     ,item.projectGeographyCode
+    ,CASE 
+        WHEN item.projectGeographyCode = 'N' THEN 'North'
+        WHEN item.projectGeographyCode = 'S' THEN 'South'
+        WHEN item.projectGeographyCode = 'E' THEN 'East'
+        WHEN item.projectGeographyCode = 'W' THEN 'West'
+        ELSE item.projectGeographyCode 
+    END as projectGeographyDescription
     ,proj.cipAssetType
+    ,cipTx.cipAssetTypeDescription
 
     ,wbs.wbsElement
+    ,wbs.wbsElementExternal
     ,wbsTx.mediumDescription as wbsElementDescription
     ,wbs.wbsElementControllingArea
     ,wbs.objectNumber as wbsElementObjectNumber
     ,wbs.deliveryPartner
+    ,dpTx.deliveryPartner as deliveryPartnerDescription
     ,wbs.subDeliveryPartner
     ,subTx.subDeliveryPartnerDescription
     ,wbs.projectType as wbsElementProjectType
     ,wbs.majorProjectAssociationList as majorProjectAssociationId
+    ,mpaTx.majorProjectAssociationDescription
     ,wbs.projectHierarchyLevel
 
     ,decp.decisionGuid as decisionGUID
@@ -179,6 +181,7 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceMaste
 
     LEFT JOIN {get_env()}cleansed.ppm.0project_attr proj ON proj.projectId = item.itemDetailId
     LEFT JOIN {get_env()}cleansed.ppm.0project_text projTx ON projTx.projectIdDefinition = proj.projectIdDefinition
+    LEFT JOIN {get_env()}cleansed.ppm.zept_cip_typ cipTx ON cipTX.cipAssetType = proj.cipAssetType
 
     LEFT JOIN {get_env()}cleansed.ppm.tcj4t profTx ON profTx.projectProfile = proj.projectProfile    
 
@@ -200,27 +203,15 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceMaste
 
     LEFT JOIN {get_env()}cleansed.ppm.0wbs_elemt_attr wbs ON wbs.projectDefinition = proj.projectIdDefinition
     LEFT JOIN {get_env()}cleansed.ppm.0wbs_elemt_text wbsTx ON wbs.wbsElement = wbsTx.wbsElement
-    LEFT JOIN {get_env()}cleansed.ppm.ZEPT_SUB_DELPART subTx ON subTx.subDeliveryPartner = wbs.subDeliveryPartner and subTx.projectType = 'CP'
+    LEFT JOIN {get_env()}cleansed.ppm.zept_sub_delpart subTx ON subTx.subDeliveryPartner = wbs.subDeliveryPartner and subTx.projectType = 'CP'
+    LEFT JOIN {get_env()}cleansed.ppm.zept_mpalist mpaTx ON mpaTx.majorProjectAssociationId = wbs.majorProjectAssociationList
+    LEFT JOIN {get_env()}cleansed.ppm.zept_del_partner dpTx ON dpTx.deliveryPartnerKey = wbs.deliveryPartner
 
     LEFT JOIN {get_env()}cleansed.fin.0costcenter_attr cctr ON cctr.costCenterNumber = wbs.requestingCostCenter AND cctr.costCenterCategory in ('P','U') AND cctr.controllingArea = '1000' AND cctr.validToDate = '9999-12-31'
     LEFT JOIN {get_env()}cleansed.fin.0costcenter_text cctrTx ON cctrTx.costCenterNumber = cctr.costCenterNumber AND cctrTx.controllingArea = cctr.controllingArea AND cctrTx.validToDate = cctr.validToDate
 
 )
 """)
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select count(*) from ppd_curated.asset_performance.eppmSelfServiceMasterCurrent
-# MAGIC union all
-# MAGIC select count(*) from ppd_curated.asset_performance.eppmSelfServiceMasterCurrent1
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select count(*) from ppd_curated.asset_performance.eppmSelfServiceMasterHistory
-# MAGIC union all
-# MAGIC select count(*) from ppd_curated.asset_performance.eppmSelfServiceMasterHistory1
 
 # COMMAND ----------
 
@@ -275,17 +266,22 @@ SELECT * FROM
     ,proj.municipality
     ,proj.electorate
     ,'' as projectGeographyCode
+    ,'' as projectGeographyDescription
     ,proj.cipAssetType
+    ,cipTx.cipAssetTypeDescription
 
     ,itemHist.wbsId as wbsElement
+    ,wbs.wbsElementExternal
     ,wbsTx.mediumDescription as wbsElementDescription
     ,wbs.wbsElementControllingArea
     ,wbs.objectNumber as wbsElementObjectNumber
     ,itemHist.deliveryPartner
+    ,dpTx.deliveryPartner as deliveryPartnerDescription
     ,wbs.subDeliveryPartner
     ,subTx.subDeliveryPartnerDescription
     ,wbs.projectType as wbsElementProjectType
     ,wbs.majorProjectAssociationList as majorProjectAssociationId
+    ,mpaTx.majorProjectAssociationDescription
     ,wbs.projectHierarchyLevel
 
     ,'' decisionGUID
@@ -306,6 +302,7 @@ SELECT * FROM
     LEFT ANTI JOIN {get_env()}cleansed.ppm.rpm_item_d itemAnti ON itemAnti.itemDetailId = itemHist.projectId
     LEFT JOIN {get_env()}cleansed.ppm.rpm_status_t statTx ON statTx.projectApprovalStatusId = itemHist.projectStatus
     LEFT JOIN {get_env()}cleansed.fin.0costcenter_text rescTx ON rescTx.costCenterNumber = itemHist.responsibleCostCentre AND rescTx.controllingArea = '1000' AND rescTx.validToDate ='9999-12-31'
+    LEFT JOIN {get_env()}cleansed.ppm.zept_del_partner dpTx ON dpTx.deliveryPartnerKey = itemHist.deliveryPartner
 
     LEFT JOIN {get_env()}cleansed.ppm.0rpm_bucket_guid_attr buck ON buck.bucketId = itemHist.bucketId
     LEFT JOIN {get_env()}cleansed.ppm.0rpm_bucket_guid_id_text buckTx ON buckTx.bucketGuid = buck.bucketGuid
@@ -319,12 +316,14 @@ SELECT * FROM
 
     LEFT JOIN {get_env()}cleansed.ppm.0project_attr proj ON proj.projectId = itemHist.projectId
     LEFT JOIN {get_env()}cleansed.ppm.0project_text projTx ON projTx.projectIdDefinition = proj.projectIdDefinition
+    LEFT JOIN {get_env()}cleansed.ppm.zept_cip_typ cipTx ON cipTX.cipAssetType = proj.cipAssetType
 
     LEFT JOIN {get_env()}cleansed.ppm.tcj4t profTx ON profTx.projectProfile = itemHist.projectProfile    
 
     LEFT JOIN {get_env()}cleansed.ppm.0wbs_elemt_attr wbs ON wbs.wbsElement = itemHist.wbsId
     LEFT JOIN {get_env()}cleansed.ppm.0wbs_elemt_text wbsTx ON wbs.wbsElement = wbsTx.wbsElement
-    LEFT JOIN {get_env()}cleansed.ppm.ZEPT_SUB_DELPART subTx ON subTx.subDeliveryPartner = wbs.subDeliveryPartner and subTx.projectType = 'CP'
+    LEFT JOIN {get_env()}cleansed.ppm.zept_sub_delpart subTx ON subTx.subDeliveryPartner = wbs.subDeliveryPartner and subTx.projectType = 'CP'
+    LEFT JOIN {get_env()}cleansed.ppm.zept_mpalist mpaTx ON mpaTx.majorProjectAssociationId = wbs.majorProjectAssociationList
 )
 UNION
 
@@ -373,17 +372,22 @@ UNION
     ,item.municipality
     ,item.electorate
     ,item.projectGeographyCode
-    ,item.cipAssetType    
+    ,item.projectGeographyDescription
+    ,item.cipAssetType
+    ,item.cipAssetTypeDescription
 
     ,item.wbsElement
+    ,item.wbsElementExternal
     ,item.wbsElementDescription
     ,item.wbsElementControllingArea
     ,item.wbsElementObjectNumber
     ,item.deliveryPartner
+    ,item.deliveryPartnerDescription
     ,item.subDeliveryPartner
     ,item.subDeliveryPartnerDescription
     ,item.wbsElementProjectType
     ,item.majorProjectAssociationId
+    ,item.majorProjectAssociationDescription
     ,item.projectHierarchyLevel
 
     ,item.decisionGUID
@@ -448,25 +452,6 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceClass
     LEFT JOIN {get_env()}cleansed.ppm.0rpm_bucket_guid_attr relBuck1 on relBuck1.bucketGuid = relBuck.parentBucketGuid
     LEFT JOIN {get_env()}cleansed.ppm.0rpm_bucket_guid_id_text buckTx1 ON buckTx1.bucketGuid = relbuck1.bucketGuid
 """)
-
-# COMMAND ----------
-
-# spark.sql(f"""
-# CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceClassificationHierarchy AS
-#     SELECT
-#     item.itemDetailGuid
-#     ,item.itemDetailId
-#     ,relBuck.bucketID as chBucketId
-#     ,relBuck.parentBucketGuid as chParentBucketGUID
-#     ,relBuck1.bucketID as chParentBucketId
-#     ,relPort.portfolioId as chPortfolioId
-#     ,rel.financialPercentage as associationSplit
-#     FROM {get_env()}cleansed.ppm.rpm_item_d item 
-#     LEFT JOIN {get_env()}cleansed.ppm.rpm_relation_d rel on rel.guid2 = item.itemDetailGuid 
-#     LEFT JOIN {get_env()}cleansed.ppm.0rpm_bucket_guid_attr relBuck on relBuck.bucketGuid = rel.guid1 and rel.relationType = 'RHI'
-#     LEFT JOIN {get_env()}cleansed.ppm.0rpm_port_guid_attr relPort on relPort.portGuid = relBuck.portfolioGuid
-#     LEFT JOIN {get_env()}cleansed.ppm.0rpm_bucket_guid_attr relBuck1 on relBuck1.bucketGuid = relBuck.parentBucketGuid
-# """)
 
 # COMMAND ----------
 
@@ -580,24 +565,6 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceRepor
     LEFT JOIN {get_env()}curated.asset_performance.eppmSelfServiceTransactionCurrent tran ON tran.objectnumberId = mast.wbsElementObjectNumber
     LEFT JOIN {get_env()}cleansed.fin.0costelmnt_text costTx ON costTx.costElement = tran.costElement and costTx.controllingArea = '1000'
 """)
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select count(*) from version,valueType,fiscalYearPeriod
-# MAGIC union all
-# MAGIC select count(*) from ppd_curated.asset_performance.eppmSelfServiceReporthistory
-# MAGIC union all
-# MAGIC select count(*) from ppd_curated.asset_performance.eppmSelfServiceReport
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select count(*) from ppd_curated.asset_performance.eppmSelfServiceReportCurrent
-# MAGIC union all
-# MAGIC select count(*) from ppd_curated.asset_performance.eppmSelfServiceReporthistory
-# MAGIC union all
-# MAGIC select count(*) from ppd_curated.asset_performance.eppmSelfServiceReport
 
 # COMMAND ----------
 
@@ -733,17 +700,22 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceRepor
     ,mast.municipality
     ,mast.electorate
     ,mast.projectGeographyCode
+    ,mast.projectGeographyDescription
     ,mast.cipAssetType  
+    ,mast.cipAssetTypeDescription
 
     ,tran.wbsElement
+    ,mast.wbsElementExternal
     ,mast.wbsElementDescription
     ,mast.wbsElementControllingArea
     ,mast.wbsElementObjectNumber
     ,mast.deliveryPartner
+    ,mast.deliveryPartnerDescription
     ,mast.subDeliveryPartner
     ,mast.subDeliveryPartnerDescription
     ,mast.wbsElementProjectType
     ,mast.majorProjectAssociationId
+    ,mast.majorProjectAssociationDescription
     ,mast.projectHierarchyLevel
 
     ,mast.decisionGUID
@@ -819,5 +791,5 @@ SELECT * FROM {get_env()}curated.asset_performance.eppmSelfServiceReportHistory
 # MAGIC ALTER VIEW ppd_curated.asset_performance.eppmselfservicereporthistory OWNER TO `ppd-G3-Admins`;
 # MAGIC ALTER VIEW ppd_curated.asset_performance.eppmselfservicetransactioncurrent OWNER TO `ppd-G3-Admins`;
 # MAGIC ALTER VIEW ppd_curated.asset_performance.eppmSelfServiceMaster OWNER TO `ppd-G3-Admins`;
-# MAGIC ALTER TABLE ppd_curated.asset_performance.eppmSelfServiceReportTab OWNER TO `ppd-G3-Admins`;
+# MAGIC -- ALTER TABLE ppd_curated.asset_performance.eppmSelfServiceReportTab OWNER TO `ppd-G3-Admins`;
 # MAGIC ALTER TABLE ppd_curated.asset_performance.eppmProjectStatusCommentary OWNER TO `ppd-G3-Admins`;
