@@ -3,16 +3,6 @@
 
 # COMMAND ----------
 
-_.Destination
-# _.EntityName
-#_.Database
-
-# COMMAND ----------
-
-get_table_namespace("curated", "brgcustomerinteractionattachment")
-
-# COMMAND ----------
-
 # MAGIC %run ../../Common/common-helpers 
 
 # COMMAND ----------
@@ -66,12 +56,3 @@ def Transform():
 #   DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_curated.brg.CustomerServiceRequestWorkNoteSummary
-
-# COMMAND ----------
-
-

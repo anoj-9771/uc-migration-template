@@ -7,30 +7,30 @@
 
 # COMMAND ----------
 
-##Move this to controlDB config if its not complex to derive the change columns needed####
-changeColumns = ["serviceRequestID", "serviceRequestGUID", "coherentAspectIdD", "coherentCategoryIdD", "lastChangedDateTime", "source", "sourceCode", "serviceTeamCode", "issueResponsibility" 
-                 ,"issueResponsibilityCode", "postingDate", "requestStartDate", "coherentAspectIdC", "coherentCategoryIdC", "statusProfile", "statusCode" , "reportedByPersonNumber", "contactPersonNumber"
-                 ,"salesEmployeeNumber", "propertyNumber", "contractID", "communicationChannelCode", "requestEndDate", "numberOfInteractionRecords", "notificationNumber","transactionDescription", "direction"
-                 ,"directionCode", "maximoWorkOrderNumber", "projectID", "processTypeCode","agreementNumber",  "responsibleEmployeeNumber", "recommendedPriority", "impact", "urgency", "serviceLifeCycle"
-                 ,"serviceLifeCycleUnit", "activityPriorityCode", "createdDateTime","createdBy", "changedBy"]
+# ##Move this to controlDB config if its not complex to derive the change columns needed####
+# changeColumns = ["serviceRequestID", "serviceRequestGUID", "coherentAspectIdD", "coherentCategoryIdD", "lastChangedDateTime", "source", "sourceCode", "serviceTeamCode", "issueResponsibility" 
+#                  ,"issueResponsibilityCode", "postingDate", "requestStartDate", "coherentAspectIdC", "coherentCategoryIdC", "statusProfile", "statusCode" , "reportedByPersonNumber", "contactPersonNumber"
+#                  ,"salesEmployeeNumber", "propertyNumber", "contractID", "communicationChannelCode", "requestEndDate", "numberOfInteractionRecords", "notificationNumber","transactionDescription", "direction"
+#                  ,"directionCode", "maximoWorkOrderNumber", "projectID", "processTypeCode","agreementNumber",  "responsibleEmployeeNumber", "recommendedPriority", "impact", "urgency", "serviceLifeCycle"
+#                  ,"serviceLifeCycleUnit", "activityPriorityCode", "createdDateTime","createdBy", "changedBy"]
 
-###############################
-driverTable1 = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h')}")
+# ###############################
+# driverTable1 = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h')}")
 
-if TableExists(_.Destination):
-    isDeltaLoad = False
-    #####Table Full Load #####################
-    derivedDF1 = driverTable1
-else:
-    #####CDF for eligible tables#####################
-    isDeltaLoad = True
-    derivedDF1 = getSourceCDF(driverTable1, changeColumns).withColumn("changeType", lit("None"))
-    if derivedDF1 is None:
-        print("No derivedDF1 Returned")
-        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} -- Destinatiion {_.Destination}")
-    elif derivedDF1.count() == 0:
-        print("no CDF to process")
-        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} -- Destinatiion {_.Destination}")
+# if TableExists(_.Destination):
+#     isDeltaLoad = False
+#     #####Table Full Load #####################
+#     derivedDF1 = driverTable1
+# else:
+#     #####CDF for eligible tables#####################
+#     isDeltaLoad = True
+#     derivedDF1 = getSourceCDF(driverTable1, changeColumns).withColumn("changeType", lit("None"))
+#     if derivedDF1 is None:
+#         print("No derivedDF1 Returned")
+#         dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} -- Destinatiion {_.Destination}")
+#     elif derivedDF1.count() == 0:
+#         print("no CDF to process")
+#         dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} -- Destinatiion {_.Destination}")
 
 # COMMAND ----------
 
@@ -93,7 +93,7 @@ publicHolidaysPD = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'datagov_austra
 # COMMAND ----------
 
 #####-----------DIRECT DATAFRAMES CRM--------------------------###############
-coreDF =(( derivedDF1
+coreDF =(( GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h')}")  #derivedDF1
            .withColumn("sourceSystemCode",lit("CRM"))
            .withColumn("receivedBK", concat(col("coherentAspectIdD"),lit("|"),col("coherentCategoryIdD")))
            .withColumn("resolutionBK", concat(col("coherentAspectIdC"),lit("|"),col("coherentCategoryIdC")))
@@ -105,7 +105,7 @@ coreDF =(( derivedDF1
            .withColumn("responsibleEmployeeNoBK", when(col("responsibleEmployeeNumber").isNull(), lit('-1')).otherwise(regexp_replace(col("responsibleEmployeeNumber"), "^0*", "")))
            .withColumn("propertyNoBK", when(col("propertyNumber").isNull(), lit('-1')).otherwise(col("propertyNumber")))
            .withColumn("contractBK", when(col("contractID").isNull(), lit('-1')).otherwise(col("contractID")))
-           .withColumn("channelCodeBK", concat(trim(col("communicationChannelCode")),lit("|"),lit("CRM")))
+           .withColumn("channelCodeBK", concat(trim(col("activityCategoryCode")),lit("|"),lit("CRM")))
            .withColumn("ID", monotonically_increasing_id())
            .withColumn("customerServiceRequestTotalDurationSecondQuantity", (dataDiffTimeStamp(col("requestStartDate"), col("requestEndDate"), lit("1").cast("int")))) 
            .withColumn('customerServiceRequestWorkDurationSecondQuantity', (workingDaysNSWVectorizedUDF(col("requestStartDate"), col("requestEndDate")))))
@@ -168,6 +168,7 @@ servCatDF =  ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomer
             )
     
 busPartDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimBusinessPartner')}")
+                             #.filter(col("_RecordCurrent") == lit("1"))
                              .select( col("businessPartnerSK")
                                      ,col("businessPartnerNumber")
                                      ,col("_recordStart")
@@ -237,12 +238,16 @@ crmSappSegDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_scapptseg')}")
                                                    .agg(max("apptStartDatetime"))
                ) 
 
-aurion_df =  (GetTable(f"{get_table_namespace(f'{SOURCE}', 'vw_aurion_employee_details')}")
+aurion_df =  (GetTable(f"{get_env()}{SOURCE}.aurion.employee_details")
                   .withColumn("OrganisationUnitNumberF", when(col("OrganisationUnitNumber").isNull(), lit("-1"))
                                                          .otherwise(concat(lit("OU6"),lpad(col("OrganisationUnitNumber"), 7, "0"))))
+                  .withColumn("priority", when(upper(col("Aurionfilename")) == "ACTIVE", 1) 
+                                         .when(upper(col("Aurionfilename")) == "TERMINATED", 2) 
+                                         .when(upper(col("Aurionfilename")) == "HISTORY", 3) 
+                                         .otherwise(4))
             )
 
-auDistDF  = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'vw_aurion_employee_details')}")
+auDistDF  = (GetTable(f"{get_env()}{SOURCE}.aurion.employee_details")
                   .select(col("businessPartnerNumber").alias("businessPartnerNumberM")
                          ,col("positionNumber").alias("positionNumberM")
                          ,col("dateEffective").alias("dateEffectiveM")
@@ -250,12 +255,12 @@ auDistDF  = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'vw_aurion_employee_de
             )
 
 ebpDF =    (  GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimBusinessPartner')}")
-                   .filter(col("_recordCurrent") == 1)
+                   .filter(col("_RecordCurrent") == lit("1"))
                    .select(col("businessPartnerSK"), col("businessPartnerNumber"))
             )
                    
 
-aurUserDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'vw_aurion_employee_details')}")
+aurUserDF = (GetTable(f"{get_env()}{SOURCE}.aurion.employee_details")
                .select(col("userid")
                       ,concat_ws(" ",col("givenNames"), col("surname")).alias("createdByName")
                       ,concat_ws(" ",col("givenNames"), col("surname")).alias("ChangedByName")
@@ -316,37 +321,32 @@ busDF = coreDF.alias("mn").join(pivotBusPartDF, (col("mn.ID") == col("pbp.ID")),
 
 # COMMAND ----------
 
-###############derived Dataframes ##### (2) Aurion Logic ###################
-window_spec = ( Window.partitionBy(col("auE.businessPartnerNumber")).orderBy( col("auE.dateEffective"),
-        when(col("auE.EmployeeStatus") == "ACTIVE", 1) 
-        .when(col("auE.EmployeeStatus") == "TERMINATED", 2) 
-        .when(col("auE.EmployeeStatus") == "HISTORY", 3) 
-        .otherwise(4)  # Handle other cases 
-    ) )
+bpAurDF = ((((aurion_df.alias("au").join(ebpDF.alias("bp"), 
+                                    (col("au.businessPartnerNumber") == col("bp.businessPartnerNumber")),"left")
+                               .drop(col("bp.businessPartnerNumber")))
+                               .join(ebpDF.alias("bp2"), 
+                                    (col("au.OrganisationUnitNumberF") == col("bp2.businessPartnerNumber")),"left")
+                               .drop(col("bp2.businessPartnerNumber")))
+          ).select (col("au.businessPartnerNumber").alias("businessPartnerNumber")
+                  , col("bp.businessPartnerSK").alias("reportToManagerFK")
+                  , col("bp2.businessPartnerSK").alias("organisationUnitFK")
+                  ,col("reportsToPosition")
+                  ,col("positionNumber")
+                  ,col("DateEffective")
+                  ,col("DateTo")
+                  ,col("priority")
+                  ))
+          
+aurEWinSpec = ( Window.partitionBy(col("main.BusinessKey"), col("auE.businessPartnerNumber"))
+                 .orderBy(col("priority") ))
 
-aurionDF = ( (((
-  aurion_df.alias("auE").join(auDistDF.alias("auM"), 
-    ((col("auE.ReportstoPosition") == col("auM.PositionNumberM")) &
-    (col("auE.dateEffective").between(col("auM.dateEffectiveM"), col("auM.dateToM")))),"left") 
-  .withColumn("rownumber", row_number().over(window_spec)).filter(col("rownumber") == 1))
-  .select(col("*")).filter(col("auM.dateEffectiveM").isNotNull()))  
-  .join(ebpDF.alias("ebp"), 
-        col("auM.businessPartnerNumberM") == col("ebp.businessPartnerNumber"), "left")
-  .join(ebpDF.alias("obp"), 
-         col("auE.OrganisationUnitNumberF") == col("obp.businessPartnerNumber"), "left"))
-  .withColumn("reportToManagerFK", col("ebp.businessPartnerSK"))
-  .withColumn("organisationUnitFK", col("obp.businessPartnerSK"))
-  .drop(col("ebp.businessPartnerNumber"), 
-        col("ebp.businessPartnerSK"),
-        col("obp.businessPartnerNumber"),
-        col("obp.businessPartnerSK"))
-   .select(col("businessPartnerNumber"), col("reportToManagerFK"), col("organisationUnitFK"), col("DateEffective"), col("DateTo"))
-)  
+aurMWinSpec = ( Window.partitionBy(col("main.BusinessKey"), col("auM.positionNumber"))
+                 .orderBy(col("priority") ))
 
 # COMMAND ----------
 
 ##############################Main DATAFRAME / Join FOR CRM ###############################
-finalCRMDF = (((busDF.alias("core") 
+CRMDF = (((busDF.alias("core") 
   .join(crmLinkDF.alias("cl"), (col("core.serviceRequestGUID") == col("cl.hiGUID")), how= "left")  
  .join(crmSappSegDF.alias("css"), (col("cl.setGUID") == col("css.applicationGUID")), how= "left").drop(col("cl.setGUID"), col("cl.hiGUID"), col("css.applicationGUID"))
  .withColumn("endDate", coalesce(col("css.VALIDTO"), col("core.requestEndDate"))))
@@ -358,10 +358,6 @@ finalCRMDF = (((busDF.alias("core")
  .join(dateDF.alias("dt3"), (to_date(col("core.lastChangedDateTime")) == col("dt3.calendarDate")), "left").drop(col("dt3.calendarDate"), col("dt3.serviceRequestStartDateFK"),col("dt3.serviceRequestEndDateFK")) 
  .join(aurUserDF.alias("au1"), (col("core.createdBy") == col("au1.userid")), "left").drop(col("au1.userid"), col("au1.changedByName"))
  .join(aurUserDF.alias("au2"), (col("core.changedBy") == col("au2.userid")), "left").drop(col("au2.userid"), col("au2.createdByName"))
- .join(aurionDF.alias("au"), 
-       ((col("core.responsibleEmployeeNumber") == col("au.businessPartnerNumber")) &
-           (col("core.lastChangedDateTime").between(col("au.DateEffective"), 
-                                                          col("au.DateTo")))), "left").drop(col("au.businessPartnerNumber"), col("au.DateEffective"), col("au.DateTo")) 
  .join(propertyDF.alias("pr"), ((col("core.propertyNoBK") == col("pr._BusinessKey")) &  
                  (col("core.lastChangedDateTime").between(col("pr._recordStart"), 
                                                           col("pr._recordEnd")))), "left").drop(col("pr._BusinessKey"), col("pr._recordStart"), col("pr._recordEnd")) 
@@ -377,7 +373,9 @@ finalCRMDF = (((busDF.alias("core")
  .join(servCatDF.alias("sc2"), ((col("core.resolutionBK") == col("sc2.sourceBusinessKey")) &
            (col("core.lastChangedDateTime").between(col("sc2.sourceValidFromDatetime"), 
                                                           col("sc2.sourceValidToDatetime")))), "left").drop(col("sc2.sourceBusinessKey"), col("sc2.sourceValidFromDatetime"), col("sc2.sourceValidToDatetime") ,col("sc2.receivedCategoryFK"))  
- .join(statusDF.alias("st"), (col("core.statusBK") == col("st._BusinessKey")), "left").drop(col("core.statusBK"), col("st._BusinessKey"))
+ .join(statusDF.alias("st"), (col("core.statusBK") == col("st._BusinessKey")), "left").drop(col("core.statusBK"), col("st._BusinessKey")))
+ 
+               
  .withColumn("BusinessKey", concat_ws("|", col("serviceRequestGUID").cast("string"), col("lastChangedDateTime").cast("string")
                                           ,when(col("seqNo").isNull(), lit('')).otherwise(col("seqNo"))))
  .withColumn("respondByDateTime", col("css.SRV_RFIRST")) 
@@ -398,7 +396,29 @@ finalCRMDF = (((busDF.alias("core")
             (workingDaysNSWVectorizedUDF( col("core.requestStartDate")
                                          ,col("endDate")) / lit("86400").cast("int"))
                             )
-         ).select(col("BusinessKey").alias(f"{BK}")
+         )
+         
+
+finalCRMDF = (((((CRMDF.alias("main")
+    .join(bpAurDF.alias("auE"), 
+       ((col("main.responsibleEmployeeNumber") == col("auE.businessPartnerNumber")) &
+           (col("main.lastChangedDateTime").between(col("auE.DateEffective"), 
+                                                          col("auE.DateTo")))), "left")) 
+        .withColumn("rownumE", when(col("auE.businessPartnerNumber").isNull(), lit('1')).otherwise(row_number().over(aurEWinSpec)))
+        .filter(col("rownumE") == lit('1'))
+        .drop(col("auE.businessPartnerNumber"), col("auE.DateEffective"), col("auE.DateTo"), col("auE.Aurionfilename"), col("auE.reportToManagerFK")
+            ,col("auE.positionNumber"),col("auE.rownumE"),col("auE.priority")))
+    .join(bpAurDF.alias("auM"), 
+       ((col("auE.reportsToPosition") == col("auM.positionNumber")) &
+           (col("main.lastChangedDateTime").between(col("auM.DateEffective"), 
+                                                          col("auM.DateTo")))), "left"))
+      .withColumn("rownumM", when(col("auM.businessPartnerNumber").isNull(), lit('1')).otherwise(row_number().over(aurMWinSpec)))
+      .filter(col("rownumM") == lit('1'))
+      .drop(col("auM.businessPartnerNumber"), col("auM.DateEffective"), col("auM.DateTo"), col("auM.Aurionfilename"), col("auM.organisationUnitFK")
+            ,col("auM.reportsToPosition"), col("auM.positionNumber"),col("auE.reportsToPosition"), col("auM.rownumM"),col("auM.priority"))
+      
+      
+      ).select(col("BusinessKey").alias(f"{BK}")
                  ,col("sourceSystemCode")
                  ,col("serviceRequestID").alias("customerServiceRequestId")
                  ,col("serviceRequestGUID").alias("customerServiceRequestGUID")
@@ -408,10 +428,10 @@ finalCRMDF = (((busDF.alias("core")
                  ,when(col("contactPersonFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("contactPersonFK")).alias("contactPersonFK")
                  ,col("reportByPersonFK")
                  ,col("serviceTeamFK")
-                 ,col("contractFK")
-                 ,col("responsibleEmployeeFK")
+                 ,col("contractFK")  
+                 ,when(col("responsibleEmployeeFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("responsibleEmployeeFK")).alias("responsibleEmployeeFK")
                  ,when(col("reportToManagerFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("reportToManagerFK")).alias("reportToManagerFK")
-                 ,when(col("organisationUnitFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("organisationUnitFK")).alias("organisationUnitFK")
+                 ,when(col("organisationUnitFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("organisationUnitFK")).alias("organisationUnitFK")              
                  ,when(col("processTypeFK").isNull(), lit('-1')).otherwise(col("processTypeFK")).alias("customerServiceProcessTypeFK")
                  ,col("propertyFK")
                  ,col("locationFK")
@@ -575,7 +595,7 @@ df2 = spark.sql(f""" WITH MAXIMO AS (SELECT
                                               'Discoloured Supply - White',
                                               'Discoloured Supply - Blue' ))
                               OR (LOC.product = 'StormWater' and PT.description in ('Flooding')) 
-                              OR (LOC.product = 'WasteWater' and WO.parentWo IS NULL AND FR.failureCode = 'RWW-SR2H') 
+                              OR (LOC.product = 'WasteWater' and PT.description in ('Odour Enquiry') and WO.parentWo IS NULL AND FR.failureCode = 'RWW-SR2H') 
                           )
                       AND WO.reportedDateTime>='2019-06-01' ) SELECT * from MAXIMO where rkn = 1 """) 
 
@@ -625,7 +645,7 @@ finalMAXDF = ((df2.alias("core")
                  ,lit(f"{dummyDimPartnerSK}").alias("contactPersonFK")
                  ,lit(f"{dummyDimPartnerSK}").alias("reportByPersonFK")
                  ,lit(f"{dummyDimPartnerSK}").alias("serviceTeamFK")
-                 ,lit(f"{dummyDimPartnerSK}").alias("contractFK")
+                 ,lit(f"{dummyDimPartnerSK}").alias("contractFK")               
                  ,lit(f"{dummyDimPartnerSK}").alias("responsibleEmployeeFK")
                  ,lit(f"{dummyDimPartnerSK}").alias("reportToManagerFK")
                  ,lit(f"{dummyDimPartnerSK}").alias("organisationUnitFK")
@@ -690,7 +710,7 @@ def Transform():
     _.Transforms = ['*']
     df = df.selectExpr(_.Transforms)
     #display(df)
-    #CleanSelf()
+    #CleanSelf()    
     Save(df)
     #busDF.unpersist()
 Transform()

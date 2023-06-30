@@ -42,6 +42,8 @@ crmActDF =  (GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_dhr_activ')}
                   .select(col("activityGUID") 
                           ,col("categoryLevel1GUID")  
                           ,col("categoryLevel2GUID")
+                          ,col("responisbleEmployeeNumber").alias("responsibleEmployeeNumber")
+                          ,col("activityPartnerNumber").cast("long").alias("propertyNumber")
                          )
             )
 
@@ -84,7 +86,7 @@ propertyDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimProperty
     
 statusDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomerinteractionstatus')}")
                                         .filter(col("_recordCurrent") == lit("1"))
-                           .select( col("customerServiceRequestStatusSK").alias("StatusFK")
+                           .select( col("customerInteractionStatusSK").alias("StatusFK")
                                      ,col("_BusinessKey")
                                    ) 
             )
@@ -136,13 +138,35 @@ dateDF = (GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimDate')}")
 ##############################Main DATAFRAME / Join FOR CRM ###############################
 interDF = ((coreDF.alias("core")
   .join(crmActDF.alias("ca"), (col("core.interactionGUID") == col("ca.activityGUID")), "left") 
+
   .join(crmCatDF.alias("cc"), (col("ca.categoryLevel1GUID") == col("cc.categoryGUID")), "left") 
   .drop(col("cc.categoryGUID"),col("cc.customerInterationSubCategory"))
   .join(crmCatDF.alias("cc1"), (col("ca.categoryLevel2GUID") == col("cc1.categoryGUID")), "left") 
   .drop(col("ca.activityGUID"), col("ca.categoryLevel1GUID"), col("ca.categoryLevel2GUID"), 
                           col("cc1.categoryGUID"), col("cc1.customerInteractionCategory")))
+  
+  .join(busPartDF.alias("bp"), 
+        ((col("ca.responsibleEmployeeNumber") == col("bp.businessPartnerNumber")) &  
+                 (col("core.createdDate").between(col("bp._recordStart"), 
+                                                        col("bp._recordEnd")))), 'left')
+  .drop(col("bp.businessPartnerNumber"), col("bp._recordStart"), col("bp._recordEnd"), col("bp.contactPersonFK"), 
+         col("ca.responsibleEmployeeNumber"))
+           
+  .join(propertyDF.alias("pr"), ((col("ca.propertyNumber") == col("pr._BusinessKey")) &  
+                 (col("core.createdDate").between(col("pr._recordStart"), 
+                                                          col("pr._recordEnd")))), "left")
+  .drop(col("pr._BusinessKey"), col("pr._recordStart"), col("pr._recordEnd"))
 
-            
+  .join(locationDF.alias("lo"), ((col("ca.propertyNumber") == col("lo.locationID")) &  
+                 (col("core.createdDate").between(col("lo._recordStart"), 
+                                                          col("lo._recordEnd")))),"left")
+  .drop(col("lo.locationID"), col("lo._recordStart"), col("lo._recordEnd"))
+
+  .join(busPartGrpDF.alias("bgp"), ((col("ca.propertyNumber") == col("bgp.businessPartnerGroupNumber")) &  
+                 (col("core.createdDate").between(col("bgp._recordStart"), 
+                                                col("bgp._recordEnd")))), "left")
+  .drop(col("bgp.businessPartnerGroupNumber"), col("bgp._recordStart"), col("bgp._recordEnd"), col("ca.propertyNumber"))
+
   .join(crmLinkDF.alias("cl"), (col("core.interactionGUID") == col("cl.hiGUID")), "left") 
   .join(crmSappSegDF.alias("css"), (col("cl.setGUID") == col("css.applicationGUID")), "left")
   .join(dateDF.alias("dt"), (to_date(col("css.apptEndDatetime")) == col("dt.calendarDate")), "left")
@@ -156,23 +180,7 @@ interDF = ((coreDF.alias("core")
   .drop(col("core.channelBK"), col("ch._BusinessKey"))
 
   .join(dateDF.alias("dt1"), (to_date(col("core.createdDate")) == col("dt1.calendarDate")), "left")
-  .drop(col("dt1.calendarDate"), col("dt1.customerInteractionEndDateFK"))  
-  
-  .join(propertyDF.alias("pr"), ((col("core.propertyNoBK") == col("pr._BusinessKey")) &  
-                 (col("core.createdDate").between(col("pr._recordStart"), 
-                                                          col("pr._recordEnd")))), "left")
-  .drop(col("pr._BusinessKey"), col("pr._recordStart"), col("pr._recordEnd"))  
-
-  .join(locationDF.alias("lo"), ((col("core.propertyNoBK") == col("lo.locationID")) &  
-                 (col("core.createdDate").between(col("lo._recordStart"), 
-                                                          col("lo._recordEnd")))),"left")
-  .drop(col("lo.locationID"), col("lo._recordStart"), col("lo._recordEnd")) 
-
-  .join(busPartDF.alias("bp"), 
-        ((col("core.employeeResponsibleNumberBK") == col("bp.businessPartnerNumber")) &  
-                 (col("core.createdDate").between(col("bp._recordStart"), 
-                                                        col("bp._recordEnd")))), 'left')
-  .drop(col("bp.businessPartnerNumber"), col("bp._recordStart"), col("bp._recordEnd"), col("bp.contactPersonFK"))
+  .drop(col("dt1.calendarDate"), col("dt1.customerInteractionEndDateFK")) 
 
   .join(busPartDF.alias("bp1"), 
         ((col("core.contactPersonNoBK") == col("bp1.businessPartnerNumber")) &  
@@ -180,13 +188,9 @@ interDF = ((coreDF.alias("core")
                                                         col("bp1._recordEnd")))), 'left')
   .drop(col("bp1.businessPartnerNumber"), col("bp1._recordStart"), col("bp1._recordEnd"), col("bp1.responsibleEmployeeFK"))
 
-  .join(busPartGrpDF.alias("bgp"), ((col("core.propertyNoBK") == col("bgp.businessPartnerGroupNumber")) &  
-                 (col("core.createdDate").between(col("bgp._recordStart"), 
-                                                col("bgp._recordEnd")))), "left")
-  .drop(col("bgp.businessPartnerGroupNumber"), col("bgp._recordStart"), col("bgp._recordEnd"))
- 
   .join(statusDF.alias("st"), (col("core.statusBK") == col("st._BusinessKey")), "left")
   .drop(col("core.statusBK"), col("st._BusinessKey"))
+  
   .select(col("interactionId").alias(f"{BK}")  
          ,col("interactionId").alias("customerInteractionId")
          ,when(col("processTypeFK").isNull(), lit('-1')).otherwise(col("processTypeFK")).alias("customerServiceProcessTypeFK") 
@@ -223,7 +227,7 @@ def Transform():
     _.Transforms = ["*"]
     df = df.selectExpr(_.Transforms)
     # display(df)
-    CleanSelf()
+    #CleanSelf()
     Save(df)
     #DisplaySelf()
 Transform()

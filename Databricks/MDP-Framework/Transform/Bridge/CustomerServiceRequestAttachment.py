@@ -49,8 +49,8 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-    CleanSelf()
-    #Save(df)
+    #CleanSelf()
+    Save(df)
 #     DisplaySelf()
 pass
 Transform()
