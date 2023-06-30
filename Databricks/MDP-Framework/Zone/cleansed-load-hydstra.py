@@ -98,6 +98,18 @@ cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",to_tim
                                    .withColumn("_RecordStart",to_timestamp(lit(recordStart))) \
                                    .withColumn("_RecordEnd",to_timestamp(lit("9999-12-31"), "yyyy-MM-dd"))
 
+# COMMAND ----------
+
+if(extendedProperties):
+    groupOrderBy = extendedProperties.get("GroupOrderBy")
+
+# GET LATEST RECORD OF THE BUSINESS KEY
+if(groupOrderBy):
+    cleanseDataFrame = GetRawLatestRecordBK(cleanseDataFrame,businessKey,groupOrderBy,systemCode)
+
+
+# COMMAND ----------
+
 #if verified dataset append all new records as previously existing records have been marked as deleted
 if isVerifiedDataset:
     AppendDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn")) 
@@ -109,7 +121,3 @@ else:
 CleansedSinkCount = spark.table(cleansedTableName).count()
 #print(f"Cleansed Source Count: {CleansedSourceCount} Cleansed Sink Count: {CleansedSinkCount}")
 dbutils.notebook.exit({"CleansedSourceCount": CleansedSourceCount, "CleansedSinkCount": CleansedSinkCount})
-
-# COMMAND ----------
-
-
