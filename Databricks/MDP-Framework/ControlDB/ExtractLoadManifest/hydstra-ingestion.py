@@ -79,3 +79,12 @@ when 'TSV_Verified' then 'gaugeId,variableNameUnit,measurementResultDateTime'
 end
 where systemCode in ('hydstraRef','hydstraData','hydstra|15Min')
 """)
+
+# COMMAND ----------
+
+ExecuteStatement("""
+update dbo.extractLoadManifest set ExtendedProperties = case sourceTableName
+when 'TSV_Provisional' then '{"separator":"|","GroupOrderBy":"_InputFileName ASC"}'
+end
+where systemCode in ('hydstra|15Min')
+""")
