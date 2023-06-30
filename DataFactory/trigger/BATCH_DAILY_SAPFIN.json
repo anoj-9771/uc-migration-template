@@ -4,7 +4,17 @@
 		"description": "SAP Finance Daily Trigger",
 		"annotations": [],
 		"runtimeState": "Stopped",
-		"pipelines": [],
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Main",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"SystemCodes": "finref,findata"
+				}
+			}
+		],
 		"type": "ScheduleTrigger",
 		"typeProperties": {
 			"recurrence": {

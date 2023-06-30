@@ -4,7 +4,17 @@
 		"description": "SAP HRM Daily Trigger",
 		"annotations": [],
 		"runtimeState": "Stopped",
-		"pipelines": [],
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Main",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"SystemCodes": "hrmref,hrmdata"
+				}
+			}
+		],
 		"type": "ScheduleTrigger",
 		"typeProperties": {
 			"recurrence": {

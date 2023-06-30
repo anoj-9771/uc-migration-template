@@ -4,7 +4,17 @@
 		"description": "EPPM Daily Trigger",
 		"annotations": [],
 		"runtimeState": "Stopped",
-		"pipelines": [],
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Main",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"SystemCodes": "ppmref,ppmdata"
+				}
+			}
+		],
 		"type": "ScheduleTrigger",
 		"typeProperties": {
 			"recurrence": {
