@@ -1,10 +1,12 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
+
+# COMMAND ----------
+
 
 
 # COMMAND ----------
@@ -19,7 +21,7 @@ def Transform():
     business_date = "changedDate"
     target_date = "assetLocationChangedTimestamp"
     windowSpec  = Window.partitionBy("location")
-    df = get_recent_cleansed_records(f"{SOURCE}","maximo","locations",business_date,target_date).withColumn("rank",rank().over(windowSpec.orderBy(col(business_date).desc()))).filter("rank == 1").drop("rank").alias('LO')
+    df = get_recent_records(f"{SOURCE}","maximo_locations",business_date,target_date).withColumn("rank",rank().over(windowSpec.orderBy(col(business_date).desc()))).filter("rank == 1").drop("rank").alias('LO')
     df = df \
     .withColumn("sourceBusinessKey",df.location) \
     .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \

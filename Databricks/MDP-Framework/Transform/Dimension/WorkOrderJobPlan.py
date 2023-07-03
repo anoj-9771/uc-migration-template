@@ -1,10 +1,12 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
+
+# COMMAND ----------
+
 
 
 # COMMAND ----------
@@ -18,7 +20,7 @@ def Transform():
     # ------------- TABLES ----------------- #
     business_date = "changedDate"
     target_date = "workOrderJobPlanChangedTimestamp"
-    df = get_recent_cleansed_records(f"{SOURCE}","maximo","jobplan",business_date,target_date)
+    df = get_recent_records(f"{SOURCE}","maximo_jobplan",business_date,target_date)
     df = df \
     .withColumn("sourceBusinessKey",concat_ws('|', df.jobPlan, df.revision)) \
     .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \

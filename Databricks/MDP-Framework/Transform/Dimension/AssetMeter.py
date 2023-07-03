@@ -20,7 +20,7 @@ def Transform():
     # ------------- TABLES ----------------- #
     business_date = "changedDate"
     target_date = "assetMeterChangeTimestamp"
-    df = get_recent_cleansed_records(f"{SOURCE}","maximo","assetMeter",business_date,target_date) \
+    df = get_recent_records(f"{SOURCE}","maximo_assetMeter",business_date,target_date) \
     .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \
     .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)"))
     df = load_sourceValidFromTimeStamp(df,business_date)

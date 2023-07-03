@@ -499,16 +499,15 @@ def SaveWithCDF(sourceDataFrame, mode):
 
 # COMMAND ----------
 
-def get_recent_cleansed_records(catalog, schema, table, business_date, target_date):
-    cleansed_table_name = get_table_name(catalog,schema,table)
-    # target_table_name = f"{DEFAULT_TARGET}.{TableName}"
+def get_recent_records(layer, table, business_date, target_date):
+    source_table_name = get_table_namespace(layer,table)
     target_table_name = get_table_namespace(f"{DEFAULT_TARGET}", f"{TableName}")
     try:
         latest_date = spark.sql(f"""select date_format(max({target_date}),'MM/dd/yyyy hh:mm:ss') from {target_table_name}""").first()[0]
-        df = spark.sql(f"""select * from {cleansed_table_name} where {business_date} > '{latest_date}'""")
+        df = spark.sql(f"""select * from {source_table_name} where {business_date} > '{latest_date}'""")
     except Exception as e:
         print(f"{target_table_name} table does not exist.This is first load")
-        df = spark.sql(f"""select * from {cleansed_table_name}""")
+        df = spark.sql(f"""select * from {source_table_name}""")
     return df
 
 # COMMAND ----------

@@ -1,10 +1,12 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
+
+# COMMAND ----------
+
 
 
 # COMMAND ----------
@@ -22,7 +24,7 @@ def Transform():
     # ------------- TABLES ----------------- #
     business_date = 'changedDate'
     target_date ="assetSpecChangedTimestamp"
-    df = get_recent_cleansed_records(f"{SOURCE}","maximo","assetSpec",business_date,target_date)
+    df = get_recent_records(f"{SOURCE}","maximo_assetSpec",business_date,target_date)
     dimAsset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetSK","assetNumber")
     class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure")).select("classStructure",'classification',col('description').alias('classPath'))
     classification_df = GetTable(get_table_name(f"{SOURCE}","maximo","classification")).select('classification',col('description').alias('classificationDescription'))

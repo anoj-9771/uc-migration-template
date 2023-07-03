@@ -1,10 +1,12 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
+
+# COMMAND ----------
+
 
 
 # COMMAND ----------
@@ -22,7 +24,7 @@ def Transform():
     # ------------- TABLES ----------------- #
     business_date = "changedDate"
     target_date = "assetLocationAncestorChangedTimestamp"
-    df = get_recent_cleansed_records(f"{SOURCE}","maximo","locations", business_date, target_date) \
+    df = get_recent_records(f"{SOURCE}","maximo_locations", business_date, target_date) \
     .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \
     .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)"))
     df = load_sourceValidFromTimeStamp(df,business_date)

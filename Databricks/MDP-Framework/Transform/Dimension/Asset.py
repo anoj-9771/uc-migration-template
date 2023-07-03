@@ -78,7 +78,7 @@ def Transform():
     business_date = "changedDate"
     target_date = "assetChangedTimestamp"
     windowSpec  = Window.partitionBy("asset")
-    create_temp_table(get_recent_cleansed_records(f"{SOURCE}","maximo","asset",business_date,target_date).withColumn("rank",rank().over(windowSpec.orderBy(col(business_date).desc()))).filter("rank == 1").drop("rank"))
+    create_temp_table(get_recent_records(f"{SOURCE}","maximo_asset",business_date,target_date).withColumn("rank",rank().over(windowSpec.orderBy(col(business_date).desc()))).filter("rank == 1").drop("rank"))
     df = spark.sql(f"""select
         da.*, COALESCE(rrc.return1Code,rrc2.return1Code,"Other") as assetTypeGroupDescription,
         case

@@ -3,10 +3,6 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
-
-# COMMAND ----------
-
 def monthly_Transform():
     df = spark.sql(f"""SELECT
 assetNumber||'|'||reportingYear||'|'|| reportingMonth||'|'||calculationTypeCode||'|'||orderID {BK},                   
@@ -1590,7 +1586,7 @@ pass
 # COMMAND ----------
 
 try:
-    spark.sql(f"""select * from {get_env()}{DEFAULT_TARGET}.{TableName}""")
+    spark.sql(f"""Describe {get_table_namespace(f"{DEFAULT_TARGET}", f"{TableName}")}""")
     mdf = monthly_Transform()
     ydf = yearly_Transform()
 except:
@@ -1600,3 +1596,7 @@ except:
 finally:
     df = mdf.union(ydf)
     Save(df)
+
+# COMMAND ----------
+
+
