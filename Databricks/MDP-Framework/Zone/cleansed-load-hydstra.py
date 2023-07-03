@@ -54,11 +54,12 @@ else:
     isVerifiedDataset = False
 
 #if provisional dataset previously existing records should not be updated only new records inserted    
-if sourceTableName.lower() == "tsv_provisional":
+if sourceTable.lower() == "tsv_provisional":
     mergeWithUpdate = False
     source_business_key="GAUGE_ID,VARIABLENAME_UNIT,TIMESTAMP"
 else:
     mergeWithUpdate = True
+
 
 # COMMAND ----------
 
@@ -97,7 +98,7 @@ if(extendedProperties):
 # GET LATEST RECORD OF THE BUSINESS KEY
 if(groupOrderBy):
     
-    sourceDataFrame = GetRawLatestRecordBK(sourceDataFrame,source_businessKey,groupOrderBy,systemCode)
+    sourceDataFrame = GetRawLatestRecordBK(sourceDataFrame,source_business_key,groupOrderBy,systemCode)
 
 # APPLY CLEANSED FRAMEWORK
 cleanseDataFrame = CleansedTransform(sourceDataFrame, sourceTableName.lower(), systemCode)
