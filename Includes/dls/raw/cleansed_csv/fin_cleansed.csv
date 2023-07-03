@@ -53,7 +53,7 @@ raw.fin_0costelmnt_text,cleansed.fin_0costelmnt_text,KOKRS,controllingArea,Strin
 raw.fin_0costcenter_attr,cleansed.fin_0costcenter_attr,KOSZSCHL,controllingOverheadKey,String,,,
 raw.fin_0costcenter_attr,cleansed.fin_0costcenter_attr,KOSTL,costCenterNumber,String,,,
 raw.fin_0costcenter_attr,cleansed.fin_0costcenter_attr,KOSAR,costCenterCategory,String,,,
-raw.fin_0costcenter_text,cleansed.fin_0costcenter_text,KOSTL,costCentreNumber,String,,,
+raw.fin_0costcenter_text,cleansed.fin_0costcenter_text,KOSTL,costCenterNumber,String,,,
 raw.fin_0costcenter_attr,cleansed.fin_0costcenter_attr,AFUNK,costCentreAlternateFunction,String,,,
 raw.fin_0costcenter_attr,cleansed.fin_0costcenter_attr,FUNKT,costCentreFunction,String,,,
 raw.fin_0costcenter_attr,cleansed.fin_0costcenter_attr,CCKEY,costCollectorKey,String,,,
