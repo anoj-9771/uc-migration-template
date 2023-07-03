@@ -48,7 +48,7 @@ def Transform():
     .join(pm_df.select(col("pm").alias("parentpm"), col("frequency").alias("parent_frequency"),col("frequencyUnits").alias("parent_frequencyUnits")),"parentpm","left").cache()
 
 
-    date_df = GetTable({get_table_namespace(f'{TARGET}', 'dimdate')}).select("calendarDate","nextBusinessDay").alias("dte").cache()
+    date_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimdate')}").select("calendarDate","nextBusinessDay").alias("dte").cache()
     
     # WorkOrder Status table has multiple entries for the same date. Curated requirement is to pick the first record when the status changed.
     woStatus_windowSpec  = Window.partitionBy("woWorkOrder","woStatus")
