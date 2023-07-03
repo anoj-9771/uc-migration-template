@@ -36,6 +36,7 @@ defaultTransformTags = {
     ,"sydneyts-to-utcts" : "to_utc_timestamp($c$, 'Australia/Sydney')"
     ,"int-to-date" : "to_date(trim($c$),'yyyyMMdd')"
     ,"utc+10ts-to-utcts" : "to_utc_timestamp($c$, 'UTC+10')"
+    ,"strip-html" : "regexp_replace(regexp_replace(regexp_replace(regexp_replace($c$,'<([a-zA-Z])>|<([a-zA-Z][a-zA-Z])>|<([a-zA-Z][a-zA-Z][a-zA-Z])>|<([a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z])>|<([a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z])>|<([a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z])>|</([a-zA-Z])>|</([a-zA-Z][a-zA-Z])>|</([a-zA-Z][a-zA-Z][a-zA-Z])>|</([a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z])>|</([a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z])>|</([a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z])>|<br />',''),'&nbsp;',' '),'<font face=.*>',''),'<span style=.*>','')"
 }
 
 # COMMAND ----------
