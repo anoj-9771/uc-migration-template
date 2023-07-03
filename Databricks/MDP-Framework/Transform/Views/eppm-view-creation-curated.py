@@ -459,7 +459,8 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceClass
 spark.sql(f"""
 CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceTransactionCurrent AS
     select 
-    objectnumberId
+    infoprovider
+    ,objectnumberId
     ,fiscalYear
     ,fiscalYearPeriod
     ,fiscalYearVariant
@@ -473,7 +474,7 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceTrans
     ,controllingAreaCurrency 
     FROM (
     select 
-    'COSS' as transactionTable
+    'COSS - Cost Totals for Internal Postings (BW - ZEPPM_D28)' as infoprovider
     ,objectnumber as objectnumberId
     ,fiscalYear
     ,fiscalYearPeriod
@@ -492,7 +493,7 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceTrans
     UNION ALL
 
     select 
-    'COSP' as transactionTable
+    'COSP - Cost Totals for External Postings (BW - ZEPPM_D29)' as infoprovider
     ,objectnumber as objectnumberId
     ,fiscalYear
     ,fiscalYearPeriod
@@ -511,7 +512,7 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceTrans
     UNION ALL
 
     select 
-    'RPSCO' as transactionTable
+    'RPSCO - Project info database: Costs, revenues, finances (BW - ZEPPM_D03)' as infoprovider
     ,objectnumber as objectnumberId
     ,fiscalYear
     ,fiscalYearPeriod
@@ -529,7 +530,8 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceTrans
     )
     WHERE (valuetype <> '04' or fiscalYear <> '2021' or version <> '000')
     GROUP BY
-    objectnumberId
+    infoprovider
+    ,objectnumberId
     ,fiscalYear
     ,fiscalYearPeriod
     ,fiscalYearVariant
@@ -548,6 +550,7 @@ spark.sql(f"""
 CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceReportCurrent AS
     select 
     mast.*
+    ,tran.infoprovider
     ,tran.fiscalYear
     ,tran.fiscalYearPeriod
     ,tran.fiscalYearVariant
@@ -573,7 +576,8 @@ spark.sql(f"""
 CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceReportHistory AS
     With viewEppmSelfServiceTransactionHistoryInter AS (
         SELECT 
-        fiscalYear
+        'EPPM History (BW - Z6)' as infoprovider
+        ,fiscalYear
         ,fiscalYearPeriod
         ,fiscalYearVariant
         ,postingPeriod
@@ -589,7 +593,7 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceRepor
         ,amountCurrency as controllingAreaCurrency 
         FROM (
             SELECT 
-            'glHistory' as  transactionTable
+            'glHistory' as  infoprovider
             ,lpad(costCentre,10,'0') as costCenterNumber
             ,lpad(profitCentre,10,'0') as profitCenterNumber
             ,date.financialYear as fiscalYear
@@ -613,7 +617,7 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceRepor
             UNION ALL
 
             SELECT
-            'bpcHistory' as  transactionTable
+            'bpcHistory' as  infoprovider
             ,lpad(costCenter,10,'0') as costCenterNumber
             ,'' as profitCenterNumber
             ,fiscalYear
@@ -634,7 +638,8 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceRepor
             WHERE wbsElement IS NOT NULL
         )
         GROUP BY
-        fiscalYear
+        infoprovider
+        ,fiscalYear
         ,fiscalYearPeriod
         ,fiscalYearVariant
         ,postingPeriod
@@ -739,6 +744,7 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceRepor
     ,tran.profitCenterNumber
     ,pcrtTx.shortDescription as profitCenterShortDescription
     ,pcrtTX.mediumDescription as profitCenterMediumDescription   
+    ,tran.infoprovider
     ,tran.fiscalYear
     ,tran.fiscalYearPeriod
     ,tran.fiscalYearVariant
