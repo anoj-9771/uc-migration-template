@@ -56,6 +56,7 @@ else:
 #if provisional dataset previously existing records should not be updated only new records inserted    
 if sourceTableName.lower() == "tsv_provisional":
     mergeWithUpdate = False
+    source_business_key="GAUGE_ID,VARIABLENAME_UNIT,TIMESTAMP"
 else:
     mergeWithUpdate = True
 
@@ -90,6 +91,14 @@ sourceDataFrame = sourceDataFrame.toDF(*(c.replace(' ', '_') for c in sourceData
 if isVerifiedDataset:
     recordStart = recordStart + DateOffset(seconds=1)
 
+if(extendedProperties):
+    groupOrderBy = extendedProperties.get("GroupOrderBy")
+
+# GET LATEST RECORD OF THE BUSINESS KEY
+if(groupOrderBy):
+    
+    sourceDataFrame = GetRawLatestRecordBK(sourceDataFrame,source_businessKey,groupOrderBy,systemCode)
+
 # APPLY CLEANSED FRAMEWORK
 cleanseDataFrame = CleansedTransform(sourceDataFrame, sourceTableName.lower(), systemCode)
 cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",to_timestamp(lit(recordStart))) \
@@ -97,16 +106,6 @@ cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",to_tim
                                    .withColumn("_RecordDeleted",lit('0')) \
                                    .withColumn("_RecordStart",to_timestamp(lit(recordStart))) \
                                    .withColumn("_RecordEnd",to_timestamp(lit("9999-12-31"), "yyyy-MM-dd"))
-
-# COMMAND ----------
-
-if(extendedProperties):
-    groupOrderBy = extendedProperties.get("GroupOrderBy")
-
-# GET LATEST RECORD OF THE BUSINESS KEY
-if(groupOrderBy):
-    cleanseDataFrame = GetRawLatestRecordBK(cleanseDataFrame,businessKey,groupOrderBy,systemCode)
-
 
 # COMMAND ----------
 
