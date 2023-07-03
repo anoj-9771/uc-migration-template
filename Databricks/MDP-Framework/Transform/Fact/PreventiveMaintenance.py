@@ -16,7 +16,7 @@ TARGET = DEFAULT_TARGET
 def Transform():
     
     # ------------- TABLES ----------------- #
-    df = get_recent_cleansed_records(f"{SOURCE}","maximo","pM","changed_date","preventiveMaintenanceChangedTimestamp").alias("maximo_pM")
+    df = get_recent_records(f"{SOURCE}","maximo_pM","changed_date","preventiveMaintenanceChangedTimestamp").alias("maximo_pM")
     jobPlan_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimWorkOrderJobPlan')}").select("workOrderJobPlanNumber","workOrderJobPlanRevisionNumber","workOrderJobPlanSK").withColumn("rank",rank().over(Window.partitionBy("workOrderJobPlanNumber").orderBy(col("workOrderJobPlanRevisionNumber").desc()))) \
     .filter("rank == 1").drop("rank").cache()
     assetContract_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetContract')}").select("assetContractNumber","assetContractRevisionNumber","assetContractSK").withColumn("rank",rank().over(Window.partitionBy("assetContractNumber").orderBy(col("assetContractRevisionNumber").desc()))) \
