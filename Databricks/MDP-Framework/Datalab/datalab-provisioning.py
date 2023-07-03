@@ -34,9 +34,8 @@ clusterTemplate = {
 
 # COMMAND ----------
 
-_defaultNotebookTemplate = """
-# Databricks notebook source
 # DBTITLE 1,Welcome to $datalab$
+_defaultNotebookTemplate = """
 print("$datalab$")
 """
 

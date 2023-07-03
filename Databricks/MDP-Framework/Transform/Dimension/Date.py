@@ -206,28 +206,22 @@ def Transform():
     global df
     # ------------- TABLES ----------------- #
     df = getDate()
-    publicHolidaydf = spark.sql(
-        f"""select c.calendarDate, NVL(c.isHoliday, 'N') isHolidayFlag, c.holidayName, c.isBusinessDay, 
-    case when isBusinessDay <> 'Y' and publicHoliday is not null then 
-            lead (case when isBusinessDay = 'Y' then calendardate when isBusinessDay = 'N' then 
-                     (lead (case when isBusinessDay = 'Y' then calendardate when isBusinessDay = 'N' then
-                                    (lead (case when isBusinessDay = 'Y' then calendardate when isBusinessDay = 'N' then
-                                                (lead (calendardate) over (order by calendardate asc)) end) over (order by calendardate asc)) end) over (order by calendardate asc)) end) over (order by calendardate asc) end nextBusinessDay
-    from
-    (
-    select null as publicHoliday, null as isHoliday, null as holidayName, calendarDate, 'Y' isBusinessDay
-    from {get_table_namespace('cleansed', 'isu_scal_tt_date')} X left anti join {get_table_namespace('cleansed', 'datagov_australiapublicholidays')} Y on calendardate = date 
-    where dayofweek in (1,2,3,4,5)
-    and calendaryear > 2013
-    union
-    select Y.date publicHoliday, case when Y.date is not null then 'Y' end isHoliday, Y.holidayName, calendarDate, 'N' isBusinessDay
-    from {get_table_namespace('cleansed', 'isu_scal_tt_date')} left outer join {get_table_namespace('cleansed', 'datagov_australiapublicholidays')} Y on calendardate = date 
-    where (dayofweek in (6,7) or date is not null)
-    and calendaryear > 2013
-    ) as c""")
+
+    publicholidays_df = GetTable(f"{get_table_namespace('cleansed', 'datagov_australiapublicholidays')}") \
+    .select(col("Date").alias("publicHoliday"),"holidayName")
+
+    nextBusinessDaydf = spark.sql(f"""with workingDays as (
+    select calendarDate from {get_table_namespace('cleansed', 'isu_scal_tt_date')} where calendarDate not in (select date from {get_table_namespace('cleansed', 'datagov_australiapublicholidays')}) 
+    and `dayOfWeek` not in (6,7)
+    )
+    select x.calendarDate as calendarDatedf, y.calendardate as workingdays,lead(y.calendardate) ignore nulls over (ORDER BY x.calendardate) as nextBusinessDay
+    from {get_table_namespace('cleansed', 'isu_scal_tt_date')} x left outer join workingDays y on x.calendarDate = y.calendarDate""")
 
     # ------------- JOINS ------------------ #
-    df = df.join(publicHolidaydf,"calendarDate","left")
+    # df = df.join(publicholidays_df,"calendarDate","left")
+    df = df.join(publicholidays_df, df.calendarDate == publicholidays_df.publicHoliday, "left") \
+        .withColumn("isHolidayFlag",expr("case when publicHoliday is NOT NULL then 'Y' ELSE 'N' END ")) \
+        .join(nextBusinessDaydf, df.calendarDate == nextBusinessDaydf.calendarDatedf, "left" )
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
@@ -273,8 +267,9 @@ def Transform():
     # ------------- CLAUSES ---------------- #
 
     # ------------- SAVE ------------------- #
-#     display(df)
-#     CleanSelf()
+
+    # display(df)
+    # CleanSelf()
     Save(df)
     #DisplaySelf()
 pass
