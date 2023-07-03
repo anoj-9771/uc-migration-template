@@ -72,7 +72,7 @@ transform_df = spark.sql("""
     (14,'Fact','WorkOrderFailureReport','databricks-notebook','',12,null,1),
     (15,'Fact','AssetPerformance','databricks-notebook','',12,null,1),
     (16,'Fact','AssetPerformanceIndex','databricks-notebook','',12,null,1),
-    (17,'Bridge','BridgeWorkOrderPreventiveMaintenance','databricks-notebook','',12,null,1)
+    (17,'Bridge','WorkOrderPreventiveMaintenance','databricks-notebook','',12,null,1)
     AS (TransformID,EntityType,EntityName,ProcessorType,TargetKeyVaultSecret,InternalDependency,ExternalDependency,Enabled)
 """)
 
