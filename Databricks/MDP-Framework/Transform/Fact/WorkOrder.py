@@ -3,10 +3,6 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
-
-# COMMAND ----------
-
 TARGET = DEFAULT_TARGET
 
 # COMMAND ----------
@@ -284,40 +280,6 @@ def Transform():
     
 pass
 Transform()
-
-# COMMAND ----------
-
-CASE WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 6 THEN wo.reportedDateTime + INTERVAL 1 hour \
-    WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 5 THEN wo.reportedDateTime + INTERVAL 3 hours \
-    WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 4 THEN to_timestamp(concat(date_add(wo.reportedDateTime,1),' ',date_format(wo.reportedDateTime, 'HH:mm:ss'))) \
-    WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 3 THEN wo.nextBusinessDay \
-    WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 2 THEN to_timestamp(concat(date_add(wo.reportedDateTime,14),' ',date_format(wo.reportedDateTime, 'HH:mm:ss'))) \
-    WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 1 THEN to_timestamp(concat(add_months(cast(wo.reportedDateTime as date), 1),' ',date_format(wo.reportedDateTime, 'HH:mm:ss'))) \
-    WHEN wo.workOrderClass = 'WORKORDER' and wo.workType = 'BM' and wo.initialPriority = 0 THEN to_timestamp(concat(add_months(cast(wo.reportedDateTime as date), 1),' ',date_format(wo.reportedDateTime, 'HH:mm:ss'))) \
-    END")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select workOrderReportedTimestamp, breakdownMaintenancePriorityToleranceTimestamp,workOrderInitialPriorityCode,workOrderClassDescription from ppd_curated.fact.workorder where breakdownMaintenancePriorityToleranceTimestamp is null and workOrderWorkTypeCode = 'BM' and workOrderClassDescription = "WORKORDER"
-
-# COMMAND ----------
-
-date_df = GetTable("ppd_curated.dim.date").select("calendarDate","nextBusinessDay").alias("dte").cache()
-df = spark.sql("""select workOrderReportedTimestamp from ppd_curated.fact.workorder where workOrderWorkTypeCode = 'BM' and workOrderClassDescription = 'WORKORDER'""").alias("wo") 
-df = df.join(date_df,expr("CAST(wo.workOrderReportedTimestamp as date) = dte.calendarDate"),"left")
-df.display()
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_curated.dim.date where nextBusinessDay is  null and calendaryear > 2020 
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_cleansed.datagov.australiapublicholidays where date ='2021-10-04'
-# MAGIC --'2023-04-13'
 
 # COMMAND ----------
 

@@ -23,10 +23,13 @@
 				"startTime": "2023-07-03T09:00:00",
 				"timeZone": "AUS Eastern Standard Time",
 				"schedule": {
-					"hours": [
-						9
-					]
-				}
+                    "minutes": [
+                        30
+                    ],
+                    "hours": [
+                        7
+                    ]
+                }
 			}
 		}
 	}

@@ -21,17 +21,18 @@ def DeleteDirectoryRecursive(dirname):
 # COMMAND ----------
 
 def CleanTable(tableNameFqn):
-    try:
-        detail = spark.sql(f"DESCRIBE DETAIL {tableNameFqn}").collect()[0]
-        DeleteDirectoryRecursive(detail.location)
-    except:    
-        pass
+    # Commenting out the below code as this is not required in the Unity Catalog workspace
+    # try:
+    #     detail = spark.sql(f"DESCRIBE DETAIL {tableNameFqn}").collect()[0]
+    #     DeleteDirectoryRecursive(detail.location)
+    # except:    
+    #     pass
     
     try:
         spark.sql(f"DROP TABLE {tableNameFqn}")
     except:
         pass
-CleanTable(f"cleansed.{SystemCode}_{DestinationTableName}")      
+CleanTable(f"cleansed.{SystemCode}.{DestinationTableName}")      
 
 # COMMAND ----------
 

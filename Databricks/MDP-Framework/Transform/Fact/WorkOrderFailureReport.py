@@ -1,10 +1,12 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
+
+# COMMAND ----------
+
 
 
 # COMMAND ----------
@@ -53,16 +55,3 @@ def Transform():
     #DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select workorderfailureReportSK, count(1) from {get_table_namespace('curated', 'factworkorderfailurereport')} group by workorderfailureReportSK having count(1) > 1
-
-# COMMAND ----------
-
-
-
-# COMMAND ----------
-
-

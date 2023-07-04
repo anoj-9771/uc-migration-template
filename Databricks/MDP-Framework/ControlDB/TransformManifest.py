@@ -56,8 +56,8 @@ def ShowTransformConfig():
 from pyspark.sql.functions import lit, when, lower, expr, col
 transform_df = spark.sql("""
     SELECT * FROM VALUES
-    (1,'Fact','AssetDemandValue','databricks-notebook','',null,'iicats',1),
-    (2,'Fact','Demand','databricks-notebook','',1,null,1),
+    (1,'Fact','AssetDemandValue','databricks-notebook','',null,'iicats',0),
+    (2,'Fact','Demand','databricks-notebook','',1,null,0),
     (3,'Dim','AssetContract','databricks-notebook','',null,'maximo',1),
     (4,'Dim','AssetLocation','databricks-notebook','',null,'maximo',1),
     (5,'Dim','WorkOrderJobPlan','databricks-notebook','',null,'maximo',1),
@@ -68,7 +68,7 @@ transform_df = spark.sql("""
     (10,'Dim','AssetMeter','databricks-notebook','',7,null,1),
     (11,'Dim','AssetSpec','databricks-notebook','',7,null,1),
     (12,'Fact','WorkOrder','databricks-notebook','',7,null,1),
-    (13,'Fact','PreventiveMaintenance','databricks-notebook','',6,null,1),
+    (13,'Fact','PreventiveMaintenance','databricks-notebook','',7,null,0),
     (14,'Fact','WorkOrderFailureReport','databricks-notebook','',12,null,1),
     (15,'Fact','AssetPerformance','databricks-notebook','',12,null,1),
     (16,'Fact','AssetPerformanceIndex','databricks-notebook','',12,null,1),
