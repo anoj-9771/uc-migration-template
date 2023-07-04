@@ -24,9 +24,9 @@ def Transform():
                                 
     # ------------- JOINS ------------------ #    
     intern_servReq_df = (
-        crm_crmd_brelvonae_df.where("B.objectTypeB = 'BUS2000223' and B.objectTypeA = 'BUS2000126'") 
-          .join(factinteraction_df,expr("IR.customerInteractionGUID = B.objectKeyA"), "Inner") 
-          .join(factservicerequest_df,expr("(SR.customerserviceRequestGUID = B.objectKeyB) "),"Inner") 
+        crm_crmd_brelvonae_df.where("B.objectTypeB = 'BUS2000126' and B.objectTypeA = 'BUS2000223'") 
+          .join(factinteraction_df,expr("IR.customerInteractionGUID = B.objectKeyB"), "Inner") 
+          .join(factservicerequest_df,expr("(SR.customerserviceRequestGUID = B.objectKeyA) "),"Inner") 
           .filter(expr("B.objectKeyB <> B.objectKeyA"))  
           .selectExpr("IR.customerInteractionSK as customerInteractionFK","SR.customerServiceRequestSK as customerServiceRequestFK","IR.customerInteractionId as customerInteractionId", "SR.customerServiceRequestId as customerServiceRequestId", "'Interaction - Service Request' as relationshipType")
     )  

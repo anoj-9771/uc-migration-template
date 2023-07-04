@@ -8,10 +8,12 @@
 
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
+
+# COMMAND ----------
+
 
 
 # COMMAND ----------
@@ -67,14 +69,15 @@ crmDF = spark.sql(f""" Select distinct R.surveyID surveyId,
                                     CAST(NULL as string)    as surveyResponseStatusIndicator,
                                     CAST(NULL as timestamp) as surveyResponseRecordedTimestamp,
                                     'CRM' as sourceSystemCode
-                                    FROM  cleansed.crm_0crm_srv_req_inci_h I  
-                                    INNER JOIN cleansed.crm_crmd_link L on I.serviceRequestGUID = L.hiGUID and setobjecttype = 58
-                                    INNER JOIN cleansed.crm_crmd_survey S on S.setGUID = L.setGUID
-                                    INNER JOIN (Select * , split_part(surveyValueKeyAttribute, '/',1) as questionID from cleansed.crm_crm_svy_db_sv SV1 where surveyValuesVersion = (Select max(surveyValuesVersion) from cleansed.crm_crm_svy_db_sv where surveyValuesGUID = SV1.surveyValuesGUID )) SV on SV.surveyValuesGUID = S.surveyValuesGuid
-                                    INNER JOIN cleansed.crm_crm_svy_re_quest R ON R.questionID = SV.questionID and SV.surveyValuesVersion = R.surveyVersion  
-                                    INNER JOIN cleansed.crm_crm_svy_db_s SDB on R.surveyID = SDB.surveyID and R.surveyVersion = SDB.surveyVersion 
-                                    INNER JOIN cleansed.crm_0svy_qstnnr_text Q on  Q.questionnaireId = R.questionnaire
-                                    INNER JOIN cleansed.crm_0svy_quest_text QT on QT.questionnaireId = Q.questionnaireId AND QT.surveyQuestionId = R.questionId 
+                                    FROM  {getEnv()}cleansed.crm.0crm_srv_req_inci_h I  
+                                    INNER JOIN {getEnv()}cleansed.crm.crmd_link L on I.serviceRequestGUID = L.hiGUID and setobjecttype = 58
+                                    INNER JOIN {getEnv()}cleansed.crm.crmd_survey S on S.setGUID = L.setGUID
+                                    INNER JOIN (Select * , split_part(surveyValueKeyAttribute, '/',1) as questionID from {getEnv()}cleansed.crm.crm_svy_db_sv SV1 where surveyValuesVersion = (Select max(surveyValuesVersion) 
+                                    from {getEnv()}cleansed.crm.crm_svy_db_sv where surveyValuesGUID = SV1.surveyValuesGUID )) SV on SV.surveyValuesGUID = S.surveyValuesGuid
+                                    INNER JOIN {getEnv()}cleansed.crm.crm_svy_re_quest R ON R.questionID = SV.questionID and SV.surveyValuesVersion = R.surveyVersion  
+                                    INNER JOIN {getEnv()}cleansed.crm.crm_svy_db_s SDB on R.surveyID = SDB.surveyID and R.surveyVersion = SDB.surveyVersion 
+                                    INNER JOIN {getEnv()}cleansed.crm.0svy_qstnnr_text Q on  Q.questionnaireId = R.questionnaire
+                                    INNER JOIN {getEnv()}cleansed.crm.0svy_quest_text QT on QT.questionnaireId = Q.questionnaireId AND QT.surveyQuestionId = R.questionId 
                                     WHERE R.surveyID != 'Z_BILLASSIST_SURVEY'  """)
 
 

@@ -156,11 +156,32 @@ def _ValidateBK(sourceDataFrame):
 # COMMAND ----------
 
 def dummyRecord(schema):
-    rows = [lit(-1) if field.name.endswith('SK')
-            else lit('UNKNOWN') if isinstance(field.dataType, StringType)
-            else None for field in schema]
-    df = spark.createDataFrame([tuple(rows)], schema)
-    return df
+    record = []
+    for field in schema.fields:
+        if isinstance(field.dataType, StringType):
+            record.append('UNKNOWN')
+        # elif field.name.endswith('SK'):
+        #     record.append(-1)
+        # elif field.name == ('_recordStart'):
+        #     record.append(-1)
+        # elif field.name == ('_recordEnd'):
+        #     record.append(-1)
+        # elif field.name == ('_recordCurrent'):
+        #     record.append(1)
+        # elif field.name == ('_recordDeleted'):
+        #     record.append(0)
+        # elif field.name == ("_DLCuratedZoneTimeStamp"):
+        #     record.append(-1)
+        else:
+            record.append(None)
+    return record
+
+# def dummyRecord(schema):
+#     rows = [lit(-1) if field.name.endswith('SK')
+#            else lit('UNKNOWN') if isinstance(field.dataType, StringType)
+#             else None for field in schema]
+#     df = spark.createDataFrame([tuple(rows)], schema)
+#     return df
 
 # COMMAND ----------
 
@@ -217,7 +238,7 @@ def _InjectSK(dataFrame):
     df = dataFrame
     #df = df.withColumn(skName, expr(f"XXHASH64(CONCAT(date_format(now(), '{DATE_FORMAT}'), '-', {_.Name}_BK), 512)"))
     # df = df.withColumn(skName, expr(f"CONCAT(date_format(now(), '{DATE_FORMAT}'), '-', {_.BK})"))
-    df = df.withColumn(skName, md5(expr(f"concat({_.BK},'|',_recordStart)")))
+    df = df.withColumn(skName, when(col(f"{_.BK}") == lit("UNKNOWN"), lit("-1")).otherwise(md5(expr(f"concat({_.BK},'|',_recordStart)"))))
     #df = df.withColumn(skName, expr(f"XXHASH64({_.Name}_BK, 512) || DATE_FORMAT(NOW(), '{DATE_FORMAT}')"))
     #df = df.withColumn(skName, expr(f"CAST((XXHASH64({_.Name}_BK, 512) || DATE_FORMAT(NOW(), '{DATE_FORMAT}')) AS BIGINT)"))
     #df = df.withColumn(skName, expr(f"CAST(LEFT({_.Name}_SK, 32) AS BIGINT)"))
@@ -430,47 +451,30 @@ def getCDFFromToVersion(sourceTableName):
 
 
 #Get all the datafeed version of source after the last version of Target Delta Table.
-def getSourceCDF(catalogNm, sourceTableName, changeColumns, catchUpMode = True):
-    spark.sql(f"USE CATALOG {get_env()}{catalogNm}")
+def getSourceCDF(sourceTableName, changeColumns = [], duplicateCheck = True):
+    sourceTableName = f"{getEnv()}{sourceTableName}"
+    #spark.sql(f"USE CATALOG {getEnv()}{catalogNm}")
     destDF = DeltaTable.forName(spark, _.Destination)
     history = destDF.history().toPandas()
     lastTimeStamp = pd.to_datetime(history['timestamp'].max())
-    srcDF = DeltaTable.forName(spark, f"{get_env()}{sourceTableName}")
+    srcDF = DeltaTable.forName(spark, f"{sourceTableName}")
     srcHistory = srcDF.history().toPandas()
     processVers = srcHistory[pd.to_datetime(srcHistory['timestamp']) > lastTimeStamp ] ['version']
     if processVers.empty:
         return None 
     versFrm = processVers.min()
     versTo  = processVers.max()
-    env = getClusterEnv() 
-    if catchUpMode:
-        try:
-            if env == 'PREPROD':
-                cdfDF = spark.sql(f"""SELECT * FROM table_changes('ppd_'{sourceTableName}, {versFrm}, {versTo} )""")
-            elif env == 'PROD':
-                cdfDF = spark.sql(f"""SELECT * FROM table_changes({sourceTableName}, {versFrm}, {versTo} )""")
-
+    try:
+        cdfDF = (spark.read.format("delta").option("readChangeFeed", "true") 
+                                           .option("startingVersion", versFrm) 
+                                           .option("endingVersion", versTo) 
+                                           .table(sourceTableName))
+        if duplicateCheck:
             cdfDF = handleDuplicateBusinessData(cdfDF, changeColumns)
-            return cdfDF
-        except AnalysisException as e:
-            return None
-    else:
-        cdfDF = None
-        for vers in processVers:
-            try:
-                if env == 'PREPROD':
-                    cdfDF = spark.sql(f"""SELECT * FROM table_changes('ppd_'{sourceTableName}, {versFrm}, {versTo} )""")
-                elif env == 'PROD':
-                    cdfDF = spark.sql(f"""SELECT * FROM table_changes({sourceTableName}, {versFrm}, {versTo} )""")
-
-                vDF = handleDuplicateBusinessData(vDF, changeColumns)
-                if cdfDF is None:
-                    cdfDF = vDF
-                else:
-                    cdfDF = cdfDF.unionByName(vDF)
-            except AnalysisException as e:
-                pass
         return cdfDF
+    except AnalysisException as e:
+        return None
+   
     
 #call to process CDF
 def SaveWithCDF(sourceDataFrame, mode):
@@ -481,14 +485,14 @@ def SaveWithCDF(sourceDataFrame, mode):
         # Adjust _RecordStart date for first load
         sourceDataFrame = (sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
                            .drop(col('_change_type')))
-        sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
+        sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None        
         CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
         EndNotebook(sourceDataFrame)
         return
     
     if mode == 'APPEND':
         sourceDataFrame = sourceDataFrame.drop(col('_change_type'))
-        AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        AppendCDFTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
     elif mode == 'SCD2':    
         mergeCDFTableSCD2(sourceDataFrame, targetTableFqn,_.BK,_.SK)
     elif mode == 'SCD1':

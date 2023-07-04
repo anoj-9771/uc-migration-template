@@ -111,7 +111,7 @@ def mergeCDFTableSCD2(sourceDataFrame, targetTableFqn, BK, SK):
                               .withColumn("_change_type", lit("update")))
 
     if updateDF is not None:
-        sourceDF = sourceDataFrame.UnionByName(updateDF)
+        sourceDF = sourceDataFrame.unionByName(updateDF)
     else:
         sourceDF = sourceDataFrame
 
@@ -194,6 +194,21 @@ def mergeCDFSCD1(sourceDataFrame, targetTableFqn, BK, SK):
                        "_recordDeleted": "0"
                     }
         ).execute())
+
+# COMMAND ----------
+
+def AppendCDFTable(sourceDataFrame, targetTableFqn, BK, SK):
+    sourceDataFrame = sourceDataFrame.filter(col("_change_type") == lit("insert"))
+    selectColumns = [col for col in sourceDataFrame.columns if not (col.endswith('SK'))]
+    sourceDataFrame = (sourceDataFrame.withColumns(f"{SK}", md5(expr(f"concat({_.BK},'|',{DEFAULT_START_DATE})")))
+                                      .withColumns("_DLCuratedZoneTimeStamp", expr("now()"))
+                                      .withColumns("_recordStart", expr("now()"))
+                                      .withColumns("_recordEnd", expr("to_timestamp('9999-12-31 00:00:00')"))
+                                      .withColumns("_recordCurrent", lit("1"))
+                                      .withColumns("_recordDeleted", lit("0"))
+                      )
+    print("Appending CDF")
+    AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)
 
 # COMMAND ----------
 

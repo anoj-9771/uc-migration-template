@@ -89,6 +89,7 @@ def AppendDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = Non
     
     CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys)
     
+
 # COMMAND ----------
 
 def delete_files_recursive(file_path: str) -> None:
@@ -154,3 +155,20 @@ def getClusterEnv():
     clustTags = json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags"))
     env = [x['value'] for x in clustTags if x['key'] == 'Environment'][0]
     return env
+
+# COMMAND ----------
+
+def getEnv() -> str:
+    """centralised function to get prefix for the environment's catalogs"""
+    rg_id = dbutils.secrets.get('ADS', 'databricks-workspace-resource-id')
+
+    if 'dev' in rg_id:
+        return 'dev_'
+    elif 'test' in rg_id:
+        return 'test_'
+    elif 'preprod' in rg_id:
+        return 'ppd_'
+    elif 'prod' in rg_id:
+        return ''
+    else:
+        raise Exception 
