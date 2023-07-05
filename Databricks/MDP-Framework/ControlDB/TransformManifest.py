@@ -68,7 +68,7 @@ transform_df = spark.sql("""
     (10,'Dim','AssetMeter','databricks-notebook','',7,null,1),
     (11,'Dim','AssetSpec','databricks-notebook','',7,null,1),
     (12,'Fact','WorkOrder','databricks-notebook','',7,null,1),
-    (13,'Fact','PreventiveMaintenance','databricks-notebook','',7,null,0),
+    (13,'Fact','PreventiveMaintenance','databricks-notebook','',7,null,1),
     (14,'Fact','WorkOrderFailureReport','databricks-notebook','',12,null,1),
     (15,'Fact','AssetPerformance','databricks-notebook','',12,null,1),
     (16,'Fact','AssetPerformanceIndex','databricks-notebook','',12,null,1),

@@ -15,6 +15,10 @@
 
 # COMMAND ----------
 
+
+
+# COMMAND ----------
+
 def Transform():
     global df
     # ------------- TABLES ----------------- #
@@ -31,7 +35,7 @@ def Transform():
     locoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper")).drop('site') \
     .withColumn("assetLocationFacilityShortCode", expr("LEFT(facility,2)")) \
     .alias('OP')
-    location_df = GetTable(get_table_name(f"{SOURCE}","maximo","locations")).select(col("location").alias("facility"),col("Description").alias("facilityDescription")).alias('FAC')
+    location_df = GetTable(get_table_name(f"{SOURCE}","maximo","locations")).select(col("location").alias("facility"),col("Description").alias("facilityDescription"),business_date).withColumn("rank",rank().over(Window.partitionBy("facility").orderBy(col(business_date).desc()))).filter("rank == 1").drop("rank", business_date).alias('FAC')
     swchierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","swchierarchy")).select("code",col("description").alias("operationalAreaDescription")).alias('HI')
 
     
