@@ -26,9 +26,9 @@ def Transform():
     target_date ="assetSpecChangedTimestamp"
     df = get_recent_records(f"{SOURCE}","maximo_assetSpec",business_date,target_date)
     dimAsset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetSK","assetNumber")
-    class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure")).select("classStructure",'classification',col('description').alias('classPath'))
-    classification_df = GetTable(get_table_name(f"{SOURCE}","maximo","classification")).select('classification',col('description').alias('classificationDescription'))
-    measure_unit_df = GetTable(get_table_name(f"{SOURCE}","maximo","measureUnit")).select("unitOfMeasure",col("description").alias("unitOfMeasureDescription"))
+    class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure")).filter("_RecordDeleted == 0").select("classStructure",'classification',col('description').alias('classPath'))
+    classification_df = GetTable(get_table_name(f"{SOURCE}","maximo","classification")).filter("_RecordDeleted == 0").select('classification',col('description').alias('classificationDescription'))
+    measure_unit_df = GetTable(get_table_name(f"{SOURCE}","maximo","measureUnit")).filter("_RecordDeleted == 0").select("unitOfMeasure",col("description").alias("unitOfMeasureDescription"))
    
     # ------------- JOINS ------------------ #
     
@@ -73,7 +73,7 @@ def Transform():
     try:
         # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
         existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
-        matched_df = existing_data.join(df.select("assetSK", "assetSpecAttributeIdentifier", "assetSpecLinearSpecificationId", "assetSpecSectionCode",col("sourceValidFromTimestamp").alias("new_changed_date")),["assetSK", "assetSpecAttributeIdentifier", "assetSpecLinearSpecificationId", "assetSpecSectionCode"],"inner")\
+        matched_df = existing_data.join(df.select("assetFK", "assetSpecAttributeIdentifier", "assetSpecLinearSpecificationId", "assetSpecSectionCode",col("sourceValidFromTimestamp").alias("new_changed_date")),["assetFK", "assetSpecAttributeIdentifier", "assetSpecLinearSpecificationId", "assetSpecSectionCode"],"inner")\
         .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
 
         matched_df =matched_df.withColumn("sourceValidToTimestamp",expr("new_changed_date - INTERVAL 1 SECOND")) \

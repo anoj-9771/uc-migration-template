@@ -1,10 +1,12 @@
 # Databricks notebook source
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
+# COMMAND ----------
 
 # MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
+
+# COMMAND ----------
+
 
 
 # COMMAND ----------
@@ -13,7 +15,7 @@ def Transform():
     global df
     # ------------- TABLES ----------------- #
     
-    df = GetTable(get_table_name(f"{SOURCE}","maximo","swcProblemType")).select("problemTypeId","problemType","description","rowstamp","leakbreak") \
+    df = GetTable(get_table_name(f"{SOURCE}","maximo","swcProblemType")).filter("_RecordDeleted == 0").select("problemTypeId","problemType","description","rowstamp","leakbreak") \
     .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \
     .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)"))
     df = load_sourceValidFromTimeStamp(df)

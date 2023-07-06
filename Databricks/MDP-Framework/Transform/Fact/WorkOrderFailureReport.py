@@ -18,9 +18,9 @@ TARGET = DEFAULT_TARGET
 def Transform():
     global df
     # ------------- TABLES ----------------- #
-    df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'maximo_failurereport')}")
+    df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'maximo_failurereport')}").filter("_RecordDeleted == 0")
     factworkorder_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factWorkOrder')}").select("workOrderCreationId","workOrderSK","assetFK","workOrderChangeTimestamp")
-    failureCode_df = GetTable(get_table_name(f"{SOURCE}","maximo","failureCode")).select("failureCode",col("description").alias("failureDescription"))
+    failureCode_df = GetTable(get_table_name(f"{SOURCE}","maximo","failureCode")).filter("_RecordDeleted == 0").select("failureCode",col("description").alias("failureDescription"))
     
     # ------------- JOINS ------------------ #
     df = df.join(failureCode_df,"failureCode", "left") \

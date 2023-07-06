@@ -21,7 +21,7 @@ def Transform():
     .withColumn("changedDate_date_part",to_date(col("changedDate"))) \
     .withColumn("rank",rank().over(workOrder_windowSpec.orderBy(col("changedDate").desc()))) \
     .filter("rank == 1").drop("rank")
-    child_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder")).select(col("workOrder").alias("childWorkOrder"),col("parentWo").alias("childParentWo"),col("workOrderClass").alias("childWorkOrderClass")).filter("childWorkOrderClass == 'WORKORDER'").filter("childParentWo is not null").drop_duplicates().cache()
+    child_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder")).filter("_RecordDeleted == 0").select(col("workOrder").alias("childWorkOrder"),col("parentWo").alias("childParentWo"),col("workOrderClass").alias("childWorkOrderClass")).filter("childWorkOrderClass == 'WORKORDER'").filter("childParentWo is not null").drop_duplicates().cache()
     df = df.join(child_df,df.workOrder == child_df.childParentWo,"left")
     df = df.withColumn("hasChildren", expr("case when childWorkOrder is not null then 'YES' else 'NO' end")).drop("childWorkOrderClass","childParentWo","childWorkOrder").drop_duplicates()
 
@@ -34,13 +34,13 @@ def Transform():
     .filter("rank == 1").drop("rank").cache()
     problemType_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimWorkOrderProblemType')}").select(col("workOrderProblemTypeName").alias("dim_problemType"),"workOrderProblemTypeSK","sourceValidFromTimestamp","sourceValidToTimestamp").drop_duplicates().cache()
     
-    swchierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","swchierarchy")).select("code",col("description").alias("serviceDepartmentDesc")).drop_duplicates().cache()
-    swcwoext_df = GetTable(get_table_name(f"{SOURCE}","maximo","swcwoext")).select("workOrderId","externalStatus","externalStatusDate").drop_duplicates().cache()    
+    swchierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","swchierarchy")).filter("_RecordDeleted == 0").select("code",col("description").alias("serviceDepartmentDesc")).drop_duplicates().cache()
+    swcwoext_df = GetTable(get_table_name(f"{SOURCE}","maximo","swcwoext")).filter("_RecordDeleted == 0").select("workOrderId","externalStatus","externalStatusDate").drop_duplicates().cache()    
     
     pm_df = spark.sql(f"""select * from
-        (select pm.pm, pm.frequency, pm.frequencyUnits, row_number() over(partition by pm.pm order by pm.changeddate desc) as rownumb from {get_env()}{SOURCE}.maximo.pm pm) dt where rownumb = 1""").cache()
+        (select pm.pm, pm.frequency, pm.frequencyUnits, row_number() over(partition by pm.pm order by pm.changeddate desc) as rownumb from {get_env()}{SOURCE}.maximo.pm pm where _RecordDeleted = 0) dt where rownumb = 1""").cache()
     
-    parent_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder")).select(col("workOrder").alias("parentWorkOrder"),col("serviceContract").alias("parentServiceContract"),col("pm").alias("parentpm")) \
+    parent_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder")).filter("_RecordDeleted == 0").select(col("workOrder").alias("parentWorkOrder"),col("serviceContract").alias("parentServiceContract"),col("pm").alias("parentpm")) \
     .join(pm_df.select(col("pm").alias("parentpm"), col("frequency").alias("parent_frequency"),col("frequencyUnits").alias("parent_frequencyUnits")),"parentpm","left").cache()
 
 
@@ -48,7 +48,7 @@ def Transform():
     
     # WorkOrder Status table has multiple entries for the same date. Curated requirement is to pick the first record when the status changed.
     woStatus_windowSpec  = Window.partitionBy("woWorkOrder","woStatus")
-    wo_status_df = GetTable(get_table_name(f"{SOURCE}","maximo","woStatus")).filter("Status in ('SCHED','INPRG','CAN','APPR','COMP','CLOSE','FINISHED')").select(col("workOrder").alias("woWorkOrder"),col("Status").alias("woStatus"),col("statusDate").alias("woStatusDate")) \
+    wo_status_df = GetTable(get_table_name(f"{SOURCE}","maximo","woStatus")).filter("_RecordDeleted == 0").filter("Status in ('SCHED','INPRG','CAN','APPR','COMP','CLOSE','FINISHED')").select(col("workOrder").alias("woWorkOrder"),col("Status").alias("woStatus"),col("statusDate").alias("woStatusDate")) \
     .withColumn("rank",rank().over(woStatus_windowSpec.orderBy(col("woStatusDate")))) \
     .filter("rank == 1").drop("rank")
     pivot_df = wo_status_df.groupBy("woWorkOrder").pivot("woStatus").agg(min(col("woStatusDate")))
@@ -61,12 +61,11 @@ def Transform():
         .withColumn("workOrderClosedDate",pivot_df.CLOSE)\
         .withColumn("workOrderFinishedDate",pivot_df.FINISHED)
    
-    log_status_minDate_df = spark.sql(f"""SELECT DISTINCT WL.record as workOrder, MIN(to_date(WL.workLogDate)) as workOrderAcceptedLogStatusMinDate, WL.status as log_status FROM {get_table_name(f"{SOURCE}","maximo","worklog")} WL WHERE WL.status = 'ACCEPTED' GROUP BY wl.record,wl.status""").cache()
+    log_status_minDate_df = spark.sql(f"""SELECT DISTINCT WL.record as workOrder, MIN(to_date(WL.workLogDate)) as workOrderAcceptedLogStatusMinDate, WL.status as log_status FROM {get_table_name(f"{SOURCE}","maximo","worklog")} WL WHERE WL.status = 'ACCEPTED' and _RecordDeleted = 0 GROUP BY wl.record,wl.status""").cache()
    
-    related_record_df = spark.sql(f"""SELECT                 
-    RR.recordKey, COUNT(DISTINCT(WOR.workOrder)) AS relatedCorrectiveMaintenanceWorkOrderCount from
+    related_record_df = spark.sql(f"""SELECT RR.recordKey, COUNT(DISTINCT(WOR.workOrder)) AS relatedCorrectiveMaintenanceWorkOrderCount from
     (select * from (
-            select recordKey, row_number() over(partition by recordKey order by rowStamp desc) as rownumb from {get_table_name(f"{SOURCE}","maximo","relatedrecord")}
+            select recordKey, row_number() over(partition by recordKey order by rowStamp desc) as rownumb from {get_table_name(f"{SOURCE}","maximo","relatedrecord")} where _RecordDeleted = 0
             )dt where rownumb = 1) RR 
     inner join {get_table_name(f"{SOURCE}","maximo","workorder")} WOR on RR.recordKey = WOR.originatingRecord
     AND WOR.workType ='CM'
@@ -280,7 +279,3 @@ def Transform():
     
 pass
 Transform()
-
-# COMMAND ----------
-
-

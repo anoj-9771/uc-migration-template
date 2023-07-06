@@ -20,18 +20,18 @@ def create_temp_table(dataframe):
     spark.sql("drop table if exists temp.dimAsset_temp")
     temp_df = dataframe
     
-    asset_location_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").select(col("assetLocationName").alias("location"),"assetLocationSK","assetLocationTypeCode","assetLocationFacilityShortCode")
-    class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure")).select("classStructure","classification",col("description").alias("classificationPath"))
-    classification_df = GetTable(get_table_name(f"{SOURCE}","maximo","classification")).select("classification",col("description").alias("classificationDescription"))
-    astmeter_df = GetTable(get_table_name(f"{SOURCE}","maximo","assetMeter")).filter("meter in ('CAG_ROMP','EXPTOTALLIFE')").select("asset","meter", "lastReading")
+    asset_location_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").filter("_RecordDeleted == 0").select(col("assetLocationName").alias("location"),"assetLocationSK","assetLocationTypeCode","assetLocationFacilityShortCode")
+    class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure")).filter("_RecordDeleted == 0").select("classStructure","classification",col("description").alias("classificationPath"))
+    classification_df = GetTable(get_table_name(f"{SOURCE}","maximo","classification")).filter("_RecordDeleted == 0").select("classification",col("description").alias("classificationDescription"))
+    astmeter_df = GetTable(get_table_name(f"{SOURCE}","maximo","assetMeter")).filter("_RecordDeleted == 0").filter("meter in ('CAG_ROMP','EXPTOTALLIFE')").select("asset","meter", "lastReading")
 
     pivot_meter_df = astmeter_df.groupBy("asset").pivot("meter").agg(min(col("lastReading")))
     
-    locspc_df = spark.sql(f"""select lsp.location, lsp.numericValue as loc_numericValue from {get_table_name(f"{SOURCE}","maximo","locationspec")} lsp where lsp.attribute = 'COF_SCORE'""").select("location","loc_numericValue")
+    locspc_df = spark.sql(f"""select lsp.location, lsp.numericValue as loc_numericValue from {get_table_name(f"{SOURCE}","maximo","locationspec")} lsp where lsp.attribute = 'COF_SCORE' and _RecordDeleted = 0""").select("location","loc_numericValue")
     
-    asset_spec_df =spark.sql(f"""select * except(rownumb) from ((select asset, attribute, alphanumericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from {get_table_namespace('cleansed', 'maximo_assetspec')} where attribute in ("MAIN_TYPE","SEWER_FUNCTION","PURPOSE","PIPE_SIZE","VALVE_SIZE","HORIZONTAL_LENGTH","SEWER_MATERIAL","WATER_TYPE","LATESTREHABTYPE","CROSS_SECTION","MAINTENANCE_STRATEGY","WATERMAIN_PIPETYPE"))
+    asset_spec_df =spark.sql(f"""select * except(rownumb) from ((select asset, attribute, alphanumericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from {get_table_namespace('cleansed', 'maximo_assetspec')} where attribute in ("MAIN_TYPE","SEWER_FUNCTION","PURPOSE","PIPE_SIZE","VALVE_SIZE","HORIZONTAL_LENGTH","SEWER_MATERIAL","WATER_TYPE","LATESTREHABTYPE","CROSS_SECTION","MAINTENANCE_STRATEGY","WATERMAIN_PIPETYPE") and _RecordDeleted = 0)
     UNION
-    (select asset, attribute, numericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from {get_table_namespace('cleansed', 'maximo_assetspec')} where attribute = "COF_SCORE")
+    (select asset, attribute, numericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from {get_table_namespace('cleansed', 'maximo_assetspec')} where attribute = "COF_SCORE" and _RecordDeleted = 0)
     )dt where rownumb = 1""".format(get_table_name(f"{SOURCE}","maximo","assetspec")))
     pivot_df = asset_spec_df.groupBy("asset").pivot("attribute").agg(min(col("val")))
     

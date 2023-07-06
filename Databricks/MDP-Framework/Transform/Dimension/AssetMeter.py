@@ -26,8 +26,8 @@ def Transform():
     df = load_sourceValidFromTimeStamp(df,business_date)
 
     asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetSK","assetNumber")
-    meter_df = GetTable(get_table_name(f"{SOURCE}","maximo","meter")).select("meter",col("description").alias("assetMeterDescription"))
-    measure_unit_df = GetTable(get_table_name(f"{SOURCE}","maximo","measureUnit")).select("unitOfMeasure",col("description").alias("unitOfMeasureDescription"))
+    meter_df = GetTable(get_table_name(f"{SOURCE}","maximo","meter")).filter("_RecordDeleted == 0").select("meter",col("description").alias("assetMeterDescription"))
+    measure_unit_df = GetTable(get_table_name(f"{SOURCE}","maximo","measureUnit")).filter("_RecordDeleted == 0").select("unitOfMeasure",col("description").alias("unitOfMeasureDescription"))
    
     # ------------- JOINS ------------------ #
     

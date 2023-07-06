@@ -512,7 +512,7 @@ def get_recent_records(layer, table, business_date, target_date):
     except Exception as e:
         print(f"{target_table_name} table does not exist.This is first load")
         df = spark.sql(f"""select * from {source_table_name}""")
-    return df
+    return df.filter("_RecordDeleted == 0")
 
 # COMMAND ----------
 

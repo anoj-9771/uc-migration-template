@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+# CleanSelf()
+
+# COMMAND ----------
+
 def monthly_Transform():
     df = spark.sql(f"""SELECT
 assetNumber||'|'||reportingYear||'|'|| reportingMonth||'|'||calculationTypeCode||'|'||orderID {BK},                   
@@ -191,26 +195,26 @@ inner join
 	from 
 	(
 	  select workOrder, asset, worktype, taskcode, parentWo, originatingRecord, reportedDateTime, workorderClass, fCId, serviceType, STATUS
-	  from {get_env()}cleansed.maximo.workorder 
+	  from {get_env()}cleansed.maximo.workorder where _RecordDeleted = 0
 	  qualify row_number() over(partition by workOrder order by changedDate desc) =1
 	) WORKORDER
 	left join 
 	(
 	  SELECT failurecode, workOrder 
-	  FROM {get_env()}cleansed.maximo.FAILUREREPORT WHERE TYPE = 'REMEDY' 
+	  FROM {get_env()}cleansed.maximo.FAILUREREPORT WHERE TYPE = 'REMEDY' and _RecordDeleted = 0
 	) b 
 	on b.workOrder=WORKORDER.workOrder 
 	left join 
 	(
 	  select asset, workOrder 
-	  from {get_env()}cleansed.maximo.workorder 
+	  from {get_env()}cleansed.maximo.workorder where _RecordDeleted = 0
 	  qualify row_number() over(partition by workOrder order by changedDate desc) =1
 	)parentWO 
 	on parentWO.workOrder = WORKORDER.parentWo
 	left join 
 	(
 	  select asset,workorder  
-	  from {get_env()}cleansed.maximo.workorder 
+	  from {get_env()}cleansed.maximo.workorder where _RecordDeleted = 0
 	  qualify row_number() over(partition by workOrder order by changedDate desc) =1
 	)oriWO
 	on oriWO.workorder = WORKORDER.originatingRecord
@@ -491,28 +495,28 @@ inner join
 	from 
 	(
 	  select workOrder, asset, worktype, taskcode, parentWo, originatingRecord, reportedDateTime, workorderClass, fCId, serviceType, STATUS
-	  from {get_env()}cleansed.maximo.workorder 
-	  qualify row_number() over(partition by workOrder order by changedDate desc) =1
+	  from {get_env()}cleansed.maximo.workorder where _RecordDeleted = 0
+	  qualify row_number() over(partition by workOrder order by changedDate desc) =1	
 	) WORKORDER
 	left join 
 	(
 	  SELECT failurecode, workOrder 
-	  FROM {get_env()}cleansed.maximo.FAILUREREPORT WHERE TYPE = 'REMEDY' 
+	  FROM {get_env()}cleansed.maximo.FAILUREREPORT WHERE TYPE = 'REMEDY' and _RecordDeleted = 0
 	) b 
 	on b.workOrder=WORKORDER.workOrder 
 	left join 
 	(
 	  select asset, workOrder 
-	  from {get_env()}cleansed.maximo.workorder 
+	  from {get_env()}cleansed.maximo.workorder where _RecordDeleted = 0
 	  qualify row_number() over(partition by workOrder order by changedDate desc) =1
-	)parentWO 
+    )parentWO 
 	on parentWO.workOrder = WORKORDER.parentWo
 	left join 
 	(
 	  select asset,workorder  
-	  from {get_env()}cleansed.maximo.workorder 
+	  from {get_env()}cleansed.maximo.workorder where _RecordDeleted = 0
 	  qualify row_number() over(partition by workOrder order by changedDate desc) =1
-	)oriWO
+    )oriWO
 	on oriWO.workorder = WORKORDER.originatingRecord
 	where 
 	(
@@ -706,7 +710,7 @@ CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRA
 
  FROM 
  ( 
- 		SELECT DISTINCT (da.assetNumber) as ASSETNUM
+ 		SELECT DISTINCT (da.assetNumber) as ASSETNUM, da.assetSK
 		FROM 
 		( 
 		  select *  
@@ -746,9 +750,9 @@ inner join
 	  serviceType as SWCSERVTYPE, 
 	  fcid as FINCNTRLID, 
 	  reportedDateTime as REPORTDATE
-	  from {get_env()}cleansed.maximo.workorder 
+	  from {get_env()}cleansed.maximo.workorder where _RecordDeleted = 0
 	  qualify row_number() over(partition by workOrder order by changedDate desc) =1
-	) WORKORDER
+    ) WORKORDER
 ON DT.ASSETNUM = WORKORDER.ASSETNUM
 WHERE
 WORKORDER.WORKTYPE = 'BM' AND
@@ -987,26 +991,26 @@ LAST_DAY(ADD_MONTHS(cal.monthEndDate,-MONTHS.M+1-12)) COMPARISON_PERIOD_END_DATE
         from 
         (
         select workOrder, asset, worktype, taskcode, parentWo, originatingRecord, reportedDateTime, workorderClass, fCId, serviceType, STATUS
-        from {get_table_namespace('cleansed', 'maximo_workorder')} 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} where _RecordDeleted = 0
         qualify row_number() over(partition by workOrder order by changedDate desc) =1
         ) WORKORDER
         left join 
         (
         SELECT failurecode, workOrder 
-        FROM {get_table_namespace('cleansed', 'MAXIMO_FAILUREREPORT')} WHERE TYPE = 'REMEDY' 
+        FROM {get_table_namespace('cleansed', 'MAXIMO_FAILUREREPORT')} WHERE TYPE = 'REMEDY' and _RecordDeleted = 0
         ) b 
         on b.workOrder=WORKORDER.workOrder 
         left join 
         (
         select asset, workOrder 
-        from {get_table_namespace('cleansed', 'maximo_workorder')} 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} where _RecordDeleted = 0
         qualify row_number() over(partition by workOrder order by changedDate desc) =1
         )parentWO 
         on parentWO.workOrder = WORKORDER.parentWo
         left join 
         (
         select asset,workorder  
-        from {get_table_namespace('cleansed', 'maximo_workorder')} 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} where _RecordDeleted = 0
         qualify row_number() over(partition by workOrder order by changedDate desc) =1
         )oriWO
         on oriWO.workorder = WORKORDER.originatingRecord
@@ -1292,26 +1296,26 @@ CASE WHEN EXTRACT (MONTH FROM cal.monthEndDate) IN (1,2,3,4,5,6) THEN TO_DATE((E
         from 
         (
         select workOrder, asset, worktype, taskcode, parentWo, originatingRecord, reportedDateTime, workorderClass, fCId, serviceType, STATUS
-        from {get_table_namespace('cleansed', 'maximo_workorder')} 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} where _RecordDeleted = 0
         qualify row_number() over(partition by workOrder order by changedDate desc) =1
         ) WORKORDER
         left join 
         (
         SELECT failurecode, workOrder 
-        FROM {get_table_namespace('cleansed', 'MAXIMO_FAILUREREPORT')} WHERE TYPE = 'REMEDY' 
+        FROM {get_table_namespace('cleansed', 'MAXIMO_FAILUREREPORT')} WHERE TYPE = 'REMEDY' and _RecordDeleted = 0
         ) b 
         on b.workOrder=WORKORDER.workOrder 
         left join 
         (
         select asset, workOrder 
-        from {get_table_namespace('cleansed', 'maximo_workorder')} 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} where _RecordDeleted = 0
         qualify row_number() over(partition by workOrder order by changedDate desc) =1
         )parentWO 
         on parentWO.workOrder = WORKORDER.parentWo
         left join 
         (
         select asset,workorder  
-        from {get_table_namespace('cleansed', 'maximo_workorder')} 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} where _RecordDeleted = 0
         qualify row_number() over(partition by workOrder order by changedDate desc) =1
         )oriWO
         on oriWO.workorder = WORKORDER.originatingRecord
@@ -1553,7 +1557,7 @@ CASE WHEN EXTRACT (MONTH FROM cal.monthEndDate) IN (1,2,3,4,5,6) THEN TO_DATE((E
         serviceType as SWCSERVTYPE, 
         fcid as FINCNTRLID, 
         reportedDateTime as REPORTDATE
-        from {get_table_namespace('cleansed', 'maximo_workorder')} 
+        from {get_table_namespace('cleansed', 'maximo_workorder')} where _RecordDeleted = 0
         qualify row_number() over(partition by workOrder order by changedDate desc) =1
         ) WORKORDER
     ON DT.ASSETNUM = WORKORDER.ASSETNUM
@@ -1580,7 +1584,7 @@ CASE WHEN EXTRACT (MONTH FROM cal.monthEndDate) IN (1,2,3,4,5,6) THEN TO_DATE((E
     # print(df.count())
     return df
     #DisplaySelf()
-pass
+
 
 
 # COMMAND ----------
@@ -1596,7 +1600,3 @@ except:
 finally:
     df = mdf.union(ydf)
     Save(df)
-
-# COMMAND ----------
-
-

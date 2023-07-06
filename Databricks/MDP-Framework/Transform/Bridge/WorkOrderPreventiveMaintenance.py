@@ -23,6 +23,7 @@ def Transform():
                     inner join {get_table_name(f"{SOURCE}","maximo","workOrder")} wo on fwo.workOrderCreationId = wo.workOrder
                     inner join {get_table_name(f"{SOURCE}","maximo","pM")} pm on wo.pM = pm.pM
                     inner join {get_table_namespace(f'{TARGET}', 'factpreventivemaintenance')} fpm on fpm.preventiveMaintenanceID = pm.pM
+                    where wo._RecordDeleted = 0 and pm._RecordDeleted = 0
                    """).drop_duplicates()
       
                                 
@@ -47,7 +48,7 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-    CleanSelf()
+    # CleanSelf()
     Save(df)
 #     DisplaySelf()
 pass

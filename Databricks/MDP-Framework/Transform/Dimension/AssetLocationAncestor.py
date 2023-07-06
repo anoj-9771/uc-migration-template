@@ -24,17 +24,19 @@ def Transform():
     # ------------- TABLES ----------------- #
     business_date = "changedDate"
     target_date = "assetLocationAncestorChangedTimestamp"
+    locationanc_windowSpec  = Window.partitionBy("location","changedDate_date_part")
     df = get_recent_records(f"{SOURCE}","maximo_locations", business_date, target_date) \
+    .withColumn("changedDate_date_part",to_date(col("changedDate"))) \
     .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \
-    .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)"))
+    .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)")).withColumn("rank",rank().over(locationanc_windowSpec.orderBy(col(business_date).desc()))).filter("rank == 1").drop("rank")
     df = load_sourceValidFromTimeStamp(df,business_date)
 
     assetLocation_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").filter("_recordCurrent == 1").select("assetLocationSK",col("assetLocationName").alias("location"))
-    locoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper"))
-    ancLocoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper")).select(col("location").alias("ancestorLocation"),col("locoperLevel").alias("ancestorLevel"))
-    lochierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","lochierarchy")).select(col("location").alias("lochierarchy_location"),"parent","children","lochierarchySystem")
-    locancestor_df = GetTable(get_table_name(f"{SOURCE}","maximo","locancestor")).select(col("location").alias("locancestor_location"),"searchLocationHierarchy","locancestorSystem")
-    locations_df = GetTable(get_table_name(f"{SOURCE}","maximo","locations")).select(col("location").alias("ancestorLocation"),col("description").alias("ancestorDescription"))
+    locoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper")).filter("_RecordDeleted == 0")
+    ancLocoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper")).filter("_RecordDeleted == 0").select(col("location").alias("ancestorLocation"),col("locoperLevel").alias("ancestorLevel"))
+    lochierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","lochierarchy")).filter("_RecordDeleted == 0").select(col("location").alias("lochierarchy_location"),"parent","children","lochierarchySystem")
+    locancestor_df = GetTable(get_table_name(f"{SOURCE}","maximo","locancestor")).filter("_RecordDeleted == 0").select(col("location").alias("locancestor_location"),"searchLocationHierarchy","locancestorSystem")
+    locations_df = GetTable(get_table_name(f"{SOURCE}","maximo","locations")).withColumn("rank",rank().over(Window.partitionBy("location").orderBy(col(business_date).desc()))).filter("rank == 1").drop("rank").filter("_RecordDeleted == 0").select(col("location").alias("ancestorLocation"),col("description").alias("ancestorDescription"))
     
     # ------------- JOINS ------------------ #
     
@@ -47,7 +49,7 @@ def Transform():
     .withColumn("parent", when(lochierarchy_df.parent == locations_df.ancestorLocation, 'Yes').otherwise('No')) 
 
     df=df.withColumn("locationAncestorSystem",df.locancestorSystem)
-    df = df.withColumn("etl_key",concat_ws('|',df.locationAncestorSystem,df.location,df.ancestorLocation, df.changedDate)) \
+    df = df.withColumn("etl_key",concat_ws('|',df.locationAncestorSystem,df.location,df.ancestorLocation, df.changedDate_date_part)) \
     .withColumn("sourceBusinessKey",concat_ws('|',df.locationAncestorSystem,df.location,df.ancestorLocation)) 
 
     # ------------- TRANSFORMS ------------- #
