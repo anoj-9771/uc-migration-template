@@ -42,23 +42,6 @@ print("$datalab$")
 # COMMAND ----------
 
 dataLabRequest = {
-    "name" : "asset_performance"
-    ,"use_compute": False
-    ,"use_files": False
-    ,"install_libraries": []
-    ,"group_members": [
-        "i2k"
-        ,"lpv"
-        ,"wiu"
-        ,"vx5"
-        ,"wiu"
-        ,"3bj"
-    ]
-}
-
-# COMMAND ----------
-
-dataLabRequest = {
     "name" : "datalab03"
     ,"use_compute": True
     ,"use_files": True
@@ -125,7 +108,3 @@ def CreateDatalab(request):
         print(PutObjectPermissions("directories", [i for i in GetWorkspaceStatus("/datalab")["objects"] if name in i["path"]][0]["object_id"], [ { "group_name": groupName, "permission_level": "CAN_MANAGE" } ]))
 
 #CreateDatalab(dataLabRequest)
-
-# COMMAND ----------
-
-
