@@ -12,24 +12,25 @@ clusterTemplate = {
         "min_workers": 1,
         "max_workers": 1
     },
-    "spark_version": "12.2.x-scala2.12",
+    "spark_version": "13.0.x-scala2.12",
     "spark_conf": {
         "spark.sql.session.timeZone": "Australia/Sydney",
         "spark.databricks.delta.preview.enabled": "true"
     },
-    "azure_attributes": {},
-    "ssh_public_keys": [],
+    "data_security_mode" : "USER_ISOLATION",
+    "autotermination_minutes": 20,
     "custom_tags": {
         "product" : "Datalab"
-        ,"datalab" : ""
+        ,"datalab" : "<datalab_name>"
     },
-    "spark_env_vars": {
-    },
-    "autotermination_minutes": 20,
+    "azure_attributes": {},
+    "ssh_public_keys": [],
+    "spark_env_vars": {},
     "init_scripts": [],
     "instance_pool_id": GetPoolIdByName("pool-small"),
-    "driver_instance_pool_id": GetPoolIdByName("pool-small"),
-    "runtime_engine": "PHOTON"
+    "driver_instance_pool_id": GetPoolIdByName("pool-small")
+    # ENABLE PHOTON LATER
+    #,"runtime_engine": "PHOTON" 
 }
 
 # COMMAND ----------
