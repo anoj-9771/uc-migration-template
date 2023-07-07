@@ -92,7 +92,7 @@ REQUIRED_DATES as
 	FROM
 	(        
         -- select date'2022-06-30' minDate,
-        --     date'2023-05-23' maxDate
+        --     date'2023-07-03' maxDate
 
         select 
         coalesce((select max(reportDate) + 1 from {TARGET_TABLE}),
@@ -209,7 +209,11 @@ ASSET_CALC as
 	       ,assetTypeCode
 	       ,assetCode
 	      --  ,readValueNumber - prevReadValueNumber resultValueNumber
-         ,if(assetTypeCode = 'Reservoir',readValueNumber - prevReadValueNumber,if(readValueNumber - prevReadValueNumber < 0.00,readValueNumber, readValueNumber - prevReadValueNumber)) resultValueNumber        
+           ,if(assetTypeCode = 'Reservoir'
+              ,readValueNumber - prevReadValueNumber
+              ,if(readValueNumber - prevReadValueNumber < 0.00
+                 ,if(readValueNumber > 300.00,0,readValueNumber)
+                 ,readValueNumber - prevReadValueNumber)) resultValueNumber        
 	       ,readValueNumber
 	       ,transform(array_remove(array(
             flowmeterDeviceErrorText
@@ -477,3 +481,7 @@ def Transform():
     Save(df, append=True)
     #DisplaySelf()
 Transform()
+
+# COMMAND ----------
+
+
