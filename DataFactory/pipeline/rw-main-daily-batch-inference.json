@@ -37,6 +37,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "DatabricksSecret",
@@ -290,6 +294,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "CSRFToken",
@@ -390,7 +398,8 @@
 							"type": "Expression"
 						},
 						"DatabricksVersion": "12.2.x-cpu-ml-scala2.12",
-						"newClusterNumOfWorker": "1:4"
+						"newClusterNumOfWorker": "1:4",
+						"ProductTag": "Riverwatch"
 					}
 				}
 			},
@@ -436,6 +445,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "AemSubscriptionKey",
@@ -487,6 +500,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "BaseAemUrl",
@@ -577,6 +594,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "JobPoolId",
@@ -661,6 +682,10 @@
 									]
 								}
 							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
 							"userProperties": [],
 							"typeProperties": {
 								"variableName": "PipelineJobID",
@@ -724,6 +749,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "CurrentModelRuntime",
@@ -745,6 +774,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "LastModelRuntime",
@@ -768,7 +801,7 @@
 			},
 			"BatchPoolName": {
 				"type": "string",
-				"defaultValue": "pool-small-v3"
+				"defaultValue": "RIVERWATCH_POOL"
 			}
 		},
 		"variables": {

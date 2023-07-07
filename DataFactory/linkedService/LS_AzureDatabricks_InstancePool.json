@@ -17,6 +17,10 @@
 			"newClusterNumOfWorker": {
 				"type": "string",
 				"defaultValue": "1:8"
+			},
+			"ProductTag": {
+				"type": "string",
+				"defaultValue": "Framework ETL"
 			}
 		},
 		"annotations": [],
@@ -43,7 +47,10 @@
 				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
 			},
 			"newClusterCustomTags": {
-				"Product": "Framework ETL"
+				"Product": {
+					"value": "@linkedService().ProductTag",
+					"type": "Expression"
+				}
 			},
 			"newClusterVersion": "@linkedService().DatabricksVersion",
 			"newClusterInitScripts": [],
