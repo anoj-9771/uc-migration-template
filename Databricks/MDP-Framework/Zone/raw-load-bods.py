@@ -1,72 +1,59 @@
 # Databricks notebook source
-#Define Widgets/Parameters
-dbutils.widgets.text("task", "", "Task")
-dbutils.widgets.text("rawPath", "", "rawPath")
-
-# COMMAND ----------
-
 # MAGIC %run ../Common/common-include-all
 
 # COMMAND ----------
 
 task = dbutils.widgets.get("task")
-#rawPath = dbutils.widgets.get("rawPath").replace("/raw", "/mnt/datalake-raw")
-
-# COMMAND ----------
-
 j = json.loads(task)
- 
-rawPath = j.get("RawPath").replace("/raw", "/mnt/datalake-raw")  
+rawFolderPath = j.get("RawPath").replace("/raw", "/mnt/datalake-raw")  
 schemaName = j.get("DestinationSchema")
 tableName = j.get("DestinationTableName")
 rawTargetPath = j.get("RawPath")
 watermarkColumn = j.get("WatermarkColumn")
 sourceQuery = j.get("SourceQuery")
-rawFolderPath = rawPath
- 
-if ("json" in rawTargetPath):
-    fileFormat = "JSON"
-    fileOptions = ", multiline \"true\",recursiveFileLookup \"true\", inferSchema \"true\", allowUnquotedFieldNames \"true\", allowSingleQuotes \"true\", allowBackslashEscapingAnyCharacter \"true\", allowUnquotedControlChars \"true\", columnNameOfCorruptRecord \"true\""
-else:
-    fileFormat = "PARQUET"
+rawManifestPath = rawFolderPath.replace(tableName, f"{tableName}_MANIFEST")
 
 # COMMAND ----------
 
+# FILE DOESN'T EXIST
 try:
-    df = spark.read\
-        .format(fileFormat) \
-        .option("inferSchema","true")\
-        .option("allowUnquotedFieldNames","true")\
-        .option("allowSingleQuotes","true")\
-        .option("allowBackslashEscapingAnyCharacter","true")\
-        .option("allowUnquotedControlChars","true")\
-        .option("recursiveFileLookup",True)\
-        .option("mode","FAILFAST")\
-        .load(rawFolderPath)
-except Exception:
-    print('Problem - trying multiline = true')
-    df = spark.read\
-        .format(fileFormat) \
-        .option("multiline", "true")\
-        .option("inferSchema","true")\
-        .option("allowUnquotedFieldNames","true")\
-        .option("allowSingleQuotes","true")\
-        .option("allowBackslashEscapingAnyCharacter","true")\
-        .option("allowUnquotedControlChars","true")\
-        .option("recursiveFileLookup",True)\
-        .option("mode","PERMISSIVE")\
-        .option("columnNameOfCorruptRecord","corrupt_record")\
-        .load(rawFolderPath)
-finally:
-    current_record_count = df.count()
-    print("Records read : " + str(current_record_count))
+    dbutils.fs.ls(rawFolderPath)
+except:
+    dbutils.notebook.exit({"SinkRowCount": 0, "Warning" : "File doesn't exist!"})
+
+# MANIFEST DOESN'T EXIST
+try:
+    dbutils.fs.ls(rawManifestPath)
+except:
+    dbutils.notebook.exit({"SinkRowCount": 0, "Warning" : "Manifest doesn't exist!"})
+
+# READ MANIFEST, IF DELTA_RECORD_COUNT=0
+manifestRow = spark.read.format("JSON").load(rawManifestPath)
+if manifestRow.count() > 0:
+    dbutils.notebook.exit({"SinkRowCount": 0, "Warning" : "No rows!"})
+if manifestRow.collect()[0].DELTA_RECORD_COUNT == 0:
+    dbutils.notebook.exit({"SinkRowCount": 0, "Warning" : "Delta count is 0!"})
 
 # COMMAND ----------
 
-# DBTITLE 1,Exit Notebook If No Records
-if current_record_count == 0 or len(df.columns) <= 1:
-    print("Exiting Notebook as no records to process")
-    dbutils.notebook.exit({"SinkRowCount": 0})
+df = (spark.read
+    .format("JSON")
+    .option("inferSchema", True)
+    .option("allowUnquotedFieldNames", True)
+    .option("allowSingleQuotes", True)
+    .option("allowBackslashEscapingAnyCharacter", True)
+    .option("allowUnquotedControlChars", True)
+    .option("recursiveFileLookup", True)
+)
+try:
+    raise Exception("")
+    df = (df.option("mode", "FAILFAST")
+            .load(rawFolderPath))
+except Exception:
+    print("Problem - trying multiline = true")
+    df = (df.option("mode", "PERMISSIVE")
+            .option("columnNameOfCorruptRecord", "corrupt_record")
+            .load(rawFolderPath))
 
 # COMMAND ----------
 
@@ -75,12 +62,5 @@ df=df.withColumn("_DLRawZoneTimeStamp",current_timestamp())
 tableFqn = get_table_name('raw', schemaName, tableName)
 dataLakePath = "/".join(rawPath.split("/")[0:5])+"/delta"
 AppendDeltaTable(df, tableFqn, dataLakePath)
-# if watermarkColumn:
-#     AppendDeltaTable(df, tableFqn, dataLakePath)
-# else:
-#     CreateDeltaTable(df, tableFqn, dataLakePath)
-
-# COMMAND ----------
-
 SinkRowCount = spark.table(tableFqn).count()
 dbutils.notebook.exit({"SinkRowCount": SinkRowCount})

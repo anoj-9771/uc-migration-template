@@ -200,42 +200,11 @@ def PinCluster(id):
 
 # COMMAND ----------
 
-def CreatePool(template):
-    headers = GetAuthenticationHeader()
-    url = f'{INSTANCE_NAME}/api/2.0/instance-pools/create'
-    response = requests.post(url, json=template, headers=headers)
-    jsonResponse = response.json()
-    print(jsonResponse)
-#CreatePool(poolMedium)
-
-# COMMAND ----------
-
-def EditPool(id):
-    headers = GetAuthenticationHeader()
-    url = f'{INSTANCE_NAME}/api/2.0/instance-pools/edit'
-    instancePoolTemplate["instance_pool_id"] = id
-    response = requests.post(url, json=instancePoolTemplate, headers=headers)
-    jsonResponse = response.json()
-    print(jsonResponse)
-
-# COMMAND ----------
-
-def GetPool(id):
-    headers = GetAuthenticationHeader()
-    url = f'{INSTANCE_NAME}/api/2.0/instance-pools/get'
-    instancePoolTemplate["instance_pool_id"] = id
-    response = requests.get(url, headers=headers, data=instancePoolTemplate)
-    jsonResponse = response.json()
-    return jsonResponse
-
-# COMMAND ----------
-
 def ListPools():
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/instance-pools/list'
     response = requests.get(url, headers=headers)
-    jsonResponse = response.json()
-    return jsonResponse
+    return response.json()
 
 # COMMAND ----------
 
@@ -244,6 +213,30 @@ def GetPoolIdByName(name):
     if len(v) == 0:
         raise Exception(f"{name} Not found!")
     return v[0]["instance_pool_id"] 
+
+# COMMAND ----------
+
+def GetPool(id):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/instance-pools/get'
+    response = requests.get(url, json={"instance_pool_id" : id}, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
+def CreatePool(template):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/instance-pools/create'
+    response = requests.post(url, json=template, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
+def EditPool(template):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/instance-pools/edit'
+    response = requests.post(url, json=template, headers=headers)
+    return response.json()
 
 # COMMAND ----------
 
