@@ -18,7 +18,7 @@ lookup-crm-status-text,Cleansed.crm_tj30t,statusProfile||'||'||statusCode,status
 lookup-crm-source,Cleansed.crm_zcst_source,sourceCode,source,
 lookup-crm-service-team,Cleansed.crm_0bpartner_attr,businessPartnerNumber,nameGroup2,"{""filter"": ""businessPartnerCategoryCode = 2""}"
 lookup-crm-partner-function-text,Cleansed.crm_crmc_partner_ft,partnerFunctionCode,partnerFunctionDescription,
-lookup-crm-domain-text,Cleansed.crm_dd07t,domainName||'||'||domainValueKey,domainValueText,
+lookup-crm-domain-text,Cleansed.crm_dd07t,domainName||'||'||domainValueSingleUpperLimit,domainValueText,
 lookup-crm-communication-channel,Cleansed.crm_0crm_category_text,categoryCode,categoryDescription,
 lookup-crm-email-status,Cleansed.crm_crmd_erms_stas_t,emailStatusID,emailStatus,
 lookup-isu-billing-class,Cleansed.isu_0uc_aklasse_text,billingClassCode,billingClass,
