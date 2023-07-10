@@ -481,3 +481,10 @@ ExecuteStatement("""
                             END
     WHERE SystemCode in ('swirldata','swirlref')
     """)
+
+# COMMAND ----------
+
+ExecuteStatement("""
+    UPDATE controldb.dbo.extractloadmanifest
+    SET ExtendedProperties = '{"RawTableNameMatchSource":"True","CleansedQuery":"SELECT * FROM (SELECT *,ROW_NUMBER() OVER (PARTITION BY bms_id ORDER BY  _DLRawZoneTimeStamp DESC) rn FROM {tableFqn} WHERE _DLRawZoneTimeStamp > ''{lastLoadTimeStamp}'') WHERE rn=1"}'
+    WHERE (SystemCode in ('swirldata'))""")
