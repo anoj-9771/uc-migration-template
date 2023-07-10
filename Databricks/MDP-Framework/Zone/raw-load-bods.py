@@ -43,12 +43,11 @@ df = (spark.read
     .option("recursiveFileLookup", True)
 )
 try:
-    raise Exception("")
-    df = (df.option("mode", "FAILFAST")
-            .load(rawFolderPath))
+    df = (df.option("mode", "FAILFAST").load(rawFolderPath))
 except Exception:
     print("Problem - trying multiline = true")
-    df = (df.option("mode", "PERMISSIVE")
+    df = (df.option("multiline", "true")
+            .option("mode", "PERMISSIVE")
             .option("columnNameOfCorruptRecord", "corrupt_record")
             .load(rawFolderPath))
 
