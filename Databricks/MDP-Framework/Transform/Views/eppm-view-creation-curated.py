@@ -220,10 +220,10 @@ spark.sql(f"""
 CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceMasterHistory AS
 SELECT * FROM
 (
-    SELECT 
+    SELECT
     '' as itemDetailGUID
     ,itemHist.projectId as itemDetailId
-    ,'' as itemDetailIdDescription
+    ,itemTx.projectDescription as itemDetailIdDescription
     ,buck.bucketGuid as bucketGUID
     ,buckTx.bucketIdDescription
     ,itemHist.bucketId
@@ -300,6 +300,7 @@ SELECT * FROM
 
     FROM {get_env()}cleansed.ppm.ds_historical_data itemHist
     LEFT ANTI JOIN {get_env()}cleansed.ppm.rpm_item_d itemAnti ON itemAnti.itemDetailId = itemHist.projectId
+    LEFT JOIN {get_env()}cleansed.ppm.ds_project_text itemTx ON itemTx.projectId = itemHist.projectId
     LEFT JOIN {get_env()}cleansed.ppm.rpm_status_t statTx ON statTx.projectApprovalStatusId = itemHist.projectStatus
     LEFT JOIN {get_env()}cleansed.fin.0costcenter_text rescTx ON rescTx.costCenterNumber = itemHist.responsibleCostCentre AND rescTx.controllingArea = '1000' AND rescTx.validToDate ='9999-12-31'
     LEFT JOIN {get_env()}cleansed.ppm.zept_del_partner dpTx ON dpTx.deliveryPartnerKey = itemHist.deliveryPartner
@@ -327,7 +328,7 @@ SELECT * FROM
 )
 UNION
 
-    SELECT 
+    SELECT
     item.itemDetailGUID
     ,item.itemDetailId
     ,item.itemDetailIdDescription
