@@ -3,14 +3,6 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
-
-# COMMAND ----------
-
-
-
-# COMMAND ----------
-
 TARGET = DEFAULT_TARGET
 
 # COMMAND ----------
@@ -23,7 +15,7 @@ def Transform():
                     inner join {get_table_name(f"{SOURCE}","maximo","workOrder")} wo on fwo.workOrderCreationId = wo.workOrder
                     inner join {get_table_name(f"{SOURCE}","maximo","pM")} pm on wo.pM = pm.pM
                     inner join {get_table_namespace(f'{TARGET}', 'factpreventivemaintenance')} fpm on fpm.preventiveMaintenanceID = pm.pM
-                    where wo._RecordDeleted = 0 and pm._RecordDeleted = 0
+                    where wo._RecordDeleted = 0 and pm._RecordDeleted = 0 and fpm._recordCurrent =1 and fpm._recordDeleted = 0 and fwo._recordCurrent =1 and fwo._recordDeleted = 0
                    """).drop_duplicates()
       
                                 
@@ -53,7 +45,3 @@ def Transform():
 #     DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-

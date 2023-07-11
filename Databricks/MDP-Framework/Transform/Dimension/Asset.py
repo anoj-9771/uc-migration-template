@@ -3,10 +3,6 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
-
-# COMMAND ----------
-
 TARGET = DEFAULT_TARGET
 
 # COMMAND ----------
@@ -20,23 +16,38 @@ def create_temp_table(dataframe):
     spark.sql("drop table if exists temp.dimAsset_temp")
     temp_df = dataframe
     
-    asset_location_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").filter("_RecordDeleted == 0").select(col("assetLocationName").alias("location"),"assetLocationSK","assetLocationTypeCode","assetLocationFacilityShortCode")
-    class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure")).filter("_RecordDeleted == 0").select("classStructure","classification",col("description").alias("classificationPath"))
-    classification_df = GetTable(get_table_name(f"{SOURCE}","maximo","classification")).filter("_RecordDeleted == 0").select("classification",col("description").alias("classificationDescription"))
-    astmeter_df = GetTable(get_table_name(f"{SOURCE}","maximo","assetMeter")).filter("_RecordDeleted == 0").filter("meter in ('CAG_ROMP','EXPTOTALLIFE')").select("asset","meter", "lastReading")
+    asset_location_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}")\
+        .filter("_recordCurrent == 1").filter("_recordDeleted == 0")\
+        .select("assetLocationName","assetLocationSK","assetLocationTypeCode","assetLocationFacilityShortCode","sourceValidFromTimestamp","sourceValidToTimestamp")
+
+    class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure"))\
+        .filter("_RecordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("classStructure").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .select("classStructure","classification",col("description").alias("classificationPath"))
+    
+    classification_df = GetTable(get_table_name(f"{SOURCE}","maximo","classification"))\
+        .filter("_RecordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("classification").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .select("classification",col("description").alias("classificationDescription"))
+    
+    astmeter_df = GetTable(get_table_name(f"{SOURCE}","maximo","assetMeter"))\
+        .filter("_RecordDeleted == 0")\
+        .filter("meter in ('CAG_ROMP','EXPTOTALLIFE')").select("asset","meter", "lastReading")
 
     pivot_meter_df = astmeter_df.groupBy("asset").pivot("meter").agg(min(col("lastReading")))
     
-    locspc_df = spark.sql(f"""select lsp.location, lsp.numericValue as loc_numericValue from {get_table_name(f"{SOURCE}","maximo","locationspec")} lsp where lsp.attribute = 'COF_SCORE' and _RecordDeleted = 0""").select("location","loc_numericValue")
+    locspc_df = spark.sql(f"""select lsp.location, lsp.numericValue as loc_numericValue, rowStamp from {get_table_name(f"{SOURCE}","maximo","locationspec")} lsp where lsp.attribute = 'COF_SCORE' and _RecordDeleted = 0""")\
+        .withColumn("rank",rank().over(Window.partitionBy("location").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .select("location","loc_numericValue")
     
-    asset_spec_df =spark.sql(f"""select * except(rownumb) from ((select asset, attribute, alphanumericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from {get_table_namespace('cleansed', 'maximo_assetspec')} where attribute in ("MAIN_TYPE","SEWER_FUNCTION","PURPOSE","PIPE_SIZE","VALVE_SIZE","HORIZONTAL_LENGTH","SEWER_MATERIAL","WATER_TYPE","LATESTREHABTYPE","CROSS_SECTION","MAINTENANCE_STRATEGY","WATERMAIN_PIPETYPE") and _RecordDeleted = 0)
+    asset_spec_df =spark.sql(f"""select * except(rownumb) from ((select asset, attribute, alphanumericValue as val, row_number() over(partition by asset,attribute order by rowStamp desc) as rownumb from {get_table_namespace('cleansed', 'maximo_assetspec')} where attribute in ("MAIN_TYPE","SEWER_FUNCTION","PURPOSE","PIPE_SIZE","VALVE_SIZE","HORIZONTAL_LENGTH","SEWER_MATERIAL","WATER_TYPE","LATESTREHABTYPE","CROSS_SECTION","MAINTENANCE_STRATEGY","WATERMAIN_PIPETYPE") and _RecordDeleted = 0)
     UNION
-    (select asset, attribute, numericValue as val, row_number() over(partition by asset,attribute order by changedDate desc) as rownumb from {get_table_namespace('cleansed', 'maximo_assetspec')} where attribute = "COF_SCORE" and _RecordDeleted = 0)
+    (select asset, attribute, numericValue as val, row_number() over(partition by asset,attribute order by rowStamp desc) as rownumb from {get_table_namespace('cleansed', 'maximo_assetspec')} where attribute = "COF_SCORE" and _RecordDeleted = 0)
     )dt where rownumb = 1""".format(get_table_name(f"{SOURCE}","maximo","assetspec")))
     pivot_df = asset_spec_df.groupBy("asset").pivot("attribute").agg(min(col("val")))
     
     # ------------- JOINS ------------------ #    
-    temp_df = temp_df.join(asset_location_df,"location","left") \
+    temp_df = temp_df.join(asset_location_df,(temp_df.location == asset_location_df.assetLocationName) & (temp_df.changedDate.between (asset_location_df.sourceValidFromTimestamp,asset_location_df.sourceValidToTimestamp)),"left").drop("sourceValidFromTimestamp","sourceValidToTimestamp") \
     .join(locspc_df,"location","left") \
     .join(class_structure_df,"classStructure","left") \
     .join(classification_df,"classification","left") \
@@ -78,7 +89,7 @@ def Transform():
     business_date = "changedDate"
     target_date = "assetChangedTimestamp"
     windowSpec  = Window.partitionBy("asset")
-    create_temp_table(get_recent_records(f"{SOURCE}","maximo_asset",business_date,target_date).withColumn("rank",rank().over(windowSpec.orderBy(col(business_date).desc()))).filter("rank == 1").drop("rank"))
+    create_temp_table(get_recent_records(f"{SOURCE}","maximo_asset",business_date,target_date).withColumn("rank",rank().over(windowSpec.orderBy(col("rowStamp").desc()))).filter("rank == 1").drop("rank"))
     df = spark.sql(f"""select
         da.*, COALESCE(rrc.return1Code,rrc2.return1Code,"Other") as assetTypeGroupDescription,
         case
@@ -162,19 +173,7 @@ def Transform():
     # ------------- CLAUSES ---------------- #
 
     # ------------- SAVE ------------------- #
-    # Updating Business SCD columns for existing records
-    try:
-        # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
-        existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
-        matched_df = existing_data.join(df.select("assetNumber",col("sourceValidFromTimestamp").alias("new_changed_date")),"assetNumber","inner")\
-        .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
-
-        matched_df =matched_df.withColumn("sourceValidToTimestamp",expr("new_changed_date - INTERVAL 1 SECOND")) \
-        .withColumn("sourceRecordCurrent",expr("CAST(0 AS INT)"))
-
-        df = df.unionByName(matched_df.selectExpr(df.columns))
-    except Exception as exp:
-        print(exp)
+   
 
 #     display(df)
     Save(df)
@@ -182,8 +181,4 @@ def Transform():
     
 pass
 Transform()
-
-
-# COMMAND ----------
-
 

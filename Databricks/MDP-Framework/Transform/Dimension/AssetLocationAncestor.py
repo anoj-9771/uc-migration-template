@@ -3,14 +3,6 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
-
-# COMMAND ----------
-
-
-
-# COMMAND ----------
-
 TARGET = DEFAULT_TARGET
 
 # COMMAND ----------
@@ -27,20 +19,42 @@ def Transform():
     locationanc_windowSpec  = Window.partitionBy("location","changedDate_date_part")
     df = get_recent_records(f"{SOURCE}","maximo_locations", business_date, target_date) \
     .withColumn("changedDate_date_part",to_date(col("changedDate"))) \
-    .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \
-    .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)")).withColumn("rank",rank().over(locationanc_windowSpec.orderBy(col(business_date).desc()))).filter("rank == 1").drop("rank")
-    df = load_sourceValidFromTimeStamp(df,business_date)
+    .withColumn("rank",rank().over(locationanc_windowSpec.orderBy(col("rowStamp").desc()))).filter("rank == 1").drop("rank")
+    
 
-    assetLocation_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").filter("_recordCurrent == 1").select("assetLocationSK",col("assetLocationName").alias("location"))
-    locoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper")).filter("_RecordDeleted == 0")
-    ancLocoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper")).filter("_RecordDeleted == 0").select(col("location").alias("ancestorLocation"),col("locoperLevel").alias("ancestorLevel"))
-    lochierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","lochierarchy")).filter("_RecordDeleted == 0").select(col("location").alias("lochierarchy_location"),"parent","children","lochierarchySystem")
-    locancestor_df = GetTable(get_table_name(f"{SOURCE}","maximo","locancestor")).filter("_RecordDeleted == 0").select(col("location").alias("locancestor_location"),"searchLocationHierarchy","locancestorSystem")
-    locations_df = GetTable(get_table_name(f"{SOURCE}","maximo","locations")).withColumn("rank",rank().over(Window.partitionBy("location").orderBy(col(business_date).desc()))).filter("rank == 1").drop("rank").filter("_RecordDeleted == 0").select(col("location").alias("ancestorLocation"),col("description").alias("ancestorDescription"))
+    assetLocation_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}")\
+        .filter("_recordCurrent == 1").filter("_recordDeleted == 0")\
+        .select("assetLocationName","assetLocationSK","sourceValidFromTimestamp","sourceValidToTimestamp")
+
+    windowSpec = Window.partitionBy("location")
+    locoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper"))\
+        .filter("_RecordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("location","locoperLevel").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .drop("rank","rowStamp")
+    
+    ancLocoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper"))\
+        .filter("_RecordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("location","locoperLevel").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .select(col("location").alias("ancestorLocation"),col("locoperLevel").alias("ancestorLevel"))
+        
+    lochierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","lochierarchy"))\
+        .filter("_RecordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("location","parent","children","lochierarchySystem").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .select(col("location").alias("lochierarchy_location"),"parent","children","lochierarchySystem")
+
+    locancestor_df = GetTable(get_table_name(f"{SOURCE}","maximo","locancestor"))\
+        .filter("_RecordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("location","locancestorSystem","searchLocationHierarchy").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .select(col("location").alias("locancestor_location"),"searchLocationHierarchy","locancestorSystem")
+
+    locations_df = GetTable(get_table_name(f"{SOURCE}","maximo","locations"))\
+        .withColumn("rank",rank().over(windowSpec.orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .filter("_RecordDeleted == 0")\
+        .select(col("location").alias("ancestorLocation"),col("description").alias("ancestorDescription"))
     
     # ------------- JOINS ------------------ #
     
-    df = df.join(assetLocation_df,"location","left") \
+    df = df.join(assetLocation_df,(df.location == assetLocation_df.assetLocationName) & (df.changedDate.between (assetLocation_df.sourceValidFromTimestamp,assetLocation_df.sourceValidToTimestamp)),"left").drop("sourceValidFromTimestamp","sourceValidToTimestamp") \
     .join(locoper_df,"location","left") \
     .join(lochierarchy_df,df.location==lochierarchy_df.lochierarchy_location,"left") \
     .join(locancestor_df,(df.location == locancestor_df.locancestor_location) & (coalesce(lochierarchy_df.lochierarchySystem, locancestor_df.locancestorSystem) == locancestor_df.locancestorSystem),"left") \
@@ -50,7 +64,11 @@ def Transform():
 
     df=df.withColumn("locationAncestorSystem",df.locancestorSystem)
     df = df.withColumn("etl_key",concat_ws('|',df.locationAncestorSystem,df.location,df.ancestorLocation, df.changedDate_date_part)) \
-    .withColumn("sourceBusinessKey",concat_ws('|',df.locationAncestorSystem,df.location,df.ancestorLocation)) 
+    .withColumn("sourceBusinessKey",concat_ws('|',df.locationAncestorSystem,df.location,df.ancestorLocation)) \
+    .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \
+    .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)"))\
+
+    df = load_sourceValidFromTimeStamp(df,business_date)
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
@@ -64,7 +82,7 @@ def Transform():
         ,"ancestorLocation assetLocationAncestorName"
         ,"ancestorDescription assetLocationAncestorDescription"
         ,"ancestorLevel assetLocationAncestorLevelCode"
-        ,"parent assetParentLocationName"
+        ,"parent assetParentLocationFlag"
         ,"changedDate assetLocationAncestorChangedTimestamp"
         ,"sourceValidFromTimestamp"
         ,"sourceValidToTimestamp"
@@ -104,12 +122,3 @@ def Transform():
     #DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select Count(1),assetLocationAncestorSK from {get_table_namespace('curated', 'dimAssetLocationAncestor')} GROUP BY assetLocationAncestorSK having count(1)>1
-
-# COMMAND ----------
-
-

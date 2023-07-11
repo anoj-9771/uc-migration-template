@@ -3,10 +3,6 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
-
-# COMMAND ----------
-
 TARGET = DEFAULT_TARGET
 
 # COMMAND ----------
@@ -21,22 +17,33 @@ def Transform():
     business_date = "changedDate"
     target_date = "assetMeterChangeTimestamp"
     df = get_recent_records(f"{SOURCE}","maximo_assetMeter",business_date,target_date) \
-    .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \
-    .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)"))
-    df = load_sourceValidFromTimeStamp(df,business_date)
+    .withColumn("rank",rank().over(Window.partitionBy("asset","meter").orderBy(col("rowStamp").desc()))).filter("rank == 1")
 
-    asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetSK","assetNumber")
-    meter_df = GetTable(get_table_name(f"{SOURCE}","maximo","meter")).filter("_RecordDeleted == 0").select("meter",col("description").alias("assetMeterDescription"))
-    measure_unit_df = GetTable(get_table_name(f"{SOURCE}","maximo","measureUnit")).filter("_RecordDeleted == 0").select("unitOfMeasure",col("description").alias("unitOfMeasureDescription"))
+    asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}")\
+        .filter("_recordCurrent == 1").filter("_recordDeleted == 0")\
+        .select("assetSK","assetNumber","sourceValidFromTimestamp","sourceValidToTimestamp")
+        
+    meter_df = GetTable(get_table_name(f"{SOURCE}","maximo","meter"))\
+        .filter("_RecordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("meter").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .select("meter",col("description").alias("assetMeterDescription"))
+    
+    measure_unit_df = GetTable(get_table_name(f"{SOURCE}","maximo","measureUnit"))\
+        .filter("_RecordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("unitOfMeasure").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .select("unitOfMeasure",col("description").alias("unitOfMeasureDescription"))
    
     # ------------- JOINS ------------------ #
     
     df = df.join(meter_df,"meter","left") \
-    .join(asset_df,df.asset == asset_df.assetNumber,"inner") \
+    .join(asset_df,(df.asset == asset_df.assetNumber)& (df.changedDate.between (asset_df.sourceValidFromTimestamp,asset_df.sourceValidToTimestamp)),"inner").drop("sourceValidFromTimestamp","sourceValidToTimestamp") \
     .join(measure_unit_df,"unitOfMeasure","left")
 
     df = df \
-    .withColumn("sourceBusinessKey",concat_ws('|',df.assetSK, df.meter)) 
+    .withColumn("sourceBusinessKey",concat_ws('|',df.assetSK, df.meter))\
+    .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \
+    .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)"))
+    df = load_sourceValidFromTimeStamp(df,business_date)
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
@@ -62,37 +69,15 @@ def Transform():
     ]
     df = df.selectExpr(
         _.Transforms
-    )
+    ).drop_duplicates()
     # ------------- CLAUSES ---------------- #
 
     # ------------- SAVE ------------------- #
 
-    # Updating Business SCD columns for existing records
-    try:
-        # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
-        existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
-        matched_df = existing_data.join(df.select("assetFK","assetMeterName",col("sourceValidFromTimestamp").alias("new_changed_date")),["assetFK","assetMeterName"],"inner")\
-        .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
-
-        matched_df =matched_df.withColumn("sourceValidToTimestamp",expr("new_changed_date - INTERVAL 1 SECOND")) \
-        .withColumn("sourceRecordCurrent",expr("CAST(0 AS INT)"))
-
-        df = df.unionByName(matched_df.selectExpr(df.columns))
-    except Exception as exp:
-        print(exp)
-        
+  
 #     display(df)
 
     Save(df)
     #DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select assetMeterSK, count(1) from {get_table_namespace('curated', 'dimassetmeter')} group by assetMeterSK having count(1) >1
-
-# COMMAND ----------
-
-

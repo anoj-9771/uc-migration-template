@@ -19,28 +19,58 @@ def Transform():
     workOrder_windowSpec  = Window.partitionBy("workOrder","changedDate_date_part")
     df = get_recent_records(f"{SOURCE}","maximo_workOrder","changedDate","workOrderChangeTimestamp").alias("wo") \
     .withColumn("changedDate_date_part",to_date(col("changedDate"))) \
-    .withColumn("rank",rank().over(workOrder_windowSpec.orderBy(col("changedDate").desc()))) \
+    .withColumn("rank",rank().over(workOrder_windowSpec.orderBy(col("rowStamp").desc()))) \
     .filter("rank == 1").drop("rank")
-    child_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder")).filter("_RecordDeleted == 0").select(col("workOrder").alias("childWorkOrder"),col("parentWo").alias("childParentWo"),col("workOrderClass").alias("childWorkOrderClass")).filter("childWorkOrderClass == 'WORKORDER'").filter("childParentWo is not null").drop_duplicates().cache()
+
+    child_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder"))\
+        .filter("_RecordDeleted == 0")\
+        .select(col("workOrder").alias("childWorkOrder"),col("parentWo").alias("childParentWo"),col("workOrderClass").alias("childWorkOrderClass"))\
+        .filter("childWorkOrderClass == 'WORKORDER'").filter("childParentWo is not null").drop_duplicates().cache()
+    
     df = df.join(child_df,df.workOrder == child_df.childParentWo,"left")
     df = df.withColumn("hasChildren", expr("case when childWorkOrder is not null then 'YES' else 'NO' end")).drop("childWorkOrderClass","childParentWo","childWorkOrder").drop_duplicates()
 
-    asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}").select("assetNumber","assetSK","sourceValidFromTimestamp","sourceValidToTimestamp").drop_duplicates().cache()
-    assetLocation_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}").select("assetLocationName","assetLocationSK","assetLocationTypeCode","sourceValidFromTimestamp","sourceValidToTimestamp").drop_duplicates().cache()
-    asset_contract_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetContract')}").select("assetContractSK","assetContractNumber","assetContractRevisionNumber","sourceValidFromTimestamp","sourceValidToTimestamp")\
-    .withColumn("rank",rank().over(Window.partitionBy("assetContractNumber").orderBy(col("assetContractRevisionNumber").desc()))) \
-    .filter("rank == 1").drop("rank").cache()
-    jobPlan_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimWorkOrderJobPlan')}").select("workOrderJobPlanNumber","workOrderJobPlanSK","workOrderJobPlanRevisionNumber","sourceValidFromTimestamp","sourceValidToTimestamp").withColumn("rank",rank().over(Window.partitionBy("workOrderJobPlanNumber").orderBy(col("workOrderJobPlanRevisionNumber").desc()))) \
-    .filter("rank == 1").drop("rank").cache()
-    problemType_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimWorkOrderProblemType')}").select(col("workOrderProblemTypeName").alias("dim_problemType"),"workOrderProblemTypeSK","sourceValidFromTimestamp","sourceValidToTimestamp").drop_duplicates().cache()
+    asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}")\
+        .filter("_recordCurrent == 1").filter("_recordDeleted == 0")\
+        .select("assetNumber","assetSK","sourceValidFromTimestamp","sourceValidToTimestamp").drop_duplicates().cache()
+
+    assetLocation_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}")\
+        .filter("_recordCurrent == 1").filter("_recordDeleted == 0")\
+        .select("assetLocationName","assetLocationSK","assetLocationTypeCode","sourceValidFromTimestamp","sourceValidToTimestamp")\
+        .drop_duplicates().cache()
     
-    swchierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","swchierarchy")).filter("_RecordDeleted == 0").select("code",col("description").alias("serviceDepartmentDesc")).drop_duplicates().cache()
-    swcwoext_df = GetTable(get_table_name(f"{SOURCE}","maximo","swcwoext")).filter("_RecordDeleted == 0").select("workOrderId","externalStatus","externalStatusDate").drop_duplicates().cache()    
+    asset_contract_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetContract')}")\
+        .filter("_recordCurrent == 1").filter("_recordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("assetContractNumber").orderBy(col("assetContractRevisionNumber").desc()))).filter("rank == 1")\
+        .select("assetContractSK","assetContractNumber","sourceValidFromTimestamp","sourceValidToTimestamp")\
+        .cache()
+
+    jobPlan_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimWorkOrderJobPlan')}")\
+        .filter("_recordCurrent == 1").filter("_recordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("workOrderJobPlanNumber").orderBy(col("workOrderJobPlanRevisionNumber").desc()))).filter("rank == 1")\
+        .select("workOrderJobPlanNumber","workOrderJobPlanSK","sourceValidFromTimestamp","sourceValidToTimestamp").cache()
+
+    problemType_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimWorkOrderProblemType')}")\
+        .filter("_recordCurrent == 1").filter("_recordDeleted == 0")\
+        .select(col("workOrderProblemTypeName").alias("dim_problemType"),"workOrderProblemTypeSK","sourceValidFromTimestamp","sourceValidToTimestamp").drop_duplicates().cache()
+    
+    swchierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","swchierarchy"))\
+        .filter("_RecordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("code").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .select("code",col("description").alias("serviceDepartmentDesc")).cache()
+
+    swcwoext_df = GetTable(get_table_name(f"{SOURCE}","maximo","swcwoext"))\
+        .filter("_RecordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("workOrderId").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .select("workOrderId","externalStatus","externalStatusDate").drop_duplicates().cache()    
     
     pm_df = spark.sql(f"""select * from
-        (select pm.pm, pm.frequency, pm.frequencyUnits, row_number() over(partition by pm.pm order by pm.changeddate desc) as rownumb from {get_env()}{SOURCE}.maximo.pm pm where _RecordDeleted = 0) dt where rownumb = 1""").cache()
+        (select pm.pm, pm.frequency, pm.frequencyUnits, row_number() over(partition by pm.pm order by pm.rowStamp desc) as rownumb from {get_env()}{SOURCE}.maximo.pm pm where _RecordDeleted = 0) dt where rownumb = 1""").cache()
     
-    parent_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder")).filter("_RecordDeleted == 0").select(col("workOrder").alias("parentWorkOrder"),col("serviceContract").alias("parentServiceContract"),col("pm").alias("parentpm")) \
+    parent_df = GetTable(get_table_name(f"{SOURCE}","maximo","workOrder"))\
+        .filter("_RecordDeleted == 0")\
+        .withColumn("rank",rank().over(Window.partitionBy("workOrder").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .select(col("workOrder").alias("parentWorkOrder"),col("serviceContract").alias("parentServiceContract"),col("pm").alias("parentpm")) \
     .join(pm_df.select(col("pm").alias("parentpm"), col("frequency").alias("parent_frequency"),col("frequencyUnits").alias("parent_frequencyUnits")),"parentpm","left").cache()
 
 
@@ -61,7 +91,7 @@ def Transform():
         .withColumn("workOrderClosedDate",pivot_df.CLOSE)\
         .withColumn("workOrderFinishedDate",pivot_df.FINISHED)
    
-    log_status_minDate_df = spark.sql(f"""SELECT DISTINCT WL.record as workOrder, MIN(to_date(WL.workLogDate)) as workOrderAcceptedLogStatusMinDate, WL.status as log_status FROM {get_table_name(f"{SOURCE}","maximo","worklog")} WL WHERE WL.status = 'ACCEPTED' and _RecordDeleted = 0 GROUP BY wl.record,wl.status""").cache()
+    log_status_minDate_df = spark.sql(f"""select * from (SELECT DISTINCT WL.record as workOrder, MIN(to_date(WL.workLogDate)) as workOrderAcceptedLogStatusMinDate, WL.status as log_status,row_number() over(partition by WL.record order by rowStamp desc) as rownumb FROM {get_table_name(f"{SOURCE}","maximo","worklog")} WL WHERE WL.status = 'ACCEPTED' and _RecordDeleted = 0 GROUP BY wl.record,wl.status,rowStamp) dt where rownumb = 1""").cache()
    
     related_record_df = spark.sql(f"""SELECT RR.recordKey, COUNT(DISTINCT(WOR.workOrder)) AS relatedCorrectiveMaintenanceWorkOrderCount from
     (select * from (
@@ -279,3 +309,7 @@ def Transform():
     
 pass
 Transform()
+
+# COMMAND ----------
+
+
