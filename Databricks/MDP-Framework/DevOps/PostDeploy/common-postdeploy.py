@@ -26,3 +26,7 @@ Run()
 # COMMAND ----------
 
 dbutils.notebook.run("../../Transform/Views/curated_uc2_reference_views", 0, {})
+
+# COMMAND ----------
+
+dbutils.notebook.run("../../RBAC/CustomGroups/rbac-uc4", 0, {})

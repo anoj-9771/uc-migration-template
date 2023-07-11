@@ -801,3 +801,12 @@ def CreateSchema(name, catalogName, storageRoot):
     }
     response = requests.post(url, json=data, headers=headers)
     return response.json()
+
+# COMMAND ----------
+
+def TransferObjectOwner(objectType, objectId):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/sql/permissions/{objectType}/{objectId}/transfer'
+    jsonData = { "access_control_list": [ *list ] }
+    response = (requests.patch(url, json=jsonData, headers=headers) if not(overwrite) else requests.put(url, json=jsonData, headers=headers))
+    return response.json()
