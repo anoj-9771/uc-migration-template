@@ -6,6 +6,10 @@
 				"name": "Set-ClusterType",
 				"type": "SetVariable",
 				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "ClusterType",
@@ -158,6 +162,10 @@
 											]
 										}
 									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"variableName": "DataFileRecordCount",
@@ -178,6 +186,10 @@
 											]
 										}
 									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"variableName": "TargetTableRecordCount",
@@ -254,6 +266,10 @@
 											]
 										}
 									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"variableName": "DataFileRecordCount",
@@ -274,6 +290,10 @@
 											]
 										}
 									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"variableName": "TargetTableRecordCount",
@@ -346,6 +366,10 @@
 											]
 										}
 									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"variableName": "DataFileRecordCount",
@@ -366,6 +390,10 @@
 											]
 										}
 									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"variableName": "TargetTableRecordCount",
@@ -381,6 +409,7 @@
 				}
 			}
 		],
+		"concurrency": 12,
 		"parameters": {
 			"BatchLogID": {
 				"type": "int",

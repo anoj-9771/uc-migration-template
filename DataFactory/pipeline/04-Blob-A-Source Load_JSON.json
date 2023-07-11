@@ -79,6 +79,10 @@
 							"name": "SET-FileName to Child Item",
 							"type": "SetVariable",
 							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
 							"userProperties": [],
 							"typeProperties": {
 								"variableName": "FileName",
@@ -885,6 +889,10 @@
 									]
 								}
 							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
 							"userProperties": [],
 							"typeProperties": {
 								"variableName": "Manifest",
@@ -980,6 +988,10 @@
 									]
 								}
 							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
 							"userProperties": [],
 							"typeProperties": {
 								"variableName": "FileDateTimeStamp",
@@ -996,6 +1008,10 @@
 				"name": "Set-Source-Container",
 				"type": "SetVariable",
 				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "SourceContainer",
@@ -1009,6 +1025,10 @@
 				"name": "Set-Source-Filename",
 				"type": "SetVariable",
 				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "SourceFileName",
@@ -1157,6 +1177,10 @@
 				"name": "Set ProjectName",
 				"type": "SetVariable",
 				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "ProjectName",
@@ -1167,6 +1191,7 @@
 				}
 			}
 		],
+		"concurrency": 12,
 		"parameters": {
 			"TaskDetails": {
 				"type": "object"
