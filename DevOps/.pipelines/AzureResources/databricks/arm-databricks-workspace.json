@@ -1,0 +1,113 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceName": {
+            "type": "String"
+        },
+        "networkResourceGroup": {
+            "type": "String"
+        },
+        "vnetName": {
+            "type": "String"
+        },
+        "subnetPrivateName": {
+            "type": "String"
+        },
+        "subnetPublicName": {
+            "type": "String"
+        },
+		"subnetName": {
+            "type": "String"
+        },
+		"privateDNSZoneId": {
+            "type": "String"
+        }
+    },
+    "variables": {
+		"subscriptionId": "[subscription().subscriptionId]",
+		"randomString": "[toLower(uniqueString(concat(parameters('workspaceName'), resourceGroup().id)))]",
+		"peName": "[concat('pe-', parameters('workspaceName'))]"
+	},
+    "resources": [
+        {
+            "type": "Microsoft.Databricks/workspaces",
+            "apiVersion": "2023-02-01",
+            "name": "[parameters('workspaceName')]",
+            "location": "australiaeast",
+			"tags": {
+            },            
+			"sku": {
+                "name": "premium"
+            },
+            "properties": {
+                "managedResourceGroupId": "[concat('/subscriptions/', variables('subscriptionId'), '/resourceGroups/databricks-rg-', parameters('workspaceName'), '-', variables('randomString'))]",
+                "parameters": {
+                    "customPrivateSubnetName": {
+                        "value": "[parameters('subnetPrivateName')]"
+                    },
+                    "customPublicSubnetName": {
+                        "value": "[parameters('subnetPublicName')]"
+                    },
+                    "customVirtualNetworkId": {
+                        "value": "[resourceId(parameters('networkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
+                    },
+                    "enableNoPublicIp": {
+                        "value": true
+                    },
+                    "storageAccountSkuName": {
+                        "value": "Standard_GRS"
+                    }
+                },
+				"publicNetworkAccess": "Disabled",
+				"requiredNsgRules": "NoAzureDatabricksRules"
+            }
+        },
+		{
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2022-11-01",
+            "name": "[variables('peName')]",
+            "location": "australiaeast",
+            "properties": {
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[variables('peName')]",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.Databricks/workspaces/', parameters('workspaceName'))]",
+                            "groupIds": [
+                                "databricks_ui_api"
+                            ]
+                        }
+                    }
+                ],
+                "customNetworkInterfaceName": "[concat(variables('peName'), '-nic')]",
+                "subnet": {
+                    "id": "[resourceId(parameters('networkResourceGroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetName'))]"
+                },
+                "ipConfigurations": [],
+                "customDnsConfigs": []
+            },
+			"dependsOn": [
+				"[resourceId('Microsoft.Databricks/workspaces/', parameters('workspaceName'))]"
+			]
+        },
+		{
+			"type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+			"apiVersion": "2021-12-01",
+			"name": "[format('{0}/default', variables('peName'))]",
+			"properties": {
+				"privateDnsZoneConfigs": [
+					{
+						"name": "config1",
+						"properties": {
+						  "privateDnsZoneId": "[parameters('privateDNSZoneId')]"
+						}
+					}
+				]
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Network/privateEndpoints/', variables('peName'))]"
+			]
+		}
+    ]
+}

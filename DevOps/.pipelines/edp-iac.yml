@@ -121,3 +121,29 @@ stages:
                   csmParametersFile: '$(DevOpsDirectory)/UnityCatalog/daf-dbw-unity-storage-deploy-metastore-prod.parameters.json'
                   deploymentMode: 'Incremental'
                   deploymentOutputs: 'armOutputs'
+- stage: 'deploy_databricks_workspace'
+  variables:
+    resourceName : 'Databricks Workspace'
+  displayName: 'Deploy [${{ parameters.environment }}] ${{ variables.resourceName }}'
+  jobs:
+  - deployment: 'deploy_databricks_workspace'
+    displayName: 'Deploy [${{ parameters.environment }}] ${{ variables.resourceName }}'
+    environment: ${{ parameters.environment }}
+    strategy:
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self
+              - task: AzureResourceManagerTemplateDeployment@3
+                displayName: 'Deploy [$(databricks02Name)] ${{ variables.resourceName }} in [$(resourceGroupName)]'
+                inputs:
+                  deploymentScope: 'Resource Group'
+                  azureResourceManagerConnection: '$(azdoResourceConnection)'
+                  action: 'Create Or Update Resource Group'
+                  resourceGroupName: '$(resourceGroupName)'
+                  location: $(location)
+                  templateLocation: 'Linked artifact'
+                  csmFile: '$(DevOpsDirectory)/databricks/arm-databricks-workspace.json'
+                  overrideParameters: '-workspaceName "$(databricks02Name)" -networkResourceGroup "$(networkResourceGroupName)" -vnetName "$(networkVnetName)" -subnetPrivateName "$(databricks02PrivateSubnet)" -subnetPublicName "$(databricks02PublicSubnet)" -subnetName "$(networkDefaultSubnet)" -privateDNSZoneId "$(databricksPrivateDnsZoneResourceId)"'
+                  deploymentMode: 'Incremental'
+                  deploymentOutputs: 'armOutputs'
