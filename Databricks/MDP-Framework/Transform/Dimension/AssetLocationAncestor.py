@@ -29,17 +29,17 @@ def Transform():
     windowSpec = Window.partitionBy("location")
     locoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper"))\
         .filter("_RecordDeleted == 0")\
-        .withColumn("rank",rank().over(Window.partitionBy("location","locoperLevel").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .withColumn("rank",rank().over(Window.partitionBy("location").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
         .drop("rank","rowStamp")
     
     ancLocoper_df = GetTable(get_table_name(f"{SOURCE}","maximo","locoper"))\
         .filter("_RecordDeleted == 0")\
-        .withColumn("rank",rank().over(Window.partitionBy("location","locoperLevel").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .withColumn("rank",rank().over(Window.partitionBy("location").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
         .select(col("location").alias("ancestorLocation"),col("locoperLevel").alias("ancestorLevel"))
         
     lochierarchy_df = GetTable(get_table_name(f"{SOURCE}","maximo","lochierarchy"))\
         .filter("_RecordDeleted == 0")\
-        .withColumn("rank",rank().over(Window.partitionBy("location","parent","children","lochierarchySystem").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
+        .withColumn("rank",rank().over(Window.partitionBy("location","lochierarchySystem").orderBy(col("rowStamp").desc()))).filter("rank == 1")\
         .select(col("location").alias("lochierarchy_location"),"parent","children","lochierarchySystem")
 
     locancestor_df = GetTable(get_table_name(f"{SOURCE}","maximo","locancestor"))\
