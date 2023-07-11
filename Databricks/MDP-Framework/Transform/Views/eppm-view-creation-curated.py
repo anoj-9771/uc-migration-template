@@ -18,7 +18,7 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmProjectStatusCom
         ) WHERE rowNumber = 1
   ),
   fiscalDate AS (
-      SELECT DISTINCT  calendarYear, monthOfYear, financialYear, monthOfFinancialYear FROM ppd_curated.dim.`date`
+      SELECT DISTINCT  calendarYear, monthOfYear, financialYear, monthOfFinancialYear FROM {get_env()}curated.dim.`date`
   )
   SELECT 
     comm.projectObject as project
@@ -780,23 +780,23 @@ SELECT * FROM {get_env()}curated.asset_performance.eppmSelfServiceReportHistory
 # COMMAND ----------
 
 # DBTITLE 1,Curated Reporting Materialised View - Consolidated
-spark.sql(f"""
-CREATE OR REPLACE TABLE {get_env()}curated.asset_performance.eppmSelfServiceReportTab AS
-SELECT * FROM {get_env()}curated.asset_performance.eppmSelfServiceReportCurrent
-UNION
-SELECT * FROM {get_env()}curated.asset_performance.eppmSelfServiceReportHistory
-""")
+# spark.sql(f"""
+# CREATE OR REPLACE TABLE {get_env()}curated.asset_performance.eppmSelfServiceReportTab AS
+# SELECT * FROM {get_env()}curated.asset_performance.eppmSelfServiceReportCurrent
+# UNION
+# SELECT * FROM {get_env()}curated.asset_performance.eppmSelfServiceReportHistory
+# """)
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC ALTER VIEW ppd_curated.asset_performance.eppmselfserviceclassificationhierarchy OWNER TO `ppd-G3-Admins`;
-# MAGIC ALTER VIEW ppd_curated.asset_performance.eppmselfservicemastercurrent OWNER TO `ppd-G3-Admins`;
-# MAGIC ALTER VIEW ppd_curated.asset_performance.eppmselfservicemasterhistory OWNER TO `ppd-G3-Admins`;
-# MAGIC ALTER VIEW ppd_curated.asset_performance.eppmselfservicereport OWNER TO `ppd-G3-Admins`;
-# MAGIC ALTER VIEW ppd_curated.asset_performance.eppmselfservicereportcurrent OWNER TO `ppd-G3-Admins`;
-# MAGIC ALTER VIEW ppd_curated.asset_performance.eppmselfservicereporthistory OWNER TO `ppd-G3-Admins`;
-# MAGIC ALTER VIEW ppd_curated.asset_performance.eppmselfservicetransactioncurrent OWNER TO `ppd-G3-Admins`;
-# MAGIC ALTER VIEW ppd_curated.asset_performance.eppmSelfServiceMaster OWNER TO `ppd-G3-Admins`;
-# MAGIC -- ALTER TABLE ppd_curated.asset_performance.eppmSelfServiceReportTab OWNER TO `ppd-G3-Admins`;
-# MAGIC ALTER TABLE ppd_curated.asset_performance.eppmProjectStatusCommentary OWNER TO `ppd-G3-Admins`;
+# %sql
+# ALTER VIEW ppd_curated.asset_performance.eppmselfserviceclassificationhierarchy OWNER TO `ppd-G3-Admins`;
+# ALTER VIEW ppd_curated.asset_performance.eppmselfservicemastercurrent OWNER TO `ppd-G3-Admins`;
+# ALTER VIEW ppd_curated.asset_performance.eppmselfservicemasterhistory OWNER TO `ppd-G3-Admins`;
+# ALTER VIEW ppd_curated.asset_performance.eppmselfservicereport OWNER TO `ppd-G3-Admins`;
+# ALTER VIEW ppd_curated.asset_performance.eppmselfservicereportcurrent OWNER TO `ppd-G3-Admins`;
+# ALTER VIEW ppd_curated.asset_performance.eppmselfservicereporthistory OWNER TO `ppd-G3-Admins`;
+# ALTER VIEW ppd_curated.asset_performance.eppmselfservicetransactioncurrent OWNER TO `ppd-G3-Admins`;
+# ALTER VIEW ppd_curated.asset_performance.eppmSelfServiceMaster OWNER TO `ppd-G3-Admins`;
+# -- ALTER TABLE ppd_curated.asset_performance.eppmSelfServiceReportTab OWNER TO `ppd-G3-Admins`;
+# ALTER TABLE ppd_curated.asset_performance.eppmProjectStatusCommentary OWNER TO `ppd-G3-Admins`;
