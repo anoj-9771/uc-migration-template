@@ -56,8 +56,8 @@ def ShowTransformConfig():
 from pyspark.sql.functions import lit, when, lower, expr, col
 transform_df = spark.sql("""
     SELECT * FROM VALUES
-    (1,'Fact','AssetDemandValue','databricks-notebook','',null,'iicats',0),
-    (2,'Fact','Demand','databricks-notebook','',1,null,0),
+    (1,'Fact','AssetDemandValue','databricks-notebook','',null,'iicats',1),
+    (2,'Fact','Demand','databricks-notebook','',1,null,1),
     (3,'Dim','AssetContract','databricks-notebook','',null,'maximo',1),
     (4,'Dim','AssetLocation','databricks-notebook','',null,'maximo',1),
     (5,'Dim','WorkOrderJobPlan','databricks-notebook','',null,'maximo',1),
