@@ -65,6 +65,10 @@ RBAC_UC4 = [
             ,"curated.fact.workorderfailurereportcurrent"
             ,"curated.fact.workordercurrent"
             ,"curated.dim.assetlocationancestorhierarchypivotcurrent"
+            ,"curated.asset_performance.referenceassettypeclass"
+            ,"curated.asset_performance.referencereportconfiguration"
+            ,"curated.asset_performance.referenceservicetype"
+            ,"curated.asset_performance.referenceworktype"
         ]
         ,"Users" : []
         ,"AADGroups" : [ "cleansed-sensitive" ]
