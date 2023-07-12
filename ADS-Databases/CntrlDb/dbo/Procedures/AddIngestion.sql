@@ -65,7 +65,7 @@ MERGE INTO [dbo].[ExtractLoadManifest] as target using(
     SELECT 
     CASE 
     WHEN NOT(EXISTS(SELECT * FROM [Systems])) THEN 20001 /* EMPTY */
-    WHEN S.[Order] IS NULL THEN CONCAT((SELECT MAX([NextGroup]) FROM [Systems])+1, '001') /*INCREMENT NEW SYSTEM*/
+    WHEN S.[Order] IS NULL THEN CONCAT((SELECT MAX([NextGroup]) FROM [Systems]), '001') /*INCREMENT NEW SYSTEM*/
     ELSE S.[LastSourceID]+1 /*INCREMENT NEW SOURCE*/
     END [SourceID]
     ,R.[SystemCode]
