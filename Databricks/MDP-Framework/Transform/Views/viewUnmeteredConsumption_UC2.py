@@ -8,7 +8,7 @@ DEFAULT_TARGET = 'curated'
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionPropertyType')} (
+CREATE OR REPLACE TABLE {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionPropertyType')} (
   unmeteredConsumptionType,
   superiorPropertyTypeCode,
   superiorPropertyType,
@@ -35,7 +35,7 @@ order by 1 asc, dw.superiorPropertyTypeCode, dw.superiorPropertyType, dw.inferio
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionWaterNetwork')} (
+CREATE OR REPLACE TABLE {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionWaterNetwork')} (
   unmeteredConsumptionType,
   deliverySystem,
   distributionSystem,
@@ -60,13 +60,13 @@ order by 1 asc, dw.deliverySystem, dw.distributionSystem, dw.supplyZone, dw.pres
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE VIEW {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionSystemLevel')} (
+CREATE OR REPLACE TABLE {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionSystemLevel')} (
   unmeteredConsumptionType,
   consumptionQuantity,
   publicReservesAllocation,
   propertyCount,
   reportDate)
-AS select unmeteredConsumptionType, sum(consumptionQuantity), case when unmeteredConsumptionType = 'Unmetered Connected' then 1000 else NULL end as publicReservesAllocation, sum(propertyCount) as propertyCount, reportDate
+AS select unmeteredConsumptionType, sum(consumptionQuantity) as consumptionQuantity, case when unmeteredConsumptionType = 'Unmetered Connected' then 1000 else NULL end as publicReservesAllocation, sum(propertyCount) as propertyCount, reportDate
 from {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionWaterNetwork')}
 group by UnmeteredConsumptionType, reportDate
 """)
