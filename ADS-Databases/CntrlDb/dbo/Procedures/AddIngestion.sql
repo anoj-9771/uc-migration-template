@@ -1,5 +1,3 @@
-
-
 CREATE PROCEDURE [dbo].[AddIngestion] 
 	@SystemCode VARCHAR(MAX),
 	@Schema VARCHAR(MAX),
@@ -14,7 +12,6 @@ CREATE PROCEDURE [dbo].[AddIngestion]
 	@CleansedHandler VARCHAR(MAX) = 'cleansed-load',
 	@SystemPath VARCHAR(MAX) = null,
 	@DestinationSchema VARCHAR(MAX) = null
-
 AS
 BEGIN
 
@@ -23,12 +20,27 @@ SET @DestinationSchema = COALESCE(@DestinationSchema,@Schema)
 SET @RawHandler = COALESCE(@RawHandler,'raw-load')
 SET @CleansedHandler = COALESCE(@CleansedHandler,'cleansed-load')
 
-;WITH [Systems] AS
+;WITH [gen] AS (
+    SELECT 30 AS num
+    UNION ALL
+    SELECT num+1 FROM gen WHERE num+1<=100
+)
+,[Systems_org] AS
 (
 	SELECT 
 	LEFT([SourceID], 2) [Order], [SystemCode], MAX([SourceID]) [LastSourceID]
 	FROM [dbo].[ExtractLoadManifest] 
 	GROUP BY SystemCode, LEFT([SourceID], 2)
+)
+,[AvailableGroup] AS
+(
+    SELECT MIN(num) [NextGroup] FROM [gen] WHERE num NOT IN (SELECT [Order] FROM [Systems_org] )
+)
+,[Systems] AS
+(
+    SELECT S.*, N.[NextGroup]
+    FROM [Systems_org] S
+    JOIN [AvailableGroup] N ON 1=1
 )
 ,[Config] AS
 (
@@ -53,7 +65,7 @@ MERGE INTO [dbo].[ExtractLoadManifest] as target using(
     SELECT 
     CASE 
     WHEN NOT(EXISTS(SELECT * FROM [Systems])) THEN 20001 /* EMPTY */
-    WHEN S.[Order] IS NULL THEN CONCAT((SELECT MAX([Order]) FROM [Systems])+1, '001') /*INCREMENT NEW SYSTEM*/
+    WHEN S.[Order] IS NULL THEN CONCAT((SELECT MAX([NextGroup]) FROM [Systems])+1, '001') /*INCREMENT NEW SYSTEM*/
     ELSE S.[LastSourceID]+1 /*INCREMENT NEW SOURCE*/
     END [SourceID]
     ,R.[SystemCode]
