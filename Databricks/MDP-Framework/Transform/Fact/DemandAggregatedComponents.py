@@ -149,7 +149,7 @@ def Transform():
     
     date_df = spark.sql(f"""
                         select distinct monthstartdate,year(monthstartdate) as yearnumber,month(monthstartdate) as monthnumber, date_format(monthStartDate,'MMM') as monthname 
-                        from {get_table_namespace(f'{DEFAULT_TARGET}', 'dimdate')} where monthStartDate between add_months(current_date(),-3) and current_date() 
+                        from {get_table_namespace(f'{DEFAULT_TARGET}', 'dimdate')} where monthStartDate between add_months(current_date(),-24) and current_date() 
                         order by yearnumber desc, monthnumber desc
                         """)
 
@@ -192,10 +192,5 @@ def Transform():
         # ------------- SAVE ------------------- #
         SaveAndContinue(df, append=True)
 
-    # ------------- SAVE ------------------- #
-    # display(df)
-    # CleanSelf()
-    # Save(df, append=True)
-    #DisplaySelf()
 pass
 Transform()
