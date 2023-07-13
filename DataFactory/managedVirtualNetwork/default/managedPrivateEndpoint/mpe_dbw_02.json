@@ -1,0 +1,7 @@
+{
+	"name": "mpe_dbw_02",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Databricks/workspaces/dbw-swcnonprod01-edp-dev-02",
+		"groupId": "databricks_ui_api"
+	}
+}
