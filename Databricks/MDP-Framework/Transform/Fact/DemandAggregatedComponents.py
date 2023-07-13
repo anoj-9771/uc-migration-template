@@ -17,7 +17,7 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
 
     # ------------- JOINS ------------------ #
     tfsu_df = property_df.join(installation_df, (property_df.propertyNumber==installation_df.install_propertyNumber) & ~col("superiorPropertyTypeCode").isin('902'),"inner") \
-        .join(device_df, (installation_df.installationNumber == device_df.device_installationNumber),"inner").cache()
+        .join(device_df, (installation_df.installationNumber == device_df.device_installationNumber),"inner")
 
     # --- Multiplication Factors ---#
     monthlyTestingFireSprinklerSystemsFactor = tfsumetrics_df.filter("metricTypeName='TFSUMonthlyTestingOfFireSprinklerSystemsTestDuration'").select("metricValueNumber").first()['metricValueNumber'] * tfsumetrics_df.filter("metricTypeName='TFSUMonthlyTestingOfFireSprinklerSystemsTestFlowRate'").select("metricValueNumber").first()['metricValueNumber']
@@ -136,64 +136,66 @@ def Transform():
     # ------------- TABLES ----------------- #
     
     property_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'viewpropertyKey')}") \
-    .select("propertyNumber","superiorPropertyTypeCode","superiorPropertyType","waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","propertySK","propertyTypeHistorySK","drinkingWaterNetworkSK").filter("currentFlag = 'Y'").cache()
+    .select("propertyNumber","superiorPropertyTypeCode","superiorPropertyType","waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","propertySK","propertyTypeHistorySK","drinkingWaterNetworkSK").filter("currentFlag = 'Y'")
 
     installation_df = GetTable(f"{get_env()}curated.water_consumption.viewinstallation") \
-    .select(col("propertyNumber").alias("install_propertyNumber"),"installationNumber","divisionCode","division").filter("divisionCode = 10").filter("currentFlag = 'Y'").cache()
+    .select(col("propertyNumber").alias("install_propertyNumber"),"installationNumber","divisionCode","division").filter("divisionCode = 10").filter("currentFlag = 'Y'")
 
     device_df = GetTable(f"{get_env()}curated.water_consumption.viewdevice") \
-    .select(col("installationNumber").alias("device_installationNumber"),"deviceSize","functionClassCode","deviceID").filter("functionClassCode in ('1000')").filter("currentFlag = 'Y'").filter("deviceSize >= 40").cache()
+    .select(col("installationNumber").alias("device_installationNumber"),"deviceSize","functionClassCode","deviceID").filter("functionClassCode in ('1000')").filter("currentFlag = 'Y'").filter("deviceSize >= 40")
 
     waternetwork_df = GetTable(f"{get_env()}curated.dim.waternetwork").filter("ispotablewaternetwork = 'Y'").filter("`_RecordCurrent` = 1") \
-        .select(col("deliverySystem").alias("waternetwork_deliverySystem"),col("distributionSystem").alias("waternetwork_distributionSystem"),col("supplyZone").alias("waternetwork_supplyZone"),col("pressureArea").alias("waternetwork_pressureArea")).cache()
+        .select(col("deliverySystem").alias("waternetwork_deliverySystem"),col("distributionSystem").alias("waternetwork_distributionSystem"),col("supplyZone").alias("waternetwork_supplyZone"),col("pressureArea").alias("waternetwork_pressureArea"))
     
     date_df = spark.sql(f"""
                         select distinct monthstartdate,year(monthstartdate) as yearnumber,month(monthstartdate) as monthnumber, date_format(monthStartDate,'MMM') as monthname 
-                        from {get_table_namespace(f'{DEFAULT_TARGET}', 'dimdate')} where monthStartDate between add_months(current_date(),-24) and current_date() 
-                        order by yearnumber, monthnumber
+                        from {get_table_namespace(f'{DEFAULT_TARGET}', 'dimdate')} where monthStartDate between add_months(current_date(),-3) and current_date() 
+                        order by yearnumber desc, monthnumber desc
                         """)
 
     # ------------- JOINS ------------------ #
     aggregatedf = None
+    targetTableFqn = f"{_.Destination}"
+    if (TableExists(targetTableFqn)):
+        truncateTable = spark.sql(f"truncate table {targetTableFqn}")
+
     for i in date_df.collect():
         
         sharepointConfig_df = spark.sql(f"""
                                 select config.zoneName, config.zonetypename, config.metricTypeName, coalesce(config.metricValueNumber,0) as  metricValueNumber
-                                from {get_env()}curated.water_balance.AggregatedComponentsConfiguration config where config.yearnumber = {i.yearnumber} and config.monthName = '{i.monthname}'""").cache()
+                                from {get_env()}curated.water_balance.AggregatedComponentsConfiguration config where config.yearnumber = {i.yearnumber} and config.monthName = '{i.monthname}'""")
         
         waternetworkdemand_df = GetTable(f"{get_env()}curated.water_balance.factwaternetworkdemand").filter(f"year(reportDate) = {i.yearnumber}").filter(f"month(reportdate) = {i.monthnumber}") \
-            .groupBy("deliverySystem","distributionSystem","supplyZone","pressureArea","networkTypeCode").agg(sum('demandQuantity').alias("demandQuantity")).cache()
+            .groupBy("deliverySystem","distributionSystem","supplyZone","pressureArea","networkTypeCode").agg(sum('demandQuantity').alias("demandQuantity"))
         
         aggregatedf = CalculateDemandAggregated(property_df,installation_df,device_df,sharepointConfig_df,waternetworkdemand_df,waternetwork_df,i.yearnumber,i.monthname)
 
-        if df is None:
-            df = aggregatedf
-        else:
-            df = df.unionByName(aggregatedf)    
+        print(f"Calculation: {i.yearnumber}-{i.monthname}")
 
+        # ------------- TRANSFORMS ------------- #
+        _.Transforms = [
+            f"metricTypeName||'|'||waterNetworkDeliverySystem||'|'||waterNetworkDistributionSystem||'|'||waterNetworkSupplyZone||'|'||waterNetworkPressureArea||'|'||yearNumber||'|'||monthName {BK}"
+            ,"waterNetworkDeliverySystem deliverySystem"        
+            ,"waterNetworkDistributionSystem distributionSystem"
+            ,"waterNetworkSupplyZone supplyZone"        
+            ,"waterNetworkPressureArea pressureArea"
+            ,"networkTypeCode networkTypeCode"
+            ,"yearNumber yearNumber"
+            ,"monthName monthName"
+            ,"metricTypeName metricTypeName"
+            ,"metricValueNumber metricValueNumber"
+        ]
+        df = aggregatedf.selectExpr(
+            _.Transforms
+        )
 
-    # ------------- TRANSFORMS ------------- #
-    _.Transforms = [
-        f"metricTypeName||'|'||waterNetworkDeliverySystem||'|'||waterNetworkDistributionSystem||'|'||waterNetworkSupplyZone||'|'||waterNetworkPressureArea||'|'||yearNumber||'|'||monthName {BK}"
-        ,"waterNetworkDeliverySystem deliverySystem"        
-        ,"waterNetworkDistributionSystem distributionSystem"
-        ,"waterNetworkSupplyZone supplyZone"        
-        ,"waterNetworkPressureArea pressureArea"
-        ,"networkTypeCode networkTypeCode"
-        ,"yearNumber yearNumber"
-        ,"monthName monthName"
-        ,"metricTypeName metricTypeName"
-        ,"metricValueNumber metricValueNumber"
-    ]
-    df = df.selectExpr(
-        _.Transforms
-    )
-    # ------------- CLAUSES ---------------- #
+        # ------------- SAVE ------------------- #
+        SaveAndContinue(df, append=True)
 
     # ------------- SAVE ------------------- #
     # display(df)
-    CleanSelf()
-    Save(df)
+    # CleanSelf()
+    # Save(df, append=True)
     #DisplaySelf()
 pass
 Transform()

@@ -311,6 +311,25 @@ def Save(sourceDataFrame,append=False):
 
 # COMMAND ----------
 
+def SaveAndContinue(sourceDataFrame,append=False):
+    targetTableFqn = f"{_.Destination}"
+    print(f"Saving {targetTableFqn}...")
+    if (not(TableExists(targetTableFqn))):
+        print(f"Creating {targetTableFqn}...")
+        # Adjust _RecordStart date for first load
+        sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
+        sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
+        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        return
+    sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
+    if append:
+        AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+    else:    
+        MergeSCDTable(sourceDataFrame, targetTableFqn,_.BK,_.SK)
+    return 
+
+# COMMAND ----------
+
 def SaveDefaultSource(sourceDataFrame):
     targetTableFqn = f"{_.Destination}"
     print(f"Saving {targetTableFqn}...")
