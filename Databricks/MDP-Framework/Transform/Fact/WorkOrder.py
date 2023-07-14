@@ -122,7 +122,7 @@ def Transform():
 
      
     # derived Fields 
-    df = df.withColumn("etl_key",concat_ws('|',df.workOrder, df.changedDate)).alias("wo") \
+    df = df.withColumn("etl_key",concat_ws('|',df.workOrder, df.changedDate_date_part)).alias("wo") \
     .withColumn("workOrderTrendDate",expr("CASE WHEN wo.WORKTYPE ='PM' \
     THEN COALESCE(wo.targetFinish, wo.targetStart,wo.scheduledStart, \
     wo.scheduledFinish, wo.targetRespondBy, wo.reportedDateTime) \

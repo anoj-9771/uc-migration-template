@@ -1285,7 +1285,8 @@ CASE WHEN EXTRACT (MONTH FROM cal.monthEndDate) IN (1,2,3,4,5,6) THEN TO_DATE((E
       from {get_env()}curated.dim.date
       where calendarDate between '2018-07-01' and current_date
 	  group by monthEndDate
-    ) cal    
+    ) cal 
+    group by all   
     )DT
     inner join
     (
@@ -1545,7 +1546,8 @@ CASE WHEN EXTRACT (MONTH FROM cal.monthEndDate) IN (1,2,3,4,5,6) THEN TO_DATE((E
       from {get_env()}curated.dim.date
       where calendarDate between '2018-07-01' and current_date
 	  group by monthEndDate
-    ) cal    
+    ) cal
+    group by all    
     )DT
     inner join 
         (
