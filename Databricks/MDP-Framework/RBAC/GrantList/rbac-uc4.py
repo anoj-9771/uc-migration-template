@@ -10,12 +10,12 @@ RBAC_UC4 = [
         ,"OtherCommands" : [
         ]
         ,"TableFilter" : [
-            "cleansed.scada_point_cnfgn"
-            ,"cleansed.scada_qlty_config"
-            ,"cleansed.scada_rtu"
-            ,"cleansed.scada_scxfield"
-            ,"cleansed.scada_tsv"
-            ,"cleansed.scada_tsv_point_cnfgn"
+            "cleansed.scada.point_cnfgn"
+            ,"cleansed.scada.qlty_config"
+            ,"cleansed.scada.rtu"
+            ,"cleansed.scada.scxfield"
+            ,"cleansed.scada.tsv"
+            ,"cleansed.scada.tsv_point_cnfgn"
         ]
         ,"Users" : []
         ,"AADGroups" : [ "cleansed-official" ]

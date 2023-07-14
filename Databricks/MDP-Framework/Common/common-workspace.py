@@ -810,3 +810,11 @@ def TransferObjectOwner(objectType, objectId):
     jsonData = { "access_control_list": [ *list ] }
     response = (requests.patch(url, json=jsonData, headers=headers) if not(overwrite) else requests.put(url, json=jsonData, headers=headers))
     return response.json()
+
+# COMMAND ----------
+
+def CreateJob(template):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.1/jobs/create'
+    response = requests.post(url, json=template, headers=headers)
+    return response.json()

@@ -76,4 +76,23 @@ def DataLabGrants(groupName):
 
 # COMMAND ----------
 
+def CascadeAssignCatalogOwner(catalog, groupName):
+    for s in spark.sql(f"SHOW SCHEMAS IN `{catalog}`").where("databaseName != 'information_schema'").collect():
+            schema = s.databaseName
+            sql = f"ALTER SCHEMA `{catalog}`.`{schema}` SET OWNER TO `{groupName}`;"
+            print(sql)
+            spark.sql(sql)
+            for t in spark.sql(f"SHOW TABLES IN `{catalog}`.`{schema}`").collect():
+                table = t.tableName
+                sql = f"ALTER TABLE `{catalog}`.`{schema}`.`{table}` SET OWNER TO `{groupName}`;"
+                print(sql)
+                spark.sql(sql)
 
+# COMMAND ----------
+
+def AssignAllCatalogOwner(groupName):
+    groupName = GetPrefix("-")+groupName
+    catalogPrefix = GetPrefix()
+    condition = "catalog in (" + ",".join(f"'{catalogPrefix}{i}'" for i in ["raw", "cleansed", "curated", "rejected", "semantic", "stage"]) + ")"
+    for c in spark.sql("SHOW CATALOGS").where(condition).collect():
+        CascadeAssignCatalogOwner(c.catalog, groupName)
