@@ -73,6 +73,7 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, BK, SK):
         .unionByName( \
           sourceDataFrame.selectExpr(f"{BK} BK", "*") \
         )
+    sourceSCDColumnsExist = all(colName in sourceDataFrame.columns for colName in ["sourceValidFromTimestamp", "sourceValidToTimestamp"])
     insertValues = {
         f"{_.SK}": f"{_.SK}", 
         # f"{_.BK}": f"COALESCE(s.BK, s.{_.BK})",
@@ -88,20 +89,43 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, BK, SK):
     for c in [i for i in targetTable.columns if i not in _exclude]:
         insertValues[f"{c}"] = f"s.{c}"
 
-    print("Merging...")
-    DeltaTable.forName(spark, targetTableFqn).alias("t").merge(stagedUpdates.alias("s"), f"t.{BK} = s.BK") \
-        .whenMatchedUpdate(
-          condition = f"t._recordCurrent = 1 AND ({changeColumns})", 
-          set = {
-            "_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
-            #Question
-            "_recordCurrent": "0",
-            # "_Batch_SK": expr(f"DATE_FORMAT(s._Created, '{DATE_FORMAT}') || COALESCE(DATE_FORMAT({DEFAULT_START_DATE} - INTERVAL 1 SECOND, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 0") 
-          }
-        ) \
-        .whenNotMatchedInsert(
-          values = insertValues
-        ).execute()
+    if sourceSCDColumnsExist:
+        print("Merging...")
+        DeltaTable.forName(spark, targetTableFqn).alias("t").merge(stagedUpdates.alias("s"), f"t.{BK} = s.BK") \
+            .whenMatchedUpdate(
+                condition = f"t._recordCurrent = 1 AND ({changeColumns}) AND s.sourceBusinessKey = s.BK", 
+                set = {
+                "_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
+                "_recordCurrent": "0",
+                "sourceRecordCurrent": "0",
+                "sourceValidToTimestamp":  expr("s.sourceValidFromTimestamp - INTERVAL 1 SECOND"),
+                }
+            ) \
+            .whenMatchedUpdate(
+                condition = f"t._recordCurrent = 1 AND ({changeColumns})", 
+                set = {
+                "_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
+                "_recordCurrent": "0",
+                }
+            ) \
+            .whenNotMatchedInsert(
+                values = insertValues
+            ).execute()
+    else:
+        print("Merging...")
+        DeltaTable.forName(spark, targetTableFqn).alias("t").merge(stagedUpdates.alias("s"), f"t.{BK} = s.BK") \
+            .whenMatchedUpdate(
+            condition = f"t._recordCurrent = 1 AND ({changeColumns})", 
+            set = {
+                "_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
+                #Question
+                "_recordCurrent": "0",
+                # "_Batch_SK": expr(f"DATE_FORMAT(s._Created, '{DATE_FORMAT}') || COALESCE(DATE_FORMAT({DEFAULT_START_DATE} - INTERVAL 1 SECOND, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 0") 
+            }
+            ) \
+            .whenNotMatchedInsert(
+            values = insertValues
+            ).execute()
 
 # COMMAND ----------
 
