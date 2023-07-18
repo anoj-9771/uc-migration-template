@@ -42,6 +42,6 @@ sourceDataFrame = CleansedTransform(sourceDataFrame, sourceTableName, systemCode
  
 
 if loadType == "Append":
-     AppendDeltaTable(sourceDataFrame, cleansedTableName, dataLakePath)
+     AppendDeltaTable(sourceDataFrame, cleansedTableName)
 else:
-    CreateDeltaTable(sourceDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
+    CreateDeltaTable(sourceDataFrame, cleansedTableName) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, cleansedTableName, j.get("BusinessKeyColumn"))

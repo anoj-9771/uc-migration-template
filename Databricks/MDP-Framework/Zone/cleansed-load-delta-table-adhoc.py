@@ -100,7 +100,7 @@ if(extendedProperties):
         cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
         cleanseDataFrame = spark.sql(f"select * from (select vwCleanseDataFrame.*, row_number() OVER (Partition By {businessKey} order by {groupOrderBy}) row_num from vwCleanseDataFrame) where row_num = 1 ").drop("row_num")     
 
-CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if businessKey is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, businessKey)
+CreateDeltaTable(cleanseDataFrame, cleansedTableName) if businessKey is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, businessKey)
 
 # COMMAND ----------
 

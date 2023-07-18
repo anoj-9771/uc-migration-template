@@ -120,13 +120,13 @@ def _WrapSystemColumns(dataFrame):
 def SaveDelta(dataFrame):
     targetTableFqn = _.Destination
     dataLakePath = _.DataLakePath
-    CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath)
+    CreateDeltaTable(dataFrame, targetTableFqn)
 
 # COMMAND ----------
 
 def Overwrite(dataFrame):
     CleanTable(_.Destination)
-    CreateDeltaTable(dataFrame, _.Destination, _.DataLakePath)
+    CreateDeltaTable(dataFrame, _.Destination)
     EndNotebook(dataFrame)
 
 # COMMAND ----------
@@ -298,12 +298,12 @@ def Save(sourceDataFrame,append=False):
         # Adjust _RecordStart date for first load
         sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
         sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
-        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        CreateDeltaTable(sourceDataFrame, targetTableFqn)  
         EndNotebook(sourceDataFrame)
         return
     sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
     if append:
-        AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        AppendDeltaTable(sourceDataFrame, targetTableFqn)  
     else:    
         MergeSCDTable(sourceDataFrame, targetTableFqn,_.BK,_.SK)
     EndNotebook(sourceDataFrame)
@@ -344,7 +344,7 @@ def SaveDefaultSource(sourceDataFrame):
                                              .withColumn("sourceValidToDateTime", when(col("sourceValidToDateTime").isNull(), col("_recordEnd")).otherwise(col("sourceValidToDateTime"))) \
                                              .withColumn("sourceRecordCurrent", when(col("sourceRecordCurrent").isNull(), col("_recordCurrent")).otherwise(col("sourceRecordCurrent")))
 
-        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        CreateDeltaTable(sourceDataFrame, targetTableFqn)  
         EndNotebook(sourceDataFrame)
         return
     sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
@@ -504,14 +504,14 @@ def SaveWithCDF(sourceDataFrame, mode):
         # Adjust _RecordStart date for first load
         sourceDataFrame = (sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
                            .drop(col('_change_type')))
-        sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None        
-        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
+        CreateDeltaTable(sourceDataFrame, targetTableFqn)  
         EndNotebook(sourceDataFrame)
         return
     
     if mode == 'APPEND':
         sourceDataFrame = sourceDataFrame.drop(col('_change_type'))
-        AppendCDFTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        AppendDeltaTable(sourceDataFrame, targetTableFqn)  
     elif mode == 'SCD2':    
         mergeCDFTableSCD2(sourceDataFrame, targetTableFqn,_.BK,_.SK)
     elif mode == 'SCD1':

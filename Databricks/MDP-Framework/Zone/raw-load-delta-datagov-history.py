@@ -30,4 +30,4 @@ for f in files:
         df = df.withColumn("_DLRawZoneTimeStamp",current_timestamp())
         df = df.toDF(*(RemoveBadCharacters(c) for c in df.columns))
 
-        AppendDeltaTable(df, tableFqn, dataLakePath)
+        AppendDeltaTable(df, tableFqn)

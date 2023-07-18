@@ -56,7 +56,7 @@ cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",curren
                                    .withColumn("_RecordStart",current_timestamp()) \
                                    .withColumn("_RecordEnd",to_timestamp(lit("9999-12-31"), "yyyy-MM-dd"))
 
-CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
+CreateDeltaTable(cleanseDataFrame, cleansedTableName) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, j.get("BusinessKeyColumn"))
 
 # COMMAND ----------
 

@@ -70,16 +70,23 @@ def addSCDColumns(dataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SCD
     df = df.select(_.SurrogateKey, *cols)
     return df
 
-def TableExists(tableFqn):
-    return spark._jsparkSession.catalog().tableExists(tableFqn.split(".")[0], tableFqn.split(".")[1])
 
-def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath):
-    dataFrame.write \
-    .format("delta") \
-    .option("mergeSchema", "true") \
-    .mode("overwrite") \
-    .save(dataLakePath)
-    spark.sql(f"CREATE TABLE IF NOT EXISTS {targetTableFqn} USING DELTA LOCATION \'{dataLakePath}\'")
+def TableExists(tableFqn):
+    return (
+        spark.sql(f"show tables in {'.'.join(tableFqn.split('.')[:-1])} like '{tableFqn.split('.')[-1]}'").count() == 1
+    )
+
+
+def CreateDeltaTable(dataFrame, targetTableFqn, businessKeys = None, createTableConstraints=True):
+    #with introduction of Unity Catalog, function needs to be able to create new schema
+    spark.sql(f"CREATE SCHEMA IF NOT EXISTS {targetTableFqn.split('.')[0]}.{targetTableFqn.split('.')[1]}")
+    
+    (dataFrame.write 
+        .option("mergeSchema", "true") 
+        .option("delta.minReaderVersion", "3") 
+        .option("delta.minWriterVersion", "7") 
+        .mode("overwrite") 
+        .saveAsTable(targetTableFqn))
 
 # COMMAND ----------
 
@@ -98,7 +105,7 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
     
     if (not(TableExists(targetTableFqn))):
         print(f"Table {targetTableFqn} not exists, Creat and load Table {targetTableFqn}")
-        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        CreateDeltaTable(sourceDataFrame, targetTableFqn)  
         return
 
     targetTable = spark.table(targetTableFqn).cache()

@@ -236,7 +236,22 @@ def AppendCDFTable(sourceDataFrame, targetTableFqn, BK, SK):
 
 # COMMAND ----------
 
-def CreateOrMerge(sourceDataFrame, targetTableFqn, dataLakePath, businessKey=None, createTableConstraints = True, mergeWithUpdate = True):
+def AppendCDFTable(sourceDataFrame, targetTableFqn, BK, SK):
+    sourceDataFrame = sourceDataFrame.filter(col("_change_type") == lit("insert"))
+    selectColumns = [col for col in sourceDataFrame.columns if not (col.endswith('SK'))]
+    sourceDataFrame = (sourceDataFrame.withColumns(f"{SK}", md5(expr(f"concat({_.BK},'|',{DEFAULT_START_DATE})")))
+                                      .withColumns("_DLCuratedZoneTimeStamp", expr("now()"))
+                                      .withColumns("_recordStart", expr("now()"))
+                                      .withColumns("_recordEnd", expr("to_timestamp('9999-12-31 00:00:00')"))
+                                      .withColumns("_recordCurrent", lit("1"))
+                                      .withColumns("_recordDeleted", lit("0"))
+                      )
+    print("Appending CDF")
+    AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)
+
+# COMMAND ----------
+
+def CreateOrMerge(sourceDataFrame, targetTableFqn, businessKey=None, createTableConstraints = True, mergeWithUpdate = True):
     if (TableExists(targetTableFqn)):
         if mergeWithUpdate: 
             BasicMerge(sourceDataFrame, targetTableFqn, businessKey)
@@ -244,4 +259,4 @@ def CreateOrMerge(sourceDataFrame, targetTableFqn, dataLakePath, businessKey=Non
             BasicMergeNoUpdate(sourceDataFrame, targetTableFqn, businessKey)
     else:
         #create delta table with not null constraints on buiness keys
-        CreateDeltaTable(sourceDataFrame, targetTableFqn, dataLakePath, businessKey, createTableConstraints)
+        CreateDeltaTable(sourceDataFrame, targetTableFqn, businessKey, createTableConstraints)

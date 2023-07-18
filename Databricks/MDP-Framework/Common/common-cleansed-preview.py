@@ -274,7 +274,7 @@ def WriteRawToCleansedTable(rawTableName):
     sourceDataFrame = sourceDataFrame.toDF(*(c.replace(' ', '_') for c in sourceDataFrame.columns))
     
     # WRITE DELTA
-    CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if businessKey is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, businessKey)
+    CreateDeltaTable(cleanseDataFrame, cleansedTableName) if businessKey is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, businessKey)
 
 # COMMAND ----------
 

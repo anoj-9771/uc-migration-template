@@ -300,4 +300,4 @@ sourceDataFrame = sourceDataFrame.withColumn("surveyID", lit(surveyID)).withColu
     
     
 
-CreateDeltaTable(sourceDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
+CreateDeltaTable(sourceDataFrame, cleansedTableName) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, cleansedTableName, j.get("BusinessKeyColumn"))

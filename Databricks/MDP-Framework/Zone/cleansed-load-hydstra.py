@@ -112,9 +112,9 @@ cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",to_tim
 
 #if verified dataset append all new records as previously existing records have been marked as deleted
 if isVerifiedDataset:
-    AppendDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn")) 
+    AppendDeltaTable(cleanseDataFrame, cleansedTableName, j.get("BusinessKeyColumn")) 
 else:
-    CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"), True, mergeWithUpdate)        
+    CreateDeltaTable(cleanseDataFrame, cleansedTableName) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, j.get("BusinessKeyColumn"), True, mergeWithUpdate)        
 
 # COMMAND ----------
 

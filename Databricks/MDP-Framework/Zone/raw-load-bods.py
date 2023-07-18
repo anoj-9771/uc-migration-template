@@ -57,6 +57,6 @@ except Exception:
 df=df.withColumn("_DLRawZoneTimeStamp",current_timestamp())
 tableFqn = get_table_name('raw', schemaName, tableName)
 dataLakePath = "/".join(rawFolderPath.split("/")[0:5])+"/delta"
-AppendDeltaTable(df, tableFqn, dataLakePath)
+AppendDeltaTable(df, tableFqn)
 SinkRowCount = spark.table(tableFqn).count()
 dbutils.notebook.exit({"SinkRowCount": SinkRowCount})

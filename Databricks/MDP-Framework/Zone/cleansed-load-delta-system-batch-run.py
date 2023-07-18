@@ -195,7 +195,7 @@ for j in manifest_df.collect():
                 cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
                 cleanseDataFrame = spark.sql(f"select * from (select vwCleanseDataFrame.*, row_number() OVER (Partition By {businessKey} order by {groupOrderBy}) row_num from vwCleanseDataFrame) where row_num = 1 ").drop("row_num")   
 
-        CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if j.BusinessKeyColumn is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, j.BusinessKeyColumn)
+        CreateDeltaTable(cleanseDataFrame, cleansedTableName) if j.BusinessKeyColumn is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, j.BusinessKeyColumn)
         
         CleansedSinkCount = spark.table(cleansedTableName).count()
         print(f"!!**SUCCESS**!! CleansedTable: {cleansedTableName} CleanseTableCount: {CleansedSinkCount}")

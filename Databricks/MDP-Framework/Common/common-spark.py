@@ -24,7 +24,7 @@ def GetDeltaTablePath(tableFqn):
 # COMMAND ----------
 
     
-def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints=True):
+def CreateDeltaTable(dataFrame, targetTableFqn, businessKeys = None, createTableConstraints=True):
     #with introduction of Unity Catalog, function needs to be able to create new schema
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {targetTableFqn.split('.')[0]}.{targetTableFqn.split('.')[1]}")
     
@@ -34,12 +34,12 @@ def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = Non
         .option("delta.minWriterVersion", "7") 
         .mode("overwrite") 
         .saveAsTable(targetTableFqn))
-    CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints) 
+    CreateDeltaTableConstraints(targetTableFqn, businessKeys, createTableConstraints) 
 
 # COMMAND ----------
 
 #A streaming variant of AppendDeltaTable function. The other difference is that the table creation has been decoupled. We should look at saving the dataframe to table directly.
-def AppendDeltaTableStream(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, triggerType = "once"):
+def AppendDeltaTableStream(dataFrame, targetTableFqn, businessKeys = None, triggerType = "once"):
     if triggerType == "once":
         kwArgs = {"once":True}
     elif triggerType == "continuous" or triggerType == "processingTime":
@@ -77,7 +77,7 @@ def AppendDeltaTableStream(dataFrame, targetTableFqn, dataLakePath, businessKeys
 
 # COMMAND ----------
 
-def AppendDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None):
+def AppendDeltaTable(dataFrame, targetTableFqn, businessKeys = None):
     #with introduction of Unity Catalog, function needs to be able to create new schema
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {targetTableFqn.split('.')[0]}.{targetTableFqn.split('.')[1]}")
 
@@ -87,7 +87,7 @@ def AppendDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = Non
             .mode("append") \
             .saveAsTable(targetTableFqn)
     
-    CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys)
+    CreateDeltaTableConstraints(targetTableFqn, businessKeys)
     
 
 # COMMAND ----------
@@ -103,7 +103,7 @@ def delete_files_recursive(file_path: str) -> None:
 
 # COMMAND ----------
 
-def CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints = True):
+def CreateDeltaTableConstraints(targetTableFqn, businessKeys = None, createTableConstraints = True):
     if businessKeys is not None and createTableConstraints:
         for businessKey in businessKeys.split(","):
             spark.sql(f"ALTER TABLE {targetTableFqn} ALTER COLUMN {businessKey} SET NOT NULL")

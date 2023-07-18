@@ -68,4 +68,4 @@ df = df.toDF(*(RemoveBadCharacters(c) for c in df.columns))
 
 tableFqn = get_table_name('raw', schemaName, tableName).lower()
 dataLakePath = "/".join(rawPath.split("/")[0:5])+"/delta"
-AppendDeltaTable(df, tableFqn, dataLakePath)
+AppendDeltaTable(df, tableFqn)
