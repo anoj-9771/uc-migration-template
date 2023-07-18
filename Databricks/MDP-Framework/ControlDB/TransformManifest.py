@@ -72,8 +72,38 @@ transform_df = spark.sql("""
     (14,'Fact','WorkOrderFailureReport','databricks-notebook','',12,null,1),
     (15,'Fact','AssetPerformance','databricks-notebook','',12,null,1),
     (16,'Fact','AssetPerformanceIndex','databricks-notebook','',12,null,1),
-    (17,'Bridge','WorkOrderPreventiveMaintenance','databricks-notebook','',12,null,1)
-    AS (TransformID,EntityType,EntityName,ProcessorType,TargetKeyVaultSecret,InternalDependency,ExternalDependency,Enabled)
+    (17,'Bridge','WorkOrderPreventiveMaintenance','databricks-notebook','',12,null,1),
+    (18,'Dim','BusinessPartner','databricks-notebook','',null,null,0),
+    (19,'Dim','CommunicationChannel','databricks-notebook','',null,	null,0),
+    (20,'Dim','CustomerInteractionStatus','databricks-notebook','',null,null,0),
+    (21,'Dim','CustomerServiceAttachmentInform','databricks-notebook','',null,null,0),
+    (22,'Dim','CustomerServiceCategory','databricks-notebook','',null,null,0),
+    (23,'Dim','CustomerServiceEmailHeader','databricks-notebook','',null,null,0),
+    (24,'Dim','CustomerServiceProcessType','databricks-notebook','',null,null,0),
+    (25,'Dim','CustomerServiceRequestStatus','databricks-notebook','',null,null,0),
+    (26,'Dim','Survey','databricks-notebook','',null,null,0),
+    (27,'Dim','SurveyParticipant','databricks-notebook','',26,null,0),
+    (28,'Dim','SurveyQuestion','databricks-notebook','',26,null,0),
+    (29,'Dim','SurveyResponseInformation','databricks-notebook','',26,null,0),
+    (30,'Fact','CustomerInteraction','databricks-notebook','',29,null,0),
+    (31,'Fact','CustomerServiceEmailEvent','databricks-notebook','',29,null,0),
+    (32,'Fact','CustomerServiceRequest','databricks-notebook','',29,null,0),
+    (33,'Fact','CustomerServiceWorkNote','databricks-notebook','',29,null,0),
+    (34,'Fact','SurveyMiscellaneousInfo','databricks-notebook','',29,null,0),
+    (35,'Fact','SurveyResponse','databricks-notebook','',29,null,0),						
+    (36,'Bridge','CustomerInteractionAttachment','databricks-notebook','',35,null,0),
+    (37,'Bridge','CustomerInteractionEmail','databricks-notebook','',35,null,0),
+    (38,'Bridge','CustomerInteractionServiceRequest','databricks-notebook','',35,null,0),
+    (39,'Bridge','CustomerInteractionWorkNoteSummary','databricks-notebook','',35,null,0),
+    (40,'Bridge','CustomerServiceRequestAttachment','databricks-notebook','',35,null,0),
+    (41,'Bridge','CustomerServiceRequestEmail','databricks-notebook','',35,	null,0),
+    (42,'Bridge','CustomerServiceRequestInteraction','databricks-notebook','',35,null,0),
+    (43,'Bridge','CustomerServiceRequestSurvey','databricks-notebook','',35,null,0),
+    (44,'Bridge','CustomerServicetoServiceRequest','databricks-notebook','',35,null,0),
+    (45,'Bridge','CustomerServiceWorkResolution','databricks-notebook','',35,null,0),
+    (46,'Bridge','CustomerServiceWorkNoteSummary','databricks-notebook','',35,null,0),
+    (47,'Bridge','CustomerInteractionSurvey','databricks-notebook','',35,null,0)
+AS (TransformID,EntityType,EntityName,ProcessorType,TargetKeyVaultSecret,InternalDependency,ExternalDependency,Enabled)
 """)
 
 level = 1
