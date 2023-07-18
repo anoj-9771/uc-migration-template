@@ -26,7 +26,7 @@ if extendedProperties:
     extendedProperties = json.loads(extendedProperties)
     rawTableNameMatchSource = extendedProperties.get("RawTableNameMatchSource")
 if rawTableNameMatchSource:
-    sourceTableName = get_table_name('raw',destinationSchema, sourceTable).lower()
+    sourceTableName = get_table_name('raw', destinationSchema, sourceTable).lower()
     source_table_name_nonuc = f'raw.{destinationSchema}_{sourceTable}'
 else:
     sourceTableName = get_table_name('raw', destinationSchema, destinationTableName).lower()
@@ -102,9 +102,9 @@ if(extendedProperties):
         cleanseDataFrame = GetRawLatestRecordBK(cleanseDataFrame,businessKey,groupOrderBy,systemCode)
 
 if extendedProperties and extendedProperties.get("LoadType") == "Append":
-    AppendDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
+    AppendDeltaTable(cleanseDataFrame, cleansedTableName, j.get("BusinessKeyColumn"))
 else:    
-    CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
+    CreateDeltaTable(cleanseDataFrame, cleansedTableName) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, j.get("BusinessKeyColumn"))
 
 # COMMAND ----------
 
