@@ -80,19 +80,7 @@ def Transform():
     # ------------- CLAUSES ---------------- #
 
     # ------------- SAVE ------------------- #
-    # Updating Business SCD columns for existing records
-    try:
-        # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
-        existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""") 
-        matched_df = existing_data.join(df.select("locationSpecAttributeIdentifier","locationSpecName",col("sourceValidFromTimestamp").alias("new_changed_date")),["locationSpecAttributeIdentifier","locationSpecName"],"inner")\
-        .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
-
-        matched_df =matched_df.withColumn("sourceValidToTimestamp",expr("new_changed_date - INTERVAL 1 SECOND")) \
-        .withColumn("sourceRecordCurrent",expr("CAST(0 AS INT)"))
-
-        df = df.unionByName(matched_df.selectExpr(df.columns))
-    except Exception as exp:
-        print(exp)
+    
 #     display(df)
     Save(df)
     #DisplaySelf()
