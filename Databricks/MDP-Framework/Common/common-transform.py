@@ -319,11 +319,11 @@ def SaveAndContinue(sourceDataFrame,append=False):
         # Adjust _RecordStart date for first load
         sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
         sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
-        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        CreateDeltaTable(sourceDataFrame, targetTableFqn)  
         return
     sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
     if append:
-        AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        AppendDeltaTable(sourceDataFrame, targetTableFqn)  
     else:    
         MergeSCDTable(sourceDataFrame, targetTableFqn,_.BK,_.SK)
     return 
