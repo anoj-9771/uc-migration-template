@@ -11,6 +11,11 @@ DATABRICKS_PAT_SECRET_NAME = "databricks-token"
 
 # COMMAND ----------
 
+def GetWorkspaceId():
+    return spark.conf.get("spark.databricks.clusterUsageTags.clusterOwnerOrgId")
+
+# COMMAND ----------
+
 def CurrentNotebookPath():
     return "/".join(dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")[:-1])
 
@@ -817,4 +822,13 @@ def CreateJob(template):
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.1/jobs/create'
     response = requests.post(url, json=template, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
+def UpdateCatalogWorkspaceBindings(name, list):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.1/unity-catalog/workspace-bindings/catalogs/{name}'
+    jsonData = { "assign_workspaces": [ *list] }
+    response = requests.patch(url, json=jsonData, headers=headers)
     return response.json()

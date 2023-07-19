@@ -130,3 +130,8 @@ def CreateView(sql, newOwner="dev-Admins", preview=False):
 
     # OWNER ASSIGN
     spark.sql(f"ALTER VIEW {viewFqn} OWNER TO `{newOwner}`") if count == 0 and not(preview) else ()
+
+# COMMAND ----------
+
+def GetCommonCatalogs():
+    return ["raw", "cleansed", "curated", "rejected", "semantic", "stage"]
