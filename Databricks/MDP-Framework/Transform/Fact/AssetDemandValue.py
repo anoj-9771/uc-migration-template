@@ -197,6 +197,7 @@ TSV as
   --Min(reportDate) - 1 is to read last 24 hours of device maintenance reading
   WHERE measurementResultAESTDateTime >= (SELECT  MIN(reportDate)-1 FROM required_dates) 
   AND measurementResultAESTDateTime < (SELECT  MAX(reportDate)+1 FROM required_dates)
+  AND sourceRecordSystemId in(1, 2)
 	--test missing tsv values
 	-- AND measurementResultAESTDateTime::DATE <> date'2022-12-01' 
   qualify row_no = 1
