@@ -123,6 +123,7 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceMaste
     ,wbs.majorProjectAssociationList as majorProjectAssociationId
     ,mpaTx.majorProjectAssociationDescription
     ,wbs.projectHierarchyLevel
+    ,wbs.systemStatus1 as systemStatusCode
 
     ,decp.decisionGuid as decisionGUID
     ,decpTx.decisionGuidDescription decisionGUIDDescription
@@ -283,6 +284,7 @@ SELECT * FROM
     ,wbs.majorProjectAssociationList as majorProjectAssociationId
     ,mpaTx.majorProjectAssociationDescription
     ,wbs.projectHierarchyLevel
+    ,'' as systemStatusCode
 
     ,'' decisionGUID
     ,'' as decisionGUIDDescription
@@ -390,6 +392,7 @@ UNION
     ,item.majorProjectAssociationId
     ,item.majorProjectAssociationDescription
     ,item.projectHierarchyLevel
+    ,item.systemStatusCode
 
     ,item.decisionGUID
     ,item.decisionGUIDDescription
@@ -723,6 +726,7 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceRepor
     ,mast.majorProjectAssociationId
     ,mast.majorProjectAssociationDescription
     ,mast.projectHierarchyLevel
+    ,mast.systemStatusCode
 
     ,mast.decisionGUID
     ,mast.decisionGUIDDescription
