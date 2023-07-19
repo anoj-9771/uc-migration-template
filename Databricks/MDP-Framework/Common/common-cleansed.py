@@ -56,6 +56,18 @@ defaultSystemTransformTags = {
             ,"transform": "sydneyts-to-utcts"
         }
     ],
+    "edw_cdr": [
+        {
+            "columnPattern": ".*AEST.*"
+            ,"dataType" : TimestampType
+            ,"transform": "utc+10ts-to-utcts"
+            ,"continueProcessing" : "N"
+        },    
+        {
+            "dataType" : TimestampType
+            ,"transform": "sydneyts-to-utcts"
+        }
+    ],
     "maximo": [
         {
             "dataType" : TimestampType
