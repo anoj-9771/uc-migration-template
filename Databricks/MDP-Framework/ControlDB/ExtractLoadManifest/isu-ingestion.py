@@ -24,9 +24,9 @@ ORDER BY SourceSchema, SourceTableName
 tables = ['']
 tablesWithNullableKeys = ['zblt_redress']
 #Non-Prod "DeleteSourceFiles" : "False" while testing
-deleteSourceFiles = "False"
+# deleteSourceFiles = "False"
 #Production
-# deleteSourceFiles = "True"
+deleteSourceFiles = "True"
 df = (
     df.withColumn('ExtendedProperties', lit(f'"DeleteSourceFiles" : "{deleteSourceFiles}"'))
       .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tables),expr('ExtendedProperties ||", "||\'\"SourceRecordDeletion\" : \"True\"\'')) 
