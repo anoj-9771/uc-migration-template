@@ -3,14 +3,28 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
+#####Determine Load #################
+###############################
+driverTable1 = 'cleansed.crm.0crm_sales_act_1'   
+
+if not(TableExists(_.Destination)):
+    isDeltaLoad = False
+    #####Table Full Load #####################
+    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
+else:
+    #####CDF for eligible tables#####################
+    isDeltaLoad = True
+    derivedDF1 = getSourceCDF(driverTable1, None, False)
+    if derivedDF1.count == 0:
+        print("No delta to be  processed")
+        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}") 
 
 # COMMAND ----------
 
 ###Variables ############################
 dummySK = '60e35f602481e8c37d48f6a3e3d7c30d' ##Derived by hashing -1 and recordStart
 #####-----------DIRECT DATAFRAMES CRM--------------------------###############
-coreDF = ((GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_sales_act_1')}") 
+coreDF = ((derivedDF1 
         .withColumn("processTypeBK", concat(col("ProcessTypeCode"),lit("|"),lit("CRM")))
         .withColumn("statusBK", concat(col("statusProfile"),lit("|"),col("statusCode")))
         .withColumn("channelBK",concat(trim(col("communicationChannelCode")),lit("|"),lit("CRM")))
@@ -34,48 +48,56 @@ coreDF = ((GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_sales_act_1')}
                ,col("employeeResponsibleNumberBK")
                ,col("contactPersonNoBK")
                ,col("propertyNoBK").cast("long")
+               ,col("_change_type")
               ) 
         )
 
-
-crmActDF =  (GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_dhr_activ')}")
+            
+crmActDF =  (GetTable(f"{getEnv()}cleansed.crm.crmd_dhr_activ")
                   .select(col("activityGUID") 
                           ,col("categoryLevel1GUID")  
                           ,col("categoryLevel2GUID")
-                          ,col("responisbleEmployeeNumber").alias("responsibleEmployeeNumber")
+                          ,col("responsibleEmployeeNumber").alias("responsibleEmployeeNumber")
                           ,col("activityPartnerNumber").cast("long").alias("propertyNumber")
                          )
             )
 
-crmCatDF =  (GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmc_erms_cat_ct')}")
+crmCatDF =  (GetTable(f"{getEnv()}cleansed.crm.crmc_erms_cat_ct")
                  .select(col("categoryGUID") 
                          ,col("categoryDescription").alias("customerInteractionCategory")
                          ,col("categoryDescription").alias("customerInterationSubCategory")
                         )
             )
 
-crmLinkDF = ( GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_link')}")
+crmLinkDF = (GetTable(f"{getEnv()}cleansed.crm.crmd_link")
                            .select( col("hiGUID")
                                    ,col("setGUID")).filter(col("setObjectType") == lit("30"))
              
             )
     
 
-crmSappSegDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_scapptseg')}")
+crmSappSegDF = (GetTable(f"{getEnv()}cleansed.crm.scapptseg")   
                    .filter(col("apptType") == lit("ORDERPLANNED"))
                    .select(col("applicationGUID")
                           ,col("apptEndDatetime"))
                )
 
+# crmOrdIdxDF = (GetTable(f"{getEnv()}cleansed.crm.crmd_order_index")   
+#                    .filter(upper(col("status")).isin(lit("COMPLETED"), lit("DONE")))
+#                    .filter(col("ContactEndDataTime") == '9999-12-31')
+#                    .select(col("applicationGUID")
+#                           ,col("apptEndDatetime"))
+#                )
 
-procTypeDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomerserviceprocesstype')}")
+
+procTypeDF = ( GetTable(f"{getEnv()}curated.dim.customerserviceprocesstype")
                                           .filter(col("_recordCurrent") == lit("1"))
                            .select( col("customerServiceProcessTypeSK").alias("processTypeFK")
                                      ,col("_BusinessKey")
                                   ) 
              )
     
-propertyDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimProperty')}")
+propertyDF = ( GetTable(f"{getEnv()}curated.dim.Property")
                            .select( col("propertySK").alias("propertyFK")
                                      ,col("_BusinessKey")
                                      ,col("_recordStart")
@@ -84,7 +106,7 @@ propertyDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimProperty
                  
             )
     
-statusDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomerinteractionstatus')}")
+statusDF = ( GetTable(f"{getEnv()}curated.dim.customerinteractionstatus")
                                         .filter(col("_recordCurrent") == lit("1"))
                            .select( col("customerInteractionStatusSK").alias("StatusFK")
                                      ,col("_BusinessKey")
@@ -92,7 +114,7 @@ statusDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomerin
             )
     
     
-channelDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimCommunicationChannel')}")
+channelDF = ( GetTable(f"{getEnv()}curated.dim.CommunicationChannel") 
                      .filter(col("_recordCurrent") == lit("1"))
                      .select( col("communicationChannelSK").alias("communicationChannelFK")
                               ,col("_BusinessKey")
@@ -100,14 +122,14 @@ channelDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimCommunica
                  
            )
 
-locationDF = (GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimlocation')}")
+locationDF = ( GetTable(f"{getEnv()}curated.dim.location")   
                    .select(col("locationSK").alias("locationFK"),
                            col("locationID"),                           
                            col("_RecordStart"),
                            col("_RecordEnd"))
             )
 
-busPartDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimBusinessPartner')}")
+busPartDF = ( GetTable(f"{getEnv()}curated.dim.BusinessPartner") 
                              .select( col("businessPartnerSK").alias("responsibleEmployeeFK")
                                      ,col("businessPartnerSK").alias("contactPersonFK")
                                      ,col("businessPartnerNumber")
@@ -117,7 +139,7 @@ busPartDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimBusinessP
                  
             )
     
-busPartGrpDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimBusinessPartnerGroup')}")
+busPartGrpDF = ( GetTable(f"{getEnv()}curated.dim.BusinessPartnerGroup")
                              .select( col("businessPartnerGroupSK").alias("businessPartnerGroupFK")
                                      ,col("businessPartnerGroupNumber")
                                      ,col("_recordStart")
@@ -126,7 +148,7 @@ busPartGrpDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimBusine
                  
             )
 
-dateDF = (GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimDate')}")
+dateDF = (GetTable(f"{getEnv()}curated.dim.Date")
                    .select(col("dateSK").alias("customerInteractionCreatedDateFK")
                           ,col("dateSK").alias("customerInteractionEndDateFK")
                           ,col("calendarDate")
@@ -214,20 +236,28 @@ interDF = ((coreDF.alias("core")
          ,col("priority").alias("customerInteractionPriorityIndicator")
          ,col("direction").alias("customerInteractionDirectionIndicator")
          ,col("directionCode").alias("customerInteractionDirectionCode")
+         ,col("_change_type")
        )
 
   )
 
 # COMMAND ----------
 
-def Transform():
-    global df
-    df = interDF
-    # ------------- TRANSFORMS ------------- #
-    _.Transforms = ["*"]
-    df = df.selectExpr(_.Transforms)
-    # display(df)
-    #CleanSelf()
-    Save(df)
-    #DisplaySelf()
-Transform()
+#CleanSelf()
+if isDeltaLoad:
+    SaveWithCDF(interDF, 'APPEND')
+else:
+    SaveWithCDF(interDF, 'APPEND')
+    enableCDF(_.Destination)
+
+# def Transform():
+#     global df
+#     df = interDF
+#     # ------------- TRANSFORMS ------------- #
+#     _.Transforms = ["*"]
+#     df = df.selectExpr(_.Transforms)
+#     # display(df)
+#     #CleanSelf()
+#     Save(df)
+#     #DisplaySelf()
+# Transform()

@@ -1,20 +1,5 @@
 # Databricks notebook source
-# MAGIC %md 
-# MAGIC Vno| Date      | Who         |Purpose
-# MAGIC ---|:---------:|:-----------:|:--------:
-# MAGIC 1  |28/04/2023 |Mag          |Initial
-
-# COMMAND ----------
-
 # MAGIC %run ../../Common/common-transform 
-
-# COMMAND ----------
-
-# MAGIC %run ../../Common/common-helpers 
-
-# COMMAND ----------
-
-TARGET = DEFAULT_TARGET
 
 # COMMAND ----------
 
@@ -29,16 +14,16 @@ def add_missing_columns(df, required_columns):
     return df.select(required_columns).filter(col("recipientEmail").isNotNull())
 
 
-table_name = ["qualtrics_billpaidsuccessfullyresponses", "qualtrics_businessConnectServiceRequestCloseResponses", "qualtrics_complaintsComplaintClosedResponses", "qualtrics_contactcentreinteractionmeasurementsurveyResponses", "qualtrics_customercareResponses", "qualtrics_developerapplicationreceivedResponses",
-              "qualtrics_p4sonlinefeedbackResponses", "qualtrics_s73surveyResponses", "qualtrics_waterfixpostinteractionfeedbackResponses",
-              "qualtrics_websitegoliveResponses", "qualtrics_wscs73experiencesurveyResponses", "qualtrics_feedbacktabgoliveResponses"]
+table_name = ["qualtrics.billpaidsuccessfullyresponses", "qualtrics.businessConnectServiceRequestCloseResponses", "qualtrics.complaintsComplaintClosedResponses", "qualtrics.contactcentreinteractionmeasurementsurveyResponses", "qualtrics.customercareResponses", "qualtrics.developerapplicationreceivedResponses",
+              "qualtrics.p4sonlinefeedbackResponses", "qualtrics.s73surveyResponses", "qualtrics.waterfixpostinteractionfeedbackResponses",
+              "qualtrics.websitegoliveResponses", "qualtrics.wscs73experiencesurveyResponses", "qualtrics.feedbacktabgoliveResponses"]
 
 required_columns = ["recipientEmail", "recipientFirstName", "recipientLastName", "customerFirstName", "customerLastName", "companyName", "ageGroup", "recordedDate"]
 
 union_df = None
 
 for table in table_name:
-    df = GetTable(f"{get_table_namespace(f'{SOURCE}', f'{table}')}")
+    df = GetTable(f"{getEnv()}cleansed.{table}")
     df = add_missing_columns(df, required_columns) 
     
     if union_df is None:
@@ -47,21 +32,21 @@ for table in table_name:
         union_df = union_df.unionByName(df)
         
 
-finaldf = union_df.withColumn("sourceSystemCode", lit('Qualtrics').cast("string")) \
-                  .withColumn("BusinessKey", concat_ws('|', union_df.recipientEmail, \
+finaldf = (union_df.withColumn("sourceSystemCode", lit('Qualtrics').cast("string")) 
+                  .withColumn("BusinessKey", concat_ws('|', union_df.recipientEmail, 
                                                             when((union_df.recipientFirstName).isNull(), lit('')).otherwise(union_df.recipientFirstName),
                                                             when((union_df.recipientLastName).isNull(), lit('')).otherwise(union_df.recipientLastName),
-                                                            union_df.recordedDate)) \
-                  .withColumn("sourceBusinessKey", concat_ws('|', union_df.recipientEmail, \
+                                                            union_df.recordedDate)) 
+                  .withColumn("sourceBusinessKey", concat_ws('|', union_df.recipientEmail, 
                                                             when((union_df.recipientFirstName).isNull(), lit('')).otherwise(union_df.recipientFirstName),
-                                                            when((union_df.recipientLastName).isNull(), lit('')).otherwise(union_df.recipientLastName))) \
-                  .dropDuplicates()  
+                                                            when((union_df.recipientLastName).isNull(), lit('')).otherwise(union_df.recipientLastName))) 
+                  .dropDuplicates()) 
 
 
 windowSpec = Window.partitionBy("sourceBusinessKey").orderBy(col("recordedDate").desc())
-finaldf = finaldf.withColumn("row_num", row_number().over(windowSpec)) \
-                 .withColumn("lagValidDate", lag("recordedDate").over(windowSpec)- expr("Interval 1 milliseconds")) \
-                 .withColumn("sourceRecordCurrent", when(col("row_num") == 1, 1).otherwise(0))
+finaldf = (finaldf.withColumn("row_num", row_number().over(windowSpec)) 
+                 .withColumn("lagValidDate", lag("recordedDate").over(windowSpec)- expr("Interval 1 milliseconds")) 
+                 .withColumn("sourceRecordCurrent", when(col("row_num") == 1, 1).otherwise(0)))
 
 # COMMAND ----------
 

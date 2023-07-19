@@ -1,24 +1,5 @@
 # Databricks notebook source
-# MAGIC %md 
-# MAGIC Vno| Date      | Who         |Purpose
-# MAGIC ---|:---------:|:-----------:|:--------:
-# MAGIC 1  |11/04/2023 |Mag          |Initial
-
-# COMMAND ----------
-
 # MAGIC %run ../../Common/common-transform 
-
-# COMMAND ----------
-
-# MAGIC %run ../../Common/common-helpers 
-
-# COMMAND ----------
-
-
-
-# COMMAND ----------
-
-TARGET = DEFAULT_TARGET
 
 # COMMAND ----------
 
@@ -31,16 +12,16 @@ def add_missing_columns(df, required_columns):
     return df.select(required_columns)
 
 
-table_name = ["qualtrics_billpaidsuccessfullyresponses", "qualtrics_businessConnectServiceRequestCloseResponses", "qualtrics_complaintsComplaintClosedResponses", "qualtrics_contactcentreinteractionmeasurementsurveyResponses", "qualtrics_customercareResponses", "qualtrics_developerapplicationreceivedResponses",
-              "qualtrics_p4sonlinefeedbackResponses", "qualtrics_s73surveyResponses", "qualtrics_waterfixpostinteractionfeedbackResponses",
-              "qualtrics_websitegoliveResponses", "qualtrics_wscs73experiencesurveyResponses", "qualtrics_feedbacktabgoliveResponses"]
+table_name = ["qualtrics.billpaidsuccessfullyresponses", "qualtrics.businessConnectServiceRequestCloseResponses", "qualtrics.complaintsComplaintClosedResponses", "qualtrics.contactcentreinteractionmeasurementsurveyResponses", "qualtrics.customercareResponses", "qualtrics.developerapplicationreceivedResponses",
+              "qualtrics.p4sonlinefeedbackResponses", "qualtrics.s73surveyResponses", "qualtrics.waterfixpostinteractionfeedbackResponses",
+              "qualtrics.websitegoliveResponses", "qualtrics.wscs73experiencesurveyResponses", "qualtrics.feedbacktabgoliveResponses"]
 
 required_columns = ["surveyID", "recordId", "startDate", "endDate", "finished", "status", "recordedDate"]
 
 qualtricsDF = None
 
 for table in table_name:
-    df = GetTable(f"{get_table_namespace(f'{SOURCE}', f'{table}')}")
+    df = GetTable(f"{getEnv()}cleansed.{table}")
     df = add_missing_columns(df, required_columns)
     df = ( df.select(col("surveyID").alias("surveyId")
                      ,col("recordId").alias("surveyResponseId")

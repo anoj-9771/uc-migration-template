@@ -3,11 +3,21 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
+#####Determine Load #################
+###############################
+driverTable1 = 'curated.fact.customerinteraction'   
 
-# COMMAND ----------
-
-TARGET = DEFAULT_TARGET
+if not(TableExists(_.Destination)):
+    isDeltaLoad = False
+    #####Table Full Load #####################
+    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
+else:
+    #####CDF for eligible tables#####################
+    isDeltaLoad = True
+    derivedDF1 = getSourceCDF(driverTable1, None, False)
+    if derivedDF1.count == 0:
+        print("No delta to be  processed")
+        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}") 
 
 # COMMAND ----------
 
@@ -18,17 +28,17 @@ def Transform():
     global factinteraction_df
     # ------------- TABLES ----------------- #
 
-    factservicerequest_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerservicerequest')}").alias('SR')
-    crm_crmd_brelvonae_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_brelvonae')}").alias('B')    
-    factinteraction_df =GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerinteraction')}").alias('IR')    
+    factservicerequest_df = GetTable(f"{getEnv()}curated.fact.customerservicerequest").alias('SR')
+    crm_crmd_brelvonae_df = GetTable(f"{getEnv()}cleansed.crm.crmd_brelvonae").where("objectTypeB = 'BUS2000126' and objectTypeA = 'BUS2000223'").alias('B')    
+    factinteraction_df = derivedDF1.alias('IR')    
                                 
     # ------------- JOINS ------------------ #    
     intern_servReq_df = (
-        crm_crmd_brelvonae_df.where("B.objectTypeB = 'BUS2000126' and B.objectTypeA = 'BUS2000223'") 
-          .join(factinteraction_df,expr("IR.customerInteractionGUID = B.objectKeyB"), "Inner") 
+        factinteraction_df
+          .join(crm_crmd_brelvonae_df,expr("IR.customerInteractionGUID = B.objectKeyB"), "Inner") 
           .join(factservicerequest_df,expr("(SR.customerserviceRequestGUID = B.objectKeyA) "),"Inner") 
           .filter(expr("B.objectKeyB <> B.objectKeyA"))  
-          .selectExpr("IR.customerInteractionSK as customerInteractionFK","SR.customerServiceRequestSK as customerServiceRequestFK","IR.customerInteractionId as customerInteractionId", "SR.customerServiceRequestId as customerServiceRequestId", "'Interaction - Service Request' as relationshipType")
+          .selectExpr("IR.customerInteractionSK as customerInteractionFK","SR.customerServiceRequestSK as customerServiceRequestFK","IR.customerInteractionId as customerInteractionId", "SR.customerServiceRequestId as customerServiceRequestId", "'Interaction - Service Request' as relationshipType", "_change_type")
     )  
 
     df = intern_servReq_df        
@@ -42,6 +52,7 @@ def Transform():
         ,"customerInteractionId customerInteractionId"
         ,"customerServiceRequestId customerServiceRequestId"
         ,"relationshipType customerInteractionRelationshipTypeName"
+        , "_change_type"
     ]
     df = df.selectExpr(
         _.Transforms
@@ -51,7 +62,7 @@ def Transform():
     # ------------- SAVE ------------------- #
 #     display(df)
     #CleanSelf()
-    Save(df)
+    SaveWithCDF(df, 'APPEND')
 #     DisplaySelf()
 pass
 Transform()

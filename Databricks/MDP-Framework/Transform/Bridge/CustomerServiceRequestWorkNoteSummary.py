@@ -15,7 +15,7 @@ def Transform():
     global df    
  
     # ------------- TABLES ----------------- #
-    worknote_df = GetTable(f"{TARGET}.factcustomerServiceWorknote").alias('WN')
+    worknote_df = GetTable(f"{getEnv()}curated.fact.customerServiceWorknote").alias('WN')
     factservicerequest_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerservicerequest')}").alias('SR')   
                                 
     # ------------- JOINS ------------------ #

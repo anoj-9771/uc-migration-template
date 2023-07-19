@@ -160,28 +160,9 @@ def dummyRecord(schema):
     for field in schema.fields:
         if isinstance(field.dataType, StringType):
             record.append('UNKNOWN')
-        # elif field.name.endswith('SK'):
-        #     record.append(-1)
-        # elif field.name == ('_recordStart'):
-        #     record.append(-1)
-        # elif field.name == ('_recordEnd'):
-        #     record.append(-1)
-        # elif field.name == ('_recordCurrent'):
-        #     record.append(1)
-        # elif field.name == ('_recordDeleted'):
-        #     record.append(0)
-        # elif field.name == ("_DLCuratedZoneTimeStamp"):
-        #     record.append(-1)
         else:
             record.append(None)
     return record
-
-# def dummyRecord(schema):
-#     rows = [lit(-1) if field.name.endswith('SK')
-#            else lit('UNKNOWN') if isinstance(field.dataType, StringType)
-#             else None for field in schema]
-#     df = spark.createDataFrame([tuple(rows)], schema)
-#     return df
 
 # COMMAND ----------
 
@@ -470,9 +451,8 @@ def getCDFFromToVersion(sourceTableName):
 
 
 #Get all the datafeed version of source after the last version of Target Delta Table.
-def getSourceCDF(sourceTableName, changeColumns = [], duplicateCheck = True):
-    sourceTableName = f"{getEnv()}{sourceTableName}"
-    #spark.sql(f"USE CATALOG {getEnv()}{catalogNm}")
+def getSourceCDF(sourceTableName, changeColumns, duplicateCheck = True):
+    sourceTableName = f"{getEnv()}{sourceTableName}"   
     destDF = DeltaTable.forName(spark, _.Destination)
     history = destDF.history().toPandas()
     lastTimeStamp = pd.to_datetime(history['timestamp'].max())
@@ -492,7 +472,10 @@ def getSourceCDF(sourceTableName, changeColumns = [], duplicateCheck = True):
             cdfDF = handleDuplicateBusinessData(cdfDF, changeColumns)
         return cdfDF
     except AnalysisException as e:
-        return None
+        df = spark.table(sourceTableName).withColumn("_change_type", lit(None).cast(StringType()))
+        sch = df.schema
+        emptyDf = spark.createDataFrame([], sch)
+        return emptyDf
    
     
 #call to process CDF
@@ -504,14 +487,13 @@ def SaveWithCDF(sourceDataFrame, mode):
         # Adjust _RecordStart date for first load
         sourceDataFrame = (sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
                            .drop(col('_change_type')))
-        sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
-        CreateDeltaTable(sourceDataFrame, targetTableFqn)  
+        sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None        
+        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
         EndNotebook(sourceDataFrame)
         return
     
-    if mode == 'APPEND':
-        sourceDataFrame = sourceDataFrame.drop(col('_change_type'))
-        AppendDeltaTable(sourceDataFrame, targetTableFqn)  
+    if mode == 'APPEND':        
+        AppendCDFTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
     elif mode == 'SCD2':    
         mergeCDFTableSCD2(sourceDataFrame, targetTableFqn,_.BK,_.SK)
     elif mode == 'SCD1':

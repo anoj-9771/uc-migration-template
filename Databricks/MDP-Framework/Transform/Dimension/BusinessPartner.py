@@ -1,143 +1,46 @@
 # Databricks notebook source
-# MAGIC %md 
-# MAGIC Vno| Date      | Who         |Purpose
-# MAGIC ---|:---------:|:-----------:|:--------:
-# MAGIC 1  |17/05/2023 |Mag          |Initial
-
-# COMMAND ----------
-
 # MAGIC %run ../../Common/common-transform 
 
-# COMMAND ---------- 
-
-# MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
-
-
 # COMMAND ----------
 
-from pyspark.sql.functions import row_number, col, lit, when
-from pyspark.sql import Window
+#####Determine Load #################
+##Move this to controlDB config if its not complex to derive the change columns needed####
 
-isuDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'isu_0bpartner_attr')}")
-                                    .filter((col("businessPartnerCategoryCode").isin("1", "2")) & 
-                                            (col("_RecordCurrent")== 1))  
-                                    .withColumn("sourceSystemCode",lit("ISU"))                                   
-                                            .select( col("sourceSystemCode")
-                                                    ,col("businessPartnerNumber")
-                                                    ,col("businessPartnerCategoryCode")
-                                                    ,col("businessPartnerCategory")                               
-                                                    ,col("businessPartnerTypeCode")                                
-                                                    ,col("businessPartnerType")                                  
-                                                    ,col("businessPartnerGroupCode")                           
-                                                    ,col("businessPartnerGroup")                              
-                                                    ,col("externalBusinessPartnerNumber").alias("externalNumber") 
-                                                    ,col("businessPartnerGUID")                            
-                                                    ,col("firstName")   
-                                                    ,col("lastName")                                        
-                                                    ,col("middleName") 
-                                                    ,col("nickName")   
-                                                    ,col("titleCode")         
-                                                    ,col("title")                                           
-                                                    ,col("dateOfBirth")                                         
-                                                    ,col("dateOfDeath")                                            
-                                                    ,col("validFromDate")                                     
-                                                    ,col("validToDate")                                           
-                                                    ,col("personNumber")                                          
-                                                    ,col("personnelNumber")                                        
-                                                    ,col("organizationName") 
-                                                    ,col("organizationName1")
-                                                    ,col("organizationName2")                                     
-                                                    ,col("organizationFoundedDate")               
-                                                    ,col("createdDateTime")                                  
-                                                    ,col("createdBy") 
-                                                    ,col("lastUpdatedDateTime")                            
-                                                    ,col("lastUpdatedBy")                                    
-                                                    ,col("naturalPersonFlag")                              
-                                                    ,col("_RecordDeleted")                                                                                                        
-                                                    )
-                        )
+changeColumnsISU = ["businessPartnerNumber", "businessPartnerCategoryCode", "businessPartnerCategory"                              
+                 ,"businessPartnerTypeCode","businessPartnerType" ,"businessPartnerGroupCode"                           
+                 ,"businessPartnerGroup" ,"externalBusinessPartnerNumber","businessPartnerGUID"                           
+                 ,"firstName" ,"lastName"  ,"middleName" ,"nickName" ,"titleCode","title"                                           
+                 ,"dateOfBirth" , "dateOfDeath", "validFromDate" ,"validToDate","personNumber"                                          
+                 ,"personnelNumber","organizationName","organizationName1","organizationName2"                                     
+                 ,"organizationFoundedDate", "createdDateTime", "createdBy","lastUpdatedDateTime"                           
+                 ,"lastUpdatedBy" ,"naturalPersonFlag","_RecordDeleted"]
 
+changeColumnsCRM = ["businessPartnerNumber", "businessPartnerCategoryCode", "businessPartnerCategory"                              
+                  ,"businessPartnerTypeCode","businessPartnerType" ,"businessPartnerGroupCode"                           
+                  ,"businessPartnerGroup" ,"externalBusinessPartnerNumber","businessPartnerGUID"                           
+                  ,"firstName" ,"lastName"  ,"middleName" ,"nickName" ,"titleCode","title"                                           
+                  ,"dateOfBirth" , "dateOfDeath", "validFromDate" ,"validToDate","personNumber"                                          
+                  ,"personnelNumber","organizationName","organizationName1","organizationName2"                                     
+                  ,"organizationFoundedDate", "createdDateTime", "createdBy","lastUpdatedDateTime"                           
+                  ,"lastUpdatedBy" ,"naturalPersonFlag","_RecordDeleted"]
 
-crmDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0bpartner_attr')}")
-                                            .filter((col("businessPartnerCategoryCode").isin("1", "2")) & 
-                                            (col("_RecordCurrent")== 1) & (col("_RecordDeleted")== 0))                                            
-                                            .withColumn("sourceSystemCode",lit("CRM"))
-                                            .select( col("sourceSystemCode")
-                                                    ,col("businessPartnerNumber")
-                                                    ,col("businessPartnerCategoryCode")
-                                                    ,col("businessPartnerCategory")                               
-                                                    ,col("businessPartnerTypeCode")                                
-                                                    ,col("businessPartnerType")                                  
-                                                    ,col("businessPartnerGroupCode")                           
-                                                    ,col("businessPartnerGroup")                              
-                                                    ,col("externalBusinessPartnerNumber").alias("externalNumber") 
-                                                    ,col("businessPartnerGUID")                            
-                                                    ,col("firstName")   
-                                                    ,col("lastName")                                        
-                                                    ,col("middleName") 
-                                                    ,col("nickName")   
-                                                    ,col("titleCode")         
-                                                    ,col("title")                                           
-                                                    ,col("dateOfBirth")                                         
-                                                    ,col("dateOfDeath")                                            
-                                                    ,col("validFromDate")                                     
-                                                    ,col("validToDate")                                           
-                                                    ,col("personNumber")                                          
-                                                    ,col("personnelNumber")                                        
-                                                    ,col("organizationName")
-                                                    ,col("organizationName1")
-                                                    ,col("organizationName2")                                     
-                                                    ,col("organizationFoundedDate")                
-                                                    ,col("createdDateTime")                                  
-                                                    ,col("createdBy")                                            
-                                                    ,col("lastUpdatedDateTime")                            
-                                                    ,col("lastUpdatedBy") 
-                                                    ,col("naturalPersonFlag")                              
-                                                    ,col("_RecordDeleted") 
-                                                    ,col("warWidowFlag") 
-                                                    ,col("deceasedFlag")         
-                                                    ,col("disabilityFlag")             
-                                                    ,col("goldCardHolderFlag")                                
-                                                    ,col("consent1Indicator")                 
-                                                    ,col("consent2Indicator")                                 
-                                                    ,col("eligibilityFlag")                                   
-                                                    ,col("plannedChangeDocument")          
-                                                    ,col("paymentStartDate")                                     
-                                                    ,col("dateOfCheck")
-                                                    ,col("pensionConcessionCardFlag")                            
-                                                    ,col("pensionType")                                                    
-                                                    )
-                         )
+###############################
+driverTable1 = 'cleansed.isu.0bpartner_attr'   
+driverTable2 = 'cleansed.crm.0bpartner_attr' 
 
-
-
-aurDF = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'vw_aurion_employee_details')}")
-                    .withColumn("sourceSystemCode",lit("AURION"))
-                    .withColumn("priority", when(col("aurionfilename") == "active", 0)
-                                            .when(col("aurionfilename") == "terminated", 1)
-                                            .when(col("aurionfilename") == "history", 2)
-                                            .otherwise(3))
-                    .withColumn("businessPartnerCategory",lit("Person"))
-                    .withColumn("businessPartnerCategoryCode",lit("1"))
-                    .withColumn("businessPartnerGroup",lit("Employee"))
-                    .withColumn("businessPartnerGroupCode",lit("ZE"))
-                                            .select( col("sourceSystemCode")
-                                                    ,col("businessPartnerNumber")
-                                                    ,col("businessPartnerCategoryCode")
-                                                    ,col("businessPartnerCategory")                               
-                                                    ,col("businessPartnerGroupCode")                           
-                                                    ,col("businessPartnerGroup")                              
-                                                    ,col("givenNames").alias("firstName")   
-                                                    ,col("surname").alias("lastName")                                        
-                                                    ,col("personNumber")                                          
-                                                    ,col("employeeNumber")
-                                                    ,col("UserID").alias("userId")
-                                                    ,col("dateCommenced")
-                                                    ,col("EmployeeStatus").alias("employeeStatus") 
-                                                    ,col("priority")
-                                                    )
-                         )
+if not(TableExists(_.Destination)):
+    isDeltaLoad = False
+    #####Table Full Load #####################
+    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
+    derivedDF2 = GetTable(f"{getEnv()}{driverTable2}").withColumn("_change_type", lit(None))
+else:
+    #####CDF for eligible tables#####################
+    isDeltaLoad = True
+    derivedDF1 = getSourceCDF(driverTable1, changeColumnsISU)
+    derivedDF2 = getSourceCDF(driverTable2, changeColumnsCRM)
+    if derivedDF1.count == 0 and derivedDF2.count == 0:
+        print("No delta to be  processed")
+        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}") 
 
 # COMMAND ----------
 
@@ -220,8 +123,9 @@ def Transform():
     #display(df)
     #CleanSelf()    
     if isSchemaChanged(df):
+        df.drop(col("_change_type"))
         saveSchemaAndData(df, 'businessPartnerNumber', 'businessPartnerNumber')
     else:
-        Save(df)
+        SaveWithCDF(df, 'SCD2')
         #DisplaySelf()
 Transform()

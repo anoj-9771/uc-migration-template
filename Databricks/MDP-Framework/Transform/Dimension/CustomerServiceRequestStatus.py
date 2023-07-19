@@ -1,36 +1,24 @@
 # Databricks notebook source
-# MAGIC %md 
-# MAGIC Vno| Date      | Who         |Purpose
-# MAGIC ---|:---------:|:-----------:|:--------:
-# MAGIC 1  |28/02/2023 |Mag          |Initial
-
-# COMMAND ----------
-
 # MAGIC %run ../../Common/common-transform 
-
-# COMMAND ---------- 
-
-# MAGIC %run ../../Common/common-helpers 
-# COMMAND ---------- 
-
 
 # COMMAND ----------
 
 from pyspark.sql.functions import broadcast
+
+srStatus = (GetTable(f"{getEnv()}cleansed.crm.0crm_srv_req_inci_h")
+             .select("statusProfile").distinct().filter("statusProfile IS NOT NULL"))
+    
+recStatus = (GetTable(f"{getEnv()}cleansed.crm.tj30t")
+             .select("statusProfile", "statusCode", "statusShortDescription","status").dropDuplicates())
+
+finaldf = (recStatus.alias("aa").join(broadcast(srStatus.alias("bb")), recStatus["statusProfile"] == srStatus["statusProfile"], "inner")
+               .select("aa.*"))
+
+# COMMAND ----------
+
 def Transform():
-    global df 
-    
-    # ------------- TABLES ----------------- #   
-    srStatus = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h')}").select("statusProfile").distinct().filter("statusProfile IS NOT NULL") 
-    
-    recStatus = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_tj30t')}") \
-    .select("statusProfile", "statusCode", "statusShortDescription","status").dropDuplicates() 
-    
-        
-    # ------------- JOIN AND SELECT ----------------- #
-    df = recStatus.alias("aa").join(broadcast(srStatus.alias("bb")), recStatus["statusProfile"] == srStatus["statusProfile"], "inner").select("aa.*")
-   
-    #------------- TRANSFORMS ------------- #
+    global df
+    df = finaldf
     _.Transforms = [
         f"statusProfile||'|'||statusCode {BK}" 
         ,"statusProfile             customerServiceRequestStatusProfile"
@@ -46,7 +34,7 @@ def Transform():
     
     #df.display()
     #display(df)
-    # CleanSelf()
+    #CleanSelf()
     Save(df)
     #DisplaySelf()
     

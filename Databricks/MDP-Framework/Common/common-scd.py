@@ -238,6 +238,7 @@ def AppendCDFTable(sourceDataFrame, targetTableFqn, BK, SK):
 
 def AppendCDFTable(sourceDataFrame, targetTableFqn, BK, SK):
     sourceDataFrame = sourceDataFrame.filter(col("_change_type") == lit("insert"))
+    sourceDataFrame = sourceDataFrame.drop(col('_change_type'))
     selectColumns = [col for col in sourceDataFrame.columns if not (col.endswith('SK'))]
     sourceDataFrame = (sourceDataFrame.withColumns(f"{SK}", md5(expr(f"concat({_.BK},'|',{DEFAULT_START_DATE})")))
                                       .withColumns("_DLCuratedZoneTimeStamp", expr("now()"))

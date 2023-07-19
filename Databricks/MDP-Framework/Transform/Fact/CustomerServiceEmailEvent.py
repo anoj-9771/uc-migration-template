@@ -3,29 +3,40 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
+#####Determine Load #################
+###############################
+driverTable1 = 'cleansed.crm.crmd_erms_step'   
 
-# COMMAND ----------
-
-TARGET = DEFAULT_TARGET
+if not(TableExists(_.Destination)):
+    isDeltaLoad = False
+    #####Table Full Load #####################
+    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
+else:
+    #####CDF for eligible tables#####################
+    isDeltaLoad = True
+    derivedDF1 = getSourceCDF(driverTable1, None, False)
+    if derivedDF1.count == 0:
+        print("No delta to be  processed")
+        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}") 
 
 # COMMAND ----------
 
 def Transform():
     global df
     # ------------- TABLES ----------------- #
-    df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_erms_step')}") \
-    .withColumn("email_BK",expr("right(emailID,17)")) \
-    .withColumn("firstAgent_BK",expr("CASE WHEN firstAgent IS NULL THEN '-1' ELSE firstAgent END")) \
-    .withColumn("secondAgent_BK",expr("CASE WHEN secondAgent IS NULL THEN '-1' ELSE firstAgent END")) \
-    .withColumn("firstOrgUnit_BK",expr("CASE WHEN firstOrganisationUnit IS NULL THEN '-1' ELSE concat('OU',RIGHT(firstOrganisationUnit,8)) END")) \
-    .withColumn("secondOrgUnit_BK",expr("CASE WHEN secondOrganisationUnit IS NULL THEN '-1' ELSE concat('OU',RIGHT(secondOrganisationUnit,8)) END"))        
-    crmd_erms_eventt_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_erms_eventt')}").select("emailEventID", "emailEventDescription")
-    businessPartner_firstAgent_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimbusinessPartner')}").select("businessPartnerSK", "businessPartnerNumber")
-    businessPartner_secondAgent_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimbusinessPartner')}").select("businessPartnerSK", "businessPartnerNumber")
-    businessPartner_firstOrgUnit_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimbusinessPartner')}").select("businessPartnerSK", "businessPartnerNumber")
-    businessPartner_secondOrgUnit_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimbusinessPartner')}").select("businessPartnerSK", "businessPartnerNumber")
-    emailHeader_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimcustomerserviceemailheader')}").select("customerServiceEmailHeaderSK","_businessKey").filter("_recordCurrent == 1")
+    df = (derivedDF1
+    .withColumn("email_BK",expr("right(emailID,17)")) 
+    .withColumn("firstAgent_BK",expr("CASE WHEN firstAgent IS NULL THEN '-1' ELSE firstAgent END")) 
+    .withColumn("secondAgent_BK",expr("CASE WHEN secondAgent IS NULL THEN '-1' ELSE firstAgent END")) 
+    .withColumn("firstOrgUnit_BK",expr("CASE WHEN firstOrganisationUnit IS NULL THEN '-1' ELSE concat('OU',RIGHT(firstOrganisationUnit,8)) END")) 
+    .withColumn("secondOrgUnit_BK",expr("CASE WHEN secondOrganisationUnit IS NULL THEN '-1' ELSE concat('OU',RIGHT(secondOrganisationUnit,8)) END")))   
+
+    crmd_erms_eventt_df = GetTable(f"{getEnv()}cleansed.crm.crmd_erms_eventt").select("emailEventID", "emailEventDescription")
+    businessPartner_firstAgent_df = GetTable(f"{getEnv()}curated.dim.businessPartner").filter("_recordCurrent == 1").select("businessPartnerSK", "businessPartnerNumber")
+    businessPartner_secondAgent_df = GetTable(f"{getEnv()}curated.dim.businessPartner").filter("_recordCurrent == 1").select("businessPartnerSK", "businessPartnerNumber")
+    businessPartner_firstOrgUnit_df = GetTable(f"{getEnv()}curated.dim.businessPartner").filter("_recordCurrent == 1").select("businessPartnerSK", "businessPartnerNumber")
+    businessPartner_secondOrgUnit_df = GetTable(f"{getEnv()}curated.dim.businessPartner").filter("_recordCurrent == 1").select("businessPartnerSK", "businessPartnerNumber") 
+    emailHeader_df = GetTable(f"{getEnv()}curated.dim.customerserviceemailheader").filter("_recordCurrent == 1").select("customerServiceEmailHeaderSK","_businessKey")
     
     # ------------- JOINS ------------------ #
     df = df.join(crmd_erms_eventt_df, crmd_erms_eventt_df.emailEventID == df.eventID, "left").select(df["*"],crmd_erms_eventt_df["emailEventDescription"])
@@ -52,6 +63,7 @@ def Transform():
         ,"duration customerServiceEmailEventStepDurationHourQuantity"
         ,"totalDurationStep customerServiceEmailEventTotalStepDurationHourQuantity"
         ,"connectionStepTransferNumber customerServiceEmailEventTransferStepNumber"
+        ,"_change_type"
     ]
     df = df.selectExpr(
         _.Transforms
@@ -61,7 +73,7 @@ def Transform():
     # ------------- SAVE ------------------- #
 #   display(df)
     #CleanSelf()
-    Save(df)
+    SaveWithCDF(df, 'APPEND') #Save(df)
     #DisplaySelf()
 pass
 Transform()

@@ -1,51 +1,18 @@
 # Databricks notebook source
-# MAGIC %md 
-# MAGIC Vno| Date      | Who         |Purpose
-# MAGIC ---|:---------:|:-----------:|:--------:
-# MAGIC 1  |28/02/2023 |Mag          |Initial
-
-# COMMAND ----------
-
 # MAGIC %run ../../Common/common-transform 
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
+###cleansed layer table (cleansed.crm.crm_tj30t) is full reload ###
+df = spark.sql(f""" Select distinct statusProfile||'|'||statusCode as {BK}
+                ,statusProfile as customerInteractionStatusProfile
+                ,statusCode as customerInteractionStatusCode
+                ,statusShortDescription as customerInteractionStatusShortDescription
+                ,status as customerInteractionStatusDescription
+                from {getEnv()}cleansed.crm.tj30t
+                where statusProfile in (Select statusProfile From  {getEnv()}cleansed.crm.0crm_sales_act_1 where statusProfile is not null) """)
 
-# COMMAND ----------
-
-from pyspark.sql.functions import broadcast
-def Transform():
-    global df 
-    
-    # ------------- TABLES ----------------- #   
-    srStatus = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_sales_act_1')}").select("statusProfile").distinct().filter("statusProfile IS NOT NULL") 
-    
-    recStatus = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_tj30t')}") \
-    .select("statusProfile", "statusCode", "statusShortDescription","status").dropDuplicates() 
-    
-        
-    # ------------- JOIN AND SELECT ----------------- #
-    df = recStatus.alias("aa").join(broadcast(srStatus.alias("bb")), recStatus["statusProfile"] == srStatus["statusProfile"], "inner").select("aa.*")
-   
-    #------------- TRANSFORMS ------------- #
-    _.Transforms = [
-        f"statusProfile||'|'||statusCode {BK}" 
-        ,"statusProfile customerInteractionStatusProfile"
-        ,"statusCode customerInteractionStatusCode"
-        ,"statusShortDescription customerInteractionStatusShortDescription"
-        ,"status customerInteractionStatusDescription"        
-        
-    ]
-    
-    df = df.selectExpr(
-        _.Transforms
-    )
-    
-    #df.display()
-    #display(df)
-    #CleanSelf()
-    Save(df)
-    #DisplaySelf()
-    
-Transform()
+df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema))
+#CleanSelf()
+Save(df)
+#SaveWithCDF(df, 'Full Load')

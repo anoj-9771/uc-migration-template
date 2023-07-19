@@ -7,30 +7,24 @@
 
 # COMMAND ----------
 
-# ##Move this to controlDB config if its not complex to derive the change columns needed####
-# changeColumns = ["serviceRequestID", "serviceRequestGUID", "coherentAspectIdD", "coherentCategoryIdD", "lastChangedDateTime", "source", "sourceCode", "serviceTeamCode", "issueResponsibility" 
-#                  ,"issueResponsibilityCode", "postingDate", "requestStartDate", "coherentAspectIdC", "coherentCategoryIdC", "statusProfile", "statusCode" , "reportedByPersonNumber", "contactPersonNumber"
-#                  ,"salesEmployeeNumber", "propertyNumber", "contractID", "communicationChannelCode", "requestEndDate", "numberOfInteractionRecords", "notificationNumber","transactionDescription", "direction"
-#                  ,"directionCode", "maximoWorkOrderNumber", "projectID", "processTypeCode","agreementNumber",  "responsibleEmployeeNumber", "recommendedPriority", "impact", "urgency", "serviceLifeCycle"
-#                  ,"serviceLifeCycleUnit", "activityPriorityCode", "createdDateTime","createdBy", "changedBy"]
-
+# #####Determine Load #################
 # ###############################
-# driverTable1 = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h')}")
+# driverTable1 = 'cleansed.isu.0crm_srv_req_inci_h'   
+# driverTable2 = 'cleansed.maximo.workorder' 
 
-# if TableExists(_.Destination):
+# if not(TableExists(_.Destination)):
 #     isDeltaLoad = False
 #     #####Table Full Load #####################
-#     derivedDF1 = driverTable1
+#     derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
+#     derivedDF2 = GetTable(f"{getEnv()}{driverTable2}").withColumn("_change_type", lit(None))
 # else:
 #     #####CDF for eligible tables#####################
 #     isDeltaLoad = True
-#     derivedDF1 = getSourceCDF(driverTable1, changeColumns).withColumn("changeType", lit("None"))
-#     if derivedDF1 is None:
-#         print("No derivedDF1 Returned")
-#         dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} -- Destinatiion {_.Destination}")
-#     elif derivedDF1.count() == 0:
-#         print("no CDF to process")
-#         dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} -- Destinatiion {_.Destination}")
+#     derivedDF1 = getSourceCDF(driverTable1, None, False)
+#     derivedDF2 = getSourceCDF(driverTable2, None, False)
+#     if derivedDF1.count == 0 and derivedDF2.count == 0:
+#         print("No delta to be  processed")
+#         dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}")   
 
 # COMMAND ----------
 
@@ -145,6 +139,7 @@ coreDF =(( GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h
                   ,col("receivedBK")
                   ,col("resolutionBK")
                   ,col("processTypeBK")
+                  ,col("status")
                   ,col("statusBK")
                   ,col("reportedByPersonNoBK")
                   ,col("contactPersonNoBK")
@@ -155,6 +150,7 @@ coreDF =(( GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h
                   ,col("channelCodeBK")
                   ,col("di_Sequence_Number").alias("seqNo")
                   ,col("ID")
+                  #,col("_change_type")
                   )                 
         )
     
@@ -380,7 +376,7 @@ CRMDF = (((busDF.alias("core")
                                           ,when(col("seqNo").isNull(), lit('')).otherwise(col("seqNo"))))
  .withColumn("respondByDateTime", col("css.SRV_RFIRST")) 
  .withColumn("respondedDateTime", col("css.VALIDTO")) 
- .withColumn("serviceRequestClosedDateTime", col("css.ZCLOSEDATE")) 
+ .withColumn("serviceRequestClosedDateTime", when(((col("css.ZCLOSEDATE").isNull()) & (upper(col("status")) == lit('CLOSED'))), col("requestEndDate")).otherwise(col("css.ZCLOSEDATE")))
  .withColumn("toDoByDateTime", col("css.SRV_RREADY")) 
  .withColumn("interimResponseDays", 
                                  dataDiffTimeStamp( col("core.requestStartDate")
@@ -478,6 +474,7 @@ finalCRMDF = (((((CRMDF.alias("main")
                  ,col("lastChangedDateTime").alias("customerServiceRequestLastChangeTimestamp")
                  ,col("changedBy").alias("customerServiceRequestChangedByUserId")
                  ,coalesce(col("changedByName"), col("changedBy")).alias("customerServiceRequestChangedByUserName")
+                 #,col("_change_type")
                 )
 )
 
@@ -712,5 +709,5 @@ def Transform():
     #display(df)
     #CleanSelf()    
     Save(df)
-    #busDF.unpersist()
+    busDF.unpersist()
 Transform()

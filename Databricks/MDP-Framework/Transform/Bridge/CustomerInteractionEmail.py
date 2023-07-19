@@ -3,11 +3,21 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
+#####Determine Load #################
+###############################
+driverTable1 = 'curated.fact.customerinteraction'   
 
-# COMMAND ----------
-
-TARGET = DEFAULT_TARGET
+if not(TableExists(_.Destination)):
+    isDeltaLoad = False
+    #####Table Full Load #####################
+    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
+else:
+    #####CDF for eligible tables#####################
+    isDeltaLoad = True
+    derivedDF1 = getSourceCDF(driverTable1, None, False)
+    if derivedDF1.count == 0:
+        print("No delta to be  processed")
+        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}") 
 
 # COMMAND ----------
 
@@ -18,20 +28,22 @@ def Transform():
     global factinteraction_df
 
     # ------------- TABLES ----------------- #
-    crm_crmd_brelvonae_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_brelvonae')}").alias('B')
-    dimemailheader_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimcustomerserviceemailheader')}").alias('H')    
-    factinteraction_df =GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerinteraction')}").alias('IR')    
+    crm_crmd_brelvonae_df = GetTable(f"{getEnv()}cleansed.crm.crmd_brelvonae").where("objectTypeA = 'BUS2000126' and objectTypeB = 'SOFM'").alias('B')
+    dimemailheader_df = GetTable(f"{getEnv()}curated.dim.customerserviceemailheader").alias('H')    
+    factinteraction_df = derivedDF1.alias('IR')    
 
     # ------------- JOINS ------------------ #
     interaction_email_df = (
-        crm_crmd_brelvonae_df.where("B.objectTypeA = 'BUS2000126' and B.objectTypeB = 'SOFM'")
+        factinteraction_df
+           .join(crm_crmd_brelvonae_df,expr("IR.customerInteractionGUID = B.objectKeyA and IR._recordCurrent = 1"))
+           .join(dimemailheader_df,expr("trim(B.objectKeyB) = H.customerServiceEmailID and H._recordCurrent = 1"))
           #From Spec - no filter on recordStart nor recordEnd
 #           .join(dimemailheader_df,expr("trim(B.objectKeyB) = H.customerServiceEmailID"))
 #           .join(factservicerequest_df,expr("SR.serviceRequestGUID = B.objectKeyA"))
           #Will propose - since there doesn't seem to be any date field in B table, use _recordCurrent instead
-          .join(dimemailheader_df,expr("trim(B.objectKeyB) = H.customerServiceEmailID and H._recordCurrent = 1"))
-          .join(factinteraction_df,expr("IR.customerInteractionGUID = B.objectKeyA and IR._recordCurrent = 1"))
-          .selectExpr("IR.customerInteractionSK as customerInteractionFK","H.customerServiceEmailHeaderSK as customerServiceEmailHeaderFK", "IR.customerInteractionId as customerInteractionId", "H.customerServiceEmailID customerServiceEmailID", "'Interaction - Email' as relationshipType")    
+          
+         
+          .selectExpr("IR.customerInteractionSK as customerInteractionFK","H.customerServiceEmailHeaderSK as customerServiceEmailHeaderFK", "IR.customerInteractionId as customerInteractionId", "H.customerServiceEmailID customerServiceEmailID", "'Interaction - Email' as relationshipType", "_change_type")    
     )    
     
     df = interaction_email_df
@@ -45,6 +57,7 @@ def Transform():
         ,"customerInteractionId customerInteractionId"
         ,"customerServiceEmailId customerServiceEmailId"
         ,"relationshipType customerInteractionRelationshipTypeName"
+        , "_change_type"
     ]
     df = df.selectExpr(
         _.Transforms
@@ -54,7 +67,7 @@ def Transform():
     # ------------- SAVE ------------------- #
 #     display(df)
     #CleanSelf()
-    Save(df)
+    SaveWithCDF(df, 'APPEND')
 #     DisplaySelf()
 pass
 Transform()
