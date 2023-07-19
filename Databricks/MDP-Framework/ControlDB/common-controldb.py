@@ -30,11 +30,18 @@ def CleanConfig():
 
 # COMMAND ----------
 
+from pyspark.sql.functions import lit
 def AddIngestion(df, clean = False):
     df = AddSystemCode(df)
     if clean:
         CleanConfig()
         
+    if 'DestinationSchema' not in df.columns:
+        df = df.withColumn('DestinationSchema',lit(''))
+
+    if 'SystemPath' not in df.columns:
+        df = df.withColumn('SystemPath',lit(''))    
+
     for i in df.collect():
         ExecuteStatement(f"""    
         DECLARE @RC int
@@ -48,7 +55,9 @@ def AddIngestion(df, clean = False):
         DECLARE @KeyVaultSecret varchar(max) = NULLIF('{i.SourceKeyVaultSecret}','')
         DECLARE @ExtendedProperties varchar(max) = NULLIF('{i.ExtendedProperties}','')
         DECLARE @RawHandler varchar(max) = NULLIF('{i.RawHandler}','') 
-        DECLARE @CleansedHandler varchar(max) = NULLIF('{i.CleansedHandler}','')    
+        DECLARE @CleansedHandler varchar(max) = NULLIF('{i.CleansedHandler}','')
+        DECLARE @SystemPath varchar(max) = NULLIF('{i.SystemPath}','')
+        DECLARE @DestinationSchema varchar(max) = NULLIF('{i.DestinationSchema}','')
 
         EXECUTE @RC = [dbo].[AddIngestion] 
            @SystemCode
@@ -62,6 +71,8 @@ def AddIngestion(df, clean = False):
           ,@ExtendedProperties
           ,@RawHandler
           ,@CleansedHandler
+          ,@SystemPath
+          ,@DestinationSchema
         """)   
 
 # COMMAND ----------
