@@ -105,8 +105,17 @@ except:
 # COMMAND ----------
 
 def processTable(TableName):
+    vacuum_blacklist = [
+        'curated.fact.billedwaterconsumption'
+        ,'curated.fact.dailysupplyapportionedconsumption'
+        ,'curated.fact.dailysupplyapportionedaccruedconsumption'
+        ,'curated.fact.monthlysupplyapportionedaggregate'
+        ,'curated.fact.monthlysupplyapportionedconsumption'
+        ,'curated.fact.monthlysupplyapportionedaccruedconsumption'
+    ]
     try:
-        spark.sql(f"VACUUM {TableName}")       
+        if not any(TableName for t in vacuum_blacklist if TableName.endswith(t)):
+            spark.sql(f"VACUUM {TableName}")       
         spark.sql(f"ANALYZE TABLE {TableName} COMPUTE STATISTICS FOR ALL COLUMNS")
         spark.sql(f"OPTIMIZE {TableName}")
         print(f"Table Operation -- {TableName} -- Successful")
