@@ -13,18 +13,19 @@ if not(TableExists(_.Destination)):
     derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
 else:
     #####CDF for eligible tables#####################
-    isDeltaLoad = True
-    derivedDF1 = getSourceCDF(driverTable1, None, False)
-    if derivedDF1.count == 0:
+    isDeltaLoad = True 
+    #derivedDF1 = spark.sql("""select * from ppd_cleansed.crm.0crm_sales_act_1 where to_date(_DLCleansedZoneTimeStamp) = to_date(current_timestamp())""") 
+    derivedDF1 = getSourceCDF(driverTable1, None, False)    
+    if derivedDF1.count() == 0:
         print("No delta to be  processed")
-        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}") 
+        #dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1}  -- Destination {_.Destination}") 
 
 # COMMAND ----------
 
 ###Variables ############################
 dummySK = '60e35f602481e8c37d48f6a3e3d7c30d' ##Derived by hashing -1 and recordStart
 #####-----------DIRECT DATAFRAMES CRM--------------------------###############
-coreDF = ((derivedDF1 
+coreDF = (( derivedDF1 #GetTable(f"{getEnv()}cleansed.crm.0crm_sales_act_1")
         .withColumn("processTypeBK", concat(col("ProcessTypeCode"),lit("|"),lit("CRM")))
         .withColumn("statusBK", concat(col("statusProfile"),lit("|"),col("statusCode")))
         .withColumn("channelBK",concat(trim(col("communicationChannelCode")),lit("|"),lit("CRM")))
@@ -82,12 +83,13 @@ crmSappSegDF = (GetTable(f"{getEnv()}cleansed.crm.scapptseg")
                           ,col("apptEndDatetime"))
                )
 
-# crmOrdIdxDF = (GetTable(f"{getEnv()}cleansed.crm.crmd_order_index")   
-#                    .filter(upper(col("status")).isin(lit("COMPLETED"), lit("DONE")))
-#                    .filter(col("ContactEndDataTime") == '9999-12-31')
-#                    .select(col("applicationGUID")
-#                           ,col("apptEndDatetime"))
-#                )
+
+crmOrdIdxDF = (GetTable(f"{getEnv()}cleansed.crm.crmd_order_index")   
+                   .filter(to_date(col("ContactEndDatetime")) != to_date(lit('9999-12-31'), 'yyyy-MM-dd'))
+                   .select(col("headerGUID")
+                          ,col("ContactEndDatetime"))
+               )
+
 
 
 procTypeDF = ( GetTable(f"{getEnv()}curated.dim.customerserviceprocesstype")
@@ -243,12 +245,15 @@ interDF = ((coreDF.alias("core")
 
 # COMMAND ----------
 
-#CleanSelf()
-if isDeltaLoad:
-    SaveWithCDF(interDF, 'APPEND')
-else:
-    SaveWithCDF(interDF, 'APPEND')
-    enableCDF(_.Destination)
+SaveWithCDF(interDF, 'APPEND')
+#Save(interDF, append=True)
+
+# #CleanSelf()
+# if isDeltaLoad:
+#     SaveWithCDF(interDF, 'APPEND')
+# else:
+#     SaveWithCDF(interDF, 'APPEND')
+#     #enableCDF(_.Destination)
 
 # def Transform():
 #     global df
@@ -261,3 +266,8 @@ else:
 #     Save(df)
 #     #DisplaySelf()
 # Transform()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from ppd_curated.fact.customerinteraction

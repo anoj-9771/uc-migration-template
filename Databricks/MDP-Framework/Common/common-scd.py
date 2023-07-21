@@ -223,32 +223,18 @@ def mergeCDFSCD1(sourceDataFrame, targetTableFqn, BK, SK):
 
 def AppendCDFTable(sourceDataFrame, targetTableFqn, BK, SK):
     sourceDataFrame = sourceDataFrame.filter(col("_change_type") == lit("insert"))
-    selectColumns = [col for col in sourceDataFrame.columns if not (col.endswith('SK'))]
-    sourceDataFrame = (sourceDataFrame.withColumns(f"{SK}", md5(expr(f"concat({_.BK},'|',{DEFAULT_START_DATE})")))
-                                      .withColumns("_DLCuratedZoneTimeStamp", expr("now()"))
-                                      .withColumns("_recordStart", expr("now()"))
-                                      .withColumns("_recordEnd", expr("to_timestamp('9999-12-31 00:00:00')"))
-                                      .withColumns("_recordCurrent", lit("1"))
-                                      .withColumns("_recordDeleted", lit("0"))
-                      )
-    print("Appending CDF")
-    AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)
-
-# COMMAND ----------
-
-def AppendCDFTable(sourceDataFrame, targetTableFqn, BK, SK):
-    sourceDataFrame = sourceDataFrame.filter(col("_change_type") == lit("insert"))
     sourceDataFrame = sourceDataFrame.drop(col('_change_type'))
-    selectColumns = [col for col in sourceDataFrame.columns if not (col.endswith('SK'))]
-    sourceDataFrame = (sourceDataFrame.withColumns(f"{SK}", md5(expr(f"concat({_.BK},'|',{DEFAULT_START_DATE})")))
-                                      .withColumns("_DLCuratedZoneTimeStamp", expr("now()"))
-                                      .withColumns("_recordStart", expr("now()"))
-                                      .withColumns("_recordEnd", expr("to_timestamp('9999-12-31 00:00:00')"))
-                                      .withColumns("_recordCurrent", lit("1"))
-                                      .withColumns("_recordDeleted", lit("0"))
+    #selectColumns = [col for col in sourceDataFrame.columns if not (col.endswith('SK'))]
+    sourceDataFrame = (sourceDataFrame.withColumn(f"{SK}", md5(expr(f"concat({BK},'|',{DEFAULT_START_DATE})")))
+                                      .withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
+                                      .withColumn("_recordStart", expr("now()"))
+                                      .withColumn("_recordEnd", expr("to_timestamp('9999-12-31 00:00:00')"))
+                                      .withColumn("_recordCurrent", lit("1").cast("int"))
+                                      .withColumn("_recordDeleted", lit("0").cast("int"))
                       )
     print("Appending CDF")
-    AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)
+    sourceDataFrame.write.option("mergeSchema", "true").mode("append").saveAsTable(targetTableFqn)
+    #AppendDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)
 
 # COMMAND ----------
 

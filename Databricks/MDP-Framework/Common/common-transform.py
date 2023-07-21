@@ -428,6 +428,16 @@ def enableCDF(TableName):
         spark.sql(f"ALTER TABLE {TableName} SET TBLPROPERTIES (delta.enableChangeDataFeed = true)")
     else:
         return
+    
+def cdfVersion(TableName):
+    if TableExists(TableName):
+        deltaHist = spark.sql(f"DESC HISTORY {TableName}")
+        explodeHist = deltaHist.select("version", explode(deltaHist.operationParameters))
+        cdfRec = (explodeHist.filter((col("value").like("%delta.enableChangeDataFeed%")) &  
+                            (col("value").like("%true%"))).agg(max("version")).first()[0] + 1)
+        return cdfRec
+    else:
+        return None
 
 #Handle duplicate Business Data, if exist 
 def handleDuplicateBusinessData(cdf, checkColumns):
@@ -451,16 +461,23 @@ def getCDFFromToVersion(sourceTableName):
 
 
 #Get all the datafeed version of source after the last version of Target Delta Table.
-def getSourceCDF(sourceTableName, changeColumns, duplicateCheck = True):
-    sourceTableName = f"{getEnv()}{sourceTableName}"   
-    destDF = DeltaTable.forName(spark, _.Destination)
-    history = destDF.history().toPandas()
+def getSourceCDF(sourceTableName, changeColumns, duplicateCheck):
+    sourceTableName = f"{getEnv()}{sourceTableName}"
+    df = spark.table(sourceTableName).withColumn("_change_type", lit(None).cast(StringType()))
+    sch = df.schema
+    emptyDf = spark.createDataFrame([], sch)
+    destDF = spark.sql(f""" DESC HISTORY {_.Destination}""")
+    history = destDF.filter(col("operation").rlike('INSERT|UPDATE|WRITE|MERGE|CREATE')).toPandas()
+    #destDF = DeltaTable.forName(spark, _.Destination)
+    #history = destDF.history().toPandas()
     lastTimeStamp = pd.to_datetime(history['timestamp'].max())
-    srcDF = DeltaTable.forName(spark, f"{sourceTableName}")
-    srcHistory = srcDF.history().toPandas()
+    srcDF = spark.sql(f""" DESC HISTORY {sourceTableName}""")
+    srcHistory = srcDF.filter(col("operation").rlike('INSERT|UPDATE|WRITE|MERGE|CREATE')).toPandas()
+    #srcDF = DeltaTable.forName(spark, f"{sourceTableName}")
+    #srcHistory = srcDF.history().toPandas()
     processVers = srcHistory[pd.to_datetime(srcHistory['timestamp']) > lastTimeStamp ] ['version']
     if processVers.empty:
-        return None 
+        return emptyDf        
     versFrm = processVers.min()
     versTo  = processVers.max()
     try:
@@ -468,13 +485,15 @@ def getSourceCDF(sourceTableName, changeColumns, duplicateCheck = True):
                                            .option("startingVersion", versFrm) 
                                            .option("endingVersion", versTo) 
                                            .table(sourceTableName))
+        
+        if cdfDF is None:
+            return emptyDf
+
         if duplicateCheck:
             cdfDF = handleDuplicateBusinessData(cdfDF, changeColumns)
+        
         return cdfDF
     except AnalysisException as e:
-        df = spark.table(sourceTableName).withColumn("_change_type", lit(None).cast(StringType()))
-        sch = df.schema
-        emptyDf = spark.createDataFrame([], sch)
         return emptyDf
    
     
@@ -493,7 +512,7 @@ def SaveWithCDF(sourceDataFrame, mode):
         return
     
     if mode == 'APPEND':        
-        AppendCDFTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        AppendCDFTable(sourceDataFrame, targetTableFqn, _.BK,_.SK)  
     elif mode == 'SCD2':    
         mergeCDFTableSCD2(sourceDataFrame, targetTableFqn,_.BK,_.SK)
     elif mode == 'SCD1':

@@ -3,33 +3,29 @@
 
 # COMMAND ----------
 
-###cleansed layer table cleansed.crm.crmd_erms_header has delta load -hence handling CDF###
-#####Determine Load #################
-##Move this to controlDB config if its not complex to derive the change columns needed####
+# ###cleansed layer table cleansed.crm.crmd_erms_header has delta load -hence handling CDF###
+# #####Determine Load #################
+# ##Move this to controlDB config if its not complex to derive the change columns needed####
 
-changeColumns = []
+# changeColumns = []
 
-###############################
-driverTable1 = 'cleansed.crm.crmd_erms_header'   
+# ###############################
+# driverTable1 = 'cleansed.crm.crmd_erms_header'   
 
-if not(TableExists(_.Destination)):
-    isDeltaLoad = False
-    #####Table Full Load #####################
-    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
-else:
-    #####CDF for eligible tables#####################
-    isDeltaLoad = True
-    derivedDF1 = getSourceCDF(driverTable1, changeColumns, False)
-    if derivedDF1 is None:
-        print("No derivedDF1 Returned")
-        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} -- Destination {_.Destination}")
-    elif derivedDF1.count() == 0:
-        print("no CDF to process")
-        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} -- Destination {_.Destination}")
+# if not(TableExists(_.Destination)):
+#     isDeltaLoad = False
+#     #####Table Full Load #####################
+#     derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
+# else:
+#     #####CDF for eligible tables#####################
+#     isDeltaLoad = True  
+#     derivedDF1 = getSourceCDF(driverTable1, None, False)    
+#     if derivedDF1.count() == 0:
+#         print("No delta to be  processed")
 
 # COMMAND ----------
 
-df = (derivedDF1.withColumn("email_id",expr("right(emailID, 17)")))
+df = (GetTable(f"{getEnv()}cleansed.crm.crmd_erms_header").withColumn("email_id",expr("right(emailID, 17)"))) #derivedDF1
 windowSpec1  = Window.partitionBy("email_id") 
 df = df.withColumn("row_number",row_number().over(windowSpec1.orderBy(col("changedDate").desc()))).filter("row_number == 1").drop("row_number","email_id")
     
@@ -74,7 +70,8 @@ def Transform():
     # ------------- SAVE ------------------- #
     # display(df)
     #CleanSelf()
-    SaveWithCDF(finaldf, 'APPEND')
+    Save(finaldf)
+    #SaveWithCDF(finaldf, 'APPEND')
     #DisplaySelf()
 pass
 Transform()

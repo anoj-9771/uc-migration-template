@@ -13,11 +13,11 @@ if not(TableExists(_.Destination)):
     derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
 else:
     #####CDF for eligible tables#####################
-    isDeltaLoad = True
-    derivedDF1 = getSourceCDF(driverTable1, None, False)
-    if derivedDF1.count == 0:
+    isDeltaLoad = True  
+    derivedDF1 = getSourceCDF(driverTable1, None, False)    
+    if derivedDF1.count() == 0:
         print("No delta to be  processed")
-        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}") 
+        #dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1}  -- Destination {_.Destination}") 
 
 # COMMAND ----------
 

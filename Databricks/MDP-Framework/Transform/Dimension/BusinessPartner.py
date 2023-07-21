@@ -31,16 +31,15 @@ driverTable2 = 'cleansed.crm.0bpartner_attr'
 if not(TableExists(_.Destination)):
     isDeltaLoad = False
     #####Table Full Load #####################
-    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
-    derivedDF2 = GetTable(f"{getEnv()}{driverTable2}").withColumn("_change_type", lit(None))
+    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}")#.withColumn("_change_type", lit(None))
+    derivedDF2 = GetTable(f"{getEnv()}{driverTable2}")#.withColumn("_change_type", lit(None))
 else:
     #####CDF for eligible tables#####################
     isDeltaLoad = True
-    derivedDF1 = getSourceCDF(driverTable1, changeColumnsISU)
-    derivedDF2 = getSourceCDF(driverTable2, changeColumnsCRM)
-    if derivedDF1.count == 0 and derivedDF2.count == 0:
+    derivedDF1 = getSourceCDF(driverTable1, changeColumnsISU, True).filter(col("_change_type").rlike('update_postimage|insert'))
+    derivedDF2 = getSourceCDF(driverTable2, changeColumnsCRM, True).filter(col("_change_type").rlike('update_postimage|insert'))
+    if derivedDF1.count() == 0 and derivedDF2.count() == 0:
         print("No delta to be  processed")
-        dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}") 
 
 # COMMAND ----------
 
@@ -125,7 +124,10 @@ def Transform():
     if isSchemaChanged(df):
         df.drop(col("_change_type"))
         saveSchemaAndData(df, 'businessPartnerNumber', 'businessPartnerNumber')
+        enableCDF(f"{getEnv()}cleansed.isu.0bpartner_attr")
+        enableCDF(f"{getEnv()}cleansed.crm.0bpartner_attr")
+
     else:
-        SaveWithCDF(df, 'SCD2')
+        Save(df) #SaveWithCDF(df, 'SCD2')
         #DisplaySelf()
 Transform()

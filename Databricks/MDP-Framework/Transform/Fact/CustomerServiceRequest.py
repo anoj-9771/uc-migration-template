@@ -9,22 +9,22 @@
 
 # #####Determine Load #################
 # ###############################
-# driverTable1 = 'cleansed.isu.0crm_srv_req_inci_h'   
+driverTable1 = 'cleansed.crm.0crm_srv_req_inci_h'   
 # driverTable2 = 'cleansed.maximo.workorder' 
 
-# if not(TableExists(_.Destination)):
-#     isDeltaLoad = False
-#     #####Table Full Load #####################
-#     derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
-#     derivedDF2 = GetTable(f"{getEnv()}{driverTable2}").withColumn("_change_type", lit(None))
-# else:
-#     #####CDF for eligible tables#####################
-#     isDeltaLoad = True
-#     derivedDF1 = getSourceCDF(driverTable1, None, False)
-#     derivedDF2 = getSourceCDF(driverTable2, None, False)
-#     if derivedDF1.count == 0 and derivedDF2.count == 0:
-#         print("No delta to be  processed")
-#         dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}")   
+if not(TableExists(_.Destination)):
+    isDeltaLoad = False
+    #####Table Full Load #####################
+    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
+    #derivedDF2 = GetTable(f"{getEnv()}{driverTable2}").withColumn("_change_type", lit(None))
+else:
+    #####CDF for eligible tables#####################
+    isDeltaLoad = True
+    derivedDF1 = getSourceCDF(driverTable1, None, False) #.filter(col("_change_type") == lit("insert")).drop(col("_change_type"))
+    #derivedDF2 = getSourceCDF(driverTable2, None, False)
+    if derivedDF1.count() == 0:
+        print("No delta to be  processed")
+        #dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1}  -- Destination {_.Destination}")   
 
 # COMMAND ----------
 
@@ -87,7 +87,7 @@ publicHolidaysPD = (GetTable(f"{get_table_namespace(f'{SOURCE}', 'datagov_austra
 # COMMAND ----------
 
 #####-----------DIRECT DATAFRAMES CRM--------------------------###############
-coreDF =(( GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h')}")  #derivedDF1
+coreDF =(( derivedDF1 #GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h')}")  #
            .withColumn("sourceSystemCode",lit("CRM"))
            .withColumn("receivedBK", concat(col("coherentAspectIdD"),lit("|"),col("coherentCategoryIdD")))
            .withColumn("resolutionBK", concat(col("coherentAspectIdC"),lit("|"),col("coherentCategoryIdC")))
@@ -150,7 +150,7 @@ coreDF =(( GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h
                   ,col("channelCodeBK")
                   ,col("di_Sequence_Number").alias("seqNo")
                   ,col("ID")
-                  #,col("_change_type")
+                  ,col("_change_type")
                   )                 
         )
     
@@ -438,7 +438,7 @@ finalCRMDF = (((((CRMDF.alias("main")
                  ,col("serviceRequestEndDateFK").alias("customerServiceRequestEndDateFK")
                  ,col("snapshotDateFK").alias("customerServiceRequestSnapshotDateFK")
                  ,col("customerServiceRequestTotalDurationSecondQuantity")
-                 ,col("customerServiceRequestWorkDurationSecondQuantity")
+                 ,col("customerServiceRequestWorkDurationSecondQuantity").cast("string").alias("customerServiceRequestWorkDurationSecondQuantity")
                  ,col("source").alias("customerServiceRequestSourceName")
                  ,col("sourceCode").alias("customerServiceRequestSourceCode")
                  ,col("issueResponsibility").alias("customerServiceRequestIssueResponsibilityName")
@@ -474,7 +474,7 @@ finalCRMDF = (((((CRMDF.alias("main")
                  ,col("lastChangedDateTime").alias("customerServiceRequestLastChangeTimestamp")
                  ,col("changedBy").alias("customerServiceRequestChangedByUserId")
                  ,coalesce(col("changedByName"), col("changedBy")).alias("customerServiceRequestChangedByUserName")
-                 #,col("_change_type")
+                 ,col("_change_type")
                 )
 )
 
@@ -696,18 +696,22 @@ finalMAXDF = ((df2.alias("core")
 )
 
 #finalMAXDF.display()    
-finaldf = finalCRMDF.unionByName(finalMAXDF) 
+finaldf = finalCRMDF #.unionByName(finalMAXDF) 
+
+# COMMAND ----------
+
+SaveWithCDF(finalCRMDF, 'APPEND')
+busDF.unpersist()
 
 # COMMAND ----------
 
 def Transform():
     global df    
-    df = finaldf
+    df = finalMAXDF
     # ------------- TRANSFORMS ------------- #
     _.Transforms = ['*']
     df = df.selectExpr(_.Transforms)
     #display(df)
     #CleanSelf()    
     Save(df)
-    busDF.unpersist()
 Transform()

@@ -3,11 +3,22 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
+#####Determine Load #################
+###############################
+driverTable1 = 'curated.fact.customerservicerequest'   
 
-# COMMAND ----------
-
-TARGET = DEFAULT_TARGET
+if not(TableExists(_.Destination)):
+    isDeltaLoad = False
+    #####Table Full Load #####################
+    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
+else:
+    #####CDF for eligible tables#####################
+    isDeltaLoad = True
+    derivedDF1 = getSourceCDF(driverTable1, None, False)
+    #derivedDF1.createOrReplaceTempView("derivedDF1Table") 
+    if derivedDF1.count() == 0:
+        print("No delta to be  processed")
+        #dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}") 
 
 # COMMAND ----------
 
@@ -15,9 +26,9 @@ def Transform():
     global df
     
     # ------------- TABLES ----------------- #    
-    factservicerequest_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerservicerequest')}").alias('SR')
-    factservicerequesta_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'factcustomerservicerequest')}").alias('SRA')
-    crm_crmd_brelvonae_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_brelvonae')}").alias('B')
+    factservicerequesta_df = derivedDF1.alias('SRA')
+    factservicerequest_df = GetTable(f"{getEnv()}curated.fact.customerservicerequest").alias('SR')
+    crm_crmd_brelvonae_df = GetTable(f"{getEnv()}cleansed.crm.crmd_brelvonae").alias('B')
  
     # ------------- JOINS ------------------ #
     servReq_servReq_df = (
@@ -26,7 +37,7 @@ def Transform():
           .join(factservicerequest_df,expr("(SR.customerServiceRequestGUID = B.objectKeyB) and (SRA._recordStart between SR._recordStart and SR._recordEnd)"),"Inner") 
           .filter(expr("B.objectKeyB <> B.objectKeyA"))  
           .selectExpr("SRA.customerServiceRequestSK as customerServiceRequestPrimaryFK","SR.customerServiceRequestSK as customerServiceRequestSecondaryFK", "SRA.customerServiceRequestID as customerServiceRequestPrimaryId", 
-                      "SR.customerServiceRequestID as customerServiceRequestSecondaryId", "'Service Request - Service Request' as relationshipType")
+                      "SR.customerServiceRequestID as customerServiceRequestSecondaryId", "'Service Request - Service Request' as relationshipType", "_change_type")
     )
     
     df = servReq_servReq_df.distinct()
@@ -39,6 +50,7 @@ def Transform():
         ,"customerServiceRequestPrimaryId customerServiceRequestPrimaryId"
         ,"customerServiceRequestSecondaryId customerServiceRequestSecondaryId"
         ,"relationshipType customerServiceRequestRelationshipTypeName"
+        ,"_change_type"
     ]
     df = df.selectExpr(
         _.Transforms
@@ -48,7 +60,7 @@ def Transform():
     # ------------- SAVE ------------------- #
 #     display(df)
     #CleanSelf()
-    Save(df)
+    SaveWithCDF(df, 'APPEND') #Save(df)
 #     DisplaySelf()
 pass
 Transform()

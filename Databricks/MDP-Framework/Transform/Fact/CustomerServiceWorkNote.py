@@ -3,21 +3,21 @@
 
 # COMMAND ----------
 
-# #####Determine Load #################
-# ###############################
-# driverTable1 = 'cleansed.crm.zcs_long_text_f'   
+#####Determine Load #################
+###############################
+driverTable1 = 'cleansed.crm.zcs_long_text_f'   
 
-# if not(TableExists(_.Destination)):
-#     isDeltaLoad = False
-#     #####Table Full Load #####################
-#     derivedDF1 = GetTable(f"{getEnv()}{driverTable1}")
-# else:
-#     #####CDF for eligible tables#####################
-#     isDeltaLoad = True
-#     derivedDF1 = getSourceCDF(driverTable1, None, False).filter(col("_change_type") == lit("insert")).drop(col("_change_type"))
-#     if derivedDF1.count == 0:
-#         print("No delta to be  processed")
-#         dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}") 
+if not(TableExists(_.Destination)):
+    isDeltaLoad = False
+    #####Table Full Load #####################
+    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}")
+else:
+    #####CDF for eligible tables#####################
+    isDeltaLoad = True
+    derivedDF1 = getSourceCDF(driverTable1, None, False).filter(col("_change_type") == lit("insert"))
+    if derivedDF1.count() == 0:
+        print("No delta to be  processed")
+        #dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1}  -- Destination {_.Destination}") 
 
 # COMMAND ----------
 
@@ -103,14 +103,11 @@ worknote_df = (summary_res_df.join(df1,(
 worknote_df = (worknote_df.withColumnRenamed("serviceRequestID","objectID") 
     .withColumnRenamed("changedDatetime","modifiedTimeStamp"))
 
-
-df = worknote_df
-
 # COMMAND ----------
 
 def Transform():
     global df
-    df = worknote_df
+    df = worknote_df #.withColumn("_change_type", lit("insert"))
 
     _.Transforms = [
     f"objectTypeCode||'|'||workNoteType||'|'||noteID {BK}"
@@ -126,7 +123,7 @@ def Transform():
     ,"modifiedBy customerServiceWorkNoteModifiedByUserName"
     ,"modifiedTimeStamp customerServiceWorkNoteModifiedTimestamp"
     
-    ]
+    ] #,"_change_type"
     df = df.selectExpr(
         _.Transforms
     )
@@ -136,8 +133,8 @@ def Transform():
     # ------------- SAVE ------------------- #
 #     display(df)
     #CleanSelf()
-    Save(df)
-    #SaveWithCDF(df, 'APPEND')
+    #Save(df)
+    SaveWithCDF(df, 'APPEND')
     #DisplaySelf()
 pass
 Transform()
