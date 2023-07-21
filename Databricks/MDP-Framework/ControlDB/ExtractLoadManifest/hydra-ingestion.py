@@ -80,6 +80,12 @@ extendedProperties = '{\"charset\":\"US-ASCII\"}'
 where systemCode = 'hydra' and sourceTableName in ('fm_ground','sampling_point')
 """)
 
+ExecuteStatement("""
+update dbo.extractLoadManifest set
+extendedProperties = '{\"geometryDataExists\":\"True\"}'
+where systemCode = 'hydra' and sourceTableName in ('sewer_main')
+""")
+
 #Railway name annotation is completely empty. This breaks the cleansing. Exclude from ingestion until there is data
 ExecuteStatement("""
 update dbo.extractLoadManifest set
