@@ -3,29 +3,29 @@
 
 # COMMAND ----------
 
-# ###cleansed layer table cleansed.crm.crmd_erms_header has delta load -hence handling CDF###
-# #####Determine Load #################
-# ##Move this to controlDB config if its not complex to derive the change columns needed####
+###cleansed layer table cleansed.crm.crmd_erms_header has delta load -hence handling CDF###
+#####Determine Load #################
+##Move this to controlDB config if its not complex to derive the change columns needed####
 
-# changeColumns = []
+changeColumns = []
 
-# ###############################
-# driverTable1 = 'cleansed.crm.crmd_erms_header'   
+###############################
+driverTable1 = 'cleansed.crm.crmd_erms_header'   
 
-# if not(TableExists(_.Destination)):
-#     isDeltaLoad = False
-#     #####Table Full Load #####################
-#     derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
-# else:
-#     #####CDF for eligible tables#####################
-#     isDeltaLoad = True  
-#     derivedDF1 = getSourceCDF(driverTable1, None, False)    
-#     if derivedDF1.count() == 0:
-#         print("No delta to be  processed")
+if not(TableExists(_.Destination)):
+    isDeltaLoad = False
+    #####Table Full Load #####################
+    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}")
+else:
+    #####CDF for eligible tables#####################
+    isDeltaLoad = True  
+    derivedDF1 = getSourceCDF(driverTable1, None, False).filter(col("_change_type").rlike('update_postimage|insert')).drop(col("_change_type"))    
+    if derivedDF1.count() == 0:
+        print("No delta to be  processed")
 
 # COMMAND ----------
 
-df = (GetTable(f"{getEnv()}cleansed.crm.crmd_erms_header").withColumn("email_id",expr("right(emailID, 17)"))) #derivedDF1
+df = (derivedDF1.withColumn("email_id",expr("right(emailID, 17)"))) #GetTable(f"{getEnv()}cleansed.crm.crmd_erms_header")
 windowSpec1  = Window.partitionBy("email_id") 
 df = df.withColumn("row_number",row_number().over(windowSpec1.orderBy(col("changedDate").desc()))).filter("row_number == 1").drop("row_number","email_id")
     
@@ -37,6 +37,9 @@ businessPartner_orgunit_df = GetTable(f"{getEnv()}cleansed.crm.0bpartner_attr").
 df = (df.join(crmd_erms_contnt_df, "emailID", "left") 
     .join(businessPartner_agent_df, df.responsibleAgent == businessPartner_agent_df.businessPartnerNumber,"left").drop("businessPartnerNumber") 
     .join(businessPartner_orgunit_df, concat(lit("OU"), col("organisationUnit").substr(-8,8)) == businessPartner_orgunit_df.businessPartnerNumber,"left"))
+
+if not(TableExists(_.Destination)):
+    df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema)) 
 
 # COMMAND ----------
 

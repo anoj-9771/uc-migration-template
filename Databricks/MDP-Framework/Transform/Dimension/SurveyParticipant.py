@@ -48,6 +48,9 @@ finaldf = (finaldf.withColumn("row_num", row_number().over(windowSpec))
                  .withColumn("lagValidDate", lag("recordedDate").over(windowSpec)- expr("Interval 1 milliseconds")) 
                  .withColumn("sourceRecordCurrent", when(col("row_num") == 1, 1).otherwise(0)))
 
+if not(TableExists(_.Destination)):
+    finaldf = finaldf.unionByName(spark.createDataFrame([dummyRecord(finaldf.schema)], finaldf.schema))  
+
 # COMMAND ----------
 
 def Transform():

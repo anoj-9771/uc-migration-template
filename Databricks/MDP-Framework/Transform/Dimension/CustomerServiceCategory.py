@@ -130,6 +130,9 @@ windowSpec = Window.partitionBy("sourceBusinessKey").orderBy("validFromDatetime"
 df = df.withColumn("rownum", row_number().over(windowSpec))
 df = df.withColumn("validFromDatetime", when(col("rownum") == 1, to_timestamp(lit("1900-01-01 00:00:00"), "yyyy-MM-dd HH:mm:ss")).otherwise(col("validFromDatetime")))
 
+if not(TableExists(_.Destination)):
+    df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema))  
+
 # COMMAND ----------
 
 def Transform():

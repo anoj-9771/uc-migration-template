@@ -63,7 +63,3 @@ def Transform():
 #     DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-#print(df.count())

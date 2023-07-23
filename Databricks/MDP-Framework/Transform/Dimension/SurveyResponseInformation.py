@@ -65,6 +65,9 @@ crmDF = spark.sql(f""" Select distinct R.surveyID surveyId,
 
 finaldf = qualtricsDF.unionByName(crmDF)
 
+if not(TableExists(_.Destination)):
+    finaldf = finaldf.unionByName(spark.createDataFrame([dummyRecord(finaldf.schema)], finaldf.schema)) 
+
 # COMMAND ----------
 
 def Transform():

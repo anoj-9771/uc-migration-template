@@ -13,8 +13,8 @@ df = (derivedDF1.select (concat_ws('|',col("categoryCode"), lit("CRM")).alias(f"
                          #,col("_RecordDeleted").alias("_recordDeleted")
                          #,col("_change_type")
                          )) 
-
-df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema))
+if not(TableExists(_.Destination)):
+    df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema))
 #CleanSelf()
 Save(df)
 #SaveWithCDF(df, 'Full Load')

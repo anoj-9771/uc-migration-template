@@ -54,7 +54,8 @@ df = (crmorderphf_df
                )
         )
 
-df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema))
+if not(TableExists(_.Destination)):
+    df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema))
 #CleanSelf()
 Save(df)
 #SaveWithCDF(df, 'Full Load')

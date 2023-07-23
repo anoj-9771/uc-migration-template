@@ -173,7 +173,8 @@ crmQuestion =   (crmQuestion.withColumn("questionType", lit(None).cast("string")
 
 union_df = union_df.unionByName(crmQuestion)
 
-#crmQuestion.display()
+if not(TableExists(_.Destination)):
+    union_df = union_df.unionByName(spark.createDataFrame([dummyRecord(union_df.schema)], union_df.schema)) 
 
 # COMMAND ----------
 

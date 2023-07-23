@@ -14,6 +14,9 @@ recStatus = (GetTable(f"{getEnv()}cleansed.crm.tj30t")
 finaldf = (recStatus.alias("aa").join(broadcast(srStatus.alias("bb")), recStatus["statusProfile"] == srStatus["statusProfile"], "inner")
                .select("aa.*"))
 
+if not(TableExists(_.Destination)):
+    finaldf = finaldf.unionByName(spark.createDataFrame([dummyRecord(finaldf.schema)], finaldf.schema))
+
 # COMMAND ----------
 
 def Transform():

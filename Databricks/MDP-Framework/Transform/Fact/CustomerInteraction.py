@@ -266,8 +266,3 @@ SaveWithCDF(interDF, 'APPEND')
 #     Save(df)
 #     #DisplaySelf()
 # Transform()
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_curated.fact.customerinteraction

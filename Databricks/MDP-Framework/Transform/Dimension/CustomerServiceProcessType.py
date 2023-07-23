@@ -37,6 +37,9 @@ df = df.na.drop(subset =["processTypeUsage"],how = "all")
 
 df = df.where("processTypeUsage == 'Interaction' or processTypeUsage == 'Service Request' "  )
 
+if not(TableExists(_.Destination)):
+    df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema))
+
 # COMMAND ----------
 
 def Transform():

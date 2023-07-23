@@ -12,7 +12,8 @@ df = spark.sql(f""" Select distinct statusProfile||'|'||statusCode as {BK}
                 from {getEnv()}cleansed.crm.tj30t
                 where statusProfile in (Select statusProfile From  {getEnv()}cleansed.crm.0crm_sales_act_1 where statusProfile is not null) """)
 
-df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema))
+if not(TableExists(_.Destination)):
+    df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema))
 #CleanSelf()
 Save(df)
 #SaveWithCDF(df, 'Full Load')
