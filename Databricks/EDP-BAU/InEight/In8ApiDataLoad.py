@@ -11,7 +11,11 @@ from pyspark.sql.functions import *
 
 # COMMAND ----------
 
-spark.sql(f"""create schema if not exists {get_env()}raw.ineightapi""")
+spark.sql(f"""create schema if not exists {get_env()}raw.ineight""")
+
+# COMMAND ----------
+
+spark.sql(f"""create schema if not exists {get_env()}cleansed.ineight""")
 
 # COMMAND ----------
 
@@ -212,11 +216,13 @@ def udf_GetinEightProjectData(prmCompanyID,prmUserID,prmPassword):
       'Content-Type': 'application/json'  }
     response = requests.request("GET", url, headers=headers)
     if response.status_code==200 and response != None:
-        projectdf=spark.read.schema(dfschemaprojectlist).json(sc.parallelize([response.text]))
+        json_response = json.loads(response.text)
+        projectdf = spark.createDataFrame(json_response, dfschemaprojectlist)
+        # projectdf=spark.read.schema(dfschemaprojectlist).json(sc.parallelize([response.text]))
         projectdf.createOrReplaceTempView("tb_projectlist")
-        sqlcmd=f"drop table if exists {get_env()}raw.ineightapi.tb_projectlist;"
+        sqlcmd=f"drop table if exists {get_env()}raw.ineight.tb_projectlist;"
         spark.sql(sqlcmd)      
-        sqlcmd=f"create table {get_env()}raw.ineightapi.tb_projectlist as select * from tb_projectlist;"
+        sqlcmd=f"create table {get_env()}raw.ineight.tb_projectlist as select * from tb_projectlist;"
         spark.sql(sqlcmd)       
         returndf=projectdf.select("ProjNo") \
                           .withColumnRenamed("ProjNo","ProjectNo")
@@ -283,16 +289,18 @@ for reportno in varreportnos:
     objectname=reportno.replace('.','')
     temptablename=f"tb_{objectname}"
     dfbase.createOrReplaceTempView(temptablename)
-    sqlcmd=f"drop table if exists {get_env()}raw.ineightapi.tb_report{objectname};"
+    sqlcmd=f"drop table if exists {get_env()}raw.ineight.tb_report{objectname};"
     spark.sql(sqlcmd)      
-    sqlcmd=f"create table {get_env()}raw.ineightapi.tb_report{objectname} as select * from {temptablename};"
+    sqlcmd=f"create table {get_env()}raw.ineight.tb_report{objectname} as select * from {temptablename};"
     spark.sql(sqlcmd)
 
 # COMMAND ----------
 
-spark.sql(f"""drop table if exists {get_env()}raw.ineightapi.tb_report07010""")
+spark.sql(f"""drop table if exists {get_env()}raw.ineight.tb_report07010""")
 
 
 # COMMAND ----------
 
-
+for table_name in ('tb_projectlist','tb_report01030', 'tb_report04001'):
+    spark.sql(f"""CREATE VIEW if not exists {get_env()}cleansed.ineight.{table_name} AS SELECT * FROM {get_env()}raw.ineight.{table_name}""")
+    print(f"*******VIEW Created {get_env()}cleansed.ineight.{table_name}")
