@@ -11,7 +11,7 @@ DEFAULT_TARGET = 'curated'
 
 # COMMAND ----------
 
-def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointConfig_df,waternetworkdemand_df,waternetwork_df,yearnumber,monthName,monthnumber):
+def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointConfig_df,waternetworkdemand_df,waternetwork_df,monthlySupplyApportioned_df,yearnumber,monthName,monthnumber):
     
     tfsumetrics_df = sharepointConfig_df.filter("metricTypeName like '%TFSU%'")
 
@@ -43,6 +43,9 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
     deliverySystemInputCurrMonth = waternetworkdemand_df.filter("networkTypeCode like 'Delivery System%'").groupBy("deliverySystem").agg(sum('demandQuantity').alias('demandQuantity')) \
         .withColumn("deliverySystemFormatted",lower(regexp_replace(regexp_replace(waternetworkdemand_df.deliverySystem,'DEL_',""),'[+ _]',""))) \
         .select(col("deliverySystem").alias("delivery_deliverySystem"),"deliverySystemFormatted",col("demandQuantity").alias("delivery_demandQuantity"))
+
+    monthlySupplyLGA = monthlySupplyApportioned_df.agg((sum('supply_totalKLQuantity')/1000).alias('supply_totalMLQuantity')).first()['supply_totalMLQuantity']
+    ruralFireServicesUseFactor = sharepointConfig_df.filter("metricTypeName = 'RFSUse'").select("metricValueNumber").first()['metricValueNumber']
 
     # --- TFSU Metrics Calculation ---#
     #monthlyTestingFireSprinklerSystems
@@ -92,12 +95,12 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
 
     
     #UnauthorisedUse
-    unauthorisedUse = waternetworkdemand_df.withColumn("metricValueNumber",(waternetworkdemand_df.demandQuantity*unauthorisedUseFactor)/100) \
+    unauthorisedUse = waternetworkdemand_df.withColumn("metricValueNumber",(waternetworkdemand_df.demandQuantity*unauthorisedUseFactor)) \
         .withColumn("metricTypeName", lit('unauthorisedUse')) \
         .select(col("deliverySystem").alias("waterNetworkDeliverySystem"),col("distributionSystem").alias("waterNetworkDistributionSystem"),col("supplyZone").alias("waterNetworkSupplyZone"),col("pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
 
     #meterUnderRegistration
-    meterUnderRegistration = waternetworkdemand_df.withColumn("metricValueNumber",(waternetworkdemand_df.demandQuantity*meterUnderRegistrationFactor)/100) \
+    meterUnderRegistration = waternetworkdemand_df.withColumn("metricValueNumber",(waternetworkdemand_df.demandQuantity*meterUnderRegistrationFactor)) \
         .withColumn("metricTypeName", lit('meterUnderRegistration')) \
         .select(col("deliverySystem").alias("waterNetworkDeliverySystem"),col("distributionSystem").alias("waterNetworkDistributionSystem"),col("supplyZone").alias("waterNetworkSupplyZone"),col("pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
 
@@ -144,6 +147,14 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
         .withColumn("metricTypeName", lit('sydneyWaterOperationalUse')) \
         .select(col("deliverySystem").alias("waterNetworkDeliverySystem"),col("distributionSystem").alias("waterNetworkDistributionSystem"),col("supplyZone").alias("waterNetworkSupplyZone"),col("pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
 
+    #ruralFireServicesUse
+    ruralFireServicesUse = monthlySupplyApportioned_df.join(waternetwork_df,(monthlySupplyApportioned_df.supply_waterNetworkSK == waternetwork_df.waterNetworkSK),"inner") \
+        .groupBy("waternetwork_deliverySystem","waternetwork_distributionSystem","waternetwork_supplyZone","waternetwork_pressureArea") \
+        .agg((sum('supply_totalKLQuantity')/1000).alias("supplyQuantity"))
+    ruralFireServicesUse = ruralFireServicesUse.withColumn("metricTypeName", lit('ruralFireServicesUse')) \
+        .withColumn("networktypecode", lit('Pressure Area')) \
+        .withColumn("metricValueNumber",(ruralFireServicesUse.supplyQuantity*ruralFireServicesUseFactor)/(monthlySupplyLGA)) \
+        .select(col("waternetwork_deliverySystem").alias("waterNetworkDeliverySystem"),col("waternetwork_distributionSystem").alias("waterNetworkDistributionSystem"),col("waternetwork_supplyZone").alias("waterNetworkSupplyZone"),col("waternetwork_pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
 
     demandaggregatedf = testingofFireServicesUse \
         .unionByName(unauthorisedUse,allowMissingColumns=True) \
@@ -152,6 +163,7 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
         .unionByName(unmeteredNonSTPs,allowMissingColumns=True) \
         .unionByName(fireRescueNSWUse,allowMissingColumns=True) \
         .unionByName(sydneyWaterOperationalUse,allowMissingColumns=True) \
+        .unionByName(ruralFireServicesUse,allowMissingColumns=True) \
         .withColumn("yearNumber",lit(yearnumber)) \
         .withColumn("monthName",lit(monthName)) \
         .withColumn("monthNumber",lit(monthnumber)) \
@@ -176,7 +188,7 @@ def Transform():
     .select(col("installationNumber").alias("device_installationNumber"),"deviceSize","functionClassCode","deviceID").filter("functionClassCode in ('1000')").filter("currentFlag = 'Y'").filter("deviceSize >= 40")
 
     waternetwork_df = GetTable(f"{get_env()}curated.dim.waternetwork").filter("ispotablewaternetwork = 'Y'").filter("`_RecordCurrent` = 1") \
-        .select(col("deliverySystem").alias("waternetwork_deliverySystem"),col("distributionSystem").alias("waternetwork_distributionSystem"),col("supplyZone").alias("waternetwork_supplyZone"),col("pressureArea").alias("waternetwork_pressureArea"))
+        .select(col("deliverySystem").alias("waternetwork_deliverySystem"),col("distributionSystem").alias("waternetwork_distributionSystem"),col("supplyZone").alias("waternetwork_supplyZone"),col("pressureArea").alias("waternetwork_pressureArea"),"waterNetworkSK")
     
     date_df = spark.sql(f"""
                         select distinct monthstartdate,year(monthstartdate) as yearnumber,month(monthstartdate) as monthnumber, date_format(monthStartDate,'MMM') as monthname 
@@ -200,13 +212,17 @@ def Transform():
             .filter("networkTypeCode in ('Pressure Area','Supply Zone','Delivery System','Delivery System Combined')") \
             .groupBy("deliverySystem","distributionSystem","supplyZone","pressureArea","networkTypeCode").agg(sum('demandQuantity').alias("demandQuantity"))
         
-        aggregatedf = CalculateDemandAggregated(property_df,installation_df,device_df,sharepointConfig_df,waternetworkdemand_df,waternetwork_df,i.yearnumber,i.monthname,i.monthnumber)
+        monthlySupplyApportioned_df = GetTable(f"{get_env()}curated.fact.monthlysupplyapportionedaggregate").filter(f"year(consumptionDate) = {i.yearnumber}").filter(f"month(consumptionDate) = {i.monthnumber}") \
+            .filter("LGA in ('Blacktown','Blue Mountains','Camden','Campbelltown','Fairfield','Hawkesbury','Hornsby','Liverpool','Penrith','Shellharbour','The Hills Shire','Wingecarribee','Wollondilly','Wollongong')") \
+            .select(col("waterNetworkSK").alias("supply_waterNetworkSK"),"LGA",col("totalKLQuantity").alias("supply_totalKLQuantity"))
+        
+        aggregatedf = CalculateDemandAggregated(property_df,installation_df,device_df,sharepointConfig_df,waternetworkdemand_df,waternetwork_df,monthlySupplyApportioned_df,i.yearnumber,i.monthname,i.monthnumber)
 
         print(f"Calculation: {i.yearnumber}-{i.monthname}")
 
         # ------------- TRANSFORMS ------------- #
         _.Transforms = [
-            f"metricTypeName||'|'||waterNetworkDeliverySystem||'|'||waterNetworkDistributionSystem||'|'||waterNetworkSupplyZone||'|'||waterNetworkPressureArea||'|'||yearNumber||'|'||monthName||'|'||monthName {BK}"
+            f"metricTypeName||'|'||coalesce(waterNetworkDeliverySystem,'')||'|'||coalesce(waterNetworkDistributionSystem,'')||'|'||coalesce(waterNetworkSupplyZone,'')||'|'||coalesce(waterNetworkPressureArea,'')||'|'||yearNumber||'|'||monthName||'|'||calculationDate {BK}"
             ,"waterNetworkDeliverySystem deliverySystem"        
             ,"waterNetworkDistributionSystem distributionSystem"
             ,"waterNetworkSupplyZone supplyZone"        
