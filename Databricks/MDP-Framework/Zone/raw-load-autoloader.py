@@ -36,7 +36,6 @@ if j.get("ExtendedProperties") is not None:
     extendedProperties = json.loads(j.get("ExtendedProperties"))
     separator = extendedProperties.get("separator")
     charset = extendedProperties.get("charset")
-    geometryDataExists = extendedProperties.get("geometryDataExists")
 
 #default csv delimiter to comma delimmited if not explicitly stated via extended properties
 if fileFormat == "csv" and not(separator):
@@ -50,17 +49,10 @@ if fileFormat != "json":
     else:
         fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True"}
 else:
-    if (geometryDataExists):
-        if charset:
-            fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","allowBackslashEscapingAnyCharacter":"True","charset":f"{charset}","cloudFiles.schemaHints":"features.element.geometry.geometries.element.coordinates ARRAY<DOUBLE>"}
-        else:
-            fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","allowBackslashEscapingAnyCharacter":"True","cloudFiles.schemaHints":"features.element.geometry.geometries.element.coordinates ARRAY<DOUBLE>"}        
-    
+    if charset:
+        fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","allowBackslashEscapingAnyCharacter":"True","charset":f"{charset}"}
     else:
-        if charset:
-            fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","allowBackslashEscapingAnyCharacter":"True","charset":f"{charset}"}
-        else:
-            fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","allowBackslashEscapingAnyCharacter":"True"}        
+        fileOptions = {"cloudFiles.format":f"{fileFormat}", "sep":f"{separator}", "multiline":"true", "cloudFiles.schemaLocation":f"{rawPath}/schema", "cloudFiles.inferColumnTypes":"True","allowBackslashEscapingAnyCharacter":"True"}        
 
 # COMMAND ----------
 
