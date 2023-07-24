@@ -76,6 +76,12 @@ where systemCode = 'hydra' and sourceTableName = 'tlotparcel'
 
 ExecuteStatement("""
 update dbo.extractLoadManifest set
+extendedProperties = '{\"geometryDataExists\":\"True\"}'
+where systemCode = 'hydra' and sourceTableName in ('sewer_main')
+""")
+
+ExecuteStatement("""
+update dbo.extractLoadManifest set
 extendedProperties = '{\"charset\":\"US-ASCII\"}'
 where systemCode = 'hydra' and sourceTableName in ('fm_ground','sampling_point')
 """)
@@ -465,8 +471,4 @@ when 'water_pumping_station' then 'systemKey'
 end
 where systemCode = '{SYSTEM_CODE}'
 """)
-
-
-# COMMAND ----------
-
 
