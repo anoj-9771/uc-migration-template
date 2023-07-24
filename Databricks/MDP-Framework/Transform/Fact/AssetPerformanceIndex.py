@@ -60,7 +60,7 @@ SELECT
     SELECT DISTINCT da.assetNumber, da.assetSK
     FROM {get_env()}curated.dim.asset da
     inner join {get_env()}curated.dim.assetlocation dal
-    on da.assetLocationFK = dal.assetLocationSK
+    on da.assetLocationName = dal.assetLocationName
   where da.sourceRecordCurrent = 1
     and dal.sourceRecordCurrent = 1
     and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
@@ -156,7 +156,7 @@ LAST_DAY((ADD_MONTHS(CURRENT_DATE,-MONTHS.M+1-12))) COMPARISON_PERIOD_END_DATE
 		and da.sourceRecordCurrent = 1
 
 		inner join {get_env()}curated.dim.assetlocation dal
-		ON da.assetLocationFK = dal.assetLocationSK
+		on da.assetLocationName = dal.assetLocationName
 		and dal.sourceRecordCurrent = 1
 		and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
 		and dal.assetLocationStatusDescription  = 'OPERATING'
@@ -459,7 +459,7 @@ CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRA
 		and da.sourceRecordCurrent = 1
 
 		inner join {get_env()}curated.dim.assetlocation dal
-		ON da.assetLocationFK = dal.assetLocationSK
+		on da.assetLocationName = dal.assetLocationName
 		and dal.sourceRecordCurrent = 1
 		and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
 		and dal.assetLocationStatusDescription  = 'OPERATING'
@@ -722,7 +722,7 @@ CASE WHEN EXTRACT (MONTH FROM CURRENT_DATE) IN (1,2,3,4,5,6) THEN TO_DATE((EXTRA
 		and da.sourceRecordCurrent = 1
 
 		inner join {get_env()}curated.dim.assetlocation dal
-		ON da.assetLocationFK = dal.assetLocationSK
+		on da.assetLocationName = dal.assetLocationName
 		and dal.sourceRecordCurrent = 1
 		and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
 		and dal.assetLocationStatusDescription  = 'OPERATING'
@@ -843,7 +843,7 @@ FROM
     SELECT DISTINCT da.assetNumber, da.assetSK
     FROM {get_table_namespace('curated', 'dimasset')} da
     inner join {get_table_namespace('curated', 'dimassetlocation')} dal
-    on da.assetLocationFK = dal.assetLocationSK
+    on da.assetLocationName = dal.assetLocationName
   where da.sourceRecordCurrent = 1
     and dal.sourceRecordCurrent = 1
     and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
@@ -945,7 +945,7 @@ LAST_DAY(ADD_MONTHS(cal.monthEndDate,-MONTHS.M+1-12)) COMPARISON_PERIOD_END_DATE
             and da.sourceRecordCurrent = 1
 
             inner join {get_table_namespace('curated', 'dimassetlocation')} dal
-            ON da.assetLocationFK = dal.assetLocationSK
+            on da.assetLocationName = dal.assetLocationName
             and dal.sourceRecordCurrent = 1
             and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
             and dal.assetLocationStatusDescription  = 'OPERATING'
@@ -1253,7 +1253,7 @@ CASE WHEN EXTRACT (MONTH FROM cal.monthEndDate) IN (1,2,3,4,5,6) THEN TO_DATE((E
             and da.sourceRecordCurrent = 1
 
             inner join {get_table_namespace('curated', 'dimassetlocation')} dal
-            ON da.assetLocationFK = dal.assetLocationSK
+            on da.assetLocationName = dal.assetLocationName
             and dal.sourceRecordCurrent = 1
             and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
             and dal.assetLocationStatusDescription  = 'OPERATING'
@@ -1523,7 +1523,7 @@ CASE WHEN EXTRACT (MONTH FROM cal.monthEndDate) IN (1,2,3,4,5,6) THEN TO_DATE((E
             and da.sourceRecordCurrent = 1
 
             inner join {get_table_namespace('curated', 'dimassetlocation')} dal
-            ON da.assetLocationFK = dal.assetLocationSK
+            on da.assetLocationName = dal.assetLocationName
             and dal.sourceRecordCurrent = 1
             and dal.assetLocationTypeCode IN ('SYSAREA','FACILITY','PROCESS','FUNCLOC') 
             and dal.assetLocationStatusDescription  = 'OPERATING'

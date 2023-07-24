@@ -71,7 +71,7 @@ on fwo.assetFK = da.assetSK
 and da.sourceRecordCurrent = 1
 
 left join {get_table_namespace('curated', 'dimAssetLocation')} dal
-on da.assetLocationFK = dal.assetLocationSK
+on da.assetLocationName = dal.assetLocationName
 and dal.sourceRecordCurrent = 1
 
 left join {get_table_namespace('curated', 'dimassetcontract')} dac
@@ -114,8 +114,4 @@ dd.calendarYear,
 dd.monthOfYear
 )
 """)
-
-
-# COMMAND ----------
-
 
