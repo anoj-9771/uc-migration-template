@@ -21,7 +21,7 @@ def Transform():
 
     asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}")\
         .filter("_recordCurrent == 1").filter("_recordDeleted == 0")\
-        .select("assetSK","assetNumber","sourceValidFromTimestamp","sourceValidToTimestamp")
+        .select("assetNumber")
         
     meter_df = GetTable(get_table_name(f"{SOURCE}","maximo","meter"))\
         .filter("_RecordDeleted == 0")\
@@ -36,11 +36,11 @@ def Transform():
     # ------------- JOINS ------------------ #
     
     df = df.join(meter_df,"meter","left") \
-    .join(asset_df,(df.asset == asset_df.assetNumber)& (df.changedDate.between (asset_df.sourceValidFromTimestamp,asset_df.sourceValidToTimestamp)),"inner").drop("sourceValidFromTimestamp","sourceValidToTimestamp") \
+    .join(asset_df,df.asset == asset_df.assetNumber,"inner") \
     .join(measure_unit_df,"unitOfMeasure","left")
 
     df = df \
-    .withColumn("sourceBusinessKey",concat_ws('|',df.assetSK, df.meter))\
+    .withColumn("sourceBusinessKey",concat_ws('|',df.assetNumber, df.meter))\
     .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \
     .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)"))
     df = load_sourceValidFromTimeStamp(df,business_date)
@@ -48,7 +48,7 @@ def Transform():
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
         f"sourceBusinessKey {BK}"
-        ,"assetSK assetFK"
+        ,"assetNumber"
         ,"meter assetMeterName"
         ,"assetMeterDescription assetMeterDescription"
         ,"active assetMeterActiveIndicator"

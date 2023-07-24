@@ -18,7 +18,7 @@ def create_temp_table(dataframe):
     
     asset_location_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}")\
         .filter("_recordCurrent == 1").filter("_recordDeleted == 0")\
-        .select("assetLocationName","assetLocationSK","assetLocationTypeCode","assetLocationFacilityShortCode","sourceValidFromTimestamp","sourceValidToTimestamp")
+        .select("assetLocationName","assetLocationTypeCode","assetLocationFacilityShortCode")
 
     class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure"))\
         .filter("_RecordDeleted == 0")\
@@ -47,7 +47,7 @@ def create_temp_table(dataframe):
     pivot_df = asset_spec_df.groupBy("asset").pivot("attribute").agg(min(col("val")))
     
     # ------------- JOINS ------------------ #    
-    temp_df = temp_df.join(asset_location_df,(temp_df.location == asset_location_df.assetLocationName) & (temp_df.changedDate.between (asset_location_df.sourceValidFromTimestamp,asset_location_df.sourceValidToTimestamp)),"left").drop("sourceValidFromTimestamp","sourceValidToTimestamp") \
+    temp_df = temp_df.join(asset_location_df,temp_df.location == asset_location_df.assetLocationName,"left")\
     .join(locspc_df,"location","left") \
     .join(class_structure_df,"classStructure","left") \
     .join(classification_df,"classification","left") \
@@ -127,7 +127,7 @@ def Transform():
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
         f"sourceBusinessKey {BK}"
-        ,"assetLocationSK assetLocationFK"
+        ,"assetLocationName"
         ,"asset assetNumber"
         ,"description assetDescription"
         ,"status assetStatusDescription"

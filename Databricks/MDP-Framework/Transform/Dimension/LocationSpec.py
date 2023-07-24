@@ -17,12 +17,14 @@ def Transform():
     business_date = 'changedDate'
     target_date = "locationSpecChangedTimestamp"
     windowSpec = Window.partitionBy("location","attribute")
+
     df = get_recent_records(f"{SOURCE}","maximo_locationSpec",business_date,target_date)\
-        .withColumn("rank",rank().over(windowSpec.orderBy(col("rowStamp").desc()))).filter("rank == 1").drop("rank")
+    .withColumn("rank",rank().over(windowSpec.orderBy(col("rowStamp").desc()))).filter("rank == 1").drop("rank")
+
     
     asset_location_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAssetLocation')}")\
         .filter("_recordCurrent == 1").filter("_recordDeleted == 0")\
-        .select("assetLocationSK","assetLocationName","sourceValidFromTimestamp","sourceValidToTimestamp")
+        .select("assetLocationName")
     
     class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure"))\
         .filter("_RecordDeleted == 0")\
@@ -41,7 +43,7 @@ def Transform():
    
     # ------------- JOINS ------------------ #
     
-    df = df.join(asset_location_df,(df.location == asset_location_df.assetLocationName) & (df.changedDate.between (asset_location_df.sourceValidFromTimestamp,asset_location_df.sourceValidToTimestamp)),"left").drop("sourceValidFromTimestamp","sourceValidToTimestamp") \
+    df = df.join(asset_location_df,df.location == asset_location_df.assetLocationName,"left") \
     .join(class_structure_df,"classStructure","left") \
     .join(classification_df,"classification","left") \
     .join(measure_unit_df,"unitOfMeasure","left")
@@ -56,7 +58,7 @@ def Transform():
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
         f"sourceBusinessKey {BK}"
-        ,"assetLocationSK assetLocationFK"
+        ,"assetLocationName"
         ,"attribute locationSpecAttributeIdentifier"
         ,"location locationSpecName"
         ,"locationSpecSection locationSpecAttributeSectionName"

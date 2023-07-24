@@ -21,7 +21,7 @@ def Transform():
 
     asset_df = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimAsset')}")\
         .filter("_recordCurrent == 1").filter("_recordDeleted == 0")\
-        .select("assetSK","assetNumber","sourceValidFromTimestamp","sourceValidToTimestamp")
+        .select("assetNumber")
 
     class_structure_df = GetTable(get_table_name(f"{SOURCE}","maximo","classStructure"))\
         .filter("_RecordDeleted == 0")\
@@ -40,12 +40,12 @@ def Transform():
    
     # ------------- JOINS ------------------ #
     
-    df = df.join(asset_df,(df.asset == asset_df.assetNumber)& (df.changedDate.between (asset_df.sourceValidFromTimestamp,asset_df.sourceValidToTimestamp)),"inner").drop("sourceValidFromTimestamp","sourceValidToTimestamp") \
+    df = df.join(asset_df,df.asset == asset_df.assetNumber,"inner") \
     .join(class_structure_df,"classStructure","left") \
     .join(classification_df,"classification","left") \
     .join(measure_unit_df,"unitOfMeasure","left")
 
-    df =df.withColumn("sourceBusinessKey",concat_ws('|', df.assetSK, df.attribute, df.linearSpecificationId, df.assetspecSection
+    df =df.withColumn("sourceBusinessKey",concat_ws('|', df.assetNumber, df.attribute, df.linearSpecificationId, df.assetspecSection
 )) \
     .withColumn("sourceValidToTimestamp",lit(expr(f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))) \
     .withColumn("sourceRecordCurrent",expr("CAST(1 AS INT)"))
@@ -53,7 +53,7 @@ def Transform():
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
         f"sourceBusinessKey {BK}"
-        ,"assetSK assetFK"
+        ,"assetNumber"
         ,"attribute assetSpecAttributeIdentifier"
         ,"linearSpecificationId assetSpecLinearSpecificationId"
         ,"assetspecSection assetSpecSectionCode"
@@ -84,7 +84,3 @@ def Transform():
     #DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-

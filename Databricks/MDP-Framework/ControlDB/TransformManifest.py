@@ -89,7 +89,7 @@ transform_df = spark.sql("""
     (31,'Fact','CustomerServiceEmailEvent','databricks-notebook','',29,null,0),
     (32,'Fact','CustomerServiceRequest','databricks-notebook','',29,null,0),
     (33,'Fact','CustomerServiceWorkNote','databricks-notebook','',29,null,0),
-    (34,'Fact','SurveyMiscellaneousInfo','databricks-notebook','',29,null,0),
+    (34,'Fact','SurveyMiscellaneousInformation','databricks-notebook','',29,null,0),
     (35,'Fact','SurveyResponse','databricks-notebook','',29,null,0),
     (36,'Bridge','CustomerInteractionAttachment','databricks-notebook','',35,null,0),
     (37,'Bridge','CustomerInteractionEmail','databricks-notebook','',35,null,0),
