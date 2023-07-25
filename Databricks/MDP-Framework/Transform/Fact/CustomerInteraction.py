@@ -245,6 +245,9 @@ interDF = ((coreDF.alias("core")
 
 # COMMAND ----------
 
+if not isDeltaLoad:
+    enableCDF(f"{getEnv()}curated.fact.customerinteraction")
+    
 SaveWithCDF(interDF, 'APPEND')
 #Save(interDF, append=True)
 

@@ -31,13 +31,13 @@ driverTable2 = 'cleansed.crm.0bpartner_attr'
 if not(TableExists(_.Destination)):
     isDeltaLoad = False
     #####Table Full Load #####################
-    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}")#.withColumn("_change_type", lit(None))
-    derivedDF2 = GetTable(f"{getEnv()}{driverTable2}")#.withColumn("_change_type", lit(None))
+    derivedDF1 = GetTable(f"{getEnv()}{driverTable1}").withColumn("_change_type", lit(None))
+    derivedDF2 = GetTable(f"{getEnv()}{driverTable2}").withColumn("_change_type", lit(None))
 else:
     #####CDF for eligible tables#####################
     isDeltaLoad = True
-    derivedDF1 = getSourceCDF(driverTable1, changeColumnsISU, True).filter(col("_change_type").rlike('update_postimage|insert')).drop(col("_change_type"))
-    derivedDF2 = getSourceCDF(driverTable2, changeColumnsCRM, True).filter(col("_change_type").rlike('update_postimage|insert')).drop(col("_change_type"))
+    derivedDF1 = getSourceCDF(driverTable1, changeColumnsISU, True).filter(col("_change_type").rlike('update_postimage|insert'))#.drop(col("_change_type"))
+    derivedDF2 = getSourceCDF(driverTable2, changeColumnsCRM, True).filter(col("_change_type").rlike('update_postimage|insert'))#.drop(col("_change_type"))
     if derivedDF1.count() == 0 and derivedDF2.count() == 0:
         print("No delta to be  processed")
 
@@ -82,7 +82,7 @@ isuDF = (derivedDF1
                                                     ,col("lastUpdatedBy")                                    
                                                     ,col("naturalPersonFlag")                              
                                                     ,col("_RecordDeleted")                                                                                                        
-                                                    )
+                                                    ,col("_change_type"))
                         )
 
 
@@ -134,7 +134,7 @@ crmDF = (derivedDF2
                                                     ,col("dateOfCheck")
                                                     ,col("pensionConcessionCardFlag")                            
                                                     ,col("pensionType")                                                    
-                                                    )
+                                                    ,col("_change_type"))
                          )
 
 

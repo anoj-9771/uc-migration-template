@@ -700,6 +700,8 @@ finaldf = finalCRMDF #.unionByName(finalMAXDF)
 
 # COMMAND ----------
 
+if not isDeltaLoad:
+    enableCDF(f"{getEnv()}curated.fact.customerservicerequest")
 SaveWithCDF(finalCRMDF, 'APPEND')
 busDF.unpersist()
 

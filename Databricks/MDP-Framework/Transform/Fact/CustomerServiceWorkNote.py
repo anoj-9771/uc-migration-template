@@ -38,7 +38,7 @@ parse_interaction_string = pandas_udf(interaction_string_spliter, returnType=Arr
 summary_res_match_regex = "(\[\s)(SUMMARY|RESOLUTION)(\sTEXT\-\sDATE\-\s)([0-9]{8})(\sTIME:\s)([0-9]{6})(\s\])([^\[]*)"
 interaction_match_regex = "(\[\s)(Summary)(\sText\-\-\sDate\-\s)([0-9]{8})(\sTime\-\s)([0-9]{6})(\s\])([^\[]*)"
     
-summary_res_notes_df =  (GetTable(f"{getEnv()}cleansed.crm.zcs_long_text_f")
+summary_res_notes_df =  (derivedDF1 #GetTable(f"{getEnv()}cleansed.crm.zcs_long_text_f")
     .select("serviceRequestGUID","serviceRequestID","summaryNote1","summaryNote2","summaryNote3","resolutionNote1","resolutionNote2","resolutionNote3"))
 
 #     Prepare Summary DF
@@ -107,7 +107,7 @@ worknote_df = (worknote_df.withColumnRenamed("serviceRequestID","objectID")
 
 def Transform():
     global df
-    df = worknote_df #.withColumn("_change_type", lit("insert"))
+    df = worknote_df.withColumn("_change_type", lit("insert"))
 
     _.Transforms = [
     f"objectTypeCode||'|'||workNoteType||'|'||noteID {BK}"
@@ -122,8 +122,8 @@ def Transform():
     ,"CreateDateTime customerServiceWorkNoteCreatedTimestamp"
     ,"modifiedBy customerServiceWorkNoteModifiedByUserName"
     ,"modifiedTimeStamp customerServiceWorkNoteModifiedTimestamp"
-    
-    ] #,"_change_type"
+    ,"_change_type"
+    ] 
     df = df.selectExpr(
         _.Transforms
     )

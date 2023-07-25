@@ -39,7 +39,8 @@ df = (df.join(crmd_erms_contnt_df, "emailID", "left")
     .join(businessPartner_orgunit_df, concat(lit("OU"), col("organisationUnit").substr(-8,8)) == businessPartner_orgunit_df.businessPartnerNumber,"left"))
 
 if not(TableExists(_.Destination)):
-    df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema)) 
+    df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema))
+    enableCDF(f"{getEnv()}cleansed.crm.crmd_erms_header")
 
 # COMMAND ----------
 
