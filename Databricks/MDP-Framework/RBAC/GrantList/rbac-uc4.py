@@ -29,6 +29,25 @@ RBAC_UC4 = [
             ,"cleansed.scada.hierarchy_cnfgn"
             ,"cleansed.scada.point_limit"
             ,"cleansed.scada.scxuser"
+            ,"cleansed.ppm.0rpm_decision_guid_attr"
+            ,"cleansed.ppm.rpm_item_d"
+            ,"cleansed.ppm.ihpa"
+            ,"cleansed.ppm.0project_attr"
+            ,"cleansed.ppm.0wbs_elemt_attr"
+            ,"cleansed.ppm.0inm_initiative_guid_attr"
+            ,"cleansed.ppm.0rpm_port_guid_attr"
+            ,"cleansed.ppm.rpm_relation_d"
+            ,"cleansed.ppm.0rpm_decision_guid_id_text"
+            ,"cleansed.ppm.0project_text"
+            ,"cleansed.ppm.0rpm_bucket_guid_id_text"
+            ,"cleansed.ppm.0rpm_port_guid_id_text"
+            ,"cleansed.ppm.0wbs_elemt_text"
+            ,"cleansed.ppm.0rpm_decision_id_text"
+            ,"cleansed.ppm.0inm_initiative_guid_text"
+            ,"cleansed.ppm.0rpm_item_type_text"
+            ,"cleansed.ppm.rpm_status_t"
+            ,"cleansed.ppm.tcj4t"
+            ,"cleansed.ppm.zept_sub_delpart"
             ,"curated.asset_performance.eppmselfserviceclassificationhierarchy"
             ,"curated.asset_performance.eppmselfservicereport"
             ,"curated.asset_performance.eppmSelfServiceMaster"
@@ -72,8 +91,17 @@ RBAC_UC4 = [
         ]
         ,"Users" : []
         ,"AADGroups" : [ "cleansed-sensitive" ]
-    }
-]
+    },
+    {
+        "Name" : "L3-Sensitive-Other"
+        ,"Level" : 3
+        ,"ParentGroup" : "L2-Sensitive"
+        ,"TableFilter" : [
+            "cleansed.ppm.rpsco"
+        ]
+        ,"Users" : []
+        ,"AADGroups" : [ "sensitive-others" ]
+    }]
 
 # COMMAND ----------
 
