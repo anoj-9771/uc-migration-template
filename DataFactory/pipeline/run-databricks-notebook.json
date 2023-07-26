@@ -113,6 +113,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "InstancePoolId",
@@ -126,6 +130,10 @@
 				"name": "set-instance-pool-name",
 				"type": "SetVariable",
 				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "InstancePoolName",
@@ -139,6 +147,10 @@
 				"name": "set-cluster-name",
 				"type": "SetVariable",
 				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "ClusterName",
@@ -235,6 +247,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "ClusterId",
@@ -301,7 +317,9 @@
 										"value": "@variables('InstancePoolId')",
 										"type": "Expression"
 									},
-									"newClusterNumOfWorker": "1:4"
+									"DatabricksVersion": "12.2.x-scala2.12",
+									"newClusterNumOfWorker": "1:4",
+									"ProductTag": "Framework ETL 2.0"
 								}
 							}
 						},
@@ -370,6 +388,10 @@
 									]
 								}
 							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
 							"userProperties": [],
 							"typeProperties": {
 								"variableName": "SinkFlag",
@@ -413,7 +435,8 @@
 									"clusterId": {
 										"value": "@variables('ClusterId')",
 										"type": "Expression"
-									}
+									},
+									"databricksUrl": "https://australiaeast.azuredatabricks.net"
 								}
 							}
 						},
@@ -482,6 +505,10 @@
 									]
 								}
 							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
 							"userProperties": [],
 							"typeProperties": {
 								"variableName": "SinkFlag",
