@@ -45,4 +45,16 @@ def Transform():
     Save(df)
     #DisplaySelf()
 pass
-Transform()
+# Transform()
+
+# COMMAND ----------
+
+runflag = spark.sql(f"""
+          select * from (select first_value(calendarDate) over (order by calendarDate asc) as businessDay from {get_env()}curated.dim.date where month(calendarDate) = month(current_date()) and year(calendarDate) = year(current_date()) and isWeekDayFlag = 'Y' and coalesce(isHolidayFlag,'N') = 'N' limit 1) where businessDay = current_date()""")
+ 
+if runflag.count() > 0:
+    print("Running on first business day of the month")
+    Transform()
+else:
+    # print("Skipping - Runs only on first business day of the month")  
+    dbutils.notebook.exit('Skipping - Runs only on first business day of the month')

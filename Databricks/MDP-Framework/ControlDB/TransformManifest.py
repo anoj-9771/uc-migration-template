@@ -102,7 +102,12 @@ transform_df = spark.sql("""
     (44,'Bridge','CustomerServicetoServiceRequest','databricks-notebook','',35,null,0),
     (45,'Bridge','CustomerServiceWorkResolution','databricks-notebook','',35,null,0),
     (46,'Bridge','CustomerServiceWorkNoteSummary','databricks-notebook','',35,null,0),
-    (47,'Bridge','CustomerInteractionSurvey','databricks-notebook','',35,null,0)
+    (47,'Bridge','CustomerInteractionSurvey','databricks-notebook','',35,null,0),
+    (48,'Fact','UnmeteredConsumption','databricks-notebook','',null,null,1),
+    (49,'Fact','ConsumptionAggregate','databricks-notebook','',48,null,1),
+    (50,'Fact','StoppedMeterConsumption','databricks-notebook','',null,null,1),
+    (51,'Fact','StoppedMeterAggregate','databricks-notebook','',50,null,1),
+    (52,'View','viewUnmeteredConsumption_UC2','databricks-notebook','',49,null,1)
 AS (TransformID,EntityType,EntityName,ProcessorType,TargetKeyVaultSecret,InternalDependency,ExternalDependency,Enabled)
 """)
 
