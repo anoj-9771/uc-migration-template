@@ -188,6 +188,7 @@ def StaticReplacement(sourceDataFrame, lookupTag, columnName):
 
 # COMMAND ----------
 
+
 def LookupValue(sourceDataFrame, lookupTag, columnName):
     tagParameters = lookupTags.get(lookupTag.lower())
 
@@ -204,9 +205,12 @@ def LookupValue(sourceDataFrame, lookupTag, columnName):
     db_name = table.split(".")[1].split("_")[0]
     table_name = "_".join(table.split(".")[1].split("_")[1:])
 
+    # DYNAMICALLY USE THE 2 OR 3 NAMESPACE BASED ON GIVEN NAMESPACE
+    table_namespace = f'{get_env()}{table}' if len(table.split(".")) > 2 else get_table_name(table.split(".")[0], db_name, table_name)
+
     df = (sourceDataFrame
                 .join(
-                        spark.table(get_table_name(table.split(".")[0], db_name, table_name))
+                        spark.table(table_namespace)
                         .where(whereClause)
                         .selectExpr(f"{key} Key", f"{value} Value")
                     ,expr(f"CAST({columnName} AS STRING) == CAST(Key AS STRING)"), "left")

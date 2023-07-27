@@ -1,4 +1,4 @@
-﻿Parent,Group,Key,Value,ExtendedProperties
+Parent,Group,Key,Value,ExtendedProperties
 crm,custom-ref-partner-origin,A,Automatic Determination,
 crm,custom-ref-partner-origin,B,Selected,
 crm,custom-ref-partner-origin,C,Entered Manually,
@@ -133,3 +133,7 @@ iicats,custom-ref-opc-quality,219,Good [Local Override] (Constant),
 lookup-crm-appointment-description,Cleansed.crm_scapttxt,apptType,apptTypeDescription,
 lookup-swirl,cleansed.swirl_lookup_items,lookupitemid||'||'||lookupid,description,
 lookup-hydstra-metadata-reference,Cleansed.Hydstra_Metadata,metadataType||referenceCd,referenceDescription,
+lookup-edw-cdr-view-reference-key,cleansed.edw_cdr.reference_code,sourceFieldName||referenceCodeSk,valueText,
+lookup-edw-cdr-view-reference-description,cleansed.edw_cdr.view_reference_code,sourceFieldName||referenceCodeSk,referenceDescription,
+lookup-edw-cdr-view-reference-audit-unit,cleansed.edw_cdr.view_reference_unit_code,referenceCodeSk,auditUnit,
+lookup-edw-cdr-object-internal-id,cleansed.edw_cdr.view_object_internal_id,objectInternalId,sourceRecordSystemId
