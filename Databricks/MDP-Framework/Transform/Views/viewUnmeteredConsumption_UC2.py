@@ -12,7 +12,7 @@ runflag = spark.sql(f"""
  
 if runflag.count() == 0:
     # print("Skipping - Runs only on first business day of the month")
-    dbutils.notebook.exit('Skipping - Runs only on first business day of the month')
+    dbutils.notebook.exit('{"Counts": {"SpotCount": 0}}')
 
 # COMMAND ----------
 

@@ -122,4 +122,4 @@ if runflag.count() > 0:
     Transform()
 else:
     # print("Skipping - Runs only on first business day of the month")  
-    dbutils.notebook.exit('Skipping - Runs only on first business day of the month')
+    dbutils.notebook.exit('{"Counts": {"SpotCount": 0}}')
