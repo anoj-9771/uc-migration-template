@@ -65,6 +65,10 @@
 				"name": "set-parent-batch",
 				"type": "SetVariable",
 				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "ParentBatchID",
@@ -193,6 +197,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "DatabricksSecret",
@@ -213,6 +221,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "ExtraConfig",
@@ -377,6 +389,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "PoolId",
@@ -411,7 +427,7 @@
 			}
 		},
 		"folder": {
-			"name": "MDP-Framework/Adhoc"
+			"name": "MDP-Framework/Adhoc/MDP"
 		},
 		"annotations": [],
 		"lastPublishTime": "2021-07-08T02:50:54Z"

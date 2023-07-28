@@ -1,0 +1,103 @@
+{
+	"name": "import-nas-file",
+	"properties": {
+		"activities": [
+			{
+				"name": "validate-parameters",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(\n    empty(pipeline().parameters.sourceFilePath)\n    ,empty(pipeline().parameters.targetFilePath)\n    )",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "copy-from-nas",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "FileServerReadSettings",
+										"recursive": true,
+										"deleteFilesAfterCompletion": false
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "NAS_Binary",
+									"type": "DatasetReference",
+									"parameters": {
+										"systemCode": "aurion",
+										"filePath": {
+											"value": "@pipeline().parameters.sourceFilePath",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DLS_Binary",
+									"type": "DatasetReference",
+									"parameters": {
+										"filePath": {
+											"value": "@pipeline().parameters.targetFilePath",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "fail",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "Missing parameters",
+								"errorCode": "500"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"sourceFilePath": {
+				"type": "string"
+			},
+			"targetFilePath": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/Adhoc/NAS"
+		},
+		"annotations": []
+	}
+}

@@ -95,6 +95,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "ParentBatchID",
@@ -190,6 +194,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "Transform",
@@ -255,7 +263,7 @@
 			}
 		},
 		"folder": {
-			"name": "MDP-Framework/Adhoc"
+			"name": "MDP-Framework/Adhoc/MDP"
 		},
 		"annotations": [],
 		"lastPublishTime": "2021-07-08T02:50:54Z"
