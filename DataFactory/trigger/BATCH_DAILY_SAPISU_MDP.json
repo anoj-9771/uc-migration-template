@@ -1,16 +1,27 @@
 {
 	"name": "BATCH_DAILY_SAPISU_MDP",
 	"properties": {
-		"description": "ISU Daily Trigger for tables ingested though MDP framework",
+		"description": "ISU daily trigger for tables ingested through MDP framework",
 		"annotations": [],
 		"runtimeState": "Stopped",
-		"pipelines": [],
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Main",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"SystemCodes": "isuref,isudata",
+					"RunParallel": "N"
+				}
+			}
+		],
 		"type": "ScheduleTrigger",
 		"typeProperties": {
 			"recurrence": {
 				"frequency": "Day",
 				"interval": 1,
-				"startTime": "2023-07-28T02:57:00",
+				"startTime": "2023-07-28T03:24:00",
 				"timeZone": "AUS Eastern Standard Time",
 				"schedule": {
 					"hours": [

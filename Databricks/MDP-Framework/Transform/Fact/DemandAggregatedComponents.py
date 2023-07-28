@@ -120,6 +120,13 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
         .withColumn("metricValueNumber",(meterUnderRegistration.supplyQuantity*meterUnderRegistrationFactor)) \
         .select(col("waternetwork_deliverySystem").alias("waterNetworkDeliverySystem"),col("waternetwork_distributionSystem").alias("waterNetworkDistributionSystem"),col("waternetwork_supplyZone").alias("waterNetworkSupplyZone"),col("waternetwork_pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
 
+    meterUnderRegistrationSupplyZone = meterUnderRegistration.groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","metricTypeName").agg(sum('metricValueNumber').alias('metricValueNumber')) \
+        .withColumn("networkTypeCode",lit('Supply Zone')) 
+
+    meterUnderRegistrationDeliverySystem = meterUnderRegistration.groupBy("waterNetworkDeliverySystem","metricTypeName").agg(sum('metricValueNumber').alias('metricValueNumber')) \
+        .withColumn("networkTypeCode",lit('Delivery System'))         
+
+
     #UnmeteredSTPs    
     unmeteredSTPs = sharepointConfig_df.where(col("metricValueNumber").isNotNull() & (col("metricTypeName") == 'UnmeteredSTPs') & (col("zoneTypeName") == 'PressureZone')) \
         .withColumn("metricTypeName",lit('unmeteredSTPs')) \
@@ -183,6 +190,8 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
         .unionByName(testingofFireServicesUseDeliverySystem,allowMissingColumns=True) \
         .unionByName(unauthorisedUse,allowMissingColumns=True) \
         .unionByName(meterUnderRegistration,allowMissingColumns=True) \
+        .unionByName(meterUnderRegistrationSupplyZone,allowMissingColumns=True) \
+        .unionByName(meterUnderRegistrationDeliverySystem,allowMissingColumns=True) \
         .unionByName(unmeteredSTPs,allowMissingColumns=True) \
         .unionByName(unmeteredNonSTPs,allowMissingColumns=True) \
         .unionByName(fireRescueNSWUse,allowMissingColumns=True) \
