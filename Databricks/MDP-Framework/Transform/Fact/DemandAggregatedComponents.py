@@ -188,6 +188,8 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
         .unionByName(fireRescueNSWUse,allowMissingColumns=True) \
         .unionByName(sydneyWaterOperationalUse,allowMissingColumns=True) \
         .unionByName(ruralFireServicesUse,allowMissingColumns=True) \
+        .unionByName(ruralFireServicesUseSupplyZone,allowMissingColumns=True) \
+        .unionByName(ruralFireServicesUseDeliverySystem,allowMissingColumns=True) \
         .withColumn("yearNumber",lit(yearnumber)) \
         .withColumn("monthName",lit(monthName)) \
         .withColumn("monthNumber",lit(monthnumber)) \
