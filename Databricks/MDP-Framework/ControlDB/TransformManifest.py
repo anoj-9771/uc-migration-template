@@ -107,7 +107,7 @@ transform_df = spark.sql("""
     (49,'Fact','ConsumptionAggregate','databricks-notebook','',48,null,1),
     (50,'Fact','StoppedMeterConsumption','databricks-notebook','',null,null,1),
     (51,'Fact','StoppedMeterAggregate','databricks-notebook','',50,null,1),
-    (52,'View','viewUnmeteredConsumption_UC2','databricks-notebook','',49,null,1)
+    (52,'Views','viewUnmeteredConsumption_UC2','databricks-notebook','',49,null,1)
 AS (TransformID,EntityType,EntityName,ProcessorType,TargetKeyVaultSecret,InternalDependency,ExternalDependency,Enabled)
 """)
 
