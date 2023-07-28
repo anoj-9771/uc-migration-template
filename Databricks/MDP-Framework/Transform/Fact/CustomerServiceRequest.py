@@ -3,7 +3,7 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
+# CleanSelf()
 
 # COMMAND ----------
 
@@ -92,7 +92,6 @@ coreDF =(( derivedDF1 #GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_sr
            .withColumn("receivedBK", concat(col("coherentAspectIdD"),lit("|"),col("coherentCategoryIdD")))
            .withColumn("resolutionBK", concat(col("coherentAspectIdC"),lit("|"),col("coherentCategoryIdC")))
            .withColumn("processTypeBK", concat(trim(col("processTypeCode")),lit("|"),lit("CRM")))
-           .withColumn("statusBK", concat(col("statusProfile"),lit("|"),col("statusCode")))
            .withColumn("reportedByPersonNoBK", when(col("reportedByPersonNumber").isNull(), lit('-1')).otherwise(regexp_replace(col("reportedByPersonNumber"), "^0*", "")))
            .withColumn("contactPersonNoBK", when(col("contactPersonNumber").isNull(), lit('-1')).otherwise(regexp_replace(col("contactPersonNumber"), "^0*", "")))
            .withColumn("salesEmployeeNoBK", when(col("salesEmployeeNumber").isNull(), lit('-1')).otherwise(regexp_replace(col("salesEmployeeNumber"), "^0*", "")))
@@ -140,7 +139,8 @@ coreDF =(( derivedDF1 #GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_sr
                   ,col("resolutionBK")
                   ,col("processTypeBK")
                   ,col("status")
-                  ,col("statusBK")
+                  ,col("statusProfile")
+                  ,col("statusCode")
                   ,col("reportedByPersonNoBK")
                   ,col("contactPersonNoBK")
                   ,col("salesEmployeeNoBK")
@@ -153,6 +153,16 @@ coreDF =(( derivedDF1 #GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_sr
                   ,col("_change_type")
                   )                 
         )
+
+crmJcdsDF = spark.sql(f"""Select objectGUID,changeTimestamp,objectStatus,
+                Dateadd(second,0,CASE WHEN  LAG(changeTimestamp) over(PARTITION BY objectGUID order by changeTimestamp) IS NULL THEN DateAdd(second,-100,changeTimestamp) ELSE changeTimestamp END) changeTimestamp2
+                ,Dateadd(second,0,CASE WHEN LEAD(changeTimestamp) over(PARTITION BY objectGUID order by changeTimestamp) IS NULL THEN CAST('9999-12-23' as TIMESTAMP) ELSE DateAdd(second,-1,LEAD(changeTimestamp) over(PARTITION BY objectGUID order by changeTimestamp))END) as nextChangeTimestamp
+                from {get_env()}cleansed.crm.crm_jcds where objectStatus like 'E%' and statusInactiveIndicator != 'X'""")
+
+coreDF = coreDF.join(crmJcdsDF,(coreDF.serviceRequestGUID == crmJcdsDF.objectGUID) &  (col("lastChangedDateTime").between(crmJcdsDF.    changeTimestamp2,crmJcdsDF.nextChangeTimestamp)),"left")\
+                .withColumn("statusCode",expr("CASE WHEN datediff(second, cast('2023-06-29 20:25:40.000' as timestamp),lastChangedDatetime ) < 0  THEN CASE WHEN statusCode is null THEN objectStatus ELSE statusCode END  ELSE objectStatus END"))\
+                .withColumn("statusProfile",expr("CASE WHEN statusProfile IS NULL THEN LEAD(statusProfile) over(PARTITION BY serviceRequestGUID order by changeTimestamp)   ELSE statusProfile END"))\
+                .withColumn("statusBK", concat(col("statusProfile"),lit("|"),col("statusCode")))
     
 servCatDF =  ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomerservicecategory')}")
                              .select( col("customerServiceCategorySK").alias("resolutionCategoryFK")

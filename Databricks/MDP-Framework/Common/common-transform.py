@@ -528,7 +528,7 @@ def get_recent_records(layer, table, business_date, target_date):
     target_table_name = get_table_namespace(f"{DEFAULT_TARGET}", f"{TableName}")
     try:
         latest_date = spark.sql(f"""select date_format(max({target_date}),'MM/dd/yyyy hh:mm:ss') from {target_table_name}""").first()[0]
-        df = spark.sql(f"""select * from {source_table_name} where {business_date} > to_date('{latest_date}','MM/dd/yyyy hh:mm:ss')""")
+        df = spark.sql(f"""select * from {source_table_name} where {business_date} > to_timestamp('{latest_date}','MM/dd/yyyy hh:mm:ss')""")
     except Exception as e:
         print(f"{target_table_name} table does not exist.This is first load")
         df = spark.sql(f"""select * from {source_table_name}""")

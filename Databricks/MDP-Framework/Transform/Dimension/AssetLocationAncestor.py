@@ -95,28 +95,25 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 # Updating Business SCD columns for existing records
-    try:
-        # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
-        existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""")
-        
-        matched_df = existing_data.join(df.select("assetLocationAncestorHierarchySystemName","assetLocationIdentifier","assetLocationAncestorName",col("sourceValidFromTimestamp").alias("new_changed_date")),["assetLocationAncestorHierarchySystemName","assetLocationIdentifier","assetLocationAncestorName"],"inner")\
-        .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
+   
+    # Select all the records from the existing curated table matching the new records to update the business SCD columns - sourceValidToTimestamp,sourceRecordCurrent.
+    existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')}""").filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
+    print(existing_data.count())
+    matched_df = existing_data.join(df.select("assetLocationAncestorHierarchySystemName","assetLocationIdentifier","assetLocationAncestorName",col("sourceValidFromTimestamp").alias("new_changed_date"),col("_BusinessKey").alias("new_BK")),["assetLocationAncestorHierarchySystemName","assetLocationIdentifier","assetLocationAncestorName"],"inner").filter("_BusinessKey != new_BK")
+    
+    matched_df =matched_df.withColumn("sourceValidToTimestamp",expr("new_changed_date - INTERVAL 1 SECOND")) \
+    .withColumn("sourceRecordCurrent",expr("CAST(0 AS INT)"))
+    print(matched_df.count())
+    
+    missing_df = existing_data.join(df.select("assetLocationAncestorHierarchySystemName","assetLocationIdentifier","assetLocationAncestorName"),["assetLocationAncestorHierarchySystemName","assetLocationIdentifier","assetLocationAncestorName"],"left_anti")
+    print(missing_df.count())
+    
+    df = df.unionByName(matched_df.selectExpr(df.columns)).unionByName(missing_df.selectExpr(df.columns))
 
-        matched_df =matched_df.withColumn("sourceValidToTimestamp",expr("new_changed_date - INTERVAL 1 SECOND")) \
-        .withColumn("sourceRecordCurrent",expr("CAST(0 AS INT)"))
-
-        missing_df = existing_data.join(df.select("assetLocationIdentifier","assetLocationAncestorHierarchySystemName","assetLocationAncestorName"),["assetLocationAncestorHierarchySystemName","assetLocationIdentifier","assetLocationAncestorName"],"left_anti")\
-        .filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
-
-        missing_df =missing_df.withColumn("sourceValidToTimestamp",expr("NOW() - INTERVAL 1 SECOND")) \
-        .withColumn("sourceRecordCurrent",expr("CAST(0 AS INT)"))
-
-        df = df.unionByName(matched_df.selectExpr(df.columns)).unionByName(missing_df.selectExpr(df.columns))
-    except Exception as exp:
-        print(exp)
 
 #     display(df)
     Save(df)
     #DisplaySelf()
 pass
 Transform()
+

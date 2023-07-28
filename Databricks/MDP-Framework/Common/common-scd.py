@@ -106,6 +106,8 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, BK, SK):
                 set = {
                 "_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
                 "_recordCurrent": "0",
+                "sourceRecordCurrent": "0",
+                "sourceValidToTimestamp":  expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
                 }
             ) \
             .whenNotMatchedInsert(
