@@ -42,6 +42,7 @@ def GenerateRbacCommands(customGroups, preview=False, raiseError=False):
         
         if tableFilter is not None:
             for t in tableFilter:
+                t = prefix+t
                 if "curated" in t or len(t.split(".")) == 3:
                     _grants.extend([{ "Group" : groupName, "Child" : t,  "Type" : "TABLE", "Command" : "SELECT", "Operation" : "add" } ])
                     continue
