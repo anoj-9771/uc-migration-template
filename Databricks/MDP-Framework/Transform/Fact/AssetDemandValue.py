@@ -482,7 +482,3 @@ def Transform():
     Save(df, append=True)
     #DisplaySelf()
 Transform()
-
-# COMMAND ----------
-
-
