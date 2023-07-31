@@ -246,10 +246,13 @@ def Transform():
             .filter("deliverySystem NOT IN ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','DEL_CASCADE','DEL_ORCHARD_HILLS','DESALINATION PLANT')") \
             .filter("networkTypeCode in ('Pressure Area','Supply Zone','Delivery System','Delivery System Combined')") \
             .groupBy("deliverySystem","distributionSystem","supplyZone","pressureArea","networkTypeCode").agg(sum('demandQuantity').alias("demandQuantity"))
-        
-        monthlySupplyApportioned_df = GetTable(f"{get_env()}curated.fact.monthlysupplyapportionedaggregate").filter(f"year(consumptionDate) = {i.yearnumber}").filter(f"month(consumptionDate) = {i.monthnumber}") \
-            .select(col("waterNetworkSK").alias("supply_waterNetworkSK"),"LGA",col("totalKLQuantity").alias("supply_totalKLQuantity"))
-        
+               
+        monthlySupplyApportioned_df = spark.sql(f"""
+                                                Select waterNetworkSK as supply_waterNetworkSK,LGA,totalKLQuantity as supply_totalKLQuantity from {get_env()}curated.fact.monthlysupplyapportionedaggregate
+                                                where year(consumptionDate) = {i.yearnumber} and month(consumptionDate) = {i.monthnumber} 
+                                                and calculationDate = (select max(calculationDate) from {get_env()}curated.fact.monthlysupplyapportionedaggregate)
+                                                """)
+
         aggregatedf = CalculateDemandAggregated(property_df,installation_df,device_df,sharepointConfig_df,waternetworkdemand_df,waternetwork_df,monthlySupplyApportioned_df,i.yearnumber,i.monthname,i.monthnumber)
 
         print(f"Calculation: {i.yearnumber}-{i.monthname}")
