@@ -16,7 +16,7 @@ SELECT 'isudata' SystemCode, '0UC_SALES_SIMU_01' SourceTableName, 'isudata/0UC_S
 UNION
 SELECT 'isudata' SystemCode, '0UC_SALES_STATS_03' SourceTableName, 'isudata/0UC_SALES_STATS_03' SourceQuery, '' WatermarkColumn, 'csv' RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, * FROM _Base
 UNION
-SELECT 'isuref' SystemCode, 'ZDMT_RATE_TYPE' SourceTableName, 'isuref/ZDMT_RATE_TYPE' SourceQuery, '' WatermarkColumn, 'json' RawFileExtension, 'raw-load-bods' RawHandler, 'cleansed-load-bods-slt' CleansedHandler, * FROM _Base
+SELECT 'isuref' SystemCode, 'ZDMT_RATE_TYPE' SourceTableName, 'isuref/ZDMT_RATE_TYPE' SourceQuery, '' WatermarkColumn, 'json' RawFileExtension, 'raw-load-bods' RawHandler, 'cleansed-load-delta' CleansedHandler, * FROM _Base
 ORDER BY SourceSchema, SourceTableName
 """)
 

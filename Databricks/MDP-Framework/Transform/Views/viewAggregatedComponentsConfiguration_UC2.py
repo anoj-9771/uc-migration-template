@@ -100,5 +100,5 @@ spark.sql(f"""CREATE OR REPLACE TABLE {get_env()}curated.water_balance.Aggregate
                                            case when unmeteredSTP is not null then 'PressureZone'
                                                 when metricTypeCategory like '%SWOperationalUse%' then 'DeliverySystem'
                                                 when lookupZoneName is null then 'SydneyWaterLevel' end zoneTypeName,metricTypeCategory as metricTypeName,metricValueNumber
-               from Base left outer join {get_env()}curated.water_balance.UnmeteredSTPPressureZoneLookup on lower(lookupZoneName) = lower(replace(unmeteredSTP," ","")) 
+               from Base left outer join {get_env()}curated.water_balance.UnmeteredSTPPressureZoneLookup on lower(lookupZoneName) = lower(replace(unmeteredSTP," ","")) and metricTypeCategory = 'UnmeteredSTPs'
                order by yearNumber desc""")

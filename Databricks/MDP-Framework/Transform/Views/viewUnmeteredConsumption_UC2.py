@@ -17,15 +17,7 @@ if runflag.count() == 0:
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE TABLE {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionPropertyType')} (
-  unmeteredConsumptionType,
-  superiorPropertyTypeCode,
-  superiorPropertyType,
-  inferiorPropertyTypeCode,
-  inferiorPropertyType,
-  consumptionQuantity,
-  propertyCount,
-  reportDate)
+CREATE OR REPLACE TABLE {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionPropertyType')} 
 AS select 'Unmetered Connected' as unmeteredConsumptionType, dw.superiorPropertyTypeCode, dw.superiorPropertyType, dw.inferiorPropertyTypeCode, dw.inferiorPropertyType, sum(fc.consumptionQuantity) as consumptionQuantity, count(fc.propertyNumber) as propertyCount, fc.reportDate
 from {get_table_namespace(f'{DEFAULT_TARGET}', 'factunmeteredconsumption')} fc left outer join {get_table_namespace(f'{DEFAULT_TARGET}', 'dimpropertytypehistory')} dw on fc.propertyTypeHistorySK = dw.propertyTypeHistorySK
 where fc.unmeteredConnectedFlag ='Y'
@@ -44,15 +36,7 @@ order by 1 asc, dw.superiorPropertyTypeCode, dw.superiorPropertyType, dw.inferio
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE TABLE {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionWaterNetwork')} (
-  unmeteredConsumptionType,
-  deliverySystem,
-  distributionSystem,
-  supplyZone,
-  pressureArea,
-  propertyCount,
-  consumptionQuantity,
-  reportDate)
+CREATE OR REPLACE TABLE {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionWaterNetwork')} 
 AS select 'Unmetered Connected' as unmeteredConsumptionType, dw.deliverySystem, dw.distributionSystem, dw.supplyZone, dw.pressureArea, fc.propertyCount, fc.consumptionQuantity, fc.reportDate
 from {get_table_namespace(f'{DEFAULT_TARGET}', 'factconsumptionaggregate')} fc left outer join {get_table_namespace(f'{DEFAULT_TARGET}', 'dimwaterNetwork')} dw on fc.waterNetworkSK = dw.waterNetworkSK
 where fc.unmeteredConnectedFlag ='Y'
@@ -69,12 +53,7 @@ order by 1 asc, dw.deliverySystem, dw.distributionSystem, dw.supplyZone, dw.pres
 # COMMAND ----------
 
 spark.sql(f"""
-CREATE OR REPLACE TABLE {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionSystemLevel')} (
-  unmeteredConsumptionType,
-  consumptionQuantity,
-  publicReservesAllocation,
-  propertyCount,
-  reportDate)
+CREATE OR REPLACE TABLE {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionSystemLevel')} 
 AS select unmeteredConsumptionType, sum(consumptionQuantity) as consumptionQuantity, case when unmeteredConsumptionType = 'Unmetered Connected' then 1000 else NULL end as publicReservesAllocation, sum(propertyCount) as propertyCount, reportDate
 from {get_table_namespace(f'{DEFAULT_TARGET}', 'viewUnmeteredConsumptionWaterNetwork')}
 group by UnmeteredConsumptionType, reportDate
