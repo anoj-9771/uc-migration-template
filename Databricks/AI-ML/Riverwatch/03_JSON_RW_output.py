@@ -67,9 +67,14 @@ vw_beachwatch_info_original=(spark.table(f"{ADS_DATABASE_CLEANSED}.beachwatch.po
 #---------4
 # rw_tide_temp_info_original=(spark.table("cleansed.bom_fortdenision_tide"))
 # display(rw_tide_temp_info_original)
+#---------4
+bom_airtemp_sydney=(spark.table(f"{ADS_DATABASE_CLEANSED}.bom.weatherobservation_sydneyairport"))
+
+
 #---------5
 df_rwBN_water_quality = (spark.table(f"{ADS_DATABASE_CLEANSED}.urbanplunge.water_quality_predictions")
                         )
+
 display(df_rwBN_water_quality)
 
 # COMMAND ----------
@@ -117,39 +122,19 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                            .where(psf.col("locationId") == location["locationId"])
                            .withColumn("BW_date",psf.to_date(psf.col("updated")))
                            .orderBy("BW_date",ascending=False)
-                           .select("waterQuality", "highTideTime", "lowTideTime", "highTideMeters", "lowTideMeters", "oceanTemp", "airTemp")
+                           .select("waterQuality")
                            .toPandas()
                           )
         
-#         beachwatch_info['highTideTime'] = beachwatch_info.highTideTime.str.strip()
-#         beachwatch_info['lowTideTime'] = beachwatch_info.highTideTime.str.strip()
-        
-        Dawn_Fraser_Pool_tempinfo = (vw_beachwatch_info_original # this is for ocean temp only, the Dawnfraser ocean temprature is applied to all sites
-                                     .where(psf.col("locationId")==3)
-                                     .withColumn("BW_date",psf.to_date(psf.col("updated")))
-                                     .orderBy("BW_date",ascending=False)
-                                     .select("oceanTemp", "airTemp")
+        sydney_tempinfo = (bom_airtemp_sydney # this is for air temp only for sites closest to Sydney
+                                     .orderBy("local_date_time_full",ascending=False)
+                                     .select("air_temp")
                                      .toPandas()
                                     )
-        
+    
+
         w = W.partitionBy("element_instance").orderBy("_start-time-utc")
-        
-#         rw_Tide=(rw_tide_temp_info_original
-#                      .withColumnRenamed("element_time-local","startTimeLocal")
-#                      .withColumn("current_datetime",psf.to_timestamp(psf.lit(TIME_VARIABLE)))
-#                      .where(psf.col("startTimeLocal")>psf.col("current_datetime"))
-#                      .na.drop(subset=["element_VALUE","element_instance"])
-#                      .withColumn("high&lowTide", psf.row_number().over(w))
-#                      .where(psf.col("high&lowTide")==1) 
-#                      )
-#         rw_highTide= (rw_Tide
-#                      .where(psf.col("element_instance")=="high")
-#                       .select("startTimeLocal", "element_VALUE")
-#                      .toPandas())
-#         rw_lowTide= (rw_Tide
-#                      .where(psf.col("element_instance")=="low")
-#                      .select("startTimeLocal", "element_VALUE")
-#                      .toPandas())  
+         
 
         forecast_icon_airtemp = (bom_weatherforecast_original
                                  #---screen lcation and bom station----
@@ -256,26 +241,9 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                 print("Water Quality Failed to be found from Riverwatch model - falling back to 'Unmonitored'")
                 water_quality = "Unmonitored"    
                 
-            ocean_temp = str(Dawn_Fraser_Pool_tempinfo.oceanTemp[0]) 
-            current_temp= str(Dawn_Fraser_Pool_tempinfo.airTemp[0])       
-            
-            #-----------tide info----------------------------
-#             tidal_adjust=datetime.strptime(location["tidal_adjustment"], '+%H:%M').time()
-#             tidal_adjust_timedelt=timedelta(hours=tidal_adjust.hour, minutes=tidal_adjust.minute)
+            ocean_temp = "" 
+            current_temp= str(sydney_tempinfo.air_temp[0])       
 
-#             highTideTime=datetime.strptime(str(rw_highTide.startTimeLocal[0].time()), '%H:%M:%S').time()
-#             highTideTime_timedelt=timedelta(hours=highTideTime.hour, minutes=highTideTime.minute)
-#             lowTideTime=datetime.strptime(str(rw_lowTide.startTimeLocal[0].time()), '%H:%M:%S').time()
-#             lowTideTime_timedelt=timedelta(hours=lowTideTime.hour, minutes=lowTideTime.minute)
-#             if location["tidal_adjustment"]=="No Tide":
-#                 high_tide=str(highTideTime_timedelt) 
-#                 low_tide=str(lowTideTime_timedelt) 
-#             else:
-#                 high_tide=str(highTideTime_timedelt+tidal_adjust_timedelt)
-#                 low_tide=str(lowTideTime_timedelt+tidal_adjust_timedelt)
-
-#             high_tide_height_m = str(rw_highTide.element_VALUE[0]) 
-#             low_tide_height_m = str(rw_lowTide.element_VALUE[0]) 
             
             #default empty values for tide as not being used on website
             high_tide = ""
@@ -302,24 +270,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
 
         elif location["source"] == "Beachwatch":
             water_quality = beachwatch_info.waterQuality[0] #unlikely/possible/likely
-            #-----------tide info----------------------------
-#             tidal_adjust=datetime.strptime(location["tidal_adjustment"], '+%H:%M').time()
-#             tidal_adjust_timedelt=timedelta(hours=tidal_adjust.hour, minutes=tidal_adjust.minute)
 
-#             highTideTime=datetime.strptime(beachwatch_info.highTideTime[0], '%H:%M').time()
-#             highTideTime_timedelt=timedelta(hours=highTideTime.hour, minutes=highTideTime.minute)
-#             lowTideTime=datetime.strptime(beachwatch_info.lowTideTime[0], '%H:%M').time()
-#             lowTideTime_timedelt=timedelta(hours=lowTideTime.hour, minutes=lowTideTime.minute)
-
-#             if location["tidal_adjustment"]=="No Tide":
-#                 high_tide=str(highTideTime_timedelt) 
-#                 low_tide=str(lowTideTime_timedelt)
-#             else:
-#                 high_tide=str(highTideTime_timedelt+tidal_adjust_timedelt)
-#                 low_tide=str(lowTideTime_timedelt+tidal_adjust_timedelt) 
-
-#             high_tide_height_m = str(beachwatch_info.highTideMeters[0]) 
-#             low_tide_height_m = str(beachwatch_info.lowTideMeters[0]) 
             
             #default empty values for tide as not being used on website
             high_tide = ""
@@ -328,8 +279,8 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
             low_tide_height_m = ""
             
             #-----------temp info-----------------------
-            ocean_temp = str(beachwatch_info.oceanTemp[0]) 
-            current_temp= str(beachwatch_info.airTemp[0])            
+            ocean_temp = "" 
+            current_temp= str(sydney_tempinfo.air_temp[0])            
             #-----------obtain weather information ------------
             bom_station= location["BOM_station"]
             issue_time_local_tz=str(forecast_description_text.IssueTime[0])
@@ -353,8 +304,8 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
             high_tide_height_m = "Unmonitored" 
             low_tide_height_m = "Unmonitored" 
             #-----------temp info-----------------------
-            ocean_temp = str(Dawn_Fraser_Pool_tempinfo.oceanTemp[0]) 
-            current_temp= str(Dawn_Fraser_Pool_tempinfo.airTemp[0]) 
+            ocean_temp = "" 
+            current_temp= str(sydney_tempinfo.air_temp[0]) 
         
             bom_station= location["BOM_station"]
             issue_time_local_tz=str(forecast_description_text.IssueTime[0])
@@ -442,7 +393,3 @@ class NpEncoder(json.JSONEncoder):
 
 with open('/dbfs/mnt/blob-urbanplunge/RW_output.json', 'w') as f:
     json.dump(RW_output, f, cls=NpEncoder, indent=4)
-
-# COMMAND ----------
-
-

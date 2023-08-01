@@ -3,20 +3,28 @@
 
 # COMMAND ----------
 
+# MAGIC %run /build/includes/global-variables-python
+
+# COMMAND ----------
+
+spark.conf.set("r.catalog_name", ADS_DATABASE_RAW)
+
+# COMMAND ----------
+
 df = spark.sql("""
 WITH _Base AS 
 (
   SELECT 'BeachWatch' SystemCode, '' SourceKeyVaultSecret, 'http-binary-load' SourceHandler, 'xml' RawFileExtension, 'raw-load ' RawHandler, 'cleansed-load ' CleansedHandler
 )
-SELECT SystemCode, 'BeachWatch' SourceSchema, SourceKeyVaultSecret, SourceHandler, RawFileExtension, RawHandler, CleansedHandler, 'Chiswick_Baths_Pollution_WeatherForecast' SourceTableName, 'http://www.environment.nsw.gov.au/Beachapp/SingleRss.aspx?surl=%2Fbeachapp%2FSydneyBulletin.xml&title=Chiswick%20Baths' SourceQuery, '{"rowTag" : "channel", "CleansedQuery" : "Select 5 locationId, * from raw.BeachWatch_Chiswick_Baths_Pollution_WeatherForecast", "OverrideClusterName":"interactive"}' ExtendedProperties, NULL WatermarkColumn
+SELECT SystemCode, 'BeachWatch' SourceSchema, SourceKeyVaultSecret, SourceHandler, RawFileExtension, RawHandler, CleansedHandler, 'Chiswick_Baths_Pollution_WeatherForecast' SourceTableName, 'https://api.beachwatch.nsw.gov.au/public/sites/rss?site_name=%3Cbeach%20/site%20name%3E&site_name=Chiswick%20Baths' SourceQuery, '{"rowTag" : "channel", "CleansedQuery" : "Select 5 locationId, * from ${r.catalog_name}.beachwatch.chiswick_baths_pollution_weatherforecast", "OverrideClusterName":"interactive"}' ExtendedProperties, NULL WatermarkColumn
 from _Base
 
 UNION
-SELECT SystemCode, 'BeachWatch' SourceSchema, SourceKeyVaultSecret, SourceHandler, RawFileExtension, RawHandler, CleansedHandler, 'Cabarita_Beach_Pollution_WeatherForecast' SourceTableName, 'http://www.environment.nsw.gov.au/Beachapp/SingleRss.aspx?surl=%2Fbeachapp%2FSydneyBulletin.xml&title=Cabarita%20Beach' SourceQuery, '{"rowTag" : "channel", "CleansedQuery" : "Select 4 locationId, * from raw.BeachWatch_Cabarita_Beach_Pollution_WeatherForecast", "OverrideClusterName":"interactive"}' ExtendedProperties, NULL WatermarkColumn
+SELECT SystemCode, 'BeachWatch' SourceSchema, SourceKeyVaultSecret, SourceHandler, RawFileExtension, RawHandler, CleansedHandler, 'Cabarita_Beach_Pollution_WeatherForecast' SourceTableName, 'https://api.beachwatch.nsw.gov.au/public/sites/rss?site_name=%3Cbeach%20/site%20name%3E&site_name=Cabarita%20Beach' SourceQuery, '{"rowTag" : "channel", "CleansedQuery" : "Select 4 locationId, * from ${r.catalog_name}.beachwatch.cabarita_beach_pollution_weatherforecast", "OverrideClusterName":"interactive"}' ExtendedProperties, NULL WatermarkColumn
 from _Base
 
 UNION
-SELECT SystemCode, 'BeachWatch' SourceSchema, SourceKeyVaultSecret, SourceHandler, RawFileExtension, RawHandler, CleansedHandler, 'Dawn_Fraser_Pool_Pollution_WeatherForecast' SourceTableName, 'http://www.environment.nsw.gov.au/Beachapp/SingleRss.aspx?surl=%2Fbeachapp%2FSydneyBulletin.xml&title=Dawn%20Fraser%20Pool' SourceQuery, '{"rowTag" : "channel", "CleansedQuery" : "Select 3 locationId, * from raw.BeachWatch_Dawn_Fraser_Pool_Pollution_WeatherForecast", "OverrideClusterName":"interactive"}' ExtendedProperties, NULL WatermarkColumn
+SELECT SystemCode, 'BeachWatch' SourceSchema, SourceKeyVaultSecret, SourceHandler, RawFileExtension, RawHandler, CleansedHandler, 'Dawn_Fraser_Pool_Pollution_WeatherForecast' SourceTableName, 'https://api.beachwatch.nsw.gov.au/public/sites/rss?site_name=%3Cbeach%20/site%20name%3E&site_name=Dawn%20Fraser%20Pool' SourceQuery, '{"rowTag" : "channel", "CleansedQuery" : "Select 3 locationId, * from ${r.catalog_name}.beachwatch.dawn_fraser_pool_pollution_weatherforecast", "OverrideClusterName":"interactive"}' ExtendedProperties, NULL WatermarkColumn
 from _Base
 
 UNION 
@@ -29,6 +37,12 @@ SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'ftp-binar
 
 UNION
 SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'http-binary-load' SourceHandler, 'csv' RawFileExtension, 'raw-bom-csv' RawHandler, 'cleansed-load' CleansedHandler, 'DailyWeatherObservation_SydneyAirport' SourceTableName, 'http://www.bom.gov.au/climate/dwo/$yyyy$$MM$/text/IDCJDW2125.$yyyy$$MM$.csv' SourceQuery, '{"DayOffset" : "-1"}' ExtendedProperties, NULL WatermarkColumn
+
+UNION
+SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'http-binary-load' SourceHandler, 'json' RawFijsonxtension, 'raw-load' RawHandler, 'cleansed-load' CleansedHandler, 'WeatherObservation_SydneyAirport' SourceTableName, 'http://www.bom.gov.au/fwo/IDN60801/IDN60801.94767.json' SourceQuery, '{ "CleansedQuery" : "SELECT r.* FROM ( SELECT explode(observations.data) r FROM {tableFqn}) Q"  , "OverrideClusterName":"interactive"}' ExtendedProperties, NULL WatermarkColumn
+
+UNION
+SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'http-binary-load' SourceHandler, 'json' RawFijsonxtension, 'raw-load' RawHandler, 'cleansed-load' CleansedHandler, 'WeatherObservation_Parramatta' SourceTableName, 'http://www.bom.gov.au/fwo/IDN60901/IDN60901.94764.json' SourceQuery, '{ "CleansedQuery" : "SELECT r.* FROM ( SELECT explode(observations.data) r FROM {tableFqn}) Q"  , "OverrideClusterName":"interactive"}' ExtendedProperties, NULL WatermarkColumn
 
 UNION 
 SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load ' RawHandler, 'cleansed-load ' CleansedHandler, 'hierarchy_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties, NULL WatermarkColumn
@@ -154,7 +168,3 @@ update dbo.extractLoadManifest set
 waterMarkColumn = NULL
 where systemCode = 'iicats_rw' and sourceSchema = 'scxstg' and waterMarkColumn = 'None'
 """)
-
-# COMMAND ----------
-
-
