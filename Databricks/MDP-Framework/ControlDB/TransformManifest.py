@@ -107,7 +107,14 @@ transform_df = spark.sql("""
     (49,'Fact','ConsumptionAggregate','databricks-notebook','',48,null,1),
     (50,'Fact','StoppedMeterConsumption','databricks-notebook','',null,null,1),
     (51,'Fact','StoppedMeterAggregate','databricks-notebook','',50,null,1),
-    (52,'Views','viewUnmeteredConsumption_UC2','databricks-notebook','',49,null,1)
+    (52,'Views','viewUnmeteredConsumption_UC2','databricks-notebook','',49,null,1),                                                 
+    (53,'Fact','DailySupplyApportionedConsumption','databricks-notebook','',2,null,0),
+    (54,'Fact','DailySupplyApportionedAccruedConsumption','databricks-notebook','',2,null,0),
+    (55,'Fact','MonthlySupplyApportionedAggregate','databricks-notebook','',54,null,0),
+    (56,'Fact','MonthlyLeakageAggregate','databricks-notebook','',55,null,0),
+    (57,'Fact','MonthlySupplyApportionedConsumption','databricks-notebook','',53,null,0),
+    (58,'Fact','MonthlySupplyApportionedAccruedConsumption','databricks-notebook','',54,null,0),
+    (59,'Fact','ReconDailySupplyApportionedConsumption','databricks-notebook','',53,null,0)
 AS (TransformID,EntityType,EntityName,ProcessorType,TargetKeyVaultSecret,InternalDependency,ExternalDependency,Enabled)
 """)
 
