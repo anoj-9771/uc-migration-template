@@ -74,7 +74,6 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
         .withColumn("metricTypeName", lit('monthlyTestingHydrantSystems')) 
     monthlyTestingHydrantSystems = monthlyTestingHydrantSystems.withColumn("metricValueNumber",(monthlyTestingHydrantSystems.deviceCount * monthlyTestingHydrantSystemsFactor)/1000000) \
         .select("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","metricTypeName","metricValueNumber")   
-
     
     #annualTestingHydrantSystems
     annualTestingHydrantSystems = tfsu_df.where(col('superiorPropertyType').isin('COMMERCIAL','COMMUNITY SERVS','MASTER STRATA','OCCUPIED LAND','UTILITIES')) \
@@ -91,25 +90,21 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
         .unionByName(annualTestingSprinklerSystems,allowMissingColumns=True) \
         .unionByName(monthlyTestingHydrantSystems,allowMissingColumns=True) \
         .unionByName(annualTestingHydrantSystems,allowMissingColumns=True)
-    testingofFireServicesUse = testingofFireServicesUse.withColumn("reporting_deliverySystem", when(testingofFireServicesUse.waterNetworkDeliverySystem == "DEL_PROSPECT_EAST","DEL_POTTS_HILL + DEL_PROSPECT_EAST").when(testingofFireServicesUse.waterNetworkDeliverySystem == "DEL_POTTS_HILL","DEL_POTTS_HILL + DEL_PROSPECT_EAST").when(testingofFireServicesUse.waterNetworkDeliverySystem == "DEL_CASCADE","DEL_CASCADE + DEL_ORCHARD_HILLS").when(testingofFireServicesUse.waterNetworkDeliverySystem == "DEL_ORCHARD_HILLS","DEL_CASCADE + DEL_ORCHARD_HILLS").otherwise(testingofFireServicesUse.waterNetworkDeliverySystem)) \
-        .withColumn("networkTypeCode",lit('Pressure Area')) \
-        .select(col("reporting_deliverySystem").alias("waterNetworkDeliverySystem"),"waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","networkTypeCode","metricTypeName","metricValueNumber")
+    testingofFireServicesUse = testingofFireServicesUse.withColumn("networkTypeCode",lit('Pressure Area')) \
+        .select("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","networkTypeCode","metricTypeName","metricValueNumber")
 
     testingofFireServicesUseSupplyZone = testingofFireServicesUse.groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","metricTypeName").agg(sum('metricValueNumber').alias('metricValueNumber')) \
         .withColumn("networkTypeCode",lit('Supply Zone')) 
 
     testingofFireServicesUseDeliverySystem = testingofFireServicesUse.groupBy("waterNetworkDeliverySystem","metricTypeName").agg(sum('metricValueNumber').alias('metricValueNumber')) \
         .withColumn("networkTypeCode",lit('Delivery System'))     
+
     
     #UnauthorisedUse
     unauthorisedUse = waternetworkdemand_df.withColumn("metricValueNumber",(waternetworkdemand_df.demandQuantity*unauthorisedUseFactor)) \
         .withColumn("metricTypeName", lit('unauthorisedUse')) \
         .select(col("deliverySystem").alias("waterNetworkDeliverySystem"),col("distributionSystem").alias("waterNetworkDistributionSystem"),col("supplyZone").alias("waterNetworkSupplyZone"),col("pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
 
-    # #meterUnderRegistration
-    # meterUnderRegistration = waternetworkdemand_df.withColumn("metricValueNumber",(waternetworkdemand_df.demandQuantity*meterUnderRegistrationFactor)) \
-    #     .withColumn("metricTypeName", lit('meterUnderRegistration')) \
-    #     .select(col("deliverySystem").alias("waterNetworkDeliverySystem"),col("distributionSystem").alias("waterNetworkDistributionSystem"),col("supplyZone").alias("waterNetworkSupplyZone"),col("pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
 
     #meterUnderRegistration
     meterUnderRegistration = monthlySupplyApportioned_df.join(waternetwork_df,(monthlySupplyApportioned_df.supply_waterNetworkSK == waternetwork_df.waterNetworkSK),"inner") \
@@ -134,13 +129,9 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
         .withColumn("networkTypeCode",lit('Pressure Area')) 
     unmeteredSTPs = unmeteredSTPs.join(waternetwork_df,(unmeteredSTPs.zoneName == waternetwork_df.waternetwork_pressureArea),"inner") 
 
-    unmeteredSTPsSupplyZone = unmeteredSTPs.groupBy("waternetwork_supplyZone").agg(sum('metricValueNumber').alias('metricValueNumber')) \
+    unmeteredSTPsSupplyZone = unmeteredSTPs.groupBy("waternetwork_deliverySystem","waternetwork_distributionSystem","waternetwork_supplyZone").agg(sum('metricValueNumber').alias('metricValueNumber')) \
         .withColumn("metricTypeName",lit('unmeteredSTPs')) \
         .withColumn("networkTypeCode",lit('Supply Zone')) 
-
-    # unmeteredSTPsDistributionSystem = unmeteredSTPs.groupBy("waternetwork_distributionSystem").agg(sum('metricValueNumber').alias('metricValueNumber')) \
-    #     .withColumn("metricTypeName",lit('unmeteredSTPs')) \
-    #     .withColumn("networkTypeCode",lit('Distribution System')) 
 
     unmeteredSTPsDeliverySystem = unmeteredSTPs.groupBy("waternetwork_deliverySystem").agg(sum('metricValueNumber').alias('metricValueNumber')) \
         .withColumn("metricTypeName",lit('unmeteredSTPs')) \
@@ -148,26 +139,29 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
 
     unmeteredSTPs = unmeteredSTPs.unionByName(unmeteredSTPsSupplyZone,allowMissingColumns=True) \
         .unionByName(unmeteredSTPsDeliverySystem,allowMissingColumns=True)
-    unmeteredSTPs = unmeteredSTPs.withColumn("reporting_deliverySystem", when(unmeteredSTPs.waternetwork_deliverySystem == "DEL_PROSPECT_EAST","DEL_POTTS_HILL + DEL_PROSPECT_EAST").when(unmeteredSTPs.waternetwork_deliverySystem == "DEL_POTTS_HILL","DEL_POTTS_HILL + DEL_PROSPECT_EAST").when(unmeteredSTPs.waternetwork_deliverySystem == "DEL_CASCADE","DEL_CASCADE + DEL_ORCHARD_HILLS").when(unmeteredSTPs.waternetwork_deliverySystem == "DEL_ORCHARD_HILLS","DEL_CASCADE + DEL_ORCHARD_HILLS").otherwise(unmeteredSTPs.waternetwork_deliverySystem)) \
-        .select(col("reporting_deliverySystem").alias("waterNetworkDeliverySystem"),col("waternetwork_distributionSystem").alias("waterNetworkDistributionSystem"),col("waternetwork_supplyZone").alias("waterNetworkSupplyZone"),coalesce(col("zoneName"),col('waternetwork_pressureArea')).alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber").dropDuplicates()    
+    unmeteredSTPs = unmeteredSTPs.select(col("waternetwork_deliverySystem").alias("waterNetworkDeliverySystem"),col("waternetwork_distributionSystem").alias("waterNetworkDistributionSystem"),col("waternetwork_supplyZone").alias("waterNetworkSupplyZone"),coalesce(col("zoneName"),col('waternetwork_pressureArea')).alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber").dropDuplicates()    
+
     
     #UnmeteredNonSTPs
     unmeteredNonSTPs = waternetworkdemand_df.withColumn("metricValueNumber",(waternetworkdemand_df.demandQuantity*unmeteredNonSTPsFactor)/totalSystemInputCurrMonth) \
         .withColumn("metricTypeName", lit('unmeteredNonSTPs')) \
         .select(col("deliverySystem").alias("waterNetworkDeliverySystem"),col("distributionSystem").alias("waterNetworkDistributionSystem"),col("supplyZone").alias("waterNetworkSupplyZone"),col("pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
 
+
     #FireRescueNSWUse 
     fireRescueNSWUse = waternetworkdemand_df.withColumn("metricValueNumber",(waternetworkdemand_df.demandQuantity*fireRescueNSWUseFactor)/totalSystemInputCurrMonth) \
         .withColumn("metricTypeName", lit('fireRescueNSWUse')) \
         .select(col("deliverySystem").alias("waterNetworkDeliverySystem"),col("distributionSystem").alias("waterNetworkDistributionSystem"),col("supplyZone").alias("waterNetworkSupplyZone"),col("pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")        
+        
     
-    # #SydneyWaterOperationalUse
+    #SydneyWaterOperationalUse
     sydneyWaterOperationalUse = waternetworkdemand_df.withColumn("pressure_deliverySystemFormatted",lower(regexp_replace(regexp_replace(waternetworkdemand_df.deliverySystem,'DEL_',""),'[+ _]',"")))
     sydneyWaterOperationalUse = sydneyWaterOperationalUse.join(deliverySystemInputCurrMonth, (sydneyWaterOperationalUse.pressure_deliverySystemFormatted==deliverySystemInputCurrMonth.deliverySystemFormatted),"inner") \
         .join(sharepointConfig_df, (col("metricValueNumber").isNotNull() & (col("metricTypeName") == 'SWOperationalUse') & (col("zoneTypeName") == 'DeliverySystem') & (sydneyWaterOperationalUse.pressure_deliverySystemFormatted == lower(sharepointConfig_df.zoneName))),"inner") \
         .withColumn("metricValueNumber",(sydneyWaterOperationalUse.demandQuantity*sharepointConfig_df.metricValueNumber)/(deliverySystemInputCurrMonth.delivery_demandQuantity)) \
         .withColumn("metricTypeName", lit('sydneyWaterOperationalUse')) \
         .select(col("deliverySystem").alias("waterNetworkDeliverySystem"),col("distributionSystem").alias("waterNetworkDistributionSystem"),col("supplyZone").alias("waterNetworkSupplyZone"),col("pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
+
 
     #ruralFireServicesUse
     ruralFireServicesUse = monthlySupplyApportioned_df.join(waternetwork_df,(monthlySupplyApportioned_df.supply_waterNetworkSK == waternetwork_df.waterNetworkSK),"inner") \
@@ -181,7 +175,7 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
     ruralFireServicesUseSupplyZone = ruralFireServicesUse.groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","metricTypeName").agg(sum('metricValueNumber').alias('metricValueNumber')) \
         .withColumn("networkTypeCode",lit('Supply Zone')) 
 
-    ruralFireServicesUseDeliverySystem = ruralFireServicesUse.groupBy("waterNetworkDeliverySystem").agg(sum('metricValueNumber').alias('metricValueNumber')) \
+    ruralFireServicesUseDeliverySystem = ruralFireServicesUse.groupBy("waterNetworkDeliverySystem","metricTypeName").agg(sum('metricValueNumber').alias('metricValueNumber')) \
         .withColumn("networkTypeCode",lit('Delivery System'))   
 
 
@@ -204,7 +198,18 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
         .withColumn("monthNumber",lit(monthnumber)) \
         .withColumn("calculationDate",trunc(current_date(),'month'))   
 
-    return demandaggregatedf
+    demandaggregatedf.createOrReplaceTempView("demandaggregateview")    
+    demandaggregatedffinal = spark.sql(f"""
+              select case when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL') then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' 
+                          when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
+              else waterNetworkDeliverySystem end waterNetworkDeliverySystem,
+              waterNetworkDistributionSystem,waterNetworkSupplyZone,waterNetworkPressureArea,
+              case when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL') then 'Delivery System Combined' 
+                   when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'Delivery System Combined'
+              else networkTypeCode end networkTypeCode,
+              metricTypeName,metricValueNumber,yearNumber,monthName,monthNumber,calculationDate  from  demandaggregateview""")
+
+    return demandaggregatedffinal
 
 # COMMAND ----------
 
@@ -227,7 +232,7 @@ def Transform():
     
     date_df = spark.sql(f"""
                         select distinct monthstartdate,year(monthstartdate) as yearnumber,month(monthstartdate) as monthnumber, date_format(monthStartDate,'MMM') as monthname 
-                        from {get_table_namespace(f'{DEFAULT_TARGET}', 'dimdate')} where monthStartDate between add_months(current_date(),-25) and add_months(current_date(),-1)
+                        from {get_table_namespace(f'{DEFAULT_TARGET}', 'dimdate')} where monthStartDate between add_months(current_date(),-26) and add_months(current_date(),-2)
                         order by yearnumber desc, monthnumber desc
                         """)
 
