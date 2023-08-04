@@ -42,6 +42,6 @@
 "raw.edw_cdr_iicats_tsv","cleansed.edw_cdr.iicats_tsv","PNT_RSN_CD_FK","Integer","pointReasonFk","","",""
 "raw.edw_cdr_iicats_tsv","cleansed.edw_cdr.iicats_tsv","PNT_RSN_CD_FK","Integer","pointReasonCd","","concat('PNT_RSN_CD',cast( PNT_RSN_CD_FK  as Int))","lookup-edw-cdr-view-reference-key"
 "raw.edw_cdr_iicats_tsv","cleansed.edw_cdr.iicats_tsv","PNT_RSN_CD_FK","String","pointReason","","concat('PNT_RSN_CD',cast( PNT_RSN_CD_FK  as Int))","lookup-edw-cdr-view-reference-description"
-"raw.edw_cdr_iicats_tsv","cleansed.edw_cdr.iicats_tsv","CDB_OBJ_ID","Integer","sourceRecordSystemId","","CDB_OBJ_ID","lookup-iicats-cdr-sys-id"
+"raw.edw_cdr_iicats_tsv","cleansed.edw_cdr.iicats_tsv","CDB_OBJ_ID","Integer","sourceRecordSystemId","","cast(CDB_OBJ_ID as Int)","lookup-edw-cdr-object-internal-id"
 "raw.edw_cdr_iicats_tsv","cleansed.edw_cdr.iicats_tsv","","String","sourceRecordUpsertLogic","","'I'",""
 "raw.edw_cdr_iicats_tsv","cleansed.edw_cdr.iicats_tsv","MSRMT_AEST_DT","Datetime","sourceRecordCreationDateTime","","",""
