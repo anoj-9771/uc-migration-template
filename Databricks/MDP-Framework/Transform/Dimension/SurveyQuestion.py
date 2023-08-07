@@ -205,7 +205,7 @@ def Transform():
 
     # ------------- SAVE ------------------- #
     #df_final.display()
-    #CleanSelf()
+    CleanSelf()
     Save(df_final)
     #DisplaySelf()
 Transform()

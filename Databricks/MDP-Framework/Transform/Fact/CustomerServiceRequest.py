@@ -574,10 +574,10 @@ df2 = spark.sql(f""" WITH MAXIMO AS (SELECT
                              WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - White'  THEN 'WZ_113'
                              WHEN LOC.product = 'RecycledWater' AND PT.description = 'Discoloured Supply - Blue'   THEN 'WZ_112'  
                              ELSE '' END as coherentCategoryIDC ,
-                        CASE WHEN WO.taskCode = 'IVA1'   THEN 'Sydney Water'
-                             WHEN WO.taskCode like 'WR%' THEN 'Sydney Water Contractor' ELSE '' END as issueResponsibility,
-                        CASE WHEN WO.taskCode = 'IVA1'   THEN '10'
-                             WHEN WO.taskCode like 'WR%' THEN '11' ELSE '' END as issueResponsibilityCode,
+                        CASE WHEN WO.taskCode in ('SR2A','SR2C','SR2P','SR2U') THEN 'Customer' 
+                             ELSE 'Sydney Water' END as issueResponsibility,
+                        CASE WHEN WO.taskCode in ('SR2A','SR2C','SR2P','SR2U') THEN '02' 
+                             ELSE '10' END as issueResponsibilityCode,
                         row_number() Over(partition by WO.workOrder order by CAST(WO.rowStamp as BIGINT) desc)  as rkn          
                     FROM {get_table_namespace('cleansed', 'maximo_workorder')} WO
                     LEFT JOIN {get_table_namespace('cleansed', 'maximo_swcproblemtype')} PT on WO.problemType = PT.problemType
@@ -706,6 +706,10 @@ finalMAXDF = ((df2.alias("core")
 )
 
 #finalMAXDF.display()    
+
+
+# COMMAND ----------
+
 finaldf = finalCRMDF #.unionByName(finalMAXDF) 
 
 # COMMAND ----------
@@ -727,3 +731,7 @@ def Transform():
     #CleanSelf()    
     Save(df)
 Transform()
+
+# COMMAND ----------
+
+
