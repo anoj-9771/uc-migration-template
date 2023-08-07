@@ -285,7 +285,7 @@
 					},
 					"ifFalseActivities": [
 						{
-							"name": "run-databricks-notebook-instance-pool",
+							"name": "pool-run-databricks",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
@@ -319,7 +319,8 @@
 									},
 									"DatabricksVersion": "12.2.x-scala2.12",
 									"newClusterNumOfWorker": "1:4",
-									"ProductTag": "Framework ETL 2.0"
+									"ProductTag": "Framework ETL 2.0",
+									"databricksUrl": "https://australiaeast.azuredatabricks.net"
 								}
 							}
 						},
@@ -328,7 +329,7 @@
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
-									"activity": "run-databricks-notebook-instance-pool",
+									"activity": "pool-run-databricks",
 									"dependencyConditions": [
 										"Completed"
 									]
@@ -351,7 +352,7 @@
 										"type": "Expression"
 									},
 									"Message": {
-										"value": "@{activity('run-databricks-notebook-instance-pool')}",
+										"value": "@{activity('pool-run-databricks')}",
 										"type": "Expression"
 									}
 								}
@@ -362,7 +363,7 @@
 							"type": "Fail",
 							"dependsOn": [
 								{
-									"activity": "run-databricks-notebook-instance-pool",
+									"activity": "pool-run-databricks",
 									"dependencyConditions": [
 										"Failed"
 									]
@@ -371,7 +372,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"message": {
-									"value": "@activity('run-databricks-notebook-instance-pool').output.Error",
+									"value": "@activity('pool-run-databricks').output.Error",
 									"type": "Expression"
 								},
 								"errorCode": "500"
@@ -382,7 +383,7 @@
 							"type": "SetVariable",
 							"dependsOn": [
 								{
-									"activity": "run-databricks-notebook-instance-pool",
+									"activity": "pool-run-databricks",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -396,7 +397,7 @@
 							"typeProperties": {
 								"variableName": "SinkFlag",
 								"value": {
-									"value": "@string(bool(contains(activity('run-databricks-notebook-instance-pool').output,'runOutput')))",
+									"value": "@string(bool(contains(activity('pool-run-databricks').output,'runOutput')))",
 									"type": "Expression"
 								}
 							}
@@ -404,7 +405,7 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "run-databricks-notebook-cluster",
+							"name": "cluster-run-databricks",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
@@ -445,7 +446,7 @@
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
-									"activity": "run-databricks-notebook-cluster",
+									"activity": "cluster-run-databricks",
 									"dependencyConditions": [
 										"Completed"
 									]
@@ -468,7 +469,7 @@
 										"type": "Expression"
 									},
 									"Message": {
-										"value": "@{activity('run-databricks-notebook-cluster')}",
+										"value": "@{activity('cluster-run-databricks')}",
 										"type": "Expression"
 									}
 								}
@@ -479,7 +480,7 @@
 							"type": "Fail",
 							"dependsOn": [
 								{
-									"activity": "run-databricks-notebook-cluster",
+									"activity": "cluster-run-databricks",
 									"dependencyConditions": [
 										"Failed"
 									]
@@ -488,7 +489,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"message": {
-									"value": "@activity('run-databricks-notebook-cluster').output.Error",
+									"value": "@activity('cluster-run-databricks').output.Error",
 									"type": "Expression"
 								},
 								"errorCode": "500"
@@ -499,7 +500,7 @@
 							"type": "SetVariable",
 							"dependsOn": [
 								{
-									"activity": "run-databricks-notebook-cluster",
+									"activity": "cluster-run-databricks",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -513,7 +514,7 @@
 							"typeProperties": {
 								"variableName": "SinkFlag",
 								"value": {
-									"value": "@string(bool(contains(activity('run-databricks-notebook-cluster').output,'runOutput')))",
+									"value": "@string(bool(contains(activity('cluster-run-databricks').output,'runOutput')))",
 									"type": "Expression"
 								}
 							}
@@ -560,7 +561,7 @@
 										"type": "Expression"
 									},
 									"Value": {
-										"value": "@string(if(\n    equals(pipeline().parameters.config.activityType, 'raw-databricks'),\n    activity('run-databricks-notebook-cluster').output.runOutput.SinkRowCount,\n    activity('run-databricks-notebook-cluster').output.runOutput.CleansedSinkCount\n    )\n)",
+										"value": "@string(if(\n    equals(pipeline().parameters.config.activityType, 'raw-databricks'),\n    activity('cluster-run-databricks').output.runOutput.SinkRowCount,\n    activity('cluster-run-databricks').output.runOutput.CleansedSinkCount\n    )\n)",
 										"type": "Expression"
 									}
 								}
@@ -608,7 +609,7 @@
 										"type": "Expression"
 									},
 									"Value": {
-										"value": "@string(if(\n    equals(pipeline().parameters.config.activityType, 'raw-databricks'),\n    activity('run-databricks-notebook-instance-pool').output.runOutput.SinkRowCount,\n    activity('run-databricks-notebook-instance-pool').output.runOutput.CleansedSinkCount\n    )\n)",
+										"value": "@string(if(\n    equals(pipeline().parameters.config.activityType, 'raw-databricks'),\n    activity('pool-run-databricks').output.runOutput.SinkRowCount,\n    activity('pool-run-databricks').output.runOutput.CleansedSinkCount\n    )\n)",
 										"type": "Expression"
 									}
 								}

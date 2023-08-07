@@ -2,7 +2,7 @@
 	"name": "LS_AzureDatabricks_InstancePool",
 	"properties": {
 		"parameters": {
-			"kvSecret": {
+			"kvSecretNameToken": {
 				"type": "string",
 				"defaultValue": "databricks-token"
 			},
@@ -22,15 +22,26 @@
 				"type": "string",
 				"defaultValue": "Framework ETL"
 			},
-			"databricksUrl": {
+			"kvSecretNameUrl": {
 				"type": "string",
-				"defaultValue": "https://australiaeast.azuredatabricks.net"
+				"defaultValue": "databricks-domain"
 			}
 		},
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "@linkedService().databricksUrl",
+			"domain": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().kvSecretNameUrl",
+					"type": "Expression"
+				},
+				"secretVersion": ""
+			},
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
@@ -38,7 +49,7 @@
 					"type": "LinkedServiceReference"
 				},
 				"secretName": {
-					"value": "@linkedService().kvSecret",
+					"value": "@linkedService().kvSecretNameToken",
 					"type": "Expression"
 				}
 			},
