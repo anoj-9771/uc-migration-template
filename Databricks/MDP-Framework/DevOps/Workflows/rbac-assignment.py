@@ -1,4 +1,9 @@
 # Databricks notebook source
+# MAGIC %run ../../Common/common-workspace
+
+# COMMAND ----------
+
+poolId = GetPoolIdByName("pool-small")
 rbac_assignment = {
     "run_as": {
         "service_principal_name": ""
@@ -33,8 +38,8 @@ rbac_assignment = {
             "new_cluster": {
                 "spark_version": "13.1.x-scala2.12",
                 "azure_attributes": {},
-                "instance_pool_id": "",
-                "driver_instance_pool_id": "",
+                "instance_pool_id": poolId,
+                "driver_instance_pool_id": poolId,
                 "data_security_mode": "USER_ISOLATION",
                 "runtime_engine": "STANDARD",
                 "num_workers": 1
@@ -43,3 +48,4 @@ rbac_assignment = {
     ],
     "format": "MULTI_TASK"
 }
+print(CreateOrEditJob(rbac_assignment))

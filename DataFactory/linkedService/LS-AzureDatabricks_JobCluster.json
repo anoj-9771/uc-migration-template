@@ -14,12 +14,16 @@
 			},
 			"DataBricksWorkerNodes": {
 				"type": "String"
+			},
+			"databricksUrl": {
+				"type": "string",
+				"defaultValue": "https://australiaeast.azuredatabricks.net"
 			}
 		},
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://australiaeast.azuredatabricks.net",
+			"domain": "@linkedService().databricksUrl",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {

@@ -6,13 +6,23 @@ from pyspark.sql.functions import *
 # COMMAND ----------
 
 INSTANCE_NAME = "https://australiaeast.azuredatabricks.net"
-SECRET_SCOPE = "ADS" if not(any([i for i in json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags")) if i["key"] == "Application" and "hackathon" in i["value"].lower()])) else "ADS-AKV"
-DATABRICKS_PAT_SECRET_NAME = "databricks-token"
+SECRET_SCOPE = "ADS"
 
 # COMMAND ----------
 
 def GetWorkspaceId():
     return spark.conf.get("spark.databricks.clusterUsageTags.clusterOwnerOrgId")
+
+# COMMAND ----------
+
+def GetDatabricksPATSecretName():
+    try:
+        if GetWorkspaceId() in dbutils.secrets.get(scope = SECRET_SCOPE, key = "edp-databricks-02-url"):
+            return "edp-databricks-02-token"
+    except:
+        pass
+    return "databricks-token"
+DATABRICKS_PAT_SECRET_NAME = GetDatabricksPATSecretName()
 
 # COMMAND ----------
 
@@ -245,6 +255,19 @@ def EditPool(template):
 
 # COMMAND ----------
 
+def CreateOrEditPool(template):
+    pools = ListPools()
+    if pools.get("instance_pools") is None:
+        return CreatePool(template)
+
+    list = [i for i in pools["instance_pools"] if i["instance_pool_name"] == template["instance_pool_name"]]
+    if len(list) == 0:
+        return CreatePool(template)
+    template["instance_pool_id"] = list[0]["instance_pool_id"]
+    return EditPool(template)
+
+# COMMAND ----------
+
 def TerminateCluster(clusterId):
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/clusters/delete'
@@ -312,8 +335,11 @@ def UpdateClusterPermissionByName(clusterName, permissionList, overwrite=False):
 def InstallLibraries(clusterId, libraryList):
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/libraries/install'
-    libraryTemplate["cluster_id"] = clusterId
-    response = requests.post(url, json=libraryList, headers=headers)
+    template = {
+        "cluster_id" : clusterId
+        ,"libraries" : libraryList
+    }
+    response = requests.post(url, json=template, headers=headers)
     return response.json()
 
 # COMMAND ----------
@@ -818,11 +844,42 @@ def TransferObjectOwner(objectType, objectId):
 
 # COMMAND ----------
 
+def ListJobs():
+    headers = GetAuthenticationHeader()
+    url = f"{INSTANCE_NAME}/api/2.1/jobs/list"
+    response = requests.get(url, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
 def CreateJob(template):
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.1/jobs/create'
     response = requests.post(url, json=template, headers=headers)
     return response.json()
+
+# COMMAND ----------
+
+def EditJob(template):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.1/jobs/update'
+    response = requests.post(url, json=template, headers=headers)
+    return response.json()
+
+# COMMAND ----------
+
+def CreateOrEditJob(template):
+    template["run_as"]["service_principal_name"] = GetServicePrincipalId()
+    jobs = [i for i in ListJobs()["jobs"] if i["settings"]["name"] == template["name"]]
+    
+    if len(jobs) == 0:
+        return CreateJob(template)
+    job = jobs[0]
+    editTemplate = {} 
+    editTemplate["job_id"]= job["job_id"]
+    editTemplate["new_settings"]= template
+
+    return EditJob(editTemplate)
 
 # COMMAND ----------
 

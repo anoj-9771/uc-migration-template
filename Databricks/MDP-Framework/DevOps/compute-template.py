@@ -154,7 +154,3 @@ poolLarge = {
         "spot_bid_max_price": -1.0
     }
 }
-
-# COMMAND ----------
-
-

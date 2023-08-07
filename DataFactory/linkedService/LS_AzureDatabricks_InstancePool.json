@@ -21,12 +21,16 @@
 			"ProductTag": {
 				"type": "string",
 				"defaultValue": "Framework ETL"
+			},
+			"databricksUrl": {
+				"type": "string",
+				"defaultValue": "https://australiaeast.azuredatabricks.net"
 			}
 		},
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://australiaeast.azuredatabricks.net",
+			"domain": "@linkedService().databricksUrl",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {

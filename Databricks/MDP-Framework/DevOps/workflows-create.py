@@ -1,22 +1,22 @@
 # Databricks notebook source
-# MAGIC %run ../Common/common-workspace
+# MAGIC %run ./Pools/SCCTV_POOL
 
 # COMMAND ----------
 
-# MAGIC %run ./Workflows/rbac-assignment
+# MAGIC %run ./Pools/RIVERWATCH_POOL
 
 # COMMAND ----------
 
-def CreateWorkflow(template):
-    template["run_as"]["service_principal_name"] = GetServicePrincipalId()
-    template["job_clusters"][0]["new_cluster"]["instance_pool_id"] = GetPoolIdByName("pool-small")
-    template["job_clusters"][0]["new_cluster"]["driver_instance_pool_id"] = GetPoolIdByName("pool-small")
-    print(CreateJob(template))
+# MAGIC %run ./Compute/sewer-cctv
 
 # COMMAND ----------
 
-CreateWorkflow(rbac_assignment)
+# MAGIC %run ./Compute/riverwatch
 
 # COMMAND ----------
 
+# MAGIC %run ./Workflows/sewer-cctv-pipeline
 
+# COMMAND ----------
+
+# MAGIC %run ./Workflows/riverwatch-pipeline
