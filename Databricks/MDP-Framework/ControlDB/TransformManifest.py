@@ -63,7 +63,7 @@ transform_df = spark.sql("""
     (5,'Dim','WorkOrderJobPlan','databricks-notebook','',null,'maximo',1),
     (6,'Dim','WorkOrderProblemType','databricks-notebook','',null,'maximo',1),
     (7,'Dim','Asset','databricks-notebook','',4,null,1),
-    (8,'Dim','AssetLocationAncestor','databricks-notebook','',4,null,1),
+    (8,'Dim','AssetLocationAncestor','databricks-notebook','',4,null,0),
     (9,'Dim','LocationSpec','databricks-notebook','',4,null,1),
     (10,'Dim','AssetMeter','databricks-notebook','',7,null,1),
     (11,'Dim','AssetSpec','databricks-notebook','',7,null,1),

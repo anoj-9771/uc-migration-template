@@ -507,7 +507,7 @@ def SaveWithCDF(sourceDataFrame, mode):
         sourceDataFrame = (sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
                            .drop(col('_change_type')))
         sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None        
-        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        CreateDeltaTable(sourceDataFrame, targetTableFqn)  
         EndNotebook(sourceDataFrame)
         return
     

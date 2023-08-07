@@ -68,7 +68,7 @@ def Transform():
       
     _.Transforms = [
          f"customerInteractionSK||'|'||surveyResponseInformationFK {BK}"        
-        ,"customerInteractionSK customerServiceRequestFK"
+        ,"customerInteractionSK customerInteractionFK"
         ,"surveyResponseInformationFK surveyResponseInformationFK"
         ,"customerInteractionId"
         ,"surveyResponseId"
