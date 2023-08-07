@@ -146,7 +146,11 @@ AC_WITH_EXTRA_ATTR AS
         ,vpk.propertyTypeHistorySK
         ,vpk.drinkingWaterNetworkSK  
         ,vpk.waterNetworkDeliverySystem 
-        ,if(vpk.inRecycledWaterNetwork='Y' and S.belzartName='Recycled water','Y','N') potableSubstitutionFlag
+        ,case 
+            when vpk.inRecycledWaterNetwork='Y' and S.belzartName='Recycled water' then 'Y'
+            when vpk.waterNetworkDeliverySystem = 'Unknown' then 'NA'
+            else 'N'
+         end potableSubstitutionFlag        
         ,vpk.SWCUnbilledMeteredFlag                      
         ,S.simulationPeriodId
         ,S.belzartName
@@ -167,12 +171,15 @@ AC_WITH_EXTRA_ATTR AS
         ,max(S.dateAtWhichATimeSliceExpires) dateAtWhichATimeSliceExpires
         ,sum(S.billingQuantityEnergy) accruedConsumptionKLQuantity
   FROM ACCRUED_CONSUMPTION S
-  JOIN {get_env()}curated.water_consumption.viewcontractaccount vca
+  LEFT JOIN {get_env()}curated.water_consumption.viewcontractaccount vca
   ON (vca.contractAccountNumber = S.contractAccountNumber
     AND vca._effectiveFrom <= S.maxDateAtWhichATimeSliceExpires
     AND vca._effectiveTo >= S.maxDateAtWhichATimeSliceExpires)  
+  LEFT JOIN {get_env()}curated.water_consumption.viewcontractaccount vca_latest
+  ON (vca_latest.contractAccountNumber = S.contractAccountNumber
+    AND vca_latest._effectiveTo = '9999-12-31 23:59:59.000')            
   JOIN vpk
-  ON (vpk.propertyNumber = vca.businessPartnerGroupNumber
+  ON (vpk.propertyNumber = nvl(vca.businessPartnerGroupNumber, vca_latest.businessPartnerGroupNumber)
     AND vpk._effectiveFrom <= S.maxDateAtWhichATimeSliceExpires
     AND vpk._effectiveTo >= S.maxDateAtWhichATimeSliceExpires)        
   LEFT JOIN {get_env()}cleansed.isu.0division_text ddt
@@ -186,11 +193,11 @@ AC_WITH_EXTRA_ATTR AS
     AND dc._RecordStart <= S.maxDateAtWhichATimeSliceExpires
     AND dc._RecordEnd >= S.maxDateAtWhichATimeSliceExpires)
   LEFT JOIN {get_env()}curated.dim.location dl
-  ON (dl.locationId = vca.businessPartnerGroupNumber  
+  ON (dl.locationId = vpk.propertyNumber
     AND dl._RecordStart <= S.maxDateAtWhichATimeSliceExpires
     AND dl._RecordEnd >= S.maxDateAtWhichATimeSliceExpires)
   LEFT JOIN {get_env()}curated.dim.businessPartnerGroup dbpg
-  ON (dbpg.businessPartnerGroupNumber = vca.businessPartnerGroupNumber  
+  ON (dbpg.businessPartnerGroupNumber = vpk.propertyNumber
     AND dbpg._RecordStart <= S.maxDateAtWhichATimeSliceExpires
     AND dbpg._RecordEnd >= S.maxDateAtWhichATimeSliceExpires)
   LEFT JOIN {get_env()}curated.dim.installation di
@@ -207,13 +214,17 @@ APPORTIONED_ACCRUED_CONSUMPTION AS
         ,try_divide(d.demandQuantity
            ,sum(d.demandQuantity) over (partition by ac.billingDocumentNumber,ac.propertySK,potableSubstitutionFlag,dateFromWhichTimeSliceIsValid,dateAtWhichATimeSliceExpires))
           * ac.accruedConsumptionKLQuantity supplyApportionedKLQuantity
-        ,d.deliverySystem supplyDeliverySystem
+        -- ,d.deliverySystem supplyDeliverySystem
+        ,if(ac.waterNetworkDeliverySystem = 'Unknown','DEL_POTTS_HILL + DEL_PROSPECT_EAST',d.deliverySystem) supplyDeliverySystem
         ,nvl2(falseReadings,'Y','N') supplyErrorFlag
   FROM ac_with_extra_attr ac
   JOIN water_demand d
-    ON (d.splitDeliverySystem = ac.waterNetworkDeliverySystem
+    ON ((d.splitDeliverySystem = ac.waterNetworkDeliverySystem
+        or ac.waterNetworkDeliverySystem = 'Unknown'
+           and splitDeliverySystem in ('DEL_POTTS_HILL') --DEL_POTTS_HILL + DEL_PROSPECT_EAST    
+        )
         AND d.reportDate between ac.dateFromWhichTimeSliceIsValid and ac.dateAtWhichATimeSliceExpires)
-  WHERE belzartName = 'Water' OR potableSubstitutionFlag = 'Y'  
+  WHERE belzartName = 'Water' OR potableSubstitutionFlag in ('Y','NA')
 ),
 NEW_RECORDS AS
 (
@@ -264,7 +275,7 @@ SELECT consumptionDate
       ,installationSK
       ,businessPartnerGroupSK
       ,simulationPeriodId
-      ,propertyNumber
+      ,propertyNumber::STRING
       ,LGA
       ,contractID 
       ,contractAccountNumber

@@ -107,7 +107,7 @@ supply_apportioned_consumption as
         ,case 
             when deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') 
               then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
-            when deliverySystem in ('DEL_POTTS_HILL','DEL_PROSPECT_EAST') 
+            when deliverySystem in ('DEL_POTTS_HILL','DEL_PROSPECT_EAST','Unknown') 
               then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST'
             else              
               deliverySystem
@@ -116,7 +116,7 @@ supply_apportioned_consumption as
         ,pressureArea pressureZone
         ,case 
             when deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS',
-                                    'DEL_POTTS_HILL','DEL_PROSPECT_EAST')
+                                    'DEL_POTTS_HILL','DEL_PROSPECT_EAST','Unknown')
                 and networkTypeCode = 'Delivery System'                                   
               then 'Delivery System Combined'
             else              

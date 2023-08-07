@@ -40,6 +40,17 @@ spark.sql(f"""
 
 # COMMAND ----------
 
+#Get 1st of the month timestamp for time travel
+tables=['cleansed.isu.erch','cleansed.isu.dberchz1','cleansed.isu.dberchz2']
+histories=None
+for table in tables:
+    history=spark.sql(f'describe history {get_env()}{table}').where("timestamp::DATE = trunc(current_date(),'mm')").select('timestamp')
+    histories=histories.union(history) if histories else history
+firstOfTheMonthTS=histories.selectExpr('max(timestamp)::STRING').collect()[0][0]    
+print(firstOfTheMonthTS)
+
+# COMMAND ----------
+
 df = spark.sql(f"""
 WITH REQUIRED_DATES as
 (
@@ -103,10 +114,10 @@ WITH REQUIRED_DATES as
         ,db1.billingLineItemBudgetBillingFlag
         ,db2.suppressedMeterReadingDocumentID
         ,b.reversalDate
-  FROM {get_env()}cleansed.isu.erch b
-  JOIN {get_env()}cleansed.isu.dberchz1 db1
+  FROM {get_env()}cleansed.isu.erch timestamp as of '{firstOfTheMonthTS}' b
+  JOIN {get_env()}cleansed.isu.dberchz1 timestamp as of '{firstOfTheMonthTS}' db1
     ON b.billingDocumentNumber = db1.billingDocumentNumber
-  JOIN {get_env()}cleansed.isu.dberchz2 db2
+  JOIN {get_env()}cleansed.isu.dberchz2 timestamp as of '{firstOfTheMonthTS}' db2
     ON (db2.billingDocumentNumber = db1.billingDocumentNumber 
       AND db2.billingDocumentLineItemId = db1.billingDocumentLineItemId)  
   AND db1.validFromDate >= (select minDateAvailableData from required_dates)
@@ -140,20 +151,22 @@ WITH REQUIRED_DATES as
   SELECT 8 ord, '__minus ZRQUAN that are not potable' description
         ,sum(meteredWaterMLConsumption) billedConsumptionMLQuantity
   FROM itembase8
-  WHERE lineItemTypeCode = 'ZRQUAN' AND potableSubstitutionFlag <> 'Y'  
+  WHERE lineItemTypeCode = 'ZRQUAN' AND potableSubstitutionFlag = 'N'  
 )
 ,ITEM9 AS (
   SELECT 9 ord, '__minus Unknown Delivery System' description
         ,sum(meteredWaterMLConsumption) billedConsumptionMLQuantity        
   FROM itembase8
-  WHERE (lineItemTypeCode = 'ZDQUAN' OR (inRecycledWaterNetwork='Y' and lineItemTypeCode = 'ZRQUAN'))  
+  WHERE 1=1--(lineItemTypeCode = 'ZDQUAN' OR (inRecycledWaterNetwork='Y' and lineItemTypeCode = 'ZRQUAN'))  
   AND deliverySystem = 'Unknown'
 )
 ,ITEM10 AS (
   SELECT 10 ord, '__minus Bills that have 0 water supply for the meter period' description
         ,sum(meteredWaterMLConsumption) billedConsumptionMLQuantity        
   FROM itembase8
-  WHERE (lineItemTypeCode = 'ZDQUAN' OR (inRecycledWaterNetwork='Y' and lineItemTypeCode = 'ZRQUAN'))  
+  -- WHERE (lineItemTypeCode = 'ZDQUAN' OR (inRecycledWaterNetwork='Y' and lineItemTypeCode = 'ZRQUAN'))  
+  WHERE (lineItemTypeCode = 'ZDQUAN' OR potableSubstitutionFlag in ('Y','NA'))
+  -- AND deliverySystem = 'Known'
   AND (billingDocumentNumber,businessPartnerGroupNumber,equipmentNumber
       ,logicalDeviceNumber,logicalRegisterNumber,registerNumber
       ,minMeterActiveStartDate,maxMeterActiveEndDate
@@ -237,9 +250,9 @@ WITH REQUIRED_DATES as
   UNION ALL
   SELECT *
   FROM item8  
-  UNION ALL
-  SELECT *
-  FROM item9 
+--   UNION ALL
+--   SELECT *
+--   FROM item9 
   UNION ALL
   SELECT *
   FROM item10

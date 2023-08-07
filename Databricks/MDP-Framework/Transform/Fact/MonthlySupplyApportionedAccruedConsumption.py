@@ -60,28 +60,42 @@ spark.sql(f"""
 
 # COMMAND ----------
 
-spark.sql(f"""
-CREATE OR REPLACE TEMPORARY VIEW REQUIRED_DATES as
-(
-	SELECT minDate 
-  FROM
-  (
-    select
-      if((select count(*) from {TARGET_TABLE}) = 0
-          ,min(accruedPeriodEndDate),nvl2(min(accruedPeriodEndDate),greatest(min(accruedPeriodEndDate),dateadd(MONTH, -24, current_date())::DATE),null)) minDate
-    from {get_env()}curated.fact.dailySupplyApportionedAccruedConsumption
-  )
-)
-"""
-)
+# spark.sql(f"""
+# CREATE OR REPLACE TEMPORARY VIEW REQUIRED_DATES as
+# (
+# 	SELECT minDate 
+#   FROM
+#   (
+#     select
+#       if((select count(*) from {TARGET_TABLE}) = 0
+#           ,min(accruedPeriodEndDate),nvl2(min(accruedPeriodEndDate),greatest(min(accruedPeriodEndDate),dateadd(MONTH, -24, current_date())::DATE),null)) minDate
+#     from {get_env()}curated.fact.dailySupplyApportionedAccruedConsumption
+#   )
+# )
+# """
+# )
 
 # COMMAND ----------
 
-minDate = spark.sql("select minDate::STRING from required_dates").collect()[0][0]
-if minDate:
+# minDate = spark.sql("select minDate::STRING from required_dates").collect()[0][0]
+# if minDate:
+#     spark.sql(f"""
+#             DELETE FROM {TARGET_TABLE}
+#             WHERE accruedPeriodEndDate >= '{minDate}'; 
+#             """).display()
+
+# COMMAND ----------
+
+simulationPeriodId = spark.sql(f"""
+    SELECT distinct simulationPeriodId 
+    FROM {get_env()}curated.fact.dailySupplyApportionedAccruedConsumption    
+    qualify dense_rank() over (order by to_date(replace(simulationPeriodId, 'F_'),'MMM_yy') desc) = 1
+""").collect()[0][0]
+print(simulationPeriodId)
+if simulationPeriodId:
     spark.sql(f"""
             DELETE FROM {TARGET_TABLE}
-            WHERE accruedPeriodEndDate >= '{minDate}'; 
+            WHERE simulationPeriodId = '{simulationPeriodId}'; 
             """).display()
 
 # COMMAND ----------
@@ -128,8 +142,9 @@ WITH monthly_apportioned_accrued_consumption AS
   (        
     SELECT *
     FROM {get_env()}curated.fact.dailySupplyApportionedAccruedConsumption
-    WHERE accruedPeriodEndDate >= (select minDate from required_dates)
-    qualify Row_Number () over ( partition BY consumptionDate,billingDocumentNumber,propertySK,potableSubstitutionFlag,accruedPeriodStartDate,accruedPeriodEndDate ORDER BY calculationDate desc ) = 1 
+    -- WHERE accruedPeriodEndDate >= (select minDate from required_dates)
+    qualify dense_rank() over (order by to_date(replace(simulationPeriodId, 'F_'),'MMM_yy') desc) = 1
+    -- qualify Row_Number () over ( partition BY consumptionDate,billingDocumentNumber,propertySK,potableSubstitutionFlag,accruedPeriodStartDate,accruedPeriodEndDate ORDER BY calculationDate desc ) = 1 
   ) dsac
   JOIN {get_env()}curated.dim.date d
   ON (dsac.consumptionDate = d.calendarDate)   

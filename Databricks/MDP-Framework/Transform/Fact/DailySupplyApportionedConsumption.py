@@ -94,6 +94,17 @@ if minDate:
 
 # COMMAND ----------
 
+#Get 1st of the month timestamp for time travel
+tables=['cleansed.isu.erch','cleansed.isu.dberchz1','cleansed.isu.dberchz2']
+histories=None
+for table in tables:
+    history=spark.sql(f'describe history {get_env()}{table}').where("timestamp::DATE = trunc(current_date(),'mm')").select('timestamp')
+    histories=histories.union(history) if histories else history
+firstOfTheMonthTS=histories.selectExpr('max(timestamp)::STRING').collect()[0][0]    
+print(firstOfTheMonthTS)
+
+# COMMAND ----------
+
 df = spark.sql(f"""
 WITH 
 WATER_DEMAND AS
@@ -131,10 +142,10 @@ BILLED_CONSUMPTION AS
         ,db2.registerNumber::INTEGER
         ,b.divisionCode
         ,b.division
-  FROM {get_env()}cleansed.isu.erch b
-  JOIN {get_env()}cleansed.isu.dberchz1 db1
+  FROM {get_env()}cleansed.isu.erch timestamp as of '{firstOfTheMonthTS}' b
+  JOIN {get_env()}cleansed.isu.dberchz1 timestamp as of '{firstOfTheMonthTS}' db1
     ON b.billingDocumentNumber = db1.billingDocumentNumber
-  JOIN {get_env()}cleansed.isu.dberchz2 db2
+  JOIN {get_env()}cleansed.isu.dberchz2 timestamp as of '{firstOfTheMonthTS}' db2
     ON (db2.billingDocumentNumber = db1.billingDocumentNumber 
       AND db2.billingDocumentLineItemId = db1.billingDocumentLineItemId)       
   WHERE trim(b.billingSimulationIndicator) = ''
@@ -190,7 +201,12 @@ BC_WITH_EXTRA_ATTR AS
         ,vpk.recycledWaterNetworkDeliverySystem
         ,vpk.inferiorPropertyTypeCode
         ,bc.lineItemTypeCode
-        ,if(vpk.inRecycledWaterNetwork='Y' and bc.lineItemTypeCode = 'ZRQUAN','Y','N') potableSubstitutionFlag
+        ,case 
+            when vpk.inRecycledWaterNetwork='Y' and bc.lineItemTypeCode = 'ZRQUAN' then 'Y'
+            when vpk.waterNetworkDeliverySystem = 'Unknown' then 'NA'
+            else 'N'
+         end potableSubstitutionFlag
+        -- ,if(vpk.waterNetworkDeliverySystem = 'Unknown',vpk.inRecycledWaterNetwork='Y' and bc.lineItemTypeCode = 'ZRQUAN','Y','N') potableSubstitutionFlag
         ,vpk.SWCUnbilledMeteredFlag
         ,dca.contractAccountSK
         ,dc.contractSK
@@ -242,42 +258,7 @@ BC_WITH_EXTRA_ATTR AS
   ON (di.installationNumber = dc.installationNumber
     AND di._RecordStart <= bc.maxMeterActiveEndDate
     AND di._RecordEnd >= bc.maxMeterActiveEndDate)    
-  GROUP BY bc.billingDocumentNumber
-          ,bc.contractId
-          ,bc.businessPartnerGroupNumber
-          ,vpk.propertyNumber
-          ,vpk.LGA
-          ,bc.startBillingPeriod
-          ,bc.endBillingPeriod            
-          ,bc.contractAccountNumber      
-          ,device.deviceSK
-          ,device.deviceNumber
-          ,vpk.propertySK
-          ,vpk.propertyTypeHistorySK
-          ,vpk.drinkingWaterNetworkSK
-          ,vpk.waterNetworkDeliverySystem
-          ,vpk.waterNetworkDistributionSystem
-          ,vpk.waterNetworkSupplyZone
-          ,vpk.waterNetworkPressureArea
-          ,vpk.recycledWaterNetworkDeliverySystem
-          ,vpk.inferiorPropertyTypeCode    
-          ,bc.lineItemTypeCode
-          ,if(vpk.inRecycledWaterNetwork='Y' and bc.lineItemTypeCode = 'ZRQUAN','Y','N')
-          ,vpk.SWCUnbilledMeteredFlag          
-          ,dca.contractAccountSK
-          ,dc.contractSK   
-          ,bc.isOutsortedFlag
-          ,bc.logicalDeviceNumber
-          ,bc.logicalRegisterNumber
-          ,bc.registerNumber   
-          ,bc.divisionCode
-          ,bc.division  
-          ,dl.locationId
-          ,dl.locationSK 
-          ,dbpg.businessPartnerGroupSK  
-          ,dmcbd.meterConsumptionBillingDocumentSK 
-          ,di.installationSK                                            
-          ,di.installationNumber
+  GROUP BY ALL  
 ),
 APPORTIONED_BILLED_CONSUMPTION AS
 (
@@ -289,13 +270,16 @@ APPORTIONED_BILLED_CONSUMPTION AS
             ,sum(d.demandQuantity) 
             over (partition by bc.billingDocumentNumber,bc.propertySK,bc.deviceSK,potableSubstitutionFlag,bc.logicalDeviceNumber,bc.logicalRegisterNumber,bc.registerNumber))
           * bc.meteredWaterConsumption supplyApportionedKLQuantity
-        ,d.deliverySystem supplyDeliverySystem
+        ,if(bc.waterNetworkDeliverySystem = 'Unknown','DEL_POTTS_HILL + DEL_PROSPECT_EAST',d.deliverySystem) supplyDeliverySystem
         ,nvl2(falseReadings,'Y','N') supplyErrorFlag
   FROM bc_with_extra_attr bc
   JOIN water_demand d
-    ON (d.splitDeliverySystem = bc.waterNetworkDeliverySystem
+    ON ((d.splitDeliverySystem = bc.waterNetworkDeliverySystem
+        or bc.waterNetworkDeliverySystem = 'Unknown'
+           and splitDeliverySystem in ('DEL_POTTS_HILL') --DEL_POTTS_HILL + DEL_PROSPECT_EAST
+        )
         AND d.reportDate between bc.meterActiveStartDate and bc.meterActiveEndDate)    
-  WHERE lineItemTypeCode = 'ZDQUAN' OR potableSubstitutionFlag = 'Y'      
+  WHERE lineItemTypeCode = 'ZDQUAN' OR potableSubstitutionFlag in ('Y','NA')
 ),
 NEW_RECORDS AS
 (
@@ -355,7 +339,7 @@ SELECT consumptionDate
       ,locationSK
       ,installationSK
       ,businessPartnerGroupSK
-      ,propertyNumber
+      ,propertyNumber::STRING
       ,LGA
       ,contractID
       ,contractAccountNumber

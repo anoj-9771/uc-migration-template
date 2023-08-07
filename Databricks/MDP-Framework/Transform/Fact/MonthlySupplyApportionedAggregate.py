@@ -136,7 +136,11 @@ WITH REQUIRED_DATES as
     select
       trunc(if((select count(*) from {get_env()}curated.fact.monthlySupplyApportionedAggregate) = 0
           ,min(consumptionDate),nvl2(min(consumptionDate),greatest(min(consumptionDate),dateadd(MONTH, -24, current_date())::DATE),null)),'mm') minDate
-    from {get_env()}curated.fact.dailySupplyApportionedAccruedConsumption
+    from (
+        select *          
+        from {get_env()}curated.fact.dailySupplyApportionedAccruedConsumption
+        qualify dense_rank() over (order by to_date(replace(simulationPeriodId, 'F_'),'MMM_yy') desc) = 1
+    )      
   )
 ),
 daily_apportioned_billed_consumption AS
