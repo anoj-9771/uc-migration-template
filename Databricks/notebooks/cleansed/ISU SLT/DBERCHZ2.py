@@ -209,7 +209,7 @@ df = spark.sql(f"WITH stage AS \
                                 QDPROC as quantityDeterminationProcedureCode, \
                                 MRCONNECT as meterReadingDocumentId, \
                                 te609t.meterReadingReason as meterReadingReason, \
-                                te609t.meterReadingReason as previousMeterReadingReason,\
+                                te609t2.meterReadingReason as previousMeterReadingReason,\
                                 mrtype.meterReadingType as meterReadingType, \
                                 mrtype2.meterReadingType as previousMeterReadingType, \
                                 dd07t.domainValueText as registerRelationshipSortHelp, \
@@ -218,7 +218,8 @@ df = spark.sql(f"WITH stage AS \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage left join {ADS_DATABASE_CLEANSED}.isu.te609t te609t on te609t.meterReadingReasonCode = stage.ABLESGRV \
+                        from stage left join {ADS_DATABASE_CLEANSED}.isu.te609t te609t on te609t.meterReadingReasonCode = stage.ABLESGR \
+                                left join {ADS_DATABASE_CLEANSED}.isu.te609t te609t2 on te609t2.meterReadingReasonCode = stage.ABLESGRV \
                                 left join {ADS_DATABASE_CLEANSED}.isu.0uc_mrtype_text mrtype on mrtype.meterReadingTypeCode = stage.ISTABLART \
                                 left join {ADS_DATABASE_CLEANSED}.isu.0uc_mrtype_text mrtype2 on mrtype2.meterReadingTypeCode = stage.ISTABLARTVA \
                                 left join {ADS_DATABASE_CLEANSED}.isu.dd07t dd07t on dd07t.domainName = 'REGRELSORT' and dd07t.domainValueSingleUpperLimit = stage.REGRELSORT \
