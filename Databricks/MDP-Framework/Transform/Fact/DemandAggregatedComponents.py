@@ -48,6 +48,7 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
     monthlySupplyLGA = monthlySupplyLGA_df.agg((sum('supply_totalKLQuantity')/1000).alias('supply_totalMLQuantity')).first()['supply_totalMLQuantity']
     ruralFireServicesUseFactor = sharepointConfig_df.filter("metricTypeName = 'RFSUse'").select("metricValueNumber").first()['metricValueNumber']
 
+
     # --- TFSU Metrics Calculation ---#
     #monthlyTestingFireSprinklerSystems
     monthlyTestingFireSprinklerSystems = tfsu_df.where(col('superiorPropertyType').isin('COMMERCIAL','COMMUNITY SERVS','INDUSTRIAL','MASTER STRATA','OCCUPIED LAND','UTILITIES')) \
@@ -200,14 +201,22 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
 
     demandaggregatedf.createOrReplaceTempView("demandaggregateview")    
     demandaggregatedffinal = spark.sql(f"""
-              select case when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL') then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' 
-                          when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
-              else waterNetworkDeliverySystem end waterNetworkDeliverySystem,
-              waterNetworkDistributionSystem,waterNetworkSupplyZone,waterNetworkPressureArea,
-              case when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL') then 'Delivery System Combined' 
-                   when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'Delivery System Combined'
-              else networkTypeCode end networkTypeCode,
-              metricTypeName,metricValueNumber,yearNumber,monthName,monthNumber,calculationDate  from  demandaggregateview""")
+                with Unallocated as 
+                    (select 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' as waterNetworkDeliverySystem,metricTypeName,coalesce(metricValueNumber,0) as metricValueNumber from demandaggregateview where metricTypeName in ('meterUnderRegistration','ruralFireServicesUse') and networktypecode = 'Delivery System' and waterNetworkDeliverySystem = 'Unknown' 
+                ),
+                base as (
+                    select case when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL') then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' 
+                                when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
+                            else waterNetworkDeliverySystem end waterNetworkDeliverySystem,waterNetworkDistributionSystem,waterNetworkSupplyZone,waterNetworkPressureArea,
+                            case when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL') then 'Delivery System Combined' 
+                                when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'Delivery System Combined'
+                            else networkTypeCode end networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,yearNumber,monthName,monthNumber,calculationDate  
+                            from  demandaggregateview group by all
+                ) select base.waterNetworkDeliverySystem,waterNetworkDistributionSystem,waterNetworkSupplyZone,waterNetworkPressureArea,base.networkTypeCode,base.metricTypeName,
+                case when base.waterNetworkDeliverySystem = 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' then base.metricValueNumber+coalesce(Unallocated.metricValueNumber,0) else base.metricValueNumber end  metricValueNumber,yearNumber,monthName,monthNumber,calculationDate 
+                from base left outer join Unallocated on base.metricTypeName = Unallocated.metricTypeName and base.waterNetworkDeliverySystem = Unallocated.waterNetworkDeliverySystem 
+                  and base.networkTypeCode = 'Delivery System Combined'
+                where base.waterNetworkDeliverySystem <> 'Unknown'""")
 
     return demandaggregatedffinal
 
@@ -232,7 +241,7 @@ def Transform():
     
     date_df = spark.sql(f"""
                         select distinct monthstartdate,year(monthstartdate) as yearnumber,month(monthstartdate) as monthnumber, date_format(monthStartDate,'MMM') as monthname 
-                        from {get_table_namespace(f'{DEFAULT_TARGET}', 'dimdate')} where monthStartDate between add_months(current_date(),-26) and add_months(current_date(),-2)
+                        from {get_table_namespace(f'{DEFAULT_TARGET}', 'dimdate')} where monthStartDate between add_months(current_date(),-25) and add_months(current_date(),-1)
                         order by yearnumber desc, monthnumber desc
                         """)
 
