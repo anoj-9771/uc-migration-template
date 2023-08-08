@@ -3,7 +3,11 @@
 
 # COMMAND ----------
 
-DimSurvey  = (GetTable(f"{getEnv()}curated.dim.Survey").select("surveySK", "surveyName"))
+    # CleanSelf()
+
+# COMMAND ----------
+
+DimSurvey  = (GetTable(f"{getEnv()}curated.dim.Survey").filter("sourceRecordCurrent ==1").select("surveySK", "surveyName"))
 
 Survey1  = (GetTable(f"{getEnv()}cleansed.qualtrics.billpaidsuccessfullyquestions")
                 .withColumn("sourceSystem", lit("Qualtrics")) 
@@ -146,11 +150,10 @@ for df in Surveys:
         union_df = flattened_df
     else:
         union_df = union_df.union(flattened_df)
-
-#########Added CRM Survey #############################
 union_df = union_df.withColumn("surveyVersion", lit(None).cast("string"))
+#########Added CRM Survey #############################
 
-dimBuss = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimSurvey')}")
+dimBuss = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimSurvey')}").filter("sourceRecordCurrent ==1")
 crmQues = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crm_svy_re_quest')}")
 
 split_col = split(col("sourceBusinessKey"), r"\|")
@@ -205,7 +208,23 @@ def Transform():
 
     # ------------- SAVE ------------------- #
     #df_final.display()
-    CleanSelf()
     Save(df_final)
     #DisplaySelf()
 Transform()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from ppd_curated.dim.surveyquestion where surveyQuestionId = 'QID14'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC Select surveyQuestionText, surveyQuestionDescription  from ppd_curated.dim.surveyquestion
+# MAGIC where surveyQuestionText like '%${e://%'
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select surveyQuestionSK,count(1) from ppd_curated.dim.surveyquestion group by all having count(1) > 1
