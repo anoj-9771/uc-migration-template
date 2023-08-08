@@ -240,11 +240,22 @@ stoppedmeterconsumption as (
         from {get_env()}curated.fact.stoppedmeteraggregate agg join {get_env()}curated.dim.waternetwork netowrk
         where calculationDate = (select max(calculationDate) from {get_env()}curated.fact.stoppedmeteraggregate) and agg.waterNetworkSK = netowrk.waterNetworkSK
         group by all
-        )select SWCAggregated,deliverySystem,supplyZone,pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'Pressure Area' networkTypeCode from stoppedmeterbase group by all
+        ),
+      unallocated as (
+        select network.deliverysystem,network.supplyZone, network.pressureArea, sum(unkn.consumptionQuantity)/1000 as consumptionQuantity, month(unkn.consumptionDate) as monthNumber, year(unkn.consumptionDate) as yearNumber from {get_env()}curated.fact.stoppedmeteraggregate unkn join {get_env()}curated.dim.waternetwork network
+        where unkn.calculationDate = (select max(calculationDate) from {get_env()}curated.fact.stoppedmeteraggregate) and unkn.waterNetworkSK = network.waterNetworkSK and deliverysystem = 'Unknown' group by all
+        ) 
+        select SWCAggregated,deliverySystem,supplyZone,pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'Pressure Area' networkTypeCode from stoppedmeterbase where deliverysystem <> 'Unknown' group by all
         union
-        select SWCAggregated,deliverySystem,supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'Supply Zone' networkTypeCode from stoppedmeterbase group by all
+        select SWCAggregated,deliverySystem,supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'Supply Zone' networkTypeCode from stoppedmeterbase where deliverysystem <> 'Unknown' group by all
         union
-        select SWCAggregated,deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,networkTypeCode from stoppedmeterbase group by all
+        (
+          with deliverysystemallocated as (select SWCAggregated,deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,
+            yearNumber,networkTypeCode
+            from stoppedmeterbase group by all) 
+            select x.SWCAggregated,x.deliverySystem,x.supplyZone,x.pressureArea,case when x.deliverySystem like '%POTTS_HILL%' and x.networktypecode = 'Delivery System Combined' then ( x.consumptionQuantity+ y.consumptionQuantity) else x.consumptionQuantity end as consumptionQuantity,x.monthNumber,x.yearNumber,x.networkTypeCode
+            from deliverysystemallocated x left outer join unallocated y on x.monthNumber = y.monthNumber and x.yearNumber = y.yearNumber where x.deliverysystem <> 'Unknown' 
+        )
         union
         select SWCAggregated,NULL deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'SWC' as networkTypeCode from stoppedmeterbase group by all
         order by networkTypeCode
@@ -257,7 +268,7 @@ demandaggregated as (
         where calculationDate = (select max(calculationDate) from {get_env()}curated.fact.demandaggregatedcomponents) and deliverySystem = 'Unknown' and networkTypeCode in ('Delivery System','Delivery System Combined') group by all)
         select SWCAggregated,deliverySystem,supplyZone,pressureArea,consumptionQuantity,monthNumber,yearNumber,networkTypeCode from aggregatedbase where networkTypeCode in ('Pressure Area','Supply Zone') and deliverySystem <> 'Unknown'
         union (
-          select x.SWCAggregated,x.deliverySystem,x.supplyZone,x.pressureArea,case when x.deliverySystem like '%POTTS_HILL%' and x.networktypecode = 'Delivery System Combined' then ( x.consumptionQuantity+ y.consumptionQuantity) else x.consumptionQuantity end as consumptionQuantity,x.monthNumber,x.yearNumber,x.networkTypeCode from aggregatedbase x left outer join unallocated y on x.monthNumber = y.monthNumber and x.yearNumber = y.yearNumber where x.networkTypeCode in ('Delivery System','Delivery System Combined') and x.deliverySystem <> 'Unknown'
+          select x.SWCAggregated,x.deliverySystem,x.supplyZone,x.pressureArea,case when x.deliverySystem like '%POTTS_HILL%' and x.networktypecode = 'Delivery System Combined' then ( x.consumptionQuantity+ coalesce(y.consumptionQuantity,0)) else x.consumptionQuantity end as consumptionQuantity,x.monthNumber,x.yearNumber,x.networkTypeCode from aggregatedbase x left outer join unallocated y on x.monthNumber = y.monthNumber and x.yearNumber = y.yearNumber where x.networkTypeCode in ('Delivery System','Delivery System Combined') and x.deliverySystem <> 'Unknown'
         ) union
         select SWCAggregated,NULL as deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'SWC' as networkTypeCode from aggregatedbase group by all
 )
