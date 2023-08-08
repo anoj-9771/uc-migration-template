@@ -114,7 +114,8 @@ transform_df = spark.sql("""
     (56,'Fact','MonthlyLeakageAggregate','databricks-notebook','',55,null,0),
     (57,'Fact','MonthlySupplyApportionedConsumption','databricks-notebook','',53,null,0),
     (58,'Fact','MonthlySupplyApportionedAccruedConsumption','databricks-notebook','',54,null,0),
-    (59,'Fact','ReconDailySupplyApportionedConsumption','databricks-notebook','',53,null,0)
+    (59,'Fact','ReconDailySupplyApportionedConsumption','databricks-notebook','',53,null,0),
+    (60,'Fact','ReconDailySupplyApportionedAccruedConsumption','databricks-notebook','',54,null,0)
 AS (TransformID,EntityType,EntityName,ProcessorType,TargetKeyVaultSecret,InternalDependency,ExternalDependency,Enabled)
 """)
 
