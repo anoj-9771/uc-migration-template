@@ -6,7 +6,7 @@
 surveyQualtrics = spark.sql(f"""
        SELECT aa.id  as surveyId, 
        aa.name as surveyName,
-       'Qualtrics'||'|'||aa.id||'|'||to_timestamp('1900-01-01', 'yyyy-MM-dd') as businessKey, 
+       'Qualtrics'||'|'||aa.id||'|' as businessKey, 
        CASE WHEN DestinationTableName LIKE '%BillPaidSuccessfullyQuestions%' THEN 'Survey to determine the customer experience of Bill payment'
             WHEN DestinationTableName LIKE '%BusinessConnectServiceRequestCloseQuestions%' THEN 'Survey to determine the customer experience about Business Requests'
             WHEN DestinationTableName LIKE '%ComplaintsComplaintClosedQuestions%' THEN 'Survey to determine customer complaints about dealing with Sydney Water'
@@ -113,3 +113,12 @@ def Transform():
     SaveDefaultSource(df)
     #DisplaySelf()
 Transform()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select SurveySK, count(1) from ppd_curated.dim.survey group by surveySK having count(1)>1
+
+# COMMAND ----------
+
+

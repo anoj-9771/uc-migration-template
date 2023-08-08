@@ -320,15 +320,20 @@ def SaveDefaultSource(sourceDataFrame):
         sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
         sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
 
-        if all(colName in sourceDataFrame.columns for colName in ["sourceValidFromDateTime", "sourceValidToDateTime"]):
-            sourceDataFrame = sourceDataFrame.withColumn("sourceValidFromDateTime", when(col("sourceValidFromDateTime").isNull(), col("_recordStart")).otherwise(col("sourceValidFromDateTime"))) \
-            .withColumn("sourceValidToDateTime", when(col("sourceValidToDateTime").isNull(), col("_recordEnd")).otherwise(col("sourceValidToDateTime"))) \
+        if all(colName in sourceDataFrame.columns for colName in ["sourceValidFromTimestamp", "sourceValidToTimestamp"]):
+            sourceDataFrame = sourceDataFrame.withColumn("sourceValidFromTimestamp", when(col("sourceValidFromTimestamp").isNull(), col("_recordStart")).otherwise(col("sourceValidFromTimestamp"))) \
+            .withColumn("sourceValidToTimestamp", when(col("sourceValidToTimestamp").isNull(), col("_recordEnd")).otherwise(col("sourceValidToTimestamp"))) \
             .withColumn("sourceRecordCurrent", when(col("sourceRecordCurrent").isNull(), col("_recordCurrent")).otherwise(col("sourceRecordCurrent")))
 
         CreateDeltaTable(sourceDataFrame, targetTableFqn)  
         EndNotebook(sourceDataFrame)
         return
     sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
+    if all(colName in sourceDataFrame.columns for colName in ["sourceValidFromTimestamp", "sourceValidToTimestamp"]):
+            sourceDataFrame = sourceDataFrame.withColumn("sourceValidFromTimestamp", when(col("sourceValidFromTimestamp").isNull(), col("_recordStart")).otherwise(col("sourceValidFromTimestamp"))) \
+            .withColumn("sourceValidToTimestamp", when(col("sourceValidToTimestamp").isNull(), col("_recordEnd")).otherwise(col("sourceValidToTimestamp"))) \
+            .withColumn("sourceRecordCurrent", when(col("sourceRecordCurrent").isNull(), col("_recordCurrent")).otherwise(col("sourceRecordCurrent")))
+
     MergeSCDTable(sourceDataFrame, targetTableFqn,_.BK,_.SK)
     EndNotebook(sourceDataFrame)
     return
