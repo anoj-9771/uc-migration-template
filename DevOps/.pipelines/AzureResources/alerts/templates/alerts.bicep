@@ -67,3 +67,53 @@ resource environment_adf_trigger_failure_alert 'microsoft.insights/metricalerts@
     ]
   }
 }
+
+resource environment_alert_pr_suppress 'Microsoft.AlertsManagement/actionRules@2021-08-08' = {
+  name: 'alert-pr-${resourceNameSuffix}-suppress'
+  location: 'Global'
+  properties: {
+    scopes: [
+      resourceId('Microsoft.DataFactory/factories', dataFactoryName)
+    ]
+    schedule: {
+      effectiveFrom: '2023-08-08T00:00:00'
+      timeZone: 'AUS Eastern Standard Time'
+      recurrences: [
+        {
+          daysOfWeek: [
+            'Monday'
+            'Tuesday'
+            'Wednesday'
+            'Thursday'
+            'Friday'
+          ]
+          recurrenceType: 'Weekly'
+          startTime: '17:00:00'
+          endTime: '08:00:00'
+        }
+        {
+          daysOfWeek: [
+            'Saturday'
+            'Sunday'
+          ]
+          recurrenceType: 'Weekly'
+        }
+      ]
+    }
+    conditions: [
+      {
+        field: 'AlertRuleName'
+        operator: 'Equals'
+        values: [
+          'alert-${resourceNameSuffix}-adf-activities-failure'
+        ]
+      }
+    ]
+    enabled: true
+    actions: [
+      {
+        actionType: 'RemoveAllActionGroups'
+      }
+    ]
+  }
+}
