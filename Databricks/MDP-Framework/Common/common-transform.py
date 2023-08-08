@@ -322,8 +322,8 @@ def SaveDefaultSource(sourceDataFrame):
 
         if all(colName in sourceDataFrame.columns for colName in ["sourceValidFromDateTime", "sourceValidToDateTime"]):
             sourceDataFrame = sourceDataFrame.withColumn("sourceValidFromDateTime", when(col("sourceValidFromDateTime").isNull(), col("_recordStart")).otherwise(col("sourceValidFromDateTime"))) \
-                                             .withColumn("sourceValidToDateTime", when(col("sourceValidToDateTime").isNull(), col("_recordEnd")).otherwise(col("sourceValidToDateTime"))) \
-                                             .withColumn("sourceRecordCurrent", when(col("sourceRecordCurrent").isNull(), col("_recordCurrent")).otherwise(col("sourceRecordCurrent")))
+            .withColumn("sourceValidToDateTime", when(col("sourceValidToDateTime").isNull(), col("_recordEnd")).otherwise(col("sourceValidToDateTime"))) \
+            .withColumn("sourceRecordCurrent", when(col("sourceRecordCurrent").isNull(), col("_recordCurrent")).otherwise(col("sourceRecordCurrent")))
 
         CreateDeltaTable(sourceDataFrame, targetTableFqn)  
         EndNotebook(sourceDataFrame)

@@ -214,12 +214,13 @@ propertyDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimProperty
                               ) 
                  
             )
-    
+
 statusDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomerservicerequestStatus')}")
                                         .filter(col("_recordCurrent") == lit("1"))
                            .select( col("customerServiceRequestStatusSK").alias("StatusFK")
                                      ,col("_BusinessKey")
-                                   ) 
+                                     ,col("customerServiceRequestStatusDescription")
+                            ) 
             )
     
     
@@ -386,7 +387,7 @@ CRMDF = (((busDF.alias("core")
                                           ,when(col("seqNo").isNull(), lit('')).otherwise(col("seqNo"))))
  .withColumn("respondByDateTime", col("css.SRV_RFIRST")) 
  .withColumn("respondedDateTime", col("css.VALIDTO")) 
- .withColumn("serviceRequestClosedDateTime", when(((col("css.ZCLOSEDATE").isNull()) & (upper(col("status")) == lit('CLOSED'))), col("requestEndDate")).otherwise(col("css.ZCLOSEDATE")))
+ .withColumn("serviceRequestClosedDateTime", when(((col("css.ZCLOSEDATE").isNull()) & ((upper(col("status")) == lit('CLOSED'))|(upper(col("st.customerServiceRequestStatusDescription")) == lit('CLOSED')))), col("requestEndDate")).otherwise(col("css.ZCLOSEDATE")))
  .withColumn("toDoByDateTime", col("css.SRV_RREADY")) 
  .withColumn("interimResponseDays", 
                                  dataDiffTimeStamp( col("core.requestStartDate")
@@ -404,89 +405,94 @@ CRMDF = (((busDF.alias("core")
                             )
          )
          
-
-finalCRMDF = (((((CRMDF.alias("main")
-    .join(bpAurDF.alias("auE"), 
-       ((col("main.responsibleEmployeeNumber") == col("auE.businessPartnerNumber")) &
-           (col("main.lastChangedDateTime").between(col("auE.DateEffective"), 
-                                                          col("auE.DateTo")))), "left")) 
-        .withColumn("rownumE", when(col("auE.businessPartnerNumber").isNull(), lit('1')).otherwise(row_number().over(aurEWinSpec)))
-        .filter(col("rownumE") == lit('1'))
-        .drop(col("auE.businessPartnerNumber"), col("auE.DateEffective"), col("auE.DateTo"), col("auE.Aurionfilename"), col("auE.reportToManagerFK")
-            ,col("auE.positionNumber"),col("auE.rownumE"),col("auE.priority")))
-    .join(bpAurDF.alias("auM"), 
-       ((col("auE.reportsToPosition") == col("auM.positionNumber")) &
-           (col("main.lastChangedDateTime").between(col("auM.DateEffective"), 
-                                                          col("auM.DateTo")))), "left"))
-      .withColumn("rownumM", when(col("auM.businessPartnerNumber").isNull(), lit('1')).otherwise(row_number().over(aurMWinSpec)))
-      .filter(col("rownumM") == lit('1'))
-      .drop(col("auM.businessPartnerNumber"), col("auM.DateEffective"), col("auM.DateTo"), col("auM.Aurionfilename"), col("auM.organisationUnitFK")
-            ,col("auM.reportsToPosition"), col("auM.positionNumber"),col("auE.reportsToPosition"), col("auM.rownumM"),col("auM.priority"))
-      
-      
-      ).select(col("BusinessKey").alias(f"{BK}")
-                 ,col("sourceSystemCode")
-                 ,col("serviceRequestID").alias("customerServiceRequestId")
-                 ,col("serviceRequestGUID").alias("customerServiceRequestGUID")
-                 ,when(col("receivedCategoryFK").isNull(), lit('-1')).otherwise(col("receivedCategoryFK")).alias("customerServiceRequestReceivedCategoryFK")
-                 ,when(col("resolutionCategoryFK").isNull(), lit('-1')).otherwise(col("resolutionCategoryFK")).alias("customerServiceRequestResolutionCategoryFK")
-                 ,when(col("communicationChannelFK").isNull(), lit('-1')).otherwise(col("communicationChannelFK")).alias("communicationChannelFK") 
-                 ,when(col("contactPersonFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("contactPersonFK")).alias("contactPersonFK")
-                 ,col("reportByPersonFK")
-                 ,col("serviceTeamFK")
-                 ,col("contractFK")  
-                 ,when(col("responsibleEmployeeFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("responsibleEmployeeFK")).alias("responsibleEmployeeFK")
-                 ,when(col("reportToManagerFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("reportToManagerFK")).alias("reportToManagerFK")
-                 ,when(col("organisationUnitFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("organisationUnitFK")).alias("organisationUnitFK")              
-                 ,when(col("processTypeFK").isNull(), lit('-1')).otherwise(col("processTypeFK")).alias("customerServiceProcessTypeFK")
-                 ,col("propertyFK")
-                 ,col("locationFK")
-                 ,col("businessPartnerGroupFK")
-                 ,when(col("statusFK").isNull(), lit('-1')).otherwise(col("statusFK")).alias("customerServiceRequestStatusFK")
-                 ,col("salesEmployeeFK")
-                 ,col("serviceRequestStartDateFK").alias("customerServiceRequestStartDateFK")
-                 ,col("serviceRequestEndDateFK").alias("customerServiceRequestEndDateFK")
-                 ,col("snapshotDateFK").alias("customerServiceRequestSnapshotDateFK")
-                 ,col("customerServiceRequestTotalDurationSecondQuantity")
-                 ,col("customerServiceRequestWorkDurationSecondQuantity").cast("string").alias("customerServiceRequestWorkDurationSecondQuantity")
-                 ,col("source").alias("customerServiceRequestSourceName")
-                 ,col("sourceCode").alias("customerServiceRequestSourceCode")
-                 ,col("issueResponsibility").alias("customerServiceRequestIssueResponsibilityName")
-                 ,col("issueResponsibilityCode").alias("customerServiceRequestIssueResponsibilityCode")
-                 ,col("postingDate").alias("customerServiceRequestPostingDate")
-                 ,col("requestStartDate").alias("customerServiceRequestStartTimestamp")
-                 ,col("requestEndDate").alias("customerServiceRequestEndTimestamp")
-                 ,col("numberOfInteractionRecords").alias("customerServiceRequestInteractionsCount")
-                 ,col("notificationNumber").alias("customerServiceRequestNotificationNumber")
-                 ,col("transactionDescription").alias("customerServiceRequestDescription")
-                 ,col("direction").alias("customerServiceRequestDirectionIdentifier")
-                 ,col("directionCode").alias("customerServiceRequestDirectionCode")
-                 ,col("maximoWorkOrderNumber").alias("customerServiceRequestMaximoWorkOrderNumber")
-                 ,col("projectId").alias("customerServiceRequestProjectId")
-                 ,col("agreementNumber").alias("customerServiceRequestAgreementNumber")
-                 ,col("recommendedPriority").alias("customerServiceRequestRecommendedPriorityNumber")
-                 ,col("impact").alias("customerServiceRequestImpactScoreNumber")
-                 ,col("urgency").alias("customerServiceRequestUrgencyNumber")
-                 ,col("serviceLifeCycle").alias("customerServiceRequestServiceLifeCycleUnitHourQuantity")
-                 ,col("serviceLifeCycleUnit").alias("customerServiceRequestServiceLifeCycleUnitName")
-                 ,col("activityPriorityCode").alias("customerServiceRequestActivityPriorityCode")
-                 ,col("respondByDateTime").alias("customerServiceRequestRespondByTimestamp")
-                 ,col("respondedDateTime").alias("customerServiceRequestRespondedTimestamp")
-                 ,col("serviceRequestClosedDateTime").alias("customerServiceRequestClosedTimestamp")
-                 ,col("toDoByDateTime").alias("customerServiceRequestToDoByTimestamp")
-                 ,col("interimResponseDays").cast(DecimalType(15,2)).alias("customerServiceRequestInterimResponseDaysQuantity")
-                 ,col("interimResponseWorkingDays").cast(DecimalType(15,2)).alias("customerServiceRequestInterimResponseWorkingDaysQuantity")
-                 ,col("metInterimResponseFlag").alias("customerServiceRequestMetInterimResponseIndicator")
-                 ,col("CreatedDateTime").alias("customerServiceRequestCreatedTimestamp")
-                 ,col("CreatedBy").alias("customerServiceRequestCreatedByUserId")
-                 ,coalesce(col("createdByName"), col("CreatedBy")).alias("customerServiceRequestCreatedByUserName")
-                 ,col("lastChangedDateTime").alias("customerServiceRequestSnapshotTimestamp")
-                 ,col("lastChangedDateTime").alias("customerServiceRequestLastChangeTimestamp")
-                 ,col("changedBy").alias("customerServiceRequestChangedByUserId")
-                 ,coalesce(col("changedByName"), col("changedBy")).alias("customerServiceRequestChangedByUserName")
-                 ,col("_change_type")
-                )
-)
+if derivedDF1.count() > 0:
+    finalCRMDF = (((((CRMDF.alias("main")
+        .join(bpAurDF.alias("auE"), 
+        ((col("main.responsibleEmployeeNumber") == col("auE.businessPartnerNumber")) &
+            (col("main.lastChangedDateTime").between(col("auE.DateEffective"), 
+                                                            col("auE.DateTo")))), "left")) 
+            .withColumn("rownumE", when(col("auE.businessPartnerNumber").isNull(), lit('1')).otherwise(row_number().over(aurEWinSpec)))
+            .filter(col("rownumE") == lit('1'))
+            .drop(col("auE.businessPartnerNumber"), col("auE.DateEffective"), col("auE.DateTo"), col("auE.Aurionfilename"), col("auE.reportToManagerFK")
+                ,col("auE.positionNumber"),col("auE.rownumE"),col("auE.priority")))
+        .join(bpAurDF.alias("auM"), 
+        ((col("auE.reportsToPosition") == col("auM.positionNumber")) &
+            (col("main.lastChangedDateTime").between(col("auM.DateEffective"), 
+                                                            col("auM.DateTo")))), "left"))
+        .withColumn("rownumM", when(col("auM.businessPartnerNumber").isNull(), lit('1')).otherwise(row_number().over(aurMWinSpec)))
+        .filter(col("rownumM") == lit('1'))
+        .drop(col("auM.businessPartnerNumber"), col("auM.DateEffective"), col("auM.DateTo"), col("auM.Aurionfilename"), col("auM.organisationUnitFK")
+                ,col("auM.reportsToPosition"), col("auM.positionNumber"),col("auE.reportsToPosition"), col("auM.rownumM"),col("auM.priority"))
+        
+        
+        ).select(col("BusinessKey").alias(f"{BK}")
+                    ,col("sourceSystemCode")
+                    ,col("serviceRequestID").alias("customerServiceRequestId")
+                    ,col("serviceRequestGUID").alias("customerServiceRequestGUID")
+                    ,when(col("receivedCategoryFK").isNull(), lit('-1')).otherwise(col("receivedCategoryFK")).alias("customerServiceRequestReceivedCategoryFK")
+                    ,when(col("resolutionCategoryFK").isNull(), lit('-1')).otherwise(col("resolutionCategoryFK")).alias("customerServiceRequestResolutionCategoryFK")
+                    ,when(col("communicationChannelFK").isNull(), lit('-1')).otherwise(col("communicationChannelFK")).alias("communicationChannelFK") 
+                    ,when(col("contactPersonFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("contactPersonFK")).alias("contactPersonFK")
+                    ,col("reportByPersonFK")
+                    ,col("serviceTeamFK")
+                    ,col("contractFK")  
+                    ,when(col("responsibleEmployeeFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("responsibleEmployeeFK")).alias("responsibleEmployeeFK")
+                    ,when(col("reportToManagerFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("reportToManagerFK")).alias("reportToManagerFK")
+                    ,when(col("organisationUnitFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("organisationUnitFK")).alias("organisationUnitFK")              
+                    ,when(col("processTypeFK").isNull(), lit('-1')).otherwise(col("processTypeFK")).alias("customerServiceProcessTypeFK")
+                    ,col("propertyFK")
+                    ,col("locationFK")
+                    ,col("businessPartnerGroupFK")
+                    ,when(col("statusFK").isNull(), lit('-1')).otherwise(col("statusFK")).alias("customerServiceRequestStatusFK")
+                    ,col("salesEmployeeFK")
+                    ,col("serviceRequestStartDateFK").alias("customerServiceRequestStartDateFK")
+                    ,col("serviceRequestEndDateFK").alias("customerServiceRequestEndDateFK")
+                    ,col("snapshotDateFK").alias("customerServiceRequestSnapshotDateFK")
+                    ,col("customerServiceRequestTotalDurationSecondQuantity")
+                    ,col("customerServiceRequestWorkDurationSecondQuantity").cast("string").alias("customerServiceRequestWorkDurationSecondQuantity")
+                    ,col("source").alias("customerServiceRequestSourceName")
+                    ,col("sourceCode").alias("customerServiceRequestSourceCode")
+                    ,col("issueResponsibility").alias("customerServiceRequestIssueResponsibilityName")
+                    ,col("issueResponsibilityCode").alias("customerServiceRequestIssueResponsibilityCode")
+                    ,col("postingDate").alias("customerServiceRequestPostingDate")
+                    ,col("requestStartDate").alias("customerServiceRequestStartTimestamp")
+                    ,col("requestEndDate").alias("customerServiceRequestEndTimestamp")
+                    ,col("numberOfInteractionRecords").alias("customerServiceRequestInteractionsCount")
+                    ,col("notificationNumber").alias("customerServiceRequestNotificationNumber")
+                    ,col("transactionDescription").alias("customerServiceRequestDescription")
+                    ,col("direction").alias("customerServiceRequestDirectionIdentifier")
+                    ,col("directionCode").alias("customerServiceRequestDirectionCode")
+                    ,col("maximoWorkOrderNumber").alias("customerServiceRequestMaximoWorkOrderNumber")
+                    ,col("projectId").alias("customerServiceRequestProjectId")
+                    ,col("agreementNumber").alias("customerServiceRequestAgreementNumber")
+                    ,col("recommendedPriority").alias("customerServiceRequestRecommendedPriorityNumber")
+                    ,col("impact").alias("customerServiceRequestImpactScoreNumber")
+                    ,col("urgency").alias("customerServiceRequestUrgencyNumber")
+                    ,col("serviceLifeCycle").alias("customerServiceRequestServiceLifeCycleUnitHourQuantity")
+                    ,col("serviceLifeCycleUnit").alias("customerServiceRequestServiceLifeCycleUnitName")
+                    ,col("activityPriorityCode").alias("customerServiceRequestActivityPriorityCode")
+                    ,col("respondByDateTime").alias("customerServiceRequestRespondByTimestamp")
+                    ,col("respondedDateTime").alias("customerServiceRequestRespondedTimestamp")
+                    ,col("serviceRequestClosedDateTime").alias("customerServiceRequestClosedTimestamp")
+                    ,col("toDoByDateTime").alias("customerServiceRequestToDoByTimestamp")
+                    ,col("interimResponseDays").cast(DecimalType(15,2)).alias("customerServiceRequestInterimResponseDaysQuantity")
+                    ,col("interimResponseWorkingDays").cast(DecimalType(15,2)).alias("customerServiceRequestInterimResponseWorkingDaysQuantity")
+                    ,col("metInterimResponseFlag").alias("customerServiceRequestMetInterimResponseIndicator")
+                    ,col("CreatedDateTime").alias("customerServiceRequestCreatedTimestamp")
+                    ,col("CreatedBy").alias("customerServiceRequestCreatedByUserId")
+                    ,coalesce(col("createdByName"), col("CreatedBy")).alias("customerServiceRequestCreatedByUserName")
+                    ,col("lastChangedDateTime").alias("customerServiceRequestSnapshotTimestamp")
+                    ,col("lastChangedDateTime").alias("customerServiceRequestLastChangeTimestamp")
+                    ,col("changedBy").alias("customerServiceRequestChangedByUserId")
+                    ,coalesce(col("changedByName"), col("changedBy")).alias("customerServiceRequestChangedByUserName")
+                    ,col("_change_type")
+                    )
+    )
+    finaldf = finalCRMDF #.unionByName(finalMAXDF) 
+    if not isDeltaLoad:
+        enableCDF(f"{getEnv()}curated.fact.customerservicerequest")
+    SaveWithCDF(finalCRMDF, 'APPEND')
+    busDF.unpersist()
 
 # COMMAND ----------
 
@@ -710,17 +716,6 @@ finalMAXDF = ((df2.alias("core")
 
 # COMMAND ----------
 
-finaldf = finalCRMDF #.unionByName(finalMAXDF) 
-
-# COMMAND ----------
-
-if not isDeltaLoad:
-    enableCDF(f"{getEnv()}curated.fact.customerservicerequest")
-SaveWithCDF(finalCRMDF, 'APPEND')
-busDF.unpersist()
-
-# COMMAND ----------
-
 def Transform():
     global df    
     df = finalMAXDF
@@ -731,7 +726,3 @@ def Transform():
     #CleanSelf()    
     Save(df)
 Transform()
-
-# COMMAND ----------
-
-
