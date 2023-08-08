@@ -7,6 +7,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ../Views/viewAggregatedComponentsConfiguration_UC2
+
+# COMMAND ----------
+
 DEFAULT_TARGET = 'curated'
 
 # COMMAND ----------
