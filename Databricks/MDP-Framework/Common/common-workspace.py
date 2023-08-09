@@ -846,7 +846,7 @@ def TransferObjectOwner(objectType, objectId):
 
 def ListJobs():
     headers = GetAuthenticationHeader()
-    url = f"{INSTANCE_NAME}/api/2.1/jobs/list"
+    url = f"{INSTANCE_NAME}/api/2.1/jobs/list?limit=100"
     response = requests.get(url, headers=headers)
     return response.json()
 
