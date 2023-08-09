@@ -15,10 +15,10 @@ else:
     #####CDF for eligible tables#####################
     isDeltaLoad = True
     derivedDF1 = getSourceCDF(driverTable1, None, False)
-    derivedDF1.createOrReplaceTempView("derivedDF1Table") 
-    if derivedDF1.count() == 0:
-        print("No delta to be  processed")
-        #dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}") 
+derivedDF1.createOrReplaceTempView("derivedDF1Table") 
+if derivedDF1.count() == 0:
+    print("No delta to be  processed")
+    #dbutils.notebook.exit(f"no CDF to process for table for source {driverTable1} and {driverTable2} -- Destination {_.Destination}") 
 
 # COMMAND ----------
 
