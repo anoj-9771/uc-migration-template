@@ -27,6 +27,7 @@ def AddTransform(df, clean = True):
             ,Command
             ,Dependancies
             ,ParallelGroup
+            ,ExtendedProperties
             ,Enabled
             ,CreatedDTS
         ) VALUES(
@@ -38,6 +39,7 @@ def AddTransform(df, clean = True):
             ,NULLIF('{i.Command}','')
             ,NULLIF('{i.ExternalDependency}','')
             ,{i.ParallelGroup}
+            ,NULLIF('{i.ExtendedProperties}','')            
             ,{i.Enabled}
             ,CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time')
         )
@@ -157,6 +159,15 @@ df = df.selectExpr(
     ,'ExternalDependency'
     ,'ParallelGroup'
     ,'Enabled'
+)
+
+# Transforms that runs once a month
+tables = [53,54,55,56,57,58,59,60]
+df = (
+    df.withColumn('ExtendedProperties', when(df.TransformID.isin(tables)
+                                        ,lit('"runDayOfMonth" : 3'))  
+                                        )
+      .withColumn('ExtendedProperties', expr('if(ExtendedProperties<>"","{"||ExtendedProperties ||"}","")')) 
 )
 
 df.display()

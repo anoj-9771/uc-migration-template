@@ -7,6 +7,7 @@ CREATE TABLE [dbo].[TransformManifest] (
     [Command]              NVARCHAR (200) NOT NULL,
     [Dependancies]         NVARCHAR (50)  NULL,
     [ParallelGroup]        INT            NOT NULL,
+    [ExtendedProperties]   NVARCHAR (MAX) NULL,    
     [Enabled]              BIT            NOT NULL,
     [CreatedDTS]           DATETIME       NOT NULL
 );

@@ -16,7 +16,11 @@ BEGIN
 	,M.[TransformID]
 	,CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time') [CreatedDTS]
 	FROM [dbo].[TransformManifest] M
-	WHERE M.[Enabled] = 1
+	WHERE M.[Enabled] = 1 
+	  AND (JSON_VALUE([ExtendedProperties],'$.runDayOfMonth') IS NULL
+	    OR JSON_VALUE([ExtendedProperties],'$.runDayOfMonth') 
+			= DAY(CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))		
+	  )
 END
 
 BEGIN
