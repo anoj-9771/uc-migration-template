@@ -862,7 +862,7 @@ def CreateJob(template):
 
 def EditJob(template):
     headers = GetAuthenticationHeader()
-    url = f'{INSTANCE_NAME}/api/2.1/jobs/update'
+    url = f'{INSTANCE_NAME}/api/2.1/jobs/reset'
     response = requests.post(url, json=template, headers=headers)
     return response.json()
 
