@@ -30,6 +30,12 @@ UNION
 SELECT  'SCAPTTXT'  SourceTableName, 'crmref/SCAPTTXT'  SourceQuery,  * FROM _Base
 UNION
 SELECT  'CRMC_ERMS_CAT_CD'  SourceTableName, 'crmref/CRMC_ERMS_CAT_CD'  SourceQuery,  * FROM _Base
+UNION
+SELECT  'CRMC_ERMS_CAT_LN'  SourceTableName, 'crmref/CRMC_ERMS_CAT_LN'  SourceQuery,  * FROM _Base
+UNION
+SELECT  'CRMC_ERMS_CAT_OK'  SourceTableName, 'crmref/CRMC_ERMS_CAT_OK'  SourceQuery,  * FROM _Base
+UNION
+SELECT  'CRMC_QPCT'  SourceTableName, 'crmref/CRMC_QPCT'  SourceQuery,  * FROM _Base
     UNION
     (
     WITH _Base AS 
@@ -183,6 +189,9 @@ when 'CRMD_ORDERADM_I' then  'objectGUID'
 when 'CRM_JEST' then  'objectNumber,statusCode'
 when 'CRMC_ERMS_CAT_CD' then  'categroyGUID'
 when 'CRMD_ORDER_INDEX' then  'orderGUID'
+when 'CRMC_ERMS_CAT_LN' then  'keyGUID'
+when 'CRMC_ERMS_CAT_OK' then  'objectGUID'
+when 'CRMC_QPCT' then  'catalog,catalogCodeGroup,catalogCode'
 else businessKeyColumn
 end
 where systemCode in ('crmref','crmdata','sltcrmdata')
