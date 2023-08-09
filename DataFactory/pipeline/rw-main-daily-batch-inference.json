@@ -627,7 +627,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/list",
+					"url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/list?limit=100",
 					"method": "GET",
 					"headers": {
 						"Authorization": {
