@@ -870,7 +870,11 @@ def EditJob(template):
 
 def CreateOrEditJob(template):
     template["run_as"]["service_principal_name"] = GetServicePrincipalId()
-    jobs = [i for i in ListJobs()["jobs"] if i["settings"]["name"] == template["name"]]
+    jobs = ListJobs()
+    if jobs.get("jobs") is None:
+        return CreateJob(template)
+
+    jobs = [i for i in jobs["jobs"] if i["settings"]["name"] == template["name"]]
     
     if len(jobs) == 0:
         return CreateJob(template)
