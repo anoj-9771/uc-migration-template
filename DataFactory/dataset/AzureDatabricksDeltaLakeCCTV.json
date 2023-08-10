@@ -1,0 +1,33 @@
+{
+	"name": "AzureDatabricksDeltaLakeCCTV",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_DeltaLake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Database": {
+				"type": "string"
+			},
+			"Table": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "AI-ML/Sewer CCTV"
+		},
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLakeDataset",
+		"typeProperties": {
+			"database": {
+				"value": "@dataset().Database",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().Table",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	}
+}
