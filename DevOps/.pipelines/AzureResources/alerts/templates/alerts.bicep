@@ -3,6 +3,7 @@ param program string
 param dataFactoryName string
 param emailForAlerts string
 param enableAlerts bool
+param SQLAlertsActionGroup string
 
 var increment = 1
 var incrementStr = padLeft(increment, 2, '0')
@@ -109,10 +110,166 @@ resource environment_alert_pr_suppress 'Microsoft.AlertsManagement/actionRules@2
         ]
       }
     ]
-    enabled: true
+    enabled: enableAlerts
     actions: [
       {
         actionType: 'RemoveAllActionGroups'
+      }
+    ]
+  }
+}
+
+resource Alert_for_SQL_DTU_consumption_in_resource_group_name 'microsoft.insights/metricAlerts@2018-03-01' = {
+  name: 'Alert for SQL DTU consumption in resource group ${resourceGroup().name}'
+  location: 'global'
+  properties: {
+    description: 'Alert for SQL Database DTU consumption'
+    severity: 2
+    enabled: enableAlerts
+    scopes: [
+      resourceGroup().id
+    ]
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    criteria: {
+      allOf: [
+        {
+          threshold: 80
+          name: 'sql-dtu-consumption-percentage'
+          metricNamespace: 'Microsoft.Sql/servers/databases'
+          metricName: 'dtu_consumption_percent'
+          operator: 'GreaterThan'
+          timeAggregation: 'Average'
+          criterionType: 'StaticThresholdCriterion'
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria'
+    }
+    autoMitigate: true
+    targetResourceType: 'Microsoft.Sql/servers/databases'
+    targetResourceRegion: resourceGroup().location
+    actions: [
+      {
+        actionGroupId: SQLAlertsActionGroup
+        webHookProperties: {
+        }
+      }
+    ]
+  }
+}
+
+resource Alert_for_SQL_CPU_utilisation_in_resource_group_name 'microsoft.insights/metricAlerts@2018-03-01' = {
+  name: 'Alert for SQL CPU utilisation in resource group ${resourceGroup().name}'
+  location: 'global'
+  properties: {
+    description: 'Alert for SQL Database CPU utilisation'
+    severity: 2
+    enabled: enableAlerts
+    scopes: [
+      resourceGroup().id
+    ]
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    criteria: {
+      allOf: [
+        {
+          threshold: 80
+          name: 'sql-cpu-percentage'
+          metricNamespace: 'Microsoft.Sql/servers/databases'
+          metricName: 'cpu_percent'
+          operator: 'GreaterThan'
+          timeAggregation: 'Average'
+          criterionType: 'StaticThresholdCriterion'
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria'
+    }
+    autoMitigate: true
+    targetResourceType: 'Microsoft.Sql/servers/databases'
+    targetResourceRegion: resourceGroup().location
+    actions: [
+      {
+        actionGroupId: SQLAlertsActionGroup
+        webHookProperties: {
+        }
+      }
+    ]
+  }
+}
+
+resource Alert_for_SQL_storage_utilisation_in_resource_group_name 'microsoft.insights/metricAlerts@2018-03-01' = {
+  name: 'Alert for SQL storage utilisation in resource group ${resourceGroup().name}'
+  location: 'global'
+  properties: {
+    description: 'Alert for SQL Database storage utilisation'
+    severity: 2
+    enabled: enableAlerts
+    scopes: [
+      resourceGroup().id
+    ]
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    criteria: {
+      allOf: [
+        {
+          threshold: 90
+          name: 'storage-percentage'
+          metricNamespace: 'Microsoft.Sql/servers/databases'
+          metricName: 'storage_percent'
+          operator: 'GreaterThan'
+          timeAggregation: 'Maximum'
+          criterionType: 'StaticThresholdCriterion'
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria'
+    }
+    autoMitigate: true
+    targetResourceType: 'Microsoft.Sql/servers/databases'
+    targetResourceRegion: resourceGroup().location
+    actions: [
+      {
+        actionGroupId: SQLAlertsActionGroup
+        webHookProperties: {
+        }
+      }
+    ]
+  }
+}
+
+resource Alert_for_SQL_log_IO_utilisation_in_resource_group_name 'microsoft.insights/metricAlerts@2018-03-01' = {
+  name: 'Alert for SQL log IO utilisation in resource group ${resourceGroup().name}'
+  location: 'global'
+  properties: {
+    description: 'Alert for SQL Database log IO utilisation'
+    severity: 2
+    enabled: enableAlerts
+    scopes: [
+      resourceGroup().id
+    ]
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    criteria: {
+      allOf: [
+        {
+          threshold: 80
+          name: 'log-write-percentage'
+          metricNamespace: 'Microsoft.Sql/servers/databases'
+          metricName: 'log_write_percent'
+          operator: 'GreaterThan'
+          timeAggregation: 'Average'
+          criterionType: 'StaticThresholdCriterion'
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria'
+    }
+    autoMitigate: true
+    targetResourceType: 'Microsoft.Sql/servers/databases'
+    targetResourceRegion: resourceGroup().location
+    actions: [
+      {
+        actionGroupId: SQLAlertsActionGroup
+        webHookProperties: {
+        }
       }
     ]
   }

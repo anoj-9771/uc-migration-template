@@ -45,7 +45,7 @@ stages:
                   location: $(location)
                   templateLocation: 'Linked artifact'
                   csmFile: '$(DevOpsDirectory)/alerts/templates/alerts.bicep'
-                  overrideParameters: '-environment ${{parameters.environment}} -program $(program) -dataFactoryName $(dataFactoryName) -emailForAlerts $(emailForAlerts) -enableAlerts $(enableAlerts)'
+                  overrideParameters: '-environment ${{parameters.environment}} -program $(program) -dataFactoryName $(dataFactoryName) -emailForAlerts $(emailForAlerts) -enableAlerts $(enableAlerts) -SQLAlertsActionGroup $(SQLAlertsActionGroup)'
                   deploymentMode: 'Incremental'
                   deploymentOutputs: 'armOutputs'
 - stage: 'Deploy_Logic_App_Send_Email'
