@@ -1,33 +1,38 @@
 # Databricks notebook source
+# MAGIC %run ../common-rbac
+
+# COMMAND ----------
+
 RBAC_UC2 = [
-    {
-        "Name" : "L1-Official"
-        ,"Level" : 1
-        ,"OtherCommands" : [
-        ]
-        ,"TableFilter" : [
-        ]
-        ,"Users" : []
-        ,"AADGroups" : [ "cleansed-official" ]
-    },
     {
         "Name" : "L2-Sensitive"
         ,"Level" : 2
         ,"ParentGroup" : "L1-Official"
         ,"TableFilter" : [
-            "cleansed.sharepointlist_demandcalculationadjustment"
-            ,"curated_v3.factAssetDemandValue"
-            ,"curated_v3.factDemand"
-            ,"curated_v3.viewDemandWaterNetwork"
-            ,"curated_v3.viewFactWaterNetworkDemand"
-            ,"curated_v3.viewSystemExportVolume"
-            ,"curated_v3.viewSWCDemand"
-            ,"curated_v3.viewManualDemand"
+            "cleansed.sharepointlistedp.demandcalculationadjustment"
         ]
         ,"Users" : []
         ,"AADGroups" : [ "cleansed-sensitive" ]
+    },
+    {
+        "Name" : "UC2-UAT"
+        ,"TableFilter" : [
+            "curated.fact.assetdemandvalue"
+            ,"curated.fact.demand"
+            ,"curated.fact.stoppedmeteraggregate"
+            ,"curated.fact.stoppedmeteraggregate"
+            ,"curated.fact.stoppedmeterconsumption"
+            ,"curated.fact.consumptionaggregate"
+            ,"curated.fact.unmeteredconsumption"
+            ,"curated.water_balance.unmeteredconsumptionpropertytype"
+            ,"curated.water_balance.unmeteredconsumptionsystemlevel"
+            ,"curated.water_balance.unmeteredconsumptionwaternetwork"
+        ]
+        ,"Users" : []
+        ,"AADGroups" : []
     }
 ]
+GenerateRbacCommands(RBAC_UC2)
 
 # COMMAND ----------
 
