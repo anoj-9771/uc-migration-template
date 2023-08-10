@@ -19,6 +19,7 @@ df_image_classifications = (spark.table("stage.cctv_ai_image_classifications")
                             .where(psf.col("video_id") == _VIDEO_ID)
                             .where(psf.col("confidence") >= 0.75)
                             .where(psf.col("defect") != "No Defect") #remove the 'No Defect' classification
+                            .where(psf.col("defect") != "Joint Displaced Radially") #remove the 'Joint Displaced Radially' classification
                             .withColumn("timestamp_diff", 
                                          (psf.col("timestamp") - psf.lag(psf.col("timestamp"),1).over(w_video))
                                         )
