@@ -122,21 +122,30 @@ WriteTable(df_dbo_scctv_group_ai_identified_defects_bkp, "dbo.scctv_group_ai_ide
 
 # COMMAND ----------
 
-df_dbo_scctv_group_ai_identified_defects = RunQuery(
-       f"""
-        SELECT
-        video_id,
-        defect,
-        avg_probability,
-        CASE WHEN defect = 'Joint Displaced Radially' THEN 0 ELSE score END AS score,
-        start_timestamp,
-        end_timestamp,
-        start_distance_m,
-        end_distance_m
-        FROM  dbo.scctv_group_ai_identified_defects_bkp
-       """
+# df_dbo_scctv_group_ai_identified_defects = RunQuery(
+#        f"""
+#         SELECT
+#         video_id,
+#         defect,
+#         avg_probability,
+#         CASE WHEN defect = 'Joint Displaced Radially' THEN 0 ELSE score END AS score,
+#         start_timestamp,
+#         end_timestamp,
+#         start_distance_m,
+#         end_distance_m
+#         FROM  dbo.scctv_group_ai_identified_defects_bkp
+#        """
+# )
+# WriteTable(df_dbo_scctv_group_ai_identified_defects, "dbo.scctv_group_ai_identified_defects", "overwrite")
+
+# COMMAND ----------
+
+ExecuteStatement(f"""
+    update dbo.scctv_group_ai_identified_defects 
+    set score = 0 where 
+    defect like 'Joint Displaced Radially'
+    """
 )
-WriteTable(df_dbo_scctv_group_ai_identified_defects, "dbo.scctv_group_ai_identified_defects", "overwrite")
 
 # COMMAND ----------
 
@@ -153,25 +162,34 @@ WriteTable(df_cctvportal_video_ai_identified_defect_bkp, "cctvportal.video_ai_id
 
 # COMMAND ----------
 
-df_cctvportal_video_ai_identified_defect = RunQuery(
-       f"""
-        SELECT
-            ID,
-            VIDEO_ID,
-            DEFECT,
-            AVG_PROBABILITY,
-            CASE WHEN DEFECT = 'Joint Displaced Radially' THEN NULL ELSE SCORE END AS SCORE,
-            START_TIME,
-            END_TIME,
-            START_DISTANCE,
-            END_DISTANCE,
-            OUTCOME_CLASSIFICATION,
-            DEFECT_SUGGESTED,
-            START_TIME_SUGGESTED,
-            END_TIME_SUGGESTED,
-            CREATED_TIMESTAMP,
-            UPDATED_TIMESTAMP
-        FROM  cctvportal.video_ai_identified_defect_bkp
-       """
+# df_cctvportal_video_ai_identified_defect = RunQuery(
+#        f"""
+#         SELECT
+#             ID,
+#             VIDEO_ID,
+#             DEFECT,
+#             AVG_PROBABILITY,
+#             CASE WHEN DEFECT = 'Joint Displaced Radially' THEN NULL ELSE SCORE END AS SCORE,
+#             START_TIME,
+#             END_TIME,
+#             START_DISTANCE,
+#             END_DISTANCE,
+#             OUTCOME_CLASSIFICATION,
+#             DEFECT_SUGGESTED,
+#             START_TIME_SUGGESTED,
+#             END_TIME_SUGGESTED,
+#             CREATED_TIMESTAMP,
+#             UPDATED_TIMESTAMP
+#         FROM  cctvportal.video_ai_identified_defect_bkp
+#        """
+# )
+# WriteTable(df_cctvportal_video_ai_identified_defect, "cctvportal.video_ai_identified_defect", "overwrite")
+
+# COMMAND ----------
+
+ExecuteStatement(f"""
+    update CCTVPortal.VIDEO_AI_IDENTIFIED_DEFECT 
+    set SCORE = NULL 
+    where DEFECT like 'Joint Displaced Radially';
+    """
 )
-WriteTable(df_cctvportal_video_ai_identified_defect, "cctvportal.video_ai_identified_defect", "overwrite")
