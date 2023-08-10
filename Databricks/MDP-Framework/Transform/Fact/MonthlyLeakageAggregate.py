@@ -299,8 +299,8 @@ JOIN supply_apportioned_consumption sac
   ) 
 LEFT OUTER JOIN unmeteredconnected connected
    ON  ( d.networkTypeCode = connected.networkTypeCode
-    and d.yearNumber = connected.yearNumber
-    and d.monthNumber = connected.monthNumber
+    -- and d.yearNumber = connected.yearNumber
+    -- and d.monthNumber = connected.monthNumber
     and (d.SWCAggregated = connected.SWCAggregated and d.networkTypeCode = 'SWC'
       or (d.deliverySystem = connected.deliverySystem and d.networkTypeCode in ('Delivery System','Delivery System Combined'))
       or (d.supplyZone = connected.supplyZone and d.networkTypeCode = 'Supply Zone')
@@ -308,8 +308,8 @@ LEFT OUTER JOIN unmeteredconnected connected
   )
 LEFT OUTER JOIN unmeteredconstruction construction
    ON  ( d.networkTypeCode = construction.networkTypeCode
-    and d.yearNumber = construction.yearNumber
-    and d.monthNumber = construction.monthNumber
+    -- and d.yearNumber = construction.yearNumber
+    -- and d.monthNumber = construction.monthNumber
     and (d.SWCAggregated = construction.SWCAggregated and d.networkTypeCode = 'SWC'
       or (d.deliverySystem = construction.deliverySystem and d.networkTypeCode in ('Delivery System','Delivery System Combined'))
       or (d.supplyZone = construction.supplyZone and d.networkTypeCode = 'Supply Zone')

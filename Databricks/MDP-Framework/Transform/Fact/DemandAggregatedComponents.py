@@ -132,7 +132,7 @@ def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointCo
         .withColumn("metricTypeName",lit('unmeteredSTPs')) \
         .withColumn("metricValueNumber",lit(sharepointConfig_df.metricValueNumber)) \
         .withColumn("networkTypeCode",lit('Pressure Area')) 
-    unmeteredSTPs = unmeteredSTPs.join(waternetwork_df,(unmeteredSTPs.zoneName == waternetwork_df.waternetwork_pressureArea),"inner") 
+    unmeteredSTPs = unmeteredSTPs.join(waternetwork_df,(unmeteredSTPs.zoneName == waternetwork_df.waternetwork_pressureArea) & (col("_RecordCurrent") == '1'),"inner") 
 
     unmeteredSTPsSupplyZone = unmeteredSTPs.groupBy("waternetwork_deliverySystem","waternetwork_distributionSystem","waternetwork_supplyZone").agg(sum('metricValueNumber').alias('metricValueNumber')) \
         .withColumn("metricTypeName",lit('unmeteredSTPs')) \
@@ -240,8 +240,8 @@ def Transform():
     device_df = GetTable(f"{get_env()}curated.water_consumption.viewdevice") \
     .select(col("installationNumber").alias("device_installationNumber"),"deviceSize","functionClassCode","deviceID").filter("functionClassCode in ('1000')").filter("currentFlag = 'Y'").filter("deviceSize >= 40")
 
-    waternetwork_df = GetTable(f"{get_env()}curated.dim.waternetwork").filter("ispotablewaternetwork = 'Y'").filter("`_RecordCurrent` = 1") \
-        .select(col("deliverySystem").alias("waternetwork_deliverySystem"),col("distributionSystem").alias("waternetwork_distributionSystem"),col("supplyZone").alias("waternetwork_supplyZone"),col("pressureArea").alias("waternetwork_pressureArea"),"waterNetworkSK")
+    waternetwork_df = GetTable(f"{get_env()}curated.dim.waternetwork") \
+        .select(col("deliverySystem").alias("waternetwork_deliverySystem"),col("distributionSystem").alias("waternetwork_distributionSystem"),col("supplyZone").alias("waternetwork_supplyZone"),col("pressureArea").alias("waternetwork_pressureArea"),"waterNetworkSK","_RecordCurrent")
     
     date_df = spark.sql(f"""
                         select distinct monthstartdate,year(monthstartdate) as yearnumber,month(monthstartdate) as monthnumber, date_format(monthStartDate,'MMM') as monthname 
