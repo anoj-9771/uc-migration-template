@@ -20,6 +20,14 @@ defaultTransformTags = {
     ,"str-dd/MM/yyyy-HH-mm-to-timestamp" : "to_timestamp(right(concat('0',split($c$,' ' )[0]),10)||' '||right(concat('0',split($c$,' ' )[1]),5),'dd/MM/yyyy HH:mm')"
     ,"str-dd/MM/yyyy-HH-mm-ss-to-timestamp" : "to_timestamp($c$,'dd/MM/yyyy HH:mm:ss')"
     ,"str-yyyy.mm.dd hh:mm:ss-to-datetime" : "to_timestamp(substring($c$,1,4)||'-'||substring($c$,6,2)||'-'||substring($c$,9,2)||' '||substring($c$,12,2)||':'||substring($c$,15,2)||':'||substring($c$,18,2))"
+    ,"qualtrics-junk-date-to-timestamp" : """
+    CASE 
+        WHEN LEN($c$) <= 10 AND $c$ like '%-%' THEN to_timestamp(right(concat('0',$c$),9),'dd-MMM-yy')
+        WHEN LEN($c$) <= 9 AND $c$ like '%/%' THEN to_timestamp('0'||$c$,'dd/MM/yyyy')
+        WHEN LEN($c$) <= 10 AND $c$ like '%/%' THEN to_timestamp($c$,'dd/MM/yyyy')
+        ELSE to_timestamp(right(concat('0',split($c$,' ' )[0]),10)||' '||right(concat('0',split($c$,' ' )[1]),5),'dd/MM/yyyy HH:mm') 
+    END
+    """
     ,"flag-x-yes-no" : "case WHEN $c$='X' then 'Y' Else 'N' end "
     ,"flag-x-true-false" : "case WHEN $c$='X' then 'T' Else 'F' end "
     ,"flag-TorF-yes-no" : "case when $c$='T' then 'Y'   when $c$='F' then 'N'  end "
