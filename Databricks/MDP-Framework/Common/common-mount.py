@@ -5,7 +5,7 @@ def MountExists(containerName):
 # COMMAND ----------
 
 #TODO: BELOW IS DEPRECATED, DO THIS INSTEAD => https://learn.microsoft.com/en-us/azure/databricks/security/credential-passthrough/adls-passthrough#python-3
-def MountContainer(containerName, storageSecretName="daf-lake-fqn", createDatabase=True):
+def MountContainer(containerName, storageSecretName="daf-lake-fqn"):
     if MountExists(containerName):
         return
     SECRET_SCOPE = "ADS"
@@ -25,9 +25,22 @@ def MountContainer(containerName, storageSecretName="daf-lake-fqn", createDataba
         source = DATA_LAKE_SOURCE,
         mount_point = MOUNT_POINT,
         extra_configs = configs)
-    
-    if createDatabase:
-        spark.sql(f"CREATE DATABASE {containerName}")
+
+# COMMAND ----------
+
+def MountBlobContainer(containerName, storageSecretName="daf-blob-fqn"):
+    if MountExists(containerName):
+        return
+    ADS_KV_ACCOUNT_SCOPE  = "ADS"
+    dlFqn = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = storageSecretName)
+    EXTRA_CONFIG = {f"fs.azure.sas.{containerName}.{dlFqn}":dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = "daf-sa-blob-sastoken")}
+
+    DATA_LAKE_SOURCE = f"wasbs://{containerName}@{dlFqn}/"
+    MOUNT_POINT = f"/mnt/blob-{containerName}"
+    dbutils.fs.mount(
+        source = DATA_LAKE_SOURCE,
+        mount_point = MOUNT_POINT,
+        extra_configs = EXTRA_CONFIG)
 
 # COMMAND ----------
 
