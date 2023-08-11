@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"url": {
-						"value": "@concat('https://', pipeline().globalParameters.keyVaultName, '.vault.azure.net/secrets/databricks-token?api-version=7.0')",
+						"value": "@concat('https://', pipeline().globalParameters.keyVaultName, '.vault.azure.net/secrets/edp-databricks-02-token?api-version=7.0')",
 						"type": "Expression"
 					},
 					"method": "GET",
@@ -55,12 +55,6 @@
 				"type": "WebActivity",
 				"dependsOn": [
 					{
-						"activity": "set-job-pool-id",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
 						"activity": "if-jobs-exist",
 						"dependencyConditions": [
 							"Succeeded"
@@ -88,7 +82,14 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/run-now",
+					"url": {
+						"value": "@concat(variables('PoolUrl'), '/api/2.0/jobs/run-now')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+						"type": "IntegrationRuntimeReference"
+					},
 					"method": "POST",
 					"headers": {
 						"Authorization": {
@@ -156,6 +157,10 @@
 						"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id=', activity('get-job-id-last-task').output.Value[0].run_id)",
 						"type": "Expression"
 					},
+					"connectVia": {
+						"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+						"type": "IntegrationRuntimeReference"
+					},
 					"method": "GET",
 					"headers": {
 						"Authorization": {
@@ -186,8 +191,12 @@
 				"userProperties": [],
 				"typeProperties": {
 					"url": {
-						"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get?run_id=', activity('run-databricks-job').output.run_id,'&active_only=true&expand_tasks=true')",
+						"value": "@concat(variables('PoolUrl'),'/api/2.1/jobs/runs/get?run_id=', activity('run-databricks-job').output.run_id,'&active_only=true&expand_tasks=true')",
 						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+						"type": "IntegrationRuntimeReference"
 					},
 					"method": "GET",
 					"headers": {
@@ -392,14 +401,15 @@
 					"referenceName": "LS_AzureDatabricks_InstancePool",
 					"type": "LinkedServiceReference",
 					"parameters": {
-						"kvSecret": "databricks-token",
+						"kvSecretNameToken": "edp-databricks-02-token",
 						"PoolId": {
 							"value": "@variables('JobPoolId')",
 							"type": "Expression"
 						},
 						"DatabricksVersion": "12.2.x-cpu-ml-scala2.12",
 						"newClusterNumOfWorker": "1:4",
-						"ProductTag": "Riverwatch"
+						"ProductTag": "Riverwatch",
+						"kvSecretNameUrl": "edp-databricks-02-url"
 					}
 				}
 			},
@@ -522,6 +532,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "set-url-variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"policy": {
@@ -533,7 +549,14 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"url": "https://australiaeast.azuredatabricks.net/api/2.0/instance-pools/list",
+					"url": {
+						"value": "@concat(variables('PoolUrl'), '/api/2.0/instance-pools/list')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+						"type": "IntegrationRuntimeReference"
+					},
 					"method": "GET",
 					"headers": {
 						"Authorization": {
@@ -616,6 +639,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "set-url-variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"policy": {
@@ -627,7 +656,14 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/list?limit=100",
+					"url": {
+						"value": "@concat(variables('PoolUrl'), '/api/2.0/jobs/list?limit=100')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+						"type": "IntegrationRuntimeReference"
+					},
 					"method": "GET",
 					"headers": {
 						"Authorization": {
@@ -724,7 +760,14 @@
 			{
 				"name": "Ingest Beachwatch BoM and IICATS Data",
 				"type": "ExecutePipeline",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Execute external_cleansed_table_reset",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -786,6 +829,92 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "get-url",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat('https://', pipeline().globalParameters.keyVaultName, '.vault.azure.net/secrets/edp-databricks-02-url?api-version=7.0')",
+						"type": "Expression"
+					},
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "set-url-variable",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get-url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "PoolUrl",
+					"value": {
+						"value": "@activity('get-url').output.value",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Execute external_cleansed_table_reset",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "set-job-pool-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/AI-ML/Riverwatch/external_cleansed_table_reset"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatabricks_InstancePool",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecretNameToken": "edp-databricks-02-token",
+						"PoolId": {
+							"value": "@variables('JobPoolId')",
+							"type": "Expression"
+						},
+						"DatabricksVersion": "12.2.x-cpu-ml-scala2.12",
+						"newClusterNumOfWorker": "1:4",
+						"ProductTag": "Riverwatch",
+						"kvSecretNameUrl": "databricks-domain"
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -833,6 +962,12 @@
 				"type": "String"
 			},
 			"JobPoolId": {
+				"type": "String"
+			},
+			"PoolUrl": {
+				"type": "String"
+			},
+			"PoolUrl2": {
 				"type": "String"
 			}
 		},

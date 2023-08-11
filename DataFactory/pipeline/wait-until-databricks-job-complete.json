@@ -9,14 +9,21 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@or(equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'TERMINATED'), or(equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'SKIPPED'),equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'INTERNAL_ERROR')))",
+						"value": "@or(equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'TERMINATED'), or(equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'SKIPPED'),or(equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'INTERNAL_ERROR'),equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'BLOCKED'))))",
 						"type": "Expression"
 					},
 					"activities": [
 						{
 							"name": "check-job-status-register-model",
 							"type": "WebActivity",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "set-url-variable",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"policy": {
 								"timeout": "0.12:00:00",
 								"retry": 0,
@@ -27,8 +34,12 @@
 							"userProperties": [],
 							"typeProperties": {
 								"url": {
-									"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id=', pipeline().parameters.RunID)",
+									"value": "@concat(variables('PoolUrl'),'/api/2.1/jobs/runs/get-output?run_id=', pipeline().parameters.RunID)",
 									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+									"type": "IntegrationRuntimeReference"
 								},
 								"method": "GET",
 								"headers": {
@@ -54,6 +65,54 @@
 							"typeProperties": {
 								"waitTimeInSeconds": 15
 							}
+						},
+						{
+							"name": "get-url",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "@concat('https://', pipeline().globalParameters.keyVaultName, '.vault.azure.net/secrets/edp-databricks-02-url?api-version=7.0')",
+									"type": "Expression"
+								},
+								"method": "GET",
+								"authentication": {
+									"type": "MSI",
+									"resource": "https://vault.azure.net"
+								}
+							}
+						},
+						{
+							"name": "set-url-variable",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "get-url",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "PoolUrl",
+								"value": {
+									"value": "@activity('get-url').output.value",
+									"type": "Expression"
+								}
+							}
 						}
 					],
 					"timeout": "0.12:00:00"
@@ -77,10 +136,13 @@
 			},
 			"sewer-cctv-pipeline-run-id": {
 				"type": "String"
+			},
+			"PoolUrl": {
+				"type": "String"
 			}
 		},
 		"folder": {
-			"name": "AI-ML"
+			"name": "AI-ML/Riverwatch"
 		},
 		"annotations": [],
 		"lastPublishTime": "2022-09-19T01:00:40Z"
