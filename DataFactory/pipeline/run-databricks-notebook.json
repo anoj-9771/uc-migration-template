@@ -312,7 +312,7 @@
 								"referenceName": "LS_AzureDatabricks_InstancePool",
 								"type": "LinkedServiceReference",
 								"parameters": {
-									"kvSecret": "databricks-token",
+									"kvSecretNameToken": "databricks-token",
 									"PoolId": {
 										"value": "@variables('InstancePoolId')",
 										"type": "Expression"
@@ -320,7 +320,7 @@
 									"DatabricksVersion": "12.2.x-scala2.12",
 									"newClusterNumOfWorker": "1:4",
 									"ProductTag": "Framework ETL 2.0",
-									"databricksUrl": "https://australiaeast.azuredatabricks.net"
+									"kvSecretNameUrl": "databricks-domain"
 								}
 							}
 						},
@@ -432,12 +432,12 @@
 								"referenceName": "LS-AzureDatabricks_DefinedCluster",
 								"type": "LinkedServiceReference",
 								"parameters": {
-									"kvSecret": "databricks-token",
+									"kvSecretNameToken": "databricks-token",
 									"clusterId": {
 										"value": "@variables('ClusterId')",
 										"type": "Expression"
 									},
-									"databricksUrl": "https://australiaeast.azuredatabricks.net"
+									"kvSecretNameUrl": "databricks-domain"
 								}
 							}
 						},

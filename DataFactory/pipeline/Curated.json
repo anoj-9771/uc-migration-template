@@ -58,12 +58,15 @@
 										"referenceName": "LS_AzureDatabricks_InstancePool",
 										"type": "LinkedServiceReference",
 										"parameters": {
-											"kvSecret": "databricks-token",
+											"kvSecretNameToken": "databricks-token",
 											"PoolId": {
 												"value": "@activity('get-default-pool-id').output.value",
 												"type": "Expression"
 											},
-											"newClusterNumOfWorker": "1:4"
+											"DatabricksVersion": "12.2.x-scala2.12",
+											"newClusterNumOfWorker": "1:4",
+											"ProductTag": "Framework ETL 2.0",
+											"kvSecretNameUrl": "databricks-domain"
 										}
 									}
 								},
@@ -110,6 +113,10 @@
 											]
 										}
 									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"variableName": "RunOutputProperties",
@@ -191,6 +198,10 @@
 											]
 										}
 									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"variableName": "RunOutputProperties",
