@@ -99,7 +99,9 @@ REQUIRED_DATES as
                 min(measurementResultAESTDateTime)::DATE
         ) minDate
         , nvl2(max(measurementResultAESTDateTime)::DATE,least(max(measurementResultAESTDateTime)::DATE,current_date()-1),null) maxDate
-        From {get_table_namespace(SOURCE, 'iicats_tsv')}
+        -- From {get_table_namespace(SOURCE, 'iicats_tsv')}
+        FROM {get_env()}cleansed.iicats.tsvcombined T
+        WHERE measurementResultAESTDateTime >= '2019-01-01 00:00:00'
   )
   WHERE minDate <= maxDate
 ),
@@ -187,10 +189,12 @@ TSV as
 				 ,T.opcQualityIndicator
 				 ,T.badOrSuspectIndicator
 				 ,T.maintenanceIndicator         
-	       ,Row_Number () over ( partition BY objectInternalId,measurementResultAESTDateTime,statisticTypeCd,timeBaseCd,sourceRecordUpsertLogic ORDER BY sourceRecordCreationDateTime desc ) AS ROW_NO
+	    --    ,Row_Number () over ( partition BY objectInternalId,measurementResultAESTDateTime,statisticTypeCd,timeBaseCd,sourceRecordUpsertLogic ORDER BY sourceRecordCreationDateTime desc ) AS ROW_NO
+	       ,Row_Number () over ( partition BY objectInternalId,measurementResultAESTDateTime,statisticTypeCd,timeBaseCd ORDER BY sourceRecordCreationDateTime desc ) AS ROW_NO        
         --Temporary for Nov data. Uncomment when generating march, and apr data
         -- ,Row_Number () over ( partition BY objectInternalId,from_utc_timestamp(to_utc_timestamp(T.measurementResultAESTDateTime, 'Australia/Sydney'), 'UTC+10'),statisticTypeCd,timeBaseCd,sourceRecordUpsertLogic ORDER BY sourceRecordCreationDateTime desc ) AS ROW_NO
-	FROM {get_table_namespace(SOURCE, 'iicats_tsv')} T
+	-- FROM {get_table_namespace(SOURCE, 'iicats_tsv')} T
+    FROM {get_env()}cleansed.iicats.tsvcombined T
   --Using clone for testing
   -- FROM default.iicats_tsv_clone T
 	-- WHERE measurementResultAESTDateTime >= (SELECT  MIN(reportDate) FROM required_dates) 

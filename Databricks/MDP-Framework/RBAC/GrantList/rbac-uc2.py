@@ -10,6 +10,14 @@ RBAC_UC2 = [
         ,"ParentGroup" : "L1-Official"
         ,"TableFilter" : [
             "cleansed.sharepointlistedp.demandcalculationadjustment"
+            ,"curated.water_balance.demandwaternetwork"
+            ,"curated.water_balance.factwaternetworkdemand"
+            ,"curated.water_balance.factwaternetworkdemandwithexports"
+            ,"curated.water_balance.manualdemand"
+            ,"curated.water_balance.swcdemand"
+            ,"curated.water_balance.systemexportvolume"
+            ,"curated.fact.assetdemandvalue"
+            ,"curated.fact.demand"
         ]
         ,"Users" : []
         ,"AADGroups" : [ "cleansed-sensitive" ]
@@ -17,8 +25,15 @@ RBAC_UC2 = [
     {
         "Name" : "UC2-UAT"
         ,"TableFilter" : [
-            "curated.fact.assetdemandvalue"
-            ,"curated.fact.demand"
+            "curated.fact.dailysupplyapportionedaccruedconsumption"
+            ,"curated.fact.dailysupplyapportionedconsumption"
+            ,"curated.fact.monthlysupplyapportionedaggregate"
+            ,"curated.fact.monthlysupplyapportionedaccruedconsumption"
+            ,"curated.fact.monthlysupplyapportionedconsumption"
+            ,"curated.fact.monthlyleakageaggregate"
+            ,"curated.water_balance.recondailysupplyapportionedconsumption"
+            ,"curated.water_balance.recondailysupplyapportionedaccruedconsumption"
+            ,"curated.water_balance.monthlySupplyApportionedAggregate"
             ,"curated.fact.stoppedmeteraggregate"
             ,"curated.fact.stoppedmeteraggregate"
             ,"curated.fact.stoppedmeterconsumption"
@@ -33,7 +48,3 @@ RBAC_UC2 = [
     }
 ]
 GenerateRbacCommands(RBAC_UC2)
-
-# COMMAND ----------
-
-
