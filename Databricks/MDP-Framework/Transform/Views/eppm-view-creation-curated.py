@@ -76,6 +76,7 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceMaste
     ,rescTx.costCenterMeduimDescription as responsibleCostCenterMediumDescription
     ,rescTx.costCenterLongDescription as responsibleCostCenterLongDescription
     ,item.itemAactualStartDate as itemActualStartDate
+    ,item.itemActualFinishDate as itemActualFinishDate
     ,item.itemForecastStartDate
     ,item.itemForecastFinishDate as itemForecastFinishDate
     ,item.itemPlannedStartDate
@@ -246,6 +247,7 @@ SELECT * FROM
     ,rescTx.costCenterMeduimDescription as responsibleCostCenterMediumDescription
     ,rescTx.costCenterLongDescription as responsibleCostCenterLongDescription
     ,'' as itemActualStartDate
+    ,'' as itemActualFinishDate
     ,'' as itemForecastStartDate
     ,'' as itemForecastFinishDate
 
@@ -355,6 +357,7 @@ UNION
     ,item.responsibleCostCenterMediumDescription
     ,item.responsibleCostCenterLongDescription
     ,item.itemActualStartDate
+    ,item.itemActualFinishDate
     ,item.itemForecastStartDate
     ,item.itemForecastFinishDate
 
@@ -689,6 +692,7 @@ CREATE OR REPLACE VIEW {get_env()}curated.asset_performance.eppmSelfServiceRepor
     ,mast.responsibleCostCenterMediumDescription
     ,mast.responsibleCostCenterLongDescription
     ,mast.itemActualStartDate
+    ,mast.itemActualFinishDate
     ,mast.itemForecastStartDate
     ,mast.itemForecastFinishDate
 
