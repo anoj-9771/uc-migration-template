@@ -181,6 +181,8 @@ merge into dbo.config as target using(
 ) as source on
     target.keyGroup = source.keyGroup
     and target.[key] = source.[key]
+when matched then update
+set Value = (case when target.[key] = 'iicats|15min' then 1 else 0 end)
 when not matched then insert(
     keyGroup
     ,[key]

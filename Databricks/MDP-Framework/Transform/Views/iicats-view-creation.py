@@ -63,3 +63,41 @@ for i in df.collect():
         """)
     print(sql)
     spark.sql(sql)
+
+# COMMAND ----------
+
+# DBTITLE 1,Combine the data from iicats.tsv with edw_cdr.iicats_tsv into a view
+if systemCode == 'iicats|15min':
+    spark.sql(f"""
+    create or replace view {get_env()}cleansed.iicats.tsvcombined as (
+    with iicats_tsv_current as (
+    select
+    *,
+    row_number() over (
+        partition by objectInternalId,
+        measurementResultAESTDateTime,
+        statisticTypeCd,
+        timeBaseCd
+        order by
+        sourceRecordCreationDateTime desc
+    ) dedupe
+    from
+    {get_env()}cleansed.iicats.tsv
+    ),
+    iicats_tsvcurrent_filtered as (
+    select * except (dedupe) from iicats_tsv_current
+    where measurementResultAESTDateTime >= '2022-08-01T00:00:00.000'
+    and dedupe = 1
+    ),
+    edwcdr_iicatstsv_filtered as (
+    select * except (acquisitionMethodFk, alarmStateFk, engineeringUnitFk, pointReasonFk,statisticTypeFk, timeBaseFk,tsvMnemonicFk )
+    from
+    {get_env()}cleansed.edw_cdr.iicats_tsv
+    where
+    measurementResultAESTDateTime < '2022-08-01T00:00:00.000'
+    )
+    select * from iicats_tsvcurrent_filtered
+    union 
+    select * from edwcdr_iicatstsv_filtered
+    )
+    """)
