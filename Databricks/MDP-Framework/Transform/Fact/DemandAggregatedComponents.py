@@ -15,290 +15,282 @@ DEFAULT_TARGET = 'curated'
 
 # COMMAND ----------
 
-def CalculateDemandAggregated(property_df,installation_df,device_df,sharepointConfig_df,waternetworkdemand_df,waternetwork_df,monthlySupplyApportioned_df,yearnumber,monthName,monthnumber):
-    
-    tfsumetrics_df = sharepointConfig_df.filter("metricTypeName like '%TFSU%'")
-
-    # ------------- JOINS ------------------ #
-    tfsu_df = property_df.join(installation_df, (property_df.propertyNumber==installation_df.install_propertyNumber) & ~col("superiorPropertyTypeCode").isin('902'),"inner") \
-        .join(device_df, (installation_df.installationNumber == device_df.device_installationNumber),"inner")
-
-    # --- Multiplication Factors ---#
-    monthlyTestingFireSprinklerSystemsFactor = tfsumetrics_df.filter("metricTypeName='TFSUMonthlyTestingOfFireSprinklerSystemsTestDuration'").select("metricValueNumber").first()['metricValueNumber'] * tfsumetrics_df.filter("metricTypeName='TFSUMonthlyTestingOfFireSprinklerSystemsTestFlowRate'").select("metricValueNumber").first()['metricValueNumber']
-
-    annualTestingSprinklerSystemsResidentialAndCommercialFactor = tfsumetrics_df.filter("metricTypeName='TFSUAnnualTestingOfSprinklerSystemResidentialAndCommercialFireServicesTestDuration'").select("metricValueNumber").first()['metricValueNumber'] * tfsumetrics_df.filter("metricTypeName='TFSUAnnualTestingOfSprinklerSystemResidentialAndCommercialFireServicesTestFlowRate'").select("metricValueNumber").first()['metricValueNumber']
-
-    annualTestingSprinklerSystemsLargeIndustrialFactor = tfsumetrics_df.filter("metricTypeName='TFSUAnnualTestingOfSprinklerSystemLargeIndustrialServicesTestDuration'").select("metricValueNumber").first()['metricValueNumber'] * tfsumetrics_df.filter("metricTypeName='TFSUAnnualTestingOfSprinklerSystemLargeIndustrialServicesTestFlowRate'").select("metricValueNumber").first()['metricValueNumber']
-
-    monthlyTestingHydrantSystemsFactor = tfsumetrics_df.filter("metricTypeName='TFSUMonthlyTestingOfHydrantSystemsTestDuration'").select("metricValueNumber").first()['metricValueNumber'] * tfsumetrics_df.filter("metricTypeName='TFSUMonthlyTestingOfHydrantSystemsTestFlowRate'").select("metricValueNumber").first()['metricValueNumber']
-
-    annualTestingHydrantSystemsResidentialAndCommercialFactor = tfsumetrics_df.filter("metricTypeName='TFSUAnnualTestingOfHydrantSystemsResidentialAndCommercialFireServicesTestDuration'").select("metricValueNumber").first()['metricValueNumber'] * tfsumetrics_df.filter("metricTypeName='TFSUAnnualTestingOfHydrantSystemsResidentialAndCommercialFireServicesTestFlowRate'").select("metricValueNumber").first()['metricValueNumber']
-
-    annualTestingHydrantSystemsLargeIndustrialFactor = tfsumetrics_df.filter("metricTypeName='TFSUAnnualTestingOfHydrantSystemsLargeIndustrialServicesTestDuration'").select("metricValueNumber").first()['metricValueNumber'] * tfsumetrics_df.filter("metricTypeName='TFSUAnnualTestingOfHydrantSystemsLargeIndustrialServicesTestFlowRate'").select("metricValueNumber").first()['metricValueNumber']
-
-    unauthorisedUseFactor = sharepointConfig_df.filter("metricTypeName='UnauthorisedUse'").select("metricValueNumber").first()['metricValueNumber']
-    meterUnderRegistrationFactor = sharepointConfig_df.filter("metricTypeName='MeterUnderRegistration'").select("metricValueNumber").first()['metricValueNumber']
-
-    unmeteredNonSTPsFactor = sharepointConfig_df.filter("metricTypeName = 'SWUnmeteredNonSTPS'").select("metricValueNumber").first()['metricValueNumber']
-    totalSystemInputCurrMonth = waternetworkdemand_df.filter("networkTypeCode like 'Delivery System%'").agg(sum('demandQuantity').alias('demandQuantity')).select("demandQuantity").first()['demandQuantity']
-
-    fireRescueNSWUseFactor = sharepointConfig_df.filter("metricTypeName = 'FireRescueNSWUse'").select("metricValueNumber").first()['metricValueNumber']    
-
-    deliverySystemInputCurrMonth = waternetworkdemand_df.filter("networkTypeCode like 'Delivery System%'").groupBy("deliverySystem").agg(sum('demandQuantity').alias('demandQuantity')) \
-        .withColumn("deliverySystemFormatted",lower(regexp_replace(regexp_replace(waternetworkdemand_df.deliverySystem,'DEL_',""),'[+ _]',""))) \
-        .select(col("deliverySystem").alias("delivery_deliverySystem"),"deliverySystemFormatted",col("demandQuantity").alias("delivery_demandQuantity"))
-
-    monthlySupplyLGA_df = monthlySupplyApportioned_df.filter("LGA in ('Blacktown','Blue Mountains','Camden','Campbelltown','Fairfield','Hawkesbury','Hornsby','Liverpool','Penrith','Shellharbour','The Hills Shire','Wingecarribee','Wollondilly','Wollongong')")    
-    monthlySupplyLGA = monthlySupplyLGA_df.agg((sum('supply_totalKLQuantity')/1000).alias('supply_totalMLQuantity')).first()['supply_totalMLQuantity']
-    ruralFireServicesUseFactor = sharepointConfig_df.filter("metricTypeName = 'RFSUse'").select("metricValueNumber").first()['metricValueNumber']
-
-
-    # --- TFSU Metrics Calculation ---#
-    #monthlyTestingFireSprinklerSystems
-    monthlyTestingFireSprinklerSystems = tfsu_df.where(col('superiorPropertyType').isin('COMMERCIAL','COMMUNITY SERVS','INDUSTRIAL','MASTER STRATA','OCCUPIED LAND','UTILITIES')) \
-        .groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea") \
-        .agg(countDistinct('deviceID').alias("deviceCount")) \
-        .withColumn("metricTypeName", lit('monthlyTestingFireSprinklerSystems')) 
-    monthlyTestingFireSprinklerSystems = monthlyTestingFireSprinklerSystems.withColumn("metricValueNumber",(monthlyTestingFireSprinklerSystems.deviceCount * monthlyTestingFireSprinklerSystemsFactor)/1000000) \
-        .select("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","metricTypeName","metricValueNumber")  
-
-    #annualTestingSprinklerSystems
-    annualTestingSprinklerSystems = tfsu_df.where(col('superiorPropertyType').isin('COMMERCIAL','COMMUNITY SERVS','MASTER STRATA','OCCUPIED LAND','UTILITIES')) \
-        .groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea").agg(countDistinct('deviceID').alias("deviceCount")) 
-    annualTestingSprinklerSystems = annualTestingSprinklerSystems.withColumn("metricValueNumber", (annualTestingSprinklerSystems.deviceCount * annualTestingSprinklerSystemsResidentialAndCommercialFactor)/(12*1000000))  
-    annualTestingSprinklerSystemsLargeIndustrial = tfsu_df.where(col('superiorPropertyType').isin('INDUSTRIAL')).groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea").agg(countDistinct('deviceID').alias("deviceCount")) 
-    annualTestingSprinklerSystemsLargeIndustrial = annualTestingSprinklerSystemsLargeIndustrial.withColumn("metricValueNumber", (annualTestingSprinklerSystemsLargeIndustrial.deviceCount * annualTestingSprinklerSystemsLargeIndustrialFactor)/(12*1000000))  
-    annualTestingSprinklerSystems = annualTestingSprinklerSystems.unionAll(annualTestingSprinklerSystemsLargeIndustrial).groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea").agg(sum('metricValueNumber').alias("metricValueNumber")) \
-        .withColumn("metricTypeName", lit('annualTestingSprinklerSystems')) \
-        .select("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","metricTypeName","metricValueNumber")
-
-    #monthlyTestingHydrantSystems
-    monthlyTestingHydrantSystems = tfsu_df.where(col('superiorPropertyType').isin('COMMERCIAL','COMMUNITY SERVS','MASTER STRATA','OCCUPIED LAND','UTILITIES')) \
-        .groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea") \
-        .agg(countDistinct('deviceID').alias("deviceCount")) \
-        .withColumn("metricTypeName", lit('monthlyTestingHydrantSystems')) 
-    monthlyTestingHydrantSystems = monthlyTestingHydrantSystems.withColumn("metricValueNumber",(monthlyTestingHydrantSystems.deviceCount * monthlyTestingHydrantSystemsFactor)/1000000) \
-        .select("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","metricTypeName","metricValueNumber")   
-    
-    #annualTestingHydrantSystems
-    annualTestingHydrantSystems = tfsu_df.where(col('superiorPropertyType').isin('COMMERCIAL','COMMUNITY SERVS','MASTER STRATA','OCCUPIED LAND','UTILITIES')) \
-        .groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea").agg(countDistinct('deviceID').alias("deviceCount")) 
-    annualTestingHydrantSystems = annualTestingHydrantSystems.withColumn("metricValueNumber", (annualTestingHydrantSystems.deviceCount * annualTestingHydrantSystemsResidentialAndCommercialFactor)/(12*1000000))  
-    annualTestingHydrantSystemsLargeIndustrial = tfsu_df.where(col('superiorPropertyType').isin('INDUSTRIAL')).groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea").agg(countDistinct('deviceID').alias("deviceCount")) 
-    annualTestingHydrantSystemsLargeIndustrial = annualTestingHydrantSystemsLargeIndustrial.withColumn("metricValueNumber", (annualTestingHydrantSystemsLargeIndustrial.deviceCount * annualTestingHydrantSystemsLargeIndustrialFactor)/(12*1000000))  
-    annualTestingHydrantSystems = annualTestingHydrantSystems.unionAll(annualTestingHydrantSystemsLargeIndustrial).groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea").agg(sum('metricValueNumber').alias("metricValueNumber")) \
-        .withColumn("metricTypeName", lit('annualTestingHydrantSystems')) \
-        .select("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","metricTypeName","metricValueNumber")
-
-    #TestingofFireServicesUse
-    testingofFireServicesUse = monthlyTestingFireSprinklerSystems \
-        .unionByName(annualTestingSprinklerSystems,allowMissingColumns=True) \
-        .unionByName(monthlyTestingHydrantSystems,allowMissingColumns=True) \
-        .unionByName(annualTestingHydrantSystems,allowMissingColumns=True)
-    testingofFireServicesUse = testingofFireServicesUse.withColumn("networkTypeCode",lit('Pressure Area')) \
-        .select("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","networkTypeCode","metricTypeName","metricValueNumber")
-
-    testingofFireServicesUseSupplyZone = testingofFireServicesUse.groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","metricTypeName").agg(sum('metricValueNumber').alias('metricValueNumber')) \
-        .withColumn("networkTypeCode",lit('Supply Zone')) 
-
-    testingofFireServicesUseDeliverySystem = testingofFireServicesUse.groupBy("waterNetworkDeliverySystem","metricTypeName").agg(sum('metricValueNumber').alias('metricValueNumber')) \
-        .withColumn("networkTypeCode",lit('Delivery System'))     
-
-    
-    #UnauthorisedUse
-    unauthorisedUse = waternetworkdemand_df.withColumn("metricValueNumber",(waternetworkdemand_df.demandQuantity*unauthorisedUseFactor)) \
-        .withColumn("metricTypeName", lit('unauthorisedUse')) \
-        .select(col("deliverySystem").alias("waterNetworkDeliverySystem"),col("distributionSystem").alias("waterNetworkDistributionSystem"),col("supplyZone").alias("waterNetworkSupplyZone"),col("pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
-
-
-    #meterUnderRegistration
-    meterUnderRegistration = monthlySupplyApportioned_df.join(waternetwork_df,(monthlySupplyApportioned_df.supply_waterNetworkSK == waternetwork_df.waterNetworkSK),"inner") \
-        .groupBy("waternetwork_deliverySystem","waternetwork_distributionSystem","waternetwork_supplyZone","waternetwork_pressureArea") \
-        .agg((sum('supply_totalKLQuantity')/1000).alias("supplyQuantity"))
-    meterUnderRegistration = meterUnderRegistration.withColumn("metricTypeName", lit('meterUnderRegistration')) \
-        .withColumn("networktypecode", lit('Pressure Area')) \
-        .withColumn("metricValueNumber",(meterUnderRegistration.supplyQuantity*meterUnderRegistrationFactor)) \
-        .select(col("waternetwork_deliverySystem").alias("waterNetworkDeliverySystem"),col("waternetwork_distributionSystem").alias("waterNetworkDistributionSystem"),col("waternetwork_supplyZone").alias("waterNetworkSupplyZone"),col("waternetwork_pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
-
-    meterUnderRegistrationSupplyZone = meterUnderRegistration.groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","metricTypeName").agg(sum('metricValueNumber').alias('metricValueNumber')) \
-        .withColumn("networkTypeCode",lit('Supply Zone')) 
-
-    meterUnderRegistrationDeliverySystem = meterUnderRegistration.groupBy("waterNetworkDeliverySystem","metricTypeName").agg(sum('metricValueNumber').alias('metricValueNumber')) \
-        .withColumn("networkTypeCode",lit('Delivery System'))         
-
-
-    #UnmeteredSTPs    
-    unmeteredSTPs = sharepointConfig_df.where(col("metricValueNumber").isNotNull() & (col("metricTypeName") == 'UnmeteredSTPs') & (col("zoneTypeName") == 'PressureZone')) \
-        .withColumn("metricTypeName",lit('unmeteredSTPs')) \
-        .withColumn("metricValueNumber",lit(sharepointConfig_df.metricValueNumber)) \
-        .withColumn("networkTypeCode",lit('Pressure Area')) 
-    unmeteredSTPs = unmeteredSTPs.join(waternetwork_df,(unmeteredSTPs.zoneName == waternetwork_df.waternetwork_pressureArea) & (col("_RecordCurrent") == '1'),"inner") 
-
-    unmeteredSTPsSupplyZone = unmeteredSTPs.groupBy("waternetwork_deliverySystem","waternetwork_distributionSystem","waternetwork_supplyZone").agg(sum('metricValueNumber').alias('metricValueNumber')) \
-        .withColumn("metricTypeName",lit('unmeteredSTPs')) \
-        .withColumn("networkTypeCode",lit('Supply Zone')) 
-
-    unmeteredSTPsDeliverySystem = unmeteredSTPs.groupBy("waternetwork_deliverySystem").agg(sum('metricValueNumber').alias('metricValueNumber')) \
-        .withColumn("metricTypeName",lit('unmeteredSTPs')) \
-        .withColumn("networkTypeCode",lit('Delivery System'))         
-
-    unmeteredSTPs = unmeteredSTPs.unionByName(unmeteredSTPsSupplyZone,allowMissingColumns=True) \
-        .unionByName(unmeteredSTPsDeliverySystem,allowMissingColumns=True)
-    unmeteredSTPs = unmeteredSTPs.select(col("waternetwork_deliverySystem").alias("waterNetworkDeliverySystem"),col("waternetwork_distributionSystem").alias("waterNetworkDistributionSystem"),col("waternetwork_supplyZone").alias("waterNetworkSupplyZone"),coalesce(col("zoneName"),col('waternetwork_pressureArea')).alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber").dropDuplicates()    
-
-    
-    #UnmeteredNonSTPs
-    unmeteredNonSTPs = waternetworkdemand_df.withColumn("metricValueNumber",(waternetworkdemand_df.demandQuantity*unmeteredNonSTPsFactor)/totalSystemInputCurrMonth) \
-        .withColumn("metricTypeName", lit('unmeteredNonSTPs')) \
-        .select(col("deliverySystem").alias("waterNetworkDeliverySystem"),col("distributionSystem").alias("waterNetworkDistributionSystem"),col("supplyZone").alias("waterNetworkSupplyZone"),col("pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
-
-
-    #FireRescueNSWUse 
-    fireRescueNSWUse = waternetworkdemand_df.withColumn("metricValueNumber",(waternetworkdemand_df.demandQuantity*fireRescueNSWUseFactor)/totalSystemInputCurrMonth) \
-        .withColumn("metricTypeName", lit('fireRescueNSWUse')) \
-        .select(col("deliverySystem").alias("waterNetworkDeliverySystem"),col("distributionSystem").alias("waterNetworkDistributionSystem"),col("supplyZone").alias("waterNetworkSupplyZone"),col("pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")        
-        
-    
-    #SydneyWaterOperationalUse
-    sydneyWaterOperationalUse = waternetworkdemand_df.withColumn("pressure_deliverySystemFormatted",lower(regexp_replace(regexp_replace(waternetworkdemand_df.deliverySystem,'DEL_',""),'[+ _]',"")))
-    sydneyWaterOperationalUse = sydneyWaterOperationalUse.join(deliverySystemInputCurrMonth, (sydneyWaterOperationalUse.pressure_deliverySystemFormatted==deliverySystemInputCurrMonth.deliverySystemFormatted),"inner") \
-        .join(sharepointConfig_df, (col("metricValueNumber").isNotNull() & (col("metricTypeName") == 'SWOperationalUse') & (col("zoneTypeName") == 'DeliverySystem') & (sydneyWaterOperationalUse.pressure_deliverySystemFormatted == lower(sharepointConfig_df.zoneName))),"inner") \
-        .withColumn("metricValueNumber",(sydneyWaterOperationalUse.demandQuantity*sharepointConfig_df.metricValueNumber)/(deliverySystemInputCurrMonth.delivery_demandQuantity)) \
-        .withColumn("metricTypeName", lit('sydneyWaterOperationalUse')) \
-        .select(col("deliverySystem").alias("waterNetworkDeliverySystem"),col("distributionSystem").alias("waterNetworkDistributionSystem"),col("supplyZone").alias("waterNetworkSupplyZone"),col("pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
-
-
-    #ruralFireServicesUse
-    ruralFireServicesUse = monthlySupplyApportioned_df.join(waternetwork_df,(monthlySupplyApportioned_df.supply_waterNetworkSK == waternetwork_df.waterNetworkSK),"inner") \
-        .groupBy("waternetwork_deliverySystem","waternetwork_distributionSystem","waternetwork_supplyZone","waternetwork_pressureArea") \
-        .agg((sum('supply_totalKLQuantity')/1000).alias("supplyQuantity"))
-    ruralFireServicesUse = ruralFireServicesUse.withColumn("metricTypeName", lit('ruralFireServicesUse')) \
-        .withColumn("networktypecode", lit('Pressure Area')) \
-        .withColumn("metricValueNumber",(ruralFireServicesUse.supplyQuantity*ruralFireServicesUseFactor)/(monthlySupplyLGA)) \
-        .select(col("waternetwork_deliverySystem").alias("waterNetworkDeliverySystem"),col("waternetwork_distributionSystem").alias("waterNetworkDistributionSystem"),col("waternetwork_supplyZone").alias("waterNetworkSupplyZone"),col("waternetwork_pressureArea").alias("waterNetworkPressureArea"),"networkTypeCode","metricTypeName","metricValueNumber")
-
-    ruralFireServicesUseSupplyZone = ruralFireServicesUse.groupBy("waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","metricTypeName").agg(sum('metricValueNumber').alias('metricValueNumber')) \
-        .withColumn("networkTypeCode",lit('Supply Zone')) 
-
-    ruralFireServicesUseDeliverySystem = ruralFireServicesUse.groupBy("waterNetworkDeliverySystem","metricTypeName").agg(sum('metricValueNumber').alias('metricValueNumber')) \
-        .withColumn("networkTypeCode",lit('Delivery System'))   
-
-
-    demandaggregatedf = testingofFireServicesUse \
-        .unionByName(testingofFireServicesUseSupplyZone,allowMissingColumns=True) \
-        .unionByName(testingofFireServicesUseDeliverySystem,allowMissingColumns=True) \
-        .unionByName(unauthorisedUse,allowMissingColumns=True) \
-        .unionByName(meterUnderRegistration,allowMissingColumns=True) \
-        .unionByName(meterUnderRegistrationSupplyZone,allowMissingColumns=True) \
-        .unionByName(meterUnderRegistrationDeliverySystem,allowMissingColumns=True) \
-        .unionByName(unmeteredSTPs,allowMissingColumns=True) \
-        .unionByName(unmeteredNonSTPs,allowMissingColumns=True) \
-        .unionByName(fireRescueNSWUse,allowMissingColumns=True) \
-        .unionByName(sydneyWaterOperationalUse,allowMissingColumns=True) \
-        .unionByName(ruralFireServicesUse,allowMissingColumns=True) \
-        .unionByName(ruralFireServicesUseSupplyZone,allowMissingColumns=True) \
-        .unionByName(ruralFireServicesUseDeliverySystem,allowMissingColumns=True) \
-        .withColumn("yearNumber",lit(yearnumber)) \
-        .withColumn("monthName",lit(monthName)) \
-        .withColumn("monthNumber",lit(monthnumber)) \
-        .withColumn("calculationDate",trunc(current_date(),'month'))   
-
-    demandaggregatedf.createOrReplaceTempView("demandaggregateview")    
-    demandaggregatedffinal = spark.sql(f"""
-                with Unallocated as 
-                    (select 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' as waterNetworkDeliverySystem,metricTypeName,coalesce(metricValueNumber,0) as metricValueNumber from demandaggregateview where metricTypeName in ('meterUnderRegistration','ruralFireServicesUse') and networktypecode = 'Delivery System' and waterNetworkDeliverySystem = 'Unknown' 
-                ),
-                base as (
-                    select case when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL') then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' 
-                                when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
-                            else waterNetworkDeliverySystem end waterNetworkDeliverySystem,waterNetworkDistributionSystem,waterNetworkSupplyZone,waterNetworkPressureArea,
-                            case when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL') then 'Delivery System Combined' 
-                                when networkTypeCode = 'Delivery System' and waterNetworkDeliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'Delivery System Combined'
-                            else networkTypeCode end networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,yearNumber,monthName,monthNumber,calculationDate  
-                            from  demandaggregateview group by all
-                ) select base.waterNetworkDeliverySystem,waterNetworkDistributionSystem,waterNetworkSupplyZone,waterNetworkPressureArea,base.networkTypeCode,base.metricTypeName,
-                case when base.waterNetworkDeliverySystem = 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' then base.metricValueNumber+coalesce(Unallocated.metricValueNumber,0) else base.metricValueNumber end  metricValueNumber,yearNumber,monthName,monthNumber,calculationDate 
-                from base left outer join Unallocated on base.metricTypeName = Unallocated.metricTypeName and base.waterNetworkDeliverySystem = Unallocated.waterNetworkDeliverySystem 
-                  and base.networkTypeCode = 'Delivery System Combined'
-                where base.waterNetworkDeliverySystem <> 'Unknown'""")
-
-    return demandaggregatedffinal
+df = spark.sql(f"""
+with date_df as (
+  select distinct monthstartdate,year(monthstartdate) as yearnumber,month(monthstartdate) as monthnumber, date_format(monthStartDate,'MMM') as monthname, trunc(current_date(),'Month') as calculationDate
+  from {get_env()}curated.dim.date where monthStartDate between add_months(current_date(),-25) and add_months(current_date(),-1)
+  order by yearnumber desc, monthnumber desc
+),
+tfsu_df as (
+  select property.propertyNumber,property.superiorPropertyTypeCode,property.superiorPropertyType,property.waterNetworkDeliverySystem deliverySystem,property.waterNetworkDistributionSystem distributionSystem,property.waterNetworkSupplyZone supplyZone,property.waterNetworkPressureArea pressureArea,property.propertySK,property.propertyTypeHistorySK,property.drinkingWaterNetworkSK,installation.installationNumber,installation.divisionCode,installation.division,device.deviceSize,device.functionClassCode,device.deviceID
+  from {get_env()}curated.water_balance.propertyKey property 
+  inner join {get_env()}curated.water_consumption.viewinstallation installation on property.propertyNumber = installation.propertyNumber and property.superiorPropertyTypeCode not in (902)
+  inner join {get_env()}curated.water_consumption.viewdevice device on installation.installationNumber = device.installationNumber
+  where property.currentFlag = 'Y' and installation.divisionCode = 10 and installation.currentFlag = 'Y' and device.functionClassCode in ('1000') and device.currentFlag = 'Y' and device.deviceSize >= 40
+),
+waternetwork_df as (
+  select deliverySystem,distributionSystem,supplyZone,pressureArea,waterNetworkSK,_RecordCurrent from {get_env()}curated.dim.waternetwork
+),
+sharepointConfig_df as (
+  with base as (
+    select config.zoneName, config.zonetypename, config.metricTypeName, coalesce(config.metricValueNumber,0) as  metricValueNumber, config.yearnumber, config.monthName,
+      decode(config.monthName,'Jan',1,'Feb',2,'Mar',3,'Apr',4,'May',5,'Jun',6,'Jul',7,'Aug',8,'Sep',9,'Oct',10,'Nov',11,'Dec',12 ) as monthnumber, d.calculationDate
+      from {get_env()}curated.water_balance.AggregatedComponentsConfiguration config inner join date_df d on config.yearnumber = d.yearnumber and d.monthnumber = decode(config.monthName,'Jan',1,'Feb',2,'Mar',3,'Apr',4,'May',5,'Jun',6,'Jul',7,'Aug',8,'Sep',9,'Oct',10,'Nov',11,'Dec',12 )
+  ) select distinct TFSUduration.zoneName,TFSUduration.zonetypename,
+    case  when TFSUduration.metrictypename like 'TFSUMonthlyTestingOfFireSprinklerSystemsTest%' then 'monthlyTestingFireSprinklerSystemsFactor' 
+          when TFSUduration.metrictypename like 'TFSUAnnualTestingOfSprinklerSystemResidentialAndCommercialFireServicesTest%' then 'annualTestingSprinklerSystemsResidentialAndCommercialFactor'
+          when TFSUduration.metrictypename like 'TFSUAnnualTestingOfSprinklerSystemLargeIndustrialServicesTest%' then 'annualTestingSprinklerSystemsLargeIndustrialFactor'
+          when TFSUduration.metrictypename like 'TFSUMonthlyTestingOfHydrantSystemsTest%' then 'monthlyTestingHydrantSystemsFactor'
+          when TFSUduration.metrictypename like 'TFSUAnnualTestingOfHydrantSystemsResidentialAndCommercialFireServicesTest%' then 'annualTestingHydrantSystemsResidentialAndCommercialFactor'
+          when TFSUduration.metrictypename like 'TFSUAnnualTestingOfHydrantSystemsLargeIndustrialServicesTest%' then 'annualTestingHydrantSystemsLargeIndustrialFactor'
+          else TFSUduration.metrictypename end metrictypename,TFSUduration.metricValueNumber*TFSUrate.metricValueNumber as metricValueNumber,
+          TFSUduration.yearnumber,TFSUduration.monthname,TFSUduration.monthnumber,TFSUduration.calculationDate,'Y' TFSU
+    from base TFSUduration, base TFSUrate where TFSUduration.metricTypeName like '%TFSU%' and TFSUduration.metricTypeName like '%Duration%' and TFSUrate.metricTypeName like '%TFSU%' and TFSUrate.metricTypeName like '%Rate%' and replace(TFSUduration.metricTypeName,'Duration','') = replace(TFSUrate.metricTypeName,'FlowRate','') and TFSUduration.yearnumber = TFSUrate.yearnumber and TFSUduration.monthname = TFSUrate.monthname
+    union
+    select base.*,'N' from base where metricTypeName not like '%TFSU%'
+),
+waternetworkdemand_df as (
+  select deliverySystem,distributionSystem,supplyZone,pressureArea,networkTypeCode,sum(demandQuantity) as demandQuantity, year(reportDate) as yearnumber, month(reportdate) as monthnumber
+  from {get_env()}curated.water_balance.factwaternetworkdemand inner join date_df d on d.yearnumber = year(reportDate) and d.monthnumber = month(reportdate) 
+  where deliverySystem NOT IN ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','DEL_CASCADE','DEL_ORCHARD_HILLS','DESALINATION PLANT') 
+  and networkTypeCode in ('Pressure Area','Supply Zone','Delivery System','Delivery System Combined')
+  group by deliverySystem,distributionSystem,supplyZone,pressureArea,networkTypeCode,year(reportDate),month(reportdate)
+), 
+monthlySupplyApportioned_df as (
+  Select waterNetworkSK as supply_waterNetworkSK,LGA,totalKLQuantity as supply_totalKLQuantity,year(consumptionDate) as yearnumber,month(consumptionDate) as monthnumber 
+  from {get_env()}curated.fact.monthlysupplyapportionedaggregate sup inner join date_df d on d.yearnumber = year(consumptionDate) and d.monthnumber = month(consumptionDate) 
+  where sup.calculationDate = (select max(calculationDate) from {get_env()}curated.fact.monthlysupplyapportionedaggregate)
+),
+monthlyTestingFireSprinklerSystems as (
+  with SprinklerSystemsbase as (
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,count (Distinct deviceID) as deviceCount
+    from tfsu_df where superiorPropertyType IN ('COMMERCIAL','COMMUNITY SERVS','INDUSTRIAL','MASTER STRATA','OCCUPIED LAND','UTILITIES') 
+    group by deliverySystem,distributionSystem,supplyZone,pressureArea
+  ) select deliverySystem,distributionSystem,supplyZone,pressureArea,'monthlyTestingFireSprinklerSystems' as metricTypeName,(deviceCount*metricvaluenumber)/1000000 as metricvaluenumber from SprinklerSystemsbase join sharepointConfig_df where TFSU = 'Y' and metrictypename = 'monthlyTestingFireSprinklerSystemsFactor'
+),
+monthlyTestingHydrantSystems as (
+  with HydrantSystemsbase as (
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,count (Distinct deviceID) as deviceCount
+    from tfsu_df where superiorPropertyType IN ('COMMERCIAL','COMMUNITY SERVS','MASTER STRATA','OCCUPIED LAND','UTILITIES') 
+    group by deliverySystem,distributionSystem,supplyZone,pressureArea
+  ) select deliverySystem,distributionSystem,supplyZone,pressureArea,'monthlyTestingHydrantSystems' as metricTypeName,(deviceCount*metricvaluenumber)/1000000 as metricvaluenumber from HydrantSystemsbase join sharepointConfig_df where TFSU = 'Y' and metrictypename = 'monthlyTestingHydrantSystemsFactor'
+),
+annualTestingSprinklerSystems as (
+  with annualTestingResidential as (
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,count (Distinct deviceID) as deviceCount
+    from tfsu_df where superiorPropertyType IN ('COMMERCIAL','COMMUNITY SERVS','MASTER STRATA','OCCUPIED LAND','UTILITIES') 
+    group by deliverySystem,distributionSystem,supplyZone,pressureArea
+  ),
+  annualTestingIndustrial as (
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,count (Distinct deviceID) as deviceCount
+    from tfsu_df where superiorPropertyType IN ('INDUSTRIAL') 
+    group by deliverySystem,distributionSystem,supplyZone,pressureArea
+  ),
+  annualTestingConsolidated as ( 
+  select deliverySystem,distributionSystem,supplyZone,pressureArea,(deviceCount*metricvaluenumber)/(12*1000000) as metricvaluenumber from annualTestingResidential join sharepointConfig_df where TFSU = 'Y' and metrictypename = 'annualTestingSprinklerSystemsResidentialAndCommercialFactor'
+  union
+  select deliverySystem,distributionSystem,supplyZone,pressureArea,(deviceCount*metricvaluenumber)/(12*1000000) as metricvaluenumber from annualTestingIndustrial join sharepointConfig_df where TFSU = 'Y' and metrictypename = 'annualTestingSprinklerSystemsLargeIndustrialFactor'
+  ) 
+  select deliverySystem,distributionSystem,supplyZone,pressureArea,'annualTestingSprinklerSystems' as metrictypename,sum(metricvaluenumber) as metricvaluenumber from annualTestingConsolidated cons group by all
+),
+annualTestingHydrantSystems as (
+  with annualTestingHydrantResidential as (
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,count (Distinct deviceID) as deviceCount
+    from tfsu_df where superiorPropertyType IN ('COMMERCIAL','COMMUNITY SERVS','MASTER STRATA','OCCUPIED LAND','UTILITIES') 
+    group by deliverySystem,distributionSystem,supplyZone,pressureArea
+  ),
+  annualTestingHydrantIndustrial as (
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,count (Distinct deviceID) as deviceCount
+    from tfsu_df where superiorPropertyType IN ('INDUSTRIAL') 
+    group by deliverySystem,distributionSystem,supplyZone,pressureArea
+  ),
+  annualTestingHydrantConsolidated as ( 
+  select deliverySystem,distributionSystem,supplyZone,pressureArea,(deviceCount*metricvaluenumber)/(12*1000000) as metricvaluenumber from annualTestingHydrantResidential join sharepointConfig_df where TFSU = 'Y' and metrictypename = 'annualTestingHydrantSystemsResidentialAndCommercialFactor'
+  union
+  select deliverySystem,distributionSystem,supplyZone,pressureArea,(deviceCount*metricvaluenumber)/(12*1000000) as metricvaluenumber from annualTestingHydrantIndustrial join sharepointConfig_df where TFSU = 'Y' and metrictypename = 'annualTestingHydrantSystemsLargeIndustrialFactor'
+  ) 
+  select deliverySystem,distributionSystem,supplyZone,pressureArea,'annualTestingHydrantSystems' as metrictypename,sum(metricvaluenumber) as metricvaluenumber from annualTestingHydrantConsolidated group by all
+),
+testingofFireServicesUse as (
+  with tfsbase as (
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,'Pressure Area' networkTypeCode,metricTypeName,metricValueNumber from monthlyTestingFireSprinklerSystems
+    union
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,'Pressure Area' networkTypeCode,metricTypeName,metricValueNumber from monthlyTestingHydrantSystems
+    union
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,'Pressure Area' networkTypeCode,metricTypeName,metricValueNumber from annualTestingSprinklerSystems
+    union
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,'Pressure Area' networkTypeCode,metricTypeName,metricValueNumber from annualTestingHydrantSystems
+  ),
+  tfspressurearea as (
+    select tfsbase.*, d.yearnumber, d.monthnumber, d.monthname, d.calculationDate from tfsbase inner join date_df d
+  ) select * from tfspressurearea where pressureArea <> 'Unknown'
+    union
+    select deliverySystem,distributionSystem,supplyZone,NULL pressureArea,'Supply Zone' networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,yearnumber,monthnumber,monthname,calculationDate from tfspressurearea where supplyZone <> 'Unknown' group by all
+    union
+    (with deliverybase as 
+        (select deliverySystem,NULL distributionSystem,NULL supplyZone,NULL pressureArea,'Delivery System' networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,
+        yearnumber,monthnumber,monthname,calculationDate from tfspressurearea group by all)
+        select case when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','Unknown') then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' 
+                    when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
+               else deliverySystem end deliverySystem,distributionSystem,supplyZone,pressureArea,
+               case when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','Unknown') then 'Delivery System Combined' 
+                    when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'Delivery System Combined'
+               else networkTypeCode end networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,yearNumber,monthNumber,monthName,calculationDate  
+        from  deliverybase group by all
+    ) 
+),
+unauthorisedUse as ( 
+  select deliverySystem,distributionSystem,supplyZone,pressureArea,networkTypeCode,'unauthorisedUse' as metricTypeName,demandQuantity*config.metricValueNumber as metricValueNumber,config.yearnumber,config.monthnumber,config.monthname,config.calculationDate from waternetworkdemand_df demand join sharepointConfig_df config where config.metrictypename = 'UnauthorisedUse' and config.yearnumber = demand.yearnumber and config.monthnumber = demand.monthnumber
+),
+meterUnderRegistration as (
+  with meterbase as (
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,'Pressure Area' networkTypeCode,'meterUnderRegistration' as metricTypeName,(sum(supply_totalKLQuantity)/1000) as totalMLQuantity,supply.yearnumber,supply.monthnumber from monthlySupplyApportioned_df supply 
+    inner join waternetwork_df network on supply.supply_waterNetworkSK = network.waterNetworkSK 
+    group by all
+  ),
+  meterUnderRegistrationPressureArea as (
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,networkTypeCode,meterbase.metricTypeName,totalMLQuantity*config.metricValueNumber as metricValueNumber,config.yearnumber,config.monthnumber,config.monthname,config.calculationDate from meterbase 
+    inner join sharepointConfig_df config where config.metrictypename = 'MeterUnderRegistration' and config.yearnumber = meterbase.yearnumber and config.monthnumber = meterbase.monthnumber
+  ) select * from meterUnderRegistrationPressureArea where pressureArea <> 'Unknown'
+    union
+    select deliverySystem,distributionSystem,supplyZone,NULL pressureArea,'Supply Zone' networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,yearnumber,monthnumber,monthname,calculationDate from meterUnderRegistrationPressureArea where supplyZone <> 'Unknown' group by all
+    union
+    (with deliverybase as 
+        (select deliverySystem,NULL distributionSystem,NULL supplyZone,NULL pressureArea,'Delivery System' networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,
+        yearnumber,monthnumber,monthname,calculationDate from meterUnderRegistrationPressureArea group by all)
+        select case when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','Unknown') then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' 
+                    when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
+               else deliverySystem end deliverySystem,distributionSystem,supplyZone,pressureArea,
+               case when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','Unknown') then 'Delivery System Combined' 
+                    when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'Delivery System Combined'
+               else networkTypeCode end networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,yearNumber,monthNumber,monthName,calculationDate  
+        from  deliverybase group by all
+    )
+),
+unmeteredSTPs as (
+  with unmeteredSTPsPressureArea as (
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,'Pressure Area' networkTypeCode,'unmeteredSTPs' as metricTypeName,sum(config.metricValueNumber) as metricValueNumber,config.yearnumber,config.monthnumber,config.monthname,config.calculationDate from waternetwork_df network inner join sharepointConfig_df config on config.zoneName = network.pressureArea and config.metricValueNumber is not null and config.metricTypeName = 'UnmeteredSTPs' and config.zoneTypeName = 'PressureZone' and network._RecordCurrent = 1 group by all
+  ) select * from unmeteredSTPsPressureArea  where pressureArea <> 'Unknown'
+    union
+    select deliverySystem,distributionSystem,supplyZone,NULL pressureArea,'Supply Zone' networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,yearnumber,monthnumber,monthname,calculationDate from unmeteredSTPsPressureArea where supplyZone <> 'Unknown' group by all
+    union
+    (with deliverybase as 
+        (select deliverySystem,NULL distributionSystem,NULL supplyZone,NULL pressureArea,'Delivery System' networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,
+        yearnumber,monthnumber,monthname,calculationDate from unmeteredSTPsPressureArea group by all)
+        select case when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','Unknown') then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' 
+                    when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
+               else deliverySystem end deliverySystem,distributionSystem,supplyZone,pressureArea,
+               case when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','Unknown') then 'Delivery System Combined' 
+                    when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'Delivery System Combined'
+               else networkTypeCode end networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,yearNumber,monthNumber,monthName,calculationDate  
+        from  deliverybase group by all
+    )
+),
+unmeteredNonSTPs as ( 
+  with totalSystemInputCurrMonth as (
+    select sum(demandQuantity) as demandQuantity,yearnumber,monthnumber from waternetworkdemand_df where networkTypeCode like 'Delivery System%' group by yearnumber,monthnumber
+  )
+  select deliverySystem,distributionSystem,supplyZone,pressureArea,networkTypeCode,'unmeteredNonSTPs' as metricTypeName,(demand.demandQuantity*config.metricValueNumber)/monthlyTotal.demandQuantity as metricValueNumber,config.yearnumber,config.monthnumber,config.monthname,config.calculationDate from waternetworkdemand_df demand 
+  inner join sharepointConfig_df config on config.metrictypename = 'SWUnmeteredNonSTPS' and config.yearnumber = demand.yearnumber and config.monthnumber = demand.monthnumber
+  inner join totalSystemInputCurrMonth monthlyTotal on monthlyTotal.yearnumber = demand.yearnumber and monthlyTotal.monthnumber = demand.monthnumber
+),
+fireRescueNSWUse as ( 
+  with totalSystemInputCurrMonth as (
+    select sum(demandQuantity) as demandQuantity,yearnumber,monthnumber from waternetworkdemand_df where networkTypeCode like 'Delivery System%' group by yearnumber,monthnumber
+  )
+  select deliverySystem,distributionSystem,supplyZone,pressureArea,networkTypeCode,'fireRescueNSWUse' as metricTypeName,(demand.demandQuantity*config.metricValueNumber)/monthlyTotal.demandQuantity as metricValueNumber,config.yearnumber,config.monthnumber,config.monthname,config.calculationDate from waternetworkdemand_df demand 
+  inner join sharepointConfig_df config on config.metrictypename = 'FireRescueNSWUse' and config.yearnumber = demand.yearnumber and config.monthnumber = demand.monthnumber
+  inner join totalSystemInputCurrMonth monthlyTotal on monthlyTotal.yearnumber = demand.yearnumber and monthlyTotal.monthnumber = demand.monthnumber
+),
+sydneyWaterOperationalUse as (
+  with swopsbase as (
+    select lower(regexp_replace(regexp_replace(demand.deliverySystem,'DEL_',""),'[+ _]',"")) deliverySystemFormatted, demand.* from waternetworkdemand_df demand 
+  ),
+  deliverySystemInputCurrMonth as (
+    select deliverySystem,sum(demandQuantity) as demandQuantity,lower(regexp_replace(regexp_replace(deliverySystem,'DEL_',""),'[+ _]',"")) deliverySystemFormatted,yearnumber,monthnumber from waternetworkdemand_df where networkTypeCode like 'Delivery System%' group by deliverySystem,lower(regexp_replace(regexp_replace(deliverySystem,'DEL_',""),'[+ _]',"")),yearnumber,monthnumber
+  ) 
+  select base.deliverySystem,distributionSystem,supplyZone,pressureArea,networkTypeCode,'sydneyWaterOperationalUse' as metricTypeName,(base.demandQuantity*config.metricValueNumber)/systeminput.demandQuantity as metricValueNumber,config.yearnumber,config.monthnumber,config.monthname,config.calculationDate from swopsbase base 
+  inner join deliverySystemInputCurrMonth systeminput on base.deliverySystemFormatted = systeminput.deliverySystemFormatted and base.yearnumber = systeminput.yearnumber and base.monthnumber = systeminput.monthnumber
+  inner join sharepointConfig_df config on config.metrictypename = 'SWOperationalUse' and config.yearnumber = base.yearnumber and config.monthnumber = base.monthnumber and config.metricValueNumber is not null and config.zoneTypeName = 'DeliverySystem' and base.deliverySystemFormatted = lower(config.zoneName)
+),
+ruralFireServicesUse as (
+  with rfsbase as (
+    select yearnumber, monthnumber, supply_waternetworksk, sum(supply_totalKLQuantity)/1000 as totalMLQuantity from monthlySupplyApportioned_df where LGA in ('Blacktown','Blue Mountains','Camden','Campbelltown','Fairfield','Hawkesbury','Hornsby','Liverpool','Penrith','Shellharbour','The Hills Shire','Wingecarribee','Wollondilly','Wollongong') group by yearnumber, monthnumber, supply_waternetworksk
+  ),
+  combinedLGA as (
+    select yearnumber, monthnumber, sum(supply_totalKLQuantity)/1000 as LGAtotalMLQuantity from monthlySupplyApportioned_df where LGA in ('Blacktown','Blue Mountains','Camden','Campbelltown','Fairfield','Hawkesbury','Hornsby','Liverpool','Penrith','Shellharbour','The Hills Shire','Wingecarribee','Wollondilly','Wollongong') group by yearnumber, monthnumber
+  ),
+  rfsbasepressurearea as (
+    select deliverySystem,distributionSystem,supplyZone,pressureArea,'Pressure Area' networkTypeCode,'ruralFireServicesUse' as metricTypeName,(rfsbase.totalMLQuantity*config.metricValueNumber)/combinedLGA.LGAtotalMLQuantity as metricValueNumber,config.yearnumber,config.monthnumber,config.monthname,config.calculationDate from rfsbase 
+    inner join waternetwork_df network on rfsbase.supply_waternetworksk = network.waternetworksk
+    inner join combinedLGA on combinedLGA.yearnumber = rfsbase.yearnumber and combinedLGA.monthnumber = rfsbase.monthnumber
+    inner join sharepointConfig_df config on config.metrictypename = 'RFSUse' and config.yearnumber = rfsbase.yearnumber and config.monthnumber = rfsbase.monthnumber
+  )
+    select * from rfsbasepressurearea  where pressureArea <> 'Unknown'
+    union
+    select deliverySystem,distributionSystem,supplyZone,NULL pressureArea,'Supply Zone' networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,yearnumber,monthnumber,monthname,calculationDate from rfsbasepressurearea where supplyZone <> 'Unknown' group by all
+    union
+    (with deliverybase as 
+        (select deliverySystem,NULL distributionSystem,NULL supplyZone,NULL pressureArea,'Delivery System' networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,
+        yearnumber,monthnumber,monthname,calculationDate from rfsbasepressurearea group by all)
+        select case when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','Unknown') then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' 
+                    when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
+               else deliverySystem end deliverySystem,distributionSystem,supplyZone,pressureArea,
+               case when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','Unknown') then 'Delivery System Combined' 
+                    when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'Delivery System Combined'
+               else networkTypeCode end networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,yearNumber,monthNumber,monthName,calculationDate  
+        from  deliverybase group by all
+    )  
+)
+select * from testingofFireServicesUse
+union
+select * from unauthorisedUse
+union
+select * from meterUnderRegistration
+union
+select * from unmeteredSTPs
+union
+select * from unmeteredNonSTPs
+union
+select * from fireRescueNSWUse
+union
+select * from sydneyWaterOperationalUse
+union
+select * from ruralFireServicesUse
+"""
+)
 
 # COMMAND ----------
 
 def Transform():
     global df
-    df = None
-    # ------------- TABLES ----------------- #
-    
-    property_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'viewpropertyKey')}") \
-    .select("propertyNumber","superiorPropertyTypeCode","superiorPropertyType","waterNetworkDeliverySystem","waterNetworkDistributionSystem","waterNetworkSupplyZone","waterNetworkPressureArea","propertySK","propertyTypeHistorySK","drinkingWaterNetworkSK").filter("currentFlag = 'Y'")
 
-    installation_df = GetTable(f"{get_env()}curated.water_consumption.viewinstallation") \
-    .select(col("propertyNumber").alias("install_propertyNumber"),"installationNumber","divisionCode","division").filter("divisionCode = 10").filter("currentFlag = 'Y'")
-
-    device_df = GetTable(f"{get_env()}curated.water_consumption.viewdevice") \
-    .select(col("installationNumber").alias("device_installationNumber"),"deviceSize","functionClassCode","deviceID").filter("functionClassCode in ('1000')").filter("currentFlag = 'Y'").filter("deviceSize >= 40")
-
-    waternetwork_df = GetTable(f"{get_env()}curated.dim.waternetwork") \
-        .select(col("deliverySystem").alias("waternetwork_deliverySystem"),col("distributionSystem").alias("waternetwork_distributionSystem"),col("supplyZone").alias("waternetwork_supplyZone"),col("pressureArea").alias("waternetwork_pressureArea"),"waterNetworkSK","_RecordCurrent")
-    
-    date_df = spark.sql(f"""
-                        select distinct monthstartdate,year(monthstartdate) as yearnumber,month(monthstartdate) as monthnumber, date_format(monthStartDate,'MMM') as monthname 
-                        from {get_table_namespace(f'{DEFAULT_TARGET}', 'dimdate')} where monthStartDate between add_months(current_date(),-25) and add_months(current_date(),-1)
-                        order by yearnumber desc, monthnumber desc
-                        """)
+    # ------------- TABLES ----------------- # 
 
     # ------------- JOINS ------------------ #
-    aggregatedf = None
-    # targetTableFqn = f"{_.Destination}"
-    # if (TableExists(targetTableFqn)):
-    #     truncateTable = spark.sql(f"truncate table {targetTableFqn}")
 
-    for i in date_df.collect():
-        sharepointConfig_df = spark.sql(f"""
-                                select config.zoneName, config.zonetypename, config.metricTypeName, coalesce(config.metricValueNumber,0) as  metricValueNumber
-                                from {get_env()}curated.water_balance.AggregatedComponentsConfiguration config where config.yearnumber = {i.yearnumber} and config.monthName = '{i.monthname}'""")
-        
-        waternetworkdemand_df = GetTable(f"{get_env()}curated.water_balance.factwaternetworkdemand").filter(f"year(reportDate) = {i.yearnumber}").filter(f"month(reportdate) = {i.monthnumber}") \
-            .filter("deliverySystem NOT IN ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','DEL_CASCADE','DEL_ORCHARD_HILLS','DESALINATION PLANT')") \
-            .filter("networkTypeCode in ('Pressure Area','Supply Zone','Delivery System','Delivery System Combined')") \
-            .groupBy("deliverySystem","distributionSystem","supplyZone","pressureArea","networkTypeCode").agg(sum('demandQuantity').alias("demandQuantity"))
-               
-        monthlySupplyApportioned_df = spark.sql(f"""
-                                                Select waterNetworkSK as supply_waterNetworkSK,LGA,totalKLQuantity as supply_totalKLQuantity from {get_env()}curated.fact.monthlysupplyapportionedaggregate
-                                                where year(consumptionDate) = {i.yearnumber} and month(consumptionDate) = {i.monthnumber} 
-                                                and calculationDate = (select max(calculationDate) from {get_env()}curated.fact.monthlysupplyapportionedaggregate)
-                                                """)
+    # ------------- TRANSFORMS ------------- #
+    _.Transforms = [
+        f"metricTypeName||'|'||coalesce(deliverySystem,'')||'|'||coalesce(distributionSystem,'')||'|'||coalesce(supplyZone,'')||'|'||coalesce(pressureArea,'')||'|'||yearNumber||'|'||monthName||'|'||calculationDate {BK}"
+        ,"deliverySystem deliverySystem"        
+        ,"distributionSystem distributionSystem"
+        ,"supplyZone supplyZone"        
+        ,"pressureArea pressureArea"
+        ,"networkTypeCode networkTypeCode"
+        ,"cast(yearNumber as int) yearNumber"
+        ,"cast (monthNumber as int) monthNumber"
+        ,"monthName monthName"
+        ,"calculationDate calculationDate"
+        ,"metricTypeName metricTypeName"
+        ,"metricValueNumber metricValueNumber"
+    ]
+    df = df.selectExpr(
+        _.Transforms
+    )
 
-        aggregatedf = CalculateDemandAggregated(property_df,installation_df,device_df,sharepointConfig_df,waternetworkdemand_df,waternetwork_df,monthlySupplyApportioned_df,i.yearnumber,i.monthname,i.monthnumber)
-
-        print(f"Calculation: {i.yearnumber}-{i.monthname}")
-
-        # ------------- TRANSFORMS ------------- #
-        _.Transforms = [
-            f"metricTypeName||'|'||coalesce(waterNetworkDeliverySystem,'')||'|'||coalesce(waterNetworkDistributionSystem,'')||'|'||coalesce(waterNetworkSupplyZone,'')||'|'||coalesce(waterNetworkPressureArea,'')||'|'||yearNumber||'|'||monthName||'|'||calculationDate {BK}"
-            ,"waterNetworkDeliverySystem deliverySystem"        
-            ,"waterNetworkDistributionSystem distributionSystem"
-            ,"waterNetworkSupplyZone supplyZone"        
-            ,"waterNetworkPressureArea pressureArea"
-            ,"networkTypeCode networkTypeCode"
-            ,"yearNumber yearNumber"
-            ,"monthNumber monthNumber"
-            ,"monthName monthName"
-            ,"calculationDate calculationDate"
-            ,"metricTypeName metricTypeName"
-            ,"metricValueNumber metricValueNumber"
-        ]
-        df = aggregatedf.selectExpr(
-            _.Transforms
-        )
-
-        # ------------- SAVE ------------------- #
-        SaveAndContinue(df, append=True)
-pass
+    # ------------- SAVE ------------------- #
+    # display(df)
+    # CleanSelf()
+    Save(df)
+    #DisplaySelf()
 Transform()
-
-# COMMAND ----------
-
-# CleanSelf()
