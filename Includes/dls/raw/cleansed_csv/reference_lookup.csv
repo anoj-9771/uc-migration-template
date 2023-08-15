@@ -136,4 +136,4 @@ lookup-hydstra-metadata-reference,Cleansed.Hydstra_Metadata,metadataType||refere
 lookup-edw-cdr-view-reference-key,cleansed.edw_cdr.reference_code,sourceFieldName||referenceCodeSk,valueText,
 lookup-edw-cdr-view-reference-description,cleansed.edw_cdr.view_reference_code,sourceFieldName||referenceCodeSk,referenceDescription,
 lookup-edw-cdr-view-reference-audit-unit,cleansed.edw_cdr.view_reference_unit_code,referenceCodeSk,auditUnit,
-lookup-edw-cdr-object-internal-id,cleansed.edw_cdr.view_object_internal_id,objectInternalId,sourceRecordSystemId
+lookup-edw-cdr-object-internal-id,cleansed.edw_cdr.reference_object_internal_id,objectInternalId,sourceRecordSystemId
