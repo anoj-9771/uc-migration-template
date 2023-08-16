@@ -3,7 +3,7 @@
 
 # COMMAND ----------
 
-# MAGIC %run ../../Common/common-helpers 
+# CleanSelf()
 
 # COMMAND ----------
 
@@ -53,7 +53,7 @@ Customercareresponses_column = ["activityPartner", "browserName","browserVersion
                          "reportedbyFirstName","reportedbyMobileNumber","reportedbyPersonEmail","screenResolution","serviceRequestNumber","startDate","status","subCategory","totalDurationSeconds","userLanguage"]
 
 
-devApplicationreceived_column = ["applicant", "applicationId", "assessmentResolution", "browserName", "browserVersionNumber", "clickCount", "dateAssessed", "dateCreated", "dateSubmitted", "developer", "developerSegment", 
+devApplicationreceived_column = ["applicant", "applicationId", "applicationType", "assessmentResolution", "browserName", "browserVersionNumber", "clickCount", "dateAssessed", "dateCreated", "dateSubmitted", "developer", "developerSegment", 
                          "distributionChannel", "durationSeconds","endDate","finished","firstClickSeconds","ipAddress","lastClickSeconds","locationLatitude","locationLongitude","operatingSystemText","pageSubmitDatetime","progressPercent",
                          "qSedStatusDesc","recipientEmail","recipientFirstName","recordId","recordedDate","screenResolution","startDate","status","totalDurationSeconds","userLanguage"]
 
@@ -63,12 +63,10 @@ feedbacktabgolive_column = ["browserName", "browserVersionNumber", "country", "c
                             "recordId","recordedDate","screenResolution","siteHistory","siteReferrer","startDate", "status","totalVisitedPageCount","uniqueVisitedPageCount","userLanguage","visitorType"]
 
 
-p4sonlinefeedback_column = ["distributionChannel", "durationSeconds", "endDate", "finished","ipAddress","locationLatitude", "locationLongitude", "progressPercent", "recaptchaScore","recordId", "recordedDate", 
-                     "startDate","status","userLanguage"]
+p4sonlinefeedback_column = ["distributionChannel", "durationSeconds", "endDate", "finished","ipAddress","locationLatitude", "locationLongitude", "progressPercent", "recaptchaScore","recordId",        "recordedDate", "startDate","status","userLanguage"]
 
 
-s73surveyresponse_column = ["agent", "applicationType","businessSegment", "caseCompleted", "caseNumber", "customerType", "dateReceived", "developerAddressText", "developerName", "developerPhoneNumber", 
-                            "developmentLocationText", "developmentType", "distributionChannel", "durationSeconds", "endDate", "finished", "ipAddress", "locationLatitude", "locationLongitude", "progressPercent"]
+s73surveyresponse_column = ["agent", "applicationType","businessSegment", "caseCompleted", "caseNumber", "customerName", "customerType", "dateReceived", "developerAddressText", "developerName", "developerPhoneNumber", "developmentLocationText", "developmentType", "distributionChannel", "durationSeconds", "email", "endDate", "finished", "ipAddress", "locationLatitude", "locationLongitude", "progressPercent","proposedDwellingCount","proposedLotCount","recipientEmail","recordedDate","recordId","section73DurationDays","section73IssueDate","section73Month","startDate","status","straightCert","uniqueId","userLanguage","waterServicesCoordinatorText"]
 
 
 waterfixpost_column = ["afterHours", "appointmentDate", "aptType", "browserName", "browserVersionNumber", "clickCount", "contactNumber", "contractorCost", "customerValue", "distributionChannel", "durationSeconds", "endDate",
@@ -82,7 +80,7 @@ websitegolive_column = ["browserName","browserVersionNumber","country", "current
                         "screenResolution", "siteHistory", "siteReferrer", "startDate", "status", "totalVisitedPageCount", "uniqueVisitedPageCount","userLanguage", "visitorType"]
 
 
-wscs73exp_column = ["distributionChannel", "durationSeconds","endDate", "finished","progressPercent","recordId","recordedDate", "sec73IssueDate","startDate", "status", "userLanguage", "waterServicesCoordinatorText"]
+wscs73exp_column = ["agent","applicationType","businessSegment","caseCompleted","caseNumber","dateReceived","developerName","developerPhoneNo","developerPhoneType","developersAddress","developmentLocation","developmentType","numberofProposedDwellings","numberofProposedLots","sec73DurationDays","sec73Month","uniqueId","userID","distributionChannel", "durationSeconds","endDate", "finished","progressPercent","recordId","recordedDate", "section73IssueDate","startDate", "status", "userLanguage", "waterServicesCoordinatorText"]
 
 duplicate_columns = ["surveyId", "surveyName", "recordId"]
 
@@ -159,7 +157,6 @@ def Transform():
 
     # ------------- SAVE ------------------- #
     #df_final.display()
-    #CleanSelf()
     Save(df_final)
     #DisplaySelf()
 Transform()
