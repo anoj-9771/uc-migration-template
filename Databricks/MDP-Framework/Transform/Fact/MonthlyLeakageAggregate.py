@@ -270,7 +270,7 @@ demandaggregated as (
         union (
           select x.SWCAggregated,x.deliverySystem,x.supplyZone,x.pressureArea,case when x.deliverySystem like '%POTTS_HILL%' and x.networktypecode = 'Delivery System Combined' then ( x.consumptionQuantity+ coalesce(y.consumptionQuantity,0)) else x.consumptionQuantity end as consumptionQuantity,x.monthNumber,x.yearNumber,x.networkTypeCode from aggregatedbase x left outer join unallocated y on x.monthNumber = y.monthNumber and x.yearNumber = y.yearNumber where x.networkTypeCode in ('Delivery System','Delivery System Combined') and x.deliverySystem <> 'Unknown'
         ) union
-        select SWCAggregated,NULL as deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'SWC' as networkTypeCode from aggregatedbase group by all
+        select SWCAggregated,NULL as deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'SWC' as networkTypeCode from aggregatedbase where networkTypeCode in ('Delivery System','Delivery System Combined') group by all
 )
 SELECT d.SWCAggregated SWCAggregated
       ,nvl(d.deliverySystem,'') deliverySystem
