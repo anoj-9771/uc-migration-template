@@ -22,7 +22,7 @@ with date_df as (
   order by yearnumber desc, monthnumber desc
 ),
 tfsu_df as (
-  select property.propertyNumber,property.superiorPropertyTypeCode,property.superiorPropertyType,property.waterNetworkDeliverySystem deliverySystem,property.waterNetworkDistributionSystem distributionSystem,property.waterNetworkSupplyZone supplyZone,property.waterNetworkPressureArea pressureArea,property.propertySK,property.propertyTypeHistorySK,property.drinkingWaterNetworkSK,installation.installationNumber,installation.divisionCode,installation.division,device.deviceSize,device.functionClassCode,device.deviceID
+  select distinct property.propertyNumber,property.superiorPropertyTypeCode,property.superiorPropertyType,property.waterNetworkDeliverySystem deliverySystem,property.waterNetworkDistributionSystem distributionSystem,property.waterNetworkSupplyZone supplyZone,property.waterNetworkPressureArea pressureArea,property.propertySK,property.propertyTypeHistorySK,property.drinkingWaterNetworkSK,installation.installationNumber,installation.divisionCode,installation.division,device.deviceSize,device.functionClassCode,device.deviceID
   from {get_env()}curated.water_balance.propertyKey property 
   inner join {get_env()}curated.water_consumption.viewinstallation installation on property.propertyNumber = installation.propertyNumber and property.superiorPropertyTypeCode not in (902)
   inner join {get_env()}curated.water_consumption.viewdevice device on installation.installationNumber = device.installationNumber
@@ -220,6 +220,15 @@ ruralFireServicesUse as (
   combinedLGA as (
     select yearnumber, monthnumber, sum(supply_totalKLQuantity)/1000 as LGAtotalMLQuantity from monthlySupplyApportioned_df where LGA in ('Blacktown','Blue Mountains','Camden','Campbelltown','Fairfield','Hawkesbury','Hornsby','Liverpool','Penrith','Shellharbour','The Hills Shire','Wingecarribee','Wollondilly','Wollongong') group by yearnumber, monthnumber
   ),
+  unknownrfs as (
+    with unkbase as (
+      select 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' deliverySystem,NULL distributionSystem,NULL supplyZone,NULL pressureArea,'Delivery System Combined' networkTypeCode,'ruralFireServicesUse' as metricTypeName,sum(supply_totalKLQuantity)/1000 as totalMLQuantity,yearnumber,monthnumber
+      from monthlySupplyApportioned_df unksupply 
+      inner join waternetwork_df network on unksupply.supply_waternetworksk = network.waternetworksk and network.deliverysystem = 'Unknown' group by all  
+    ) select unk.deliverySystem,unk.distributionSystem,unk.supplyZone,unk.pressureArea,unk.networkTypeCode,unk.metricTypeName,(unk.totalMLQuantity*config.metricValueNumber)/combinedLGA.LGAtotalMLQuantity as metricValueNumber,config.yearnumber,config.monthnumber,config.monthname,config.calculationDate from unkbase unk
+    inner join combinedLGA on combinedLGA.yearnumber = unk.yearnumber and combinedLGA.monthnumber = unk.monthnumber
+    inner join sharepointConfig_df config on config.metrictypename = 'RFSUse' and config.yearnumber = unk.yearnumber and config.monthnumber = unk.monthnumber
+  ),
   rfsbasepressurearea as (
     select deliverySystem,distributionSystem,supplyZone,pressureArea,'Pressure Area' networkTypeCode,'ruralFireServicesUse' as metricTypeName,(rfsbase.totalMLQuantity*config.metricValueNumber)/combinedLGA.LGAtotalMLQuantity as metricValueNumber,config.yearnumber,config.monthnumber,config.monthname,config.calculationDate from rfsbase 
     inner join waternetwork_df network on rfsbase.supply_waternetworksk = network.waternetworksk
@@ -231,16 +240,18 @@ ruralFireServicesUse as (
     select deliverySystem,distributionSystem,supplyZone,NULL pressureArea,'Supply Zone' networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,yearnumber,monthnumber,monthname,calculationDate from rfsbasepressurearea where supplyZone <> 'Unknown' group by all
     union
     (with deliverybase as 
-        (select deliverySystem,NULL distributionSystem,NULL supplyZone,NULL pressureArea,'Delivery System' networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,
-        yearnumber,monthnumber,monthname,calculationDate from rfsbasepressurearea group by all)
-        select case when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','Unknown') then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' 
+          (select deliverySystem,NULL distributionSystem,NULL supplyZone,NULL pressureArea,'Delivery System' networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,
+          yearnumber,monthnumber,monthname,calculationDate from rfsbasepressurearea where deliverySystem <> 'Unknown' group by all),
+          deliveryconsolidated as 
+          (select case when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL') then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' 
                     when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
                else deliverySystem end deliverySystem,distributionSystem,supplyZone,pressureArea,
-               case when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL','Unknown') then 'Delivery System Combined' 
+               case when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_PROSPECT_EAST','DEL_POTTS_HILL') then 'Delivery System Combined' 
                     when networkTypeCode = 'Delivery System' and deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') then 'Delivery System Combined'
                else networkTypeCode end networkTypeCode,metricTypeName,sum(metricValueNumber) as metricValueNumber,yearNumber,monthNumber,monthName,calculationDate  
-        from  deliverybase group by all
-    )  
+          from  deliverybase group by all)
+          select ds.deliverySystem,ds.distributionSystem,ds.supplyZone,ds.pressureArea,ds.networkTypeCode,ds.metricTypeName,case when ds.deliverysystem = 'DEL_POTTS_HILL + DEL_PROSPECT_EAST' then ds.metricValueNumber + ur.metricValueNumber else ds.metricValueNumber end metricValueNumber,ds.yearnumber,ds.monthnumber,ds.monthname,ds.calculationDate from deliveryconsolidated ds left outer join unknownrfs ur on ds.yearnumber = ur.yearnumber and ds.monthnumber = ur.monthnumber and ds.deliverysystem = ur.deliverysystem
+    ) 
 )
 select * from testingofFireServicesUse
 union
