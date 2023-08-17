@@ -244,10 +244,6 @@
 						]
 					}
 				],
-				"policy": {
-					"secureOutput": false,
-					"secureInput": false
-				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "DatabricksSecret",
@@ -447,10 +443,6 @@
 						]
 					}
 				],
-				"policy": {
-					"secureOutput": false,
-					"secureInput": false
-				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "JobPoolId",
@@ -645,10 +637,6 @@
 						]
 					}
 				],
-				"policy": {
-					"secureOutput": false,
-					"secureInput": false
-				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "endPipeline",

@@ -1,427 +1,294 @@
 {
-	"name": "scctv-AI-pipeline-low",
-	"properties": {
-		"activities": [
-			{
-				"name": "get-bearer-token",
-				"type": "WebActivity",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"url": {
-						"value": "@concat('https://', pipeline().globalParameters.keyVaultName, '.vault.azure.net/secrets/databricks-token?api-version=7.0')",
-						"type": "Expression"
-					},
-					"method": "GET",
-					"authentication": {
-						"type": "MSI",
-						"resource": "https://vault.azure.net"
-					}
-				}
-			},
-			{
-				"name": "get-inbound-videos",
-				"type": "GetMetadata",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"dataset": {
-						"referenceName": "scctv_videos_inbound_blob_low",
-						"type": "DatasetReference"
-					},
-					"fieldList": [
-						"childItems"
-					],
-					"storeSettings": {
-						"type": "AzureBlobStorageReadSettings",
-						"recursive": true,
-						"enablePartitionDiscovery": false
-					},
-					"formatSettings": {
-						"type": "BinaryReadSettings"
-					}
-				}
-			},
-			{
-				"name": "run-job-for-each-video-id",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "get-inbound-videos",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "get-sewer-cctv-pipeline-job-id",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@take(activity('get-inbound-videos').output.childItems, 400)",
-						"type": "Expression"
-					},
-					"isSequential": false,
-					"batchCount": 4,
-					"activities": [
-						{
-							"name": "If_Cond_TaskCode_NotW and NotAssessd",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Set_variable_Assessed_Date",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@or(startswith(variables('CCTV_TaskCode'),'W'),not(empty(variables('CCTV_Assessed_Date'))))",
-									"type": "Expression"
-								},
-								"ifFalseActivities": [
-									{
-										"name": "if-in-allowable-run-time-exec-AI-pipeline",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "scctv-allowable-run-time-AI-pipeline",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"DatabricksSecret": {
-													"value": "@variables('DatabricksSecret')",
-													"type": "Expression"
-												},
-												"processStartTime": {
-													"value": "@pipeline().parameters.processStartTime",
-													"type": "Expression"
-												},
-												"processEndTime": {
-													"value": "@pipeline().parameters.processEndTime",
-													"type": "Expression"
-												},
-												"PipelineJobID": {
-													"value": "@variables('PipelineJobID')",
-													"type": "Expression"
-												},
-												"videoID": {
-													"value": "@item().name",
-													"type": "Expression"
-												},
-												"Priority": "low"
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "Set_variable_videoId",
-							"type": "SetVariable",
-							"dependsOn": [],
-							"policy": {
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "CCTV_videoId",
-								"value": "@replace(item().name,'.mp4','')"
-							}
-						},
-						{
-							"name": "LookupCctv_kaltura_metadata",
-							"type": "Lookup",
-							"dependsOn": [
-								{
-									"activity": "Set_variable_videoId",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"source": {
-									"type": "AzureDatabricksDeltaLakeSource",
-									"query": "select * from cleansed.cctv_kaltura_metadata where objectId = '@{variables('CCTV_videoId')}'"
-								},
-								"dataset": {
-									"referenceName": "AzureDatabricksDeltaLakeCCTV",
-									"type": "DatasetReference",
-									"parameters": {
-										"Database": "cleansed",
-										"Table": "cctv_kaltura_metadata"
-									}
-								}
-							}
-						},
-						{
-							"name": "Set_variable_TaskCode",
-							"description": "@string(activity('LookupCctv_kaltura_metadata').output.firstRow.TaskCode)",
-							"type": "SetVariable",
-							"dependsOn": [
-								{
-									"activity": "LookupCctv_kaltura_metadata",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "CCTV_TaskCode",
-								"value": "@string(activity('LookupCctv_kaltura_metadata').output.firstRow.TaskCode)"
-							}
-						},
-						{
-							"name": "Set_variable_Assessed_Date",
-							"type": "SetVariable",
-							"dependsOn": [
-								{
-									"activity": "Set_variable_TaskCode",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "CCTV_Assessed_Date",
-								"value": "@string(activity('LookupCctv_kaltura_metadata').output.firstRow.AssessedByDate)"
-							}
-						}
-					]
-				}
-			},
-			{
-				"name": "set-secret-variable",
-				"type": "SetVariable",
-				"dependsOn": [
-					{
-						"activity": "get-bearer-token",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "DatabricksSecret",
-					"value": {
-						"value": "@activity('get-bearer-token').output.value",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "get-databricks-jobs",
-				"type": "WebActivity",
-				"dependsOn": [
-					{
-						"activity": "set-secret-variable",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/list",
-					"method": "GET",
-					"headers": {
-						"Authorization": {
-							"value": "Bearer @{variables('DatabricksSecret')}",
-							"type": "Expression"
-						}
-					}
-				}
-			},
-			{
-				"name": "get-sewer-cctv-pipeline-job-id",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "get-databricks-jobs",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('get-databricks-jobs').output.jobs",
-						"type": "Expression"
-					},
-					"activities": [
-						{
-							"name": "check-job-name-is-sewer-cctv-pipeline",
-							"type": "IfCondition",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().settings.name, pipeline().parameters.DatabricksJobName)",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "set-job-exists-variable",
-										"type": "SetVariable",
-										"dependsOn": [],
-										"policy": {
-											"secureOutput": false,
-											"secureInput": false
-										},
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "PipelineJobExsits",
-											"value": true
-										}
-									},
-									{
-										"name": "set-job-id-variable",
-										"type": "SetVariable",
-										"dependsOn": [
-											{
-												"activity": "set-job-exists-variable",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"policy": {
-											"secureOutput": false,
-											"secureInput": false
-										},
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "PipelineJobID",
-											"value": {
-												"value": "@string(item().job_id)",
-												"type": "Expression"
-											}
-										}
-									}
-								]
-							}
-						}
-					]
-				}
-			}
-		],
-		"parameters": {
-			"DatabricksJobName": {
-				"type": "string",
-				"defaultValue": "sewer-cctv-pipeline"
-			},
-			"Priority": {
-				"type": "string",
-				"defaultValue": "low"
-			},
-			"processStartTime": {
-				"type": "int",
-				"defaultValue": 8
-			},
-			"processEndTime": {
-				"type": "int",
-				"defaultValue": 19
-			}
-		},
-		"variables": {
-			"PipelineJobExsits": {
-				"type": "Boolean",
-				"defaultValue": false
-			},
-			"PipelineJobID": {
-				"type": "String"
-			},
-			"DatabricksSecret": {
-				"type": "String"
-			},
-			"ModelExists": {
-				"type": "Boolean",
-				"defaultValue": false
-			},
-			"RegisterModelJobExists": {
-				"type": "Boolean"
-			},
-			"RegisterModelJobID": {
-				"type": "String"
-			},
-			"RegisterModelState": {
-				"type": "String"
-			},
-			"Save_Data_To_Azure_SQLRunID": {
-				"type": "String"
-			},
-			"sewer-cctv-pipeline-run-id": {
-				"type": "String"
-			},
-			"CCTV_videoId": {
-				"type": "String"
-			},
-			"CCTV_Assessed_Date": {
-				"type": "String"
-			},
-			"CCTV_TaskCode": {
-				"type": "String"
-			}
-		},
-		"folder": {
-			"name": "AI-ML/Sewer CCTV"
-		},
-		"annotations": []
-	}
+    "name": "scctv-AI-pipeline-low",
+    "properties": {
+        "activities": [
+            {
+                "name": "get-bearer-token",
+                "type": "WebActivity",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": {
+                        "value": "@concat('https://', pipeline().globalParameters.keyVaultName, '.vault.azure.net/secrets/databricks-token?api-version=7.0')",
+                        "type": "Expression"
+                    },
+                    "method": "GET",
+                    "authentication": {
+                        "type": "MSI",
+                        "resource": "https://vault.azure.net"
+                    }
+                }
+            },
+            {
+                "name": "get-inbound-videos",
+                "type": "GetMetadata",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "scctv_videos_inbound_blob_low",
+                        "type": "DatasetReference"
+                    },
+                    "fieldList": [
+                        "childItems"
+                    ],
+                    "storeSettings": {
+                        "type": "AzureBlobStorageReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    },
+                    "formatSettings": {
+                        "type": "BinaryReadSettings"
+                    }
+                }
+            },
+            {
+                "name": "run-job-for-each-video-id",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "get-inbound-videos",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "get-sewer-cctv-pipeline-job-id",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@take(activity('get-inbound-videos').output.childItems, 400)",
+                        "type": "Expression"
+                    },
+                    "isSequential": false,
+                    "batchCount": 4,
+                    "activities": [
+                        {
+                            "name": "if-in-allowable-run-time-exec-AI-pipeline",
+                            "type": "ExecutePipeline",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "pipeline": {
+                                    "referenceName": "scctv-allowable-run-time-AI-pipeline",
+                                    "type": "PipelineReference"
+                                },
+                                "waitOnCompletion": true,
+                                "parameters": {
+                                    "DatabricksSecret": {
+                                        "value": "@variables('DatabricksSecret')",
+                                        "type": "Expression"
+                                    },
+                                    "processStartTime": {
+                                        "value": "@pipeline().parameters.processStartTime",
+                                        "type": "Expression"
+                                    },
+                                    "processEndTime": {
+                                        "value": "@pipeline().parameters.processEndTime",
+                                        "type": "Expression"
+                                    },
+                                    "PipelineJobID": {
+                                        "value": "@variables('PipelineJobID')",
+                                        "type": "Expression"
+                                    },
+                                    "videoID": {
+                                        "value": "@item().name",
+                                        "type": "Expression"
+                                    },
+                                    "Priority": "low"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "set-secret-variable",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "get-bearer-token",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "DatabricksSecret",
+                    "value": {
+                        "value": "@activity('get-bearer-token').output.value",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "get-databricks-jobs",
+                "type": "WebActivity",
+                "dependsOn": [
+                    {
+                        "activity": "set-secret-variable",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/list",
+                    "method": "GET",
+                    "headers": {
+                        "Authorization": {
+                            "value": "Bearer @{variables('DatabricksSecret')}",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "get-sewer-cctv-pipeline-job-id",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "get-databricks-jobs",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('get-databricks-jobs').output.jobs",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "check-job-name-is-sewer-cctv-pipeline",
+                            "type": "IfCondition",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "expression": {
+                                    "value": "@equals(item().settings.name, pipeline().parameters.DatabricksJobName)",
+                                    "type": "Expression"
+                                },
+                                "ifTrueActivities": [
+                                    {
+                                        "name": "set-job-exists-variable",
+                                        "type": "SetVariable",
+                                        "dependsOn": [],
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "PipelineJobExsits",
+                                            "value": true
+                                        }
+                                    },
+                                    {
+                                        "name": "set-job-id-variable",
+                                        "type": "SetVariable",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "set-job-exists-variable",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ],
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "PipelineJobID",
+                                            "value": {
+                                                "value": "@string(item().job_id)",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "parameters": {
+            "DatabricksJobName": {
+                "type": "string",
+                "defaultValue": "sewer-cctv-pipeline"
+            },
+            "Priority": {
+                "type": "string",
+                "defaultValue": "low"
+            },
+            "processStartTime": {
+                "type": "int",
+                "defaultValue": 8
+            },
+            "processEndTime": {
+                "type": "int",
+                "defaultValue": 19
+            }
+        },
+        "variables": {
+            "PipelineJobExsits": {
+                "type": "Boolean",
+                "defaultValue": false
+            },
+            "PipelineJobID": {
+                "type": "String"
+            },
+            "DatabricksSecret": {
+                "type": "String"
+            },
+            "ModelExists": {
+                "type": "Boolean",
+                "defaultValue": false
+            },
+            "RegisterModelJobExists": {
+                "type": "Boolean"
+            },
+            "RegisterModelJobID": {
+                "type": "String"
+            },
+            "RegisterModelState": {
+                "type": "String"
+            },
+            "Save_Data_To_Azure_SQLRunID": {
+                "type": "String"
+            },
+            "sewer-cctv-pipeline-run-id": {
+                "type": "String"
+            }
+        },
+        "folder": {
+            "name": "AI-ML/Sewer CCTV"
+        },
+        "annotations": []
+    }
 }
