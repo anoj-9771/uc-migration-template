@@ -49,6 +49,9 @@ CleansedSourceCount = sourceDataFrame.count()
 if systemCode == "hydra":
     sourceDataFrame = ConvertBlankRecordsToNull(sourceDataFrame)
 
+# COMMAND ----------
+
+
 cleanseDataFrame = CleansedTransform(sourceDataFrame, sourceTableName.lower(), systemCode)
 cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",current_timestamp()) \
                                    .withColumn("_RecordCurrent",lit('1')) \
@@ -57,6 +60,7 @@ cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",curren
                                    .withColumn("_RecordEnd",to_timestamp(lit("9999-12-31"), "yyyy-MM-dd"))
 
 CreateDeltaTable(cleanseDataFrame, cleansedTableName) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, j.get("BusinessKeyColumn"))
+
 
 # COMMAND ----------
 

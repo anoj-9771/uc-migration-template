@@ -1,5 +1,28 @@
 # Databricks notebook source
+from pyspark.sql.types import StringType
+import re
+
+# COMMAND ----------
+
 CLEANSED_PATH = "/mnt/datalake-raw/cleansed_csv"
+
+# COMMAND ----------
+
+def ready_string_for_gis(input_string):
+    """use regex to tidy up the geometry data to make it gis friendly"""
+    try:
+        output_string = re.sub(r'"\[', '[', input_string)
+        output_string = re.sub(r'\]"', ']', output_string)
+        output_string = re.sub(r'"\d', lambda x: x.group().replace('"', ''), output_string)
+        output_string = re.sub(r'\d"', lambda x: x.group().replace('"', ''), output_string)
+        output_string = re.sub(r'"-', lambda x: x.group().replace('"', ''), output_string)
+
+        print(output_string)
+        return output_string
+    except Exception as e:
+        return input_string
+
+spark.udf.register("ready_string_for_gis_sql", ready_string_for_gis, StringType())
 
 # COMMAND ----------
 
@@ -46,6 +69,7 @@ defaultTransformTags = {
     ,"int-to-date" : "to_date(trim($c$),'yyyyMMdd')"
     ,"utc+10ts-to-utcts" : "to_utc_timestamp($c$, 'UTC+10')"
     ,"strip-html" : "regexp_replace(regexp_replace(regexp_replace(regexp_replace($c$,'<([a-zA-Z])>|<([a-zA-Z][a-zA-Z])>|<([a-zA-Z][a-zA-Z][a-zA-Z])>|<([a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z])>|<([a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z])>|<([a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z])>|</([a-zA-Z])>|</([a-zA-Z][a-zA-Z])>|</([a-zA-Z][a-zA-Z][a-zA-Z])>|</([a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z])>|</([a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z])>|</([a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z])>|<br />',''),'&nbsp;',' '),'<font face=.*>',''),'<span style=.*>','')"
+    ,"ready_string_for_gis_udf" : "ready_string_for_gis_sql(to_json($c$))"
 }
 
 # COMMAND ----------
@@ -195,7 +219,6 @@ def StaticReplacement(sourceDataFrame, lookupTag, columnName):
     return sourceDataFrame.withColumn(columnName, expr(caseStatement))
 
 # COMMAND ----------
-
 
 def LookupValue(sourceDataFrame, lookupTag, columnName):
     tagParameters = lookupTags.get(lookupTag.lower())
@@ -514,7 +537,3 @@ def GetRawLatestRecordBK(cleanseDataFrame,businessKey,groupOrderBy,systemCode):
         businessKey = businessKey.replace(', rowStamp','').replace(',rowStamp','')
     cleanseDataFrame = spark.sql(f"select * from (select vwCleanseDataFrame.*, row_number() OVER (Partition By {businessKey} order by {groupOrderBy}) row_num from vwCleanseDataFrame) where row_num = 1 ").drop("row_num")
     return cleanseDataFrame
-
-# COMMAND ----------
-
-
