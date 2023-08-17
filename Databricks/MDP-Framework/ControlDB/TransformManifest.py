@@ -110,14 +110,15 @@ transform_df = spark.sql("""
     (50,'Fact','StoppedMeterConsumption','databricks-notebook','',null,null,1),
     (51,'Fact','StoppedMeterAggregate','databricks-notebook','',50,null,1),
     (52,'Views','viewUnmeteredConsumption_UC2','databricks-notebook','',49,null,1),                                                 
-    (53,'Fact','DailySupplyApportionedConsumption','databricks-notebook','',2,null,0),
-    (54,'Fact','DailySupplyApportionedAccruedConsumption','databricks-notebook','',2,null,0),
-    (55,'Fact','MonthlySupplyApportionedAggregate','databricks-notebook','',54,null,0),
-    (56,'Fact','MonthlyLeakageAggregate','databricks-notebook','',55,null,0),
-    (57,'Fact','MonthlySupplyApportionedConsumption','databricks-notebook','',53,null,0),
-    (58,'Fact','MonthlySupplyApportionedAccruedConsumption','databricks-notebook','',54,null,0),
-    (59,'Fact','ReconDailySupplyApportionedConsumption','databricks-notebook','',53,null,0),
-    (60,'Fact','ReconDailySupplyApportionedAccruedConsumption','databricks-notebook','',54,null,0)
+    (53,'Fact','DailySupplyApportionedConsumption','databricks-notebook','',2,null,1),
+    (54,'Fact','DailySupplyApportionedAccruedConsumption','databricks-notebook','',2,null,1),
+    (55,'Fact','MonthlySupplyApportionedAggregate','databricks-notebook','',54,null,1),
+    (56,'Fact','MonthlyLeakageAggregate','databricks-notebook','',61,null,1),
+    (57,'Fact','MonthlySupplyApportionedConsumption','databricks-notebook','',53,null,1),
+    (58,'Fact','MonthlySupplyApportionedAccruedConsumption','databricks-notebook','',54,null,1),
+    (59,'Fact','ReconDailySupplyApportionedConsumption','databricks-notebook','',53,null,1),
+    (60,'Fact','ReconDailySupplyApportionedAccruedConsumption','databricks-notebook','',54,null,1),
+    (61,'Fact','DemandAggregatedComponents','databricks-notebook','',55,null,1)
 AS (TransformID,EntityType,EntityName,ProcessorType,TargetKeyVaultSecret,InternalDependency,ExternalDependency,Enabled)
 """)
 
@@ -161,11 +162,27 @@ df = df.selectExpr(
     ,'Enabled'
 )
 
-# Transforms that runs once a month
-tables = [53,54,55,56,57,58,59,60]
+if 'ExtendedProperties' not in df.columns:
+    df = df.withColumn('ExtendedProperties',lit(''))  
+
+# Transforms that run on the 3rd of the month
+tables = [53,54,55,56,57,58,59,60,61]
 df = (
-    df.withColumn('ExtendedProperties', when(df.TransformID.isin(tables)
-                                        ,lit('"runDayOfMonth" : 3'))  
+    df.withColumn('ExtendedProperties', expr('trim("{}" FROM ExtendedProperties)'))
+      .withColumn('ExtendedProperties', when(df.TransformID.isin(tables)
+                                        ,lit('"runDayOfMonth" : 3'))
+                                        .otherwise(expr('ExtendedProperties'))
+                                        )
+      .withColumn('ExtendedProperties', expr('if(ExtendedProperties<>"","{"||ExtendedProperties ||"}","")')) 
+)
+
+# Transforms that run on the 2nd of the month
+tables = [48,49,50,51,52]
+df = (
+    df.withColumn('ExtendedProperties', expr('trim("{}" FROM ExtendedProperties)'))
+      .withColumn('ExtendedProperties', when(df.TransformID.isin(tables)
+                                        ,lit('"runDayOfMonth" : 2'))
+                                        .otherwise(expr('ExtendedProperties'))
                                         )
       .withColumn('ExtendedProperties', expr('if(ExtendedProperties<>"","{"||ExtendedProperties ||"}","")')) 
 )
