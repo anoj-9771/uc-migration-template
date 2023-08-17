@@ -16,6 +16,7 @@ def AssignWorkspaceCatalogs():
         catalog = f"{GetPrefix()}{i}"
         print(catalog)
         print(UpdateCatalogWorkspaceBindings(catalog, [ GetWorkspaceId() ]))
+AssignWorkspaceCatalogs()
 
 # COMMAND ----------
 
@@ -47,7 +48,11 @@ def AssignWorkspaceCatalogs():
 
 # COMMAND ----------
 
+MountBlobContainer(containerName="sewercctvimages")
+MountBlobContainer(containerName="sewercctvmodel")
+MountBlobContainer(containerName="sewercctvvideos")
 MountBlobContainer(containerName="urbanplunge")
 MountBlobContainer(containerName="iotsewertelemetrydata")
 MountBlobContainer(containerName="iotswtelemetryalarmdata")
 MountContainer(containerName="raw")
+MountContainer(containerName="landing")

@@ -5,33 +5,9 @@
 			{
 				"name": "get-bearer-token",
 				"type": "WebActivity",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"url": {
-						"value": "@concat('https://', pipeline().globalParameters.keyVaultName, '.vault.azure.net/secrets/databricks-token?api-version=7.0')",
-						"type": "Expression"
-					},
-					"method": "GET",
-					"authentication": {
-						"type": "MSI",
-						"resource": "https://vault.azure.net"
-					}
-				}
-			},
-			{
-				"name": "get-databricks-instance-pools",
-				"type": "WebActivity",
 				"dependsOn": [
 					{
-						"activity": "get-bearer-token",
+						"activity": "switch-token-name",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -46,11 +22,49 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"url": "https://australiaeast.azuredatabricks.net/api/2.0/instance-pools/list",
+					"url": {
+						"value": "https://@{pipeline().globalParameters.keyVaultName}.vault.azure.net/secrets/@{variables('KVTokenName')}?api-version=7.0",
+						"type": "Expression"
+					},
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "get-databricks-instance-pools",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "set-databricks-token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@{variables('WorkspaceUrl')}/api/2.0/instance-pools/list",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+						"type": "IntegrationRuntimeReference"
+					},
 					"method": "GET",
 					"headers": {
 						"Authorization": {
-							"value": "Bearer @{activity('get-bearer-token').output.value}",
+							"value": "Bearer @{variables('DatabricksToken')}",
 							"type": "Expression"
 						}
 					},
@@ -107,7 +121,7 @@
 				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "filter-instance-pool",
+						"activity": "is-instance-pool-found",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -165,7 +179,7 @@
 				"type": "WebActivity",
 				"dependsOn": [
 					{
-						"activity": "get-bearer-token",
+						"activity": "set-databricks-token",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -180,11 +194,18 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"url": "https://australiaeast.azuredatabricks.net/api/2.0/clusters/list",
+					"url": {
+						"value": "@{variables('WorkspaceUrl')}/api/2.0/clusters/list",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+						"type": "IntegrationRuntimeReference"
+					},
 					"method": "GET",
 					"headers": {
 						"Authorization": {
-							"value": "Bearer @{activity('get-bearer-token').output.value}",
+							"value": "Bearer @{variables('DatabricksToken')}",
 							"type": "Expression"
 						}
 					},
@@ -312,7 +333,10 @@
 								"referenceName": "LS_AzureDatabricks_InstancePool",
 								"type": "LinkedServiceReference",
 								"parameters": {
-									"kvSecretNameToken": "databricks-token",
+									"kvSecretNameToken": {
+										"value": "@variables('KVTokenName')",
+										"type": "Expression"
+									},
 									"PoolId": {
 										"value": "@variables('InstancePoolId')",
 										"type": "Expression"
@@ -320,7 +344,10 @@
 									"DatabricksVersion": "12.2.x-scala2.12",
 									"newClusterNumOfWorker": "1:4",
 									"ProductTag": "Framework ETL 2.0",
-									"kvSecretNameUrl": "databricks-domain"
+									"kvSecretNameUrl": {
+										"value": "@variables('KVUrlName')",
+										"type": "Expression"
+									}
 								}
 							}
 						},
@@ -432,12 +459,18 @@
 								"referenceName": "LS-AzureDatabricks_DefinedCluster",
 								"type": "LinkedServiceReference",
 								"parameters": {
-									"kvSecretNameToken": "databricks-token",
+									"kvSecretNameToken": {
+										"value": "@variables('KVTokenName')",
+										"type": "Expression"
+									},
 									"clusterId": {
 										"value": "@variables('ClusterId')",
 										"type": "Expression"
 									},
-									"kvSecretNameUrl": "databricks-domain"
+									"kvSecretNameUrl": {
+										"value": "@variables('KVUrlName')",
+										"type": "Expression"
+									}
 								}
 							}
 						},
@@ -617,20 +650,230 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "get-workspace-url",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "switch-url-name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "https://@{pipeline().globalParameters.keyVaultName}.vault.azure.net/secrets/@{variables('KVUrlName')}?api-version=7.0",
+						"type": "Expression"
+					},
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "set-workspace-url",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get-workspace-url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "WorkspaceUrl",
+					"value": {
+						"value": "@activity('get-workspace-url').output.value",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set-databricks-token",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get-bearer-token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-workspace-url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "DatabricksToken",
+					"value": {
+						"value": "@activity('get-bearer-token').output.value",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "switch-token-name",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "workspace-switch",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "KVTokenName",
+					"value": {
+						"value": "@if(variables('WorkspaceSwitch'), 'edp-databricks-02-token', 'databricks-token')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "switch-url-name",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "workspace-switch",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "KVUrlName",
+					"value": {
+						"value": "@if(variables('WorkspaceSwitch'), 'edp-databricks-02-url', 'databricks-domain')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "is-instance-pool-found",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "filter-instance-pool",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(int(activity('filter-instance-pool').output.FilteredItemsCount), 1)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "fail-pool-not-found",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "500",
+								"errorCode": "Pool not found!"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "workspace-switch",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "WorkspaceSwitch",
+					"value": {
+						"value": "@if(contains(pipeline().parameters.task, 'WorkspaceSwitch'), equals(pipeline().parameters.task.WorkspaceSwitch, 1), false)",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
 			"task": {
-				"type": "object"
+				"type": "object",
+				"defaultValue": {
+					"BatchID": "f4893188",
+					"ID": 21488,
+					"LowWatermark": null,
+					"SourceID": 20001,
+					"SystemCode": "System",
+					"SourceSchema": "dbo",
+					"SourceTableName": "ExtractLoadManifest",
+					"SourceQuery": null,
+					"SourceFolderPath": null,
+					"SourceFileName": null,
+					"SourceKeyVaultSecret": "daf-sql-controldb-connectionstring",
+					"SourceHandler": "sql-load",
+					"LoadType": null,
+					"BusinessKeyColumn": null,
+					"WatermarkColumn": null,
+					"RawHandler": "raw-load",
+					"RawPath": "/raw/System/dbo_ExtractLoadManifest/2023/08/15/1708/6e3bc2a7-22c4-4390-bbf4-b149638b406f.json",
+					"CleansedHandler": "cleansed-load",
+					"CleansedPath": "/cleansed/System/dbo_ExtractLoadManifest/",
+					"DestinationSchema": "dbo",
+					"DestinationTableName": "ExtractLoadManifest",
+					"DestinationKeyVaultSecret": null,
+					"ExtendedProperties": null,
+					"QueryFilter": null,
+					"ExtraConfig": "[{\"DefaultPoolName\":\"pool-small\"}]"
+				}
 			},
 			"config": {
-				"type": "object"
+				"type": "object",
+				"defaultValue": {
+					"notebookPath": "/MDP-Framework/Zone/raw-load",
+					"sinkCountProperty": "SinkRowCount",
+					"activityType": "raw-databricks"
+				}
 			}
 		},
 		"variables": {
-			"DatabricksSecret": {
-				"type": "String"
-			},
 			"InstancePoolId": {
 				"type": "String"
 			},
@@ -646,6 +889,24 @@
 			},
 			"ClusterName": {
 				"type": "String"
+			},
+			"KVTokenName": {
+				"type": "String",
+				"defaultValue": "daf-databricks-token-private"
+			},
+			"KVUrlName": {
+				"type": "String",
+				"defaultValue": "databricks-domain"
+			},
+			"WorkspaceUrl": {
+				"type": "String"
+			},
+			"DatabricksToken": {
+				"type": "String"
+			},
+			"WorkspaceSwitch": {
+				"type": "Boolean",
+				"defaultValue": false
 			}
 		},
 		"folder": {
