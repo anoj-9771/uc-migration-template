@@ -27,6 +27,10 @@ def AssignWorkspaceCatalogs():
 
 # COMMAND ----------
 
+# MAGIC %run ./Compute/devops
+
+# COMMAND ----------
+
 # MAGIC %run ./Compute/sewer-cctv
 
 # COMMAND ----------
