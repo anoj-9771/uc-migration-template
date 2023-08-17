@@ -51,38 +51,6 @@ pipeline = {
                 "source": "WORKSPACE"
             },
             "existing_cluster_id": clusterId,
-            "libraries": [
-                {
-                    "pypi": {
-                        "package": "pybbn==3.2.1"
-                    }
-                },
-                {
-                    "pypi": {
-                        "package": "mlflow"
-                    }
-                }
-            ],
-            "timeout_seconds": 0,
-            "email_notifications": {},
-            "notification_settings": {
-                "no_alert_for_skipped_runs": False,
-                "no_alert_for_canceled_runs": False,
-                "alert_on_last_attempt": False
-            }
-        },
-        {
-            "task_key": "Create_Views",
-            "depends_on": [
-                {
-                    "task_key": "inference_water_quality"
-                }
-            ],
-            "notebook_task": {
-                "notebook_path": "/AI-ML/Riverwatch/Create_Views",
-                "source": "WORKSPACE"
-            },
-            "existing_cluster_id": clusterId,
             "timeout_seconds": 0,
             "email_notifications": {},
             "notification_settings": {
