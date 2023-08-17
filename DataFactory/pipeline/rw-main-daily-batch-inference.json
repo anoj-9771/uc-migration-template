@@ -657,7 +657,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"url": {
-						"value": "@concat(variables('PoolUrl'), '/api/2.0/jobs/list?limit=100')",
+						"value": "@concat(variables('PoolUrl'), '/api/2.1/jobs/list?limit=100')",
 						"type": "Expression"
 					},
 					"connectVia": {
@@ -912,7 +912,7 @@
 						"DatabricksVersion": "12.2.x-cpu-ml-scala2.12",
 						"newClusterNumOfWorker": "1:4",
 						"ProductTag": "Riverwatch",
-						"kvSecretNameUrl": "databricks-domain"
+						"kvSecretNameUrl": "edp-databricks-02-url"
 					}
 				}
 			}

@@ -8,24 +8,24 @@ spark.conf.set("c.catalog_name", ADS_DATABASE_CLEANSED)
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC DROP TABLE ${c.catalog_name}.bom.dailyweatherobservation_sydneyairport
+# MAGIC DROP TABLE IF EXISTS ${c.catalog_name}.bom.dailyweatherobservation_sydneyairport
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC DROP TABLE ${c.catalog_name}.bom.fortdenision_tide
+# MAGIC DROP TABLE IF EXISTS ${c.catalog_name}.bom.fortdenision_tide
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC DROP TABLE ${c.catalog_name}.bom.weatherforecast
+# MAGIC DROP TABLE IF EXISTS ${c.catalog_name}.bom.weatherforecast
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC DROP TABLE ${c.catalog_name}.bom.weatherobservation_parramatta
+# MAGIC DROP TABLE IF EXISTS ${c.catalog_name}.bom.weatherobservation_parramatta
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC DROP TABLE ${c.catalog_name}.bom.weatherobservation_sydneyairport
+# MAGIC DROP TABLE IF EXISTS ${c.catalog_name}.bom.weatherobservation_sydneyairport
