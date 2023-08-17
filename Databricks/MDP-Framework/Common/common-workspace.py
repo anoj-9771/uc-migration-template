@@ -295,7 +295,7 @@ def EditCluster(clusterTemplate):
 # COMMAND ----------
 
 def CreateOrEditCluster(cluster, pin=True, createNew=False, librariesList=None, terminate=False):
-    jsonResponse = EditCluster(cluster) if createNew or not(any([i for i in ListClusters()["clusters"] if i["cluster_name"] == clusterTemplate["cluster_name"]])) == False else CreateCluster(cluster)
+    jsonResponse = EditCluster(cluster) if createNew or not(any([i for i in ListClusters()["clusters"] if i["cluster_name"] == cluster["cluster_name"]])) == False else CreateCluster(cluster)
     clusterId = jsonResponse["cluster_id"]
     PinCluster(clusterId) if pin else ()
     InstallLibraries(clusterId, librariesList) if librariesList is not None else ()

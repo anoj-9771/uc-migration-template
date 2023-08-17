@@ -27,8 +27,10 @@ clusterTemplate = {
     "ssh_public_keys": [],
     "spark_env_vars": {},
     "init_scripts": [],
-    "instance_pool_id": GetPoolIdByName("pool-small"),
-    "driver_instance_pool_id": GetPoolIdByName("pool-small")
+    "node_type_id": "Standard_F4",
+    "driver_node_type_id": "Standard_F4",
+    #"instance_pool_id": GetPoolIdByName("pool-small"),
+    #"driver_instance_pool_id": GetPoolIdByName("pool-small")
     # ENABLE PHOTON LATER
     #,"runtime_engine": "PHOTON" 
 }
@@ -99,7 +101,7 @@ def CreateDatalab(request):
     if useCompute:
         clusterTemplate["cluster_name"] = f"datalab-{name}"
         clusterTemplate["custom_tags"]["datalab"] = name
-        print(CreateOrEditCluster(clusterTemplate))
+        print(CreateOrEditCluster(clusterTemplate, librariesList=request["install_libraries"]))))
         print(UpdateClusterPermissionByName(clusterTemplate["cluster_name"], [{ "group_name": groupName, "permission_level": "CAN_RESTART" }]))
 
     # WORKSPACE
