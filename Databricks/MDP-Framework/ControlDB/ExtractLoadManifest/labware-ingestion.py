@@ -307,4 +307,9 @@ where systemCode = 'labwaredata' and sourceTableName = 'WORKBOOK_FILES'
 
 # COMMAND ----------
 
-
+#Adding Extended Properties GourpOrderBy for picking the latest business key record from raw to cleansed 
+ExecuteStatement("""
+update dbo.ExtractLoadManifest
+set ExtendedProperties = '{"GroupOrderBy" : "changedOn Desc"}'
+where SystemCode like '%labware%' and WatermarkColumn like '%changed_on%'
+""")
