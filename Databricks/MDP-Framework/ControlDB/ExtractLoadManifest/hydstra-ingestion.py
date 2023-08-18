@@ -40,9 +40,7 @@ df = spark.sql(sqlBase + sqlLines)
 df.display()
 
 dfHydstraRef = df.where("SourceTableName = 'MetaData'")
-
 dfHydstraData15Min = df.where("SourceTableName = 'TSV_Provisional'")
-
 dfHydstraData = df.where("SourceTableName NOT IN ('MetaData','TSV_Provisional')")
 
 # COMMAND ----------
@@ -87,4 +85,22 @@ update dbo.extractLoadManifest set ExtendedProperties = case sourceTableName
 when 'TSV_Provisional' then '{"separator":"|","GroupOrderBy":"_InputFileName ASC"}'
 end
 where systemCode in ('hydstra|15Min')
+""")
+
+# COMMAND ----------
+
+ExecuteStatement("""
+update dbo.extractLoadManifest set ExtendedProperties = case sourceTableName
+when 'MetaData' then '{"separator":"|","GroupOrderBy":"_InputFileName DESC"}'
+end
+where systemCode in ('hydstraRef')
+""")
+
+# COMMAND ----------
+
+ExecuteStatement("""
+update dbo.extractLoadManifest set ExtendedProperties = case sourceTableName
+when 'GaugeDetails' then '{"separator":"|","GroupOrderBy":"_InputFileName DESC"}'
+end
+where systemCode in ('hydstraData')
 """)

@@ -57,6 +57,8 @@ else:
 if sourceTable.lower() == "tsv_provisional":
     mergeWithUpdate = False
     source_business_key="GAUGE_ID,VARIABLENAME_UNIT,TIMESTAMP"
+elif sourceTable.lower() == "gaugedetails":
+    source_business_key="GAUGE_ID"
 else:
     mergeWithUpdate = True
 
@@ -72,7 +74,7 @@ CleansedSourceCount = sourceDataFrame.count()
 
 recordStart = pd.Timestamp.now()
 #if dataset is verified and the source table already exists loop through the newly loaded data to raw file by file and update the records between the min and max timestamp for the gauge
-if isVerifiedDataset and spark.sql("show tables in cleansed").where(f"tableName = lower('{destinationSchema}_{destinationTableName}')").count() > 0:
+if isVerifiedDataset and TableExists(f'{get_env()}cleansed.{destinationSchema.lower()}.{destinationTableName.lower()}'):
     print("Verified dataset found. Looping through files and setting existing records to deleted where they exist within the range of a new file...")
     gaugeRangeDf = (
         sourceDataFrame.groupby("GAUGE_ID","_InputFileName")
@@ -97,8 +99,8 @@ if(extendedProperties):
 
 # GET LATEST RECORD OF THE BUSINESS KEY
 if(groupOrderBy):
-    
     sourceDataFrame = GetRawLatestRecordBK(sourceDataFrame,source_business_key,groupOrderBy,systemCode)
+
 
 # APPLY CLEANSED FRAMEWORK
 cleanseDataFrame = CleansedTransform(sourceDataFrame, sourceTableName.lower(), systemCode)
