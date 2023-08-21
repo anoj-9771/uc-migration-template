@@ -11,6 +11,22 @@
 
 # COMMAND ----------
 
+def RunAllInPath(path):
+    fullPath = f"{CurrentNotebookPath()}/{path}"
+    list = ListWorkspaces(fullPath).get("objects")
+    if list is None:
+        print(f"Path not found! [{fullPath}]")
+        return
+    
+    for i in list:
+        notebookPath = i["path"]
+        try:
+            r = dbutils.notebook.run(notebookPath, 0, {})
+        except:
+            print(f"Notebook path \"{notebookPath}\" failed!")
+
+# COMMAND ----------
+
 def AssignWorkspaceCatalogs():
     for i in GetCommonCatalogs():
         catalog = f"{GetPrefix()}{i}"
@@ -20,35 +36,34 @@ AssignWorkspaceCatalogs()
 
 # COMMAND ----------
 
-# MAGIC %run ./Pools/SCCTV_POOL
+RunAllInPath("Pools")
 
 # COMMAND ----------
 
-# MAGIC %run ./Pools/RIVERWATCH_POOL
+RunAllInPath("Compute")
 
 # COMMAND ----------
 
-# MAGIC %run ./Compute/sewer-cctv
+RunAllInPath("Workflows")
 
 # COMMAND ----------
 
-# MAGIC %run ./Compute/riverwatch
+for blob in [ "sewercctvimages", "sewercctvmodel", "sewercctvvideos", "urbanplunge", "iotsewertelemetrydata", "iotswtelemetryalarmdata"]:
+    try:
+        MountBlobContainer(blob)
+    except Exception as e:
+        print(e.message)
+        break
 
 # COMMAND ----------
 
-# MAGIC %run ./Workflows/sewer-cctv-pipeline
+for dls in [ "raw", "landing" ]:
+    try:
+        MountContainer(dls)
+    except Exception as e:
+        print(e.message)
+        break
 
 # COMMAND ----------
 
-# MAGIC %run ./Workflows/riverwatch-pipeline
 
-# COMMAND ----------
-
-MountBlobContainer(containerName="sewercctvimages")
-MountBlobContainer(containerName="sewercctvmodel")
-MountBlobContainer(containerName="sewercctvvideos")
-MountBlobContainer(containerName="urbanplunge")
-MountBlobContainer(containerName="iotsewertelemetrydata")
-MountBlobContainer(containerName="iotswtelemetryalarmdata")
-MountContainer(containerName="raw")
-MountContainer(containerName="landing")

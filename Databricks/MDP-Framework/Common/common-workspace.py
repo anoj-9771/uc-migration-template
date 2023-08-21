@@ -26,6 +26,11 @@ DATABRICKS_PAT_SECRET_NAME = GetDatabricksPATSecretName()
 
 # COMMAND ----------
 
+def CurrentNotebookName():
+    return dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")[-1:][0]
+
+# COMMAND ----------
+
 def CurrentNotebookPath():
     return "/".join(dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")[:-1])
 
@@ -294,7 +299,7 @@ def EditCluster(clusterTemplate):
 
 # COMMAND ----------
 
-def CreateOrEditCluster(cluster, pin=True, createNew=False, librariesList=None, terminate=False):
+def CreateOrEditCluster(cluster, pin=True, createNew=False, librariesList=None, terminate=True):
     jsonResponse = EditCluster(cluster) if createNew or not(any([i for i in ListClusters()["clusters"] if i["cluster_name"] == cluster["cluster_name"]])) == False else CreateCluster(cluster)
     clusterId = jsonResponse["cluster_id"]
     PinCluster(clusterId) if pin else ()

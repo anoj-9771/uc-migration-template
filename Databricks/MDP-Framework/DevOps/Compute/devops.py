@@ -34,4 +34,4 @@ clusterTemplate = {
 libraries = [
 ]
 
-print(CreateOrEditCluster(clusterTemplate, librariesList=libraries, terminate=False))
+print(CreateOrEditCluster(clusterTemplate, librariesList=libraries)) if CurrentNotebookName().lower() != spark.conf.get("spark.databricks.clusterUsageTags.clusterName") else print("Cant edit yourself!")
