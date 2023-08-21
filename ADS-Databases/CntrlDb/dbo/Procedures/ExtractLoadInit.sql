@@ -90,12 +90,12 @@ BEGIN
     ,[ExtendedProperties]
 	,COALESCE(C2.Value, C1.Value) AS [QueryFilter]
 	,@ExtraConfig AS [ExtraConfig]
-    ,IIF(C3.[Value] IS NOT NULL, 1, 0) [WorkspaceSwitch]
+    ,COALESCE(C3.[Value], 0) [WorkspaceSwitch]
 	FROM [dbo].[ExtractLoadStatus] S
-	JOIN [dbo].[ExtractLoadManifest] R ON R.SourceID = S.SourceID
-	LEFT JOIN [dbo].[Config] C1 ON C1.KeyGroup = R.SystemCode AND C1.[Key] = 'DefaultDataFilter'
-	LEFT JOIN [dbo].[Config] C2 ON C2.KeyGroup = R.SystemCode AND C2.[Key] = R.SourceTableName
-    LEFT JOIN [dbo].[Config] C3 ON C3.[Value] = R.SystemCode AND C3.[KeyGroup] = 'WorkspaceSwitch' AND C3.[Key] = 'SystemCode'
+	JOIN [dbo].[ExtractLoadManifest] R ON R.[SourceID] = S.[SourceID]
+	LEFT JOIN [dbo].[Config] C1 ON C1.[KeyGroup] = R.[SystemCode] AND C1.[Key] = 'DefaultDataFilter'
+	LEFT JOIN [dbo].[Config] C2 ON C2.[KeyGroup] = R.[SystemCode] AND C2.[Key] = R.[SourceTableName]
+    LEFT JOIN [dbo].[Config] C3 ON C3.[KeyGroup] = 'WorkspaceSwitch' AND C3.[Key] = R.[SystemCode]
 	WHERE 
 	S.BatchID = @BatchID
 	AND S.SystemCode = @SystemCode
