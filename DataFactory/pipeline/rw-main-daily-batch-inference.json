@@ -154,7 +154,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"url": {
-						"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id=', activity('get-job-id-last-task').output.Value[0].run_id)",
+						"value": "@concat(variables('PoolUrl'),'/api/2.1/jobs/runs/get-output?run_id=', activity('get-job-id-last-task').output.Value[0].run_id)",
 						"type": "Expression"
 					},
 					"connectVia": {
