@@ -3,6 +3,13 @@
 
 # COMMAND ----------
 
+# %sql
+# select eh.* except(eh.workItemId), sht.workItemId from ppd_cleansed.crm.crmd_erms_header eh
+# left join ppd_cleansed.crm.swwwihead sh on eh.workItemID = sh.workItemId and sh.workItemTaskId = 'TS00207915'
+# left join ppd_cleansed.crm.swwwihead sht on sh.topLevelInstanceUniqueId = sht.topLevelInstanceUniqueId and sht.workItemTaskId = 'TS00207914' where sht.workItemId like '%4240595%'
+
+# COMMAND ----------
+
 ###cleansed layer table cleansed.crm.crmd_erms_header has delta load -hence handling CDF###
 #####Determine Load #################
 ##Move this to controlDB config if its not complex to derive the change columns needed####
@@ -33,10 +40,16 @@ crmd_erms_contnt_df = GetTable(f"{getEnv()}cleansed.crm.crmd_erms_contnt").selec
    
 businessPartner_agent_df = GetTable(f"{getEnv()}cleansed.crm.0bpartner_attr").select("businessPartnerNumber","firstName", "lastName")
 businessPartner_orgunit_df = GetTable(f"{getEnv()}cleansed.crm.0bpartner_attr").select("businessPartnerNumber","organizationName")
+
+swwwihead_df = (spark.sql("""select sh.workItemId as workItemId_915, sht.workItemId as workItemId_914 from ppd_cleansed.crm.swwwihead sh 
+left join ppd_cleansed.crm.swwwihead sht on sh.topLevelInstanceUniqueId = sht.topLevelInstanceUniqueId and sht.workItemTaskId = 'TS00207914' where sh.workItemTaskId = 'TS00207915'"""))
     
 df = (df.join(crmd_erms_contnt_df, "emailID", "left") 
     .join(businessPartner_agent_df, df.responsibleAgent == businessPartner_agent_df.businessPartnerNumber,"left").drop("businessPartnerNumber") 
-    .join(businessPartner_orgunit_df, concat(lit("OU"), col("organisationUnit").substr(-8,8)) == businessPartner_orgunit_df.businessPartnerNumber,"left"))
+    .join(businessPartner_orgunit_df, concat(lit("OU"), col("organisationUnit").substr(-8,8)) == businessPartner_orgunit_df.businessPartnerNumber,"left")
+    .join(swwwihead_df,df.workItemID == swwwihead_df.workItemId_915, "left")
+    .drop("workItemId","workItemId_915")
+    .withColumnRenamed("workItemId_914","workItemID"))
 
 if not(TableExists(_.Destination)):
     df = df.unionByName(spark.createDataFrame([dummyRecord(df.schema)], df.schema))
@@ -79,3 +92,17 @@ def Transform():
     #DisplaySelf()
 pass
 Transform()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select customerserviceemailheadersk,count(1) from ppd_curated.dim.customerserviceemailheader group by all having count(1) > 1--where customerServiceWorkItemId like '%4240595%'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select count(1) from  ppd_curated.dim.customerserviceemailheader
+
+# COMMAND ----------
+
+

@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+    # CleanSelf()
+
+# COMMAND ----------
+
 #####Determine Load #################
 ###############################
 driverTable1 = 'curated.fact.customerinteraction'   
@@ -34,18 +38,18 @@ def Transform():
         factinteraction_df
           .join(worknote_df,expr("IR.customerInteractionID = WN.customerServiceObjectID and IR.customerInteractionCreatedTimestamp >= CAST(WN.customerServiceWorkNoteCreatedTimestamp AS DATE) and IR._recordCurrent = 1 AND WN._recordCurrent = 1"))
           .where("WN.customerServiceWorkNoteTypeName = 'Summary' and WN.customerServiceObjectTypeCode = 'BUS2000126'")            
-          .selectExpr("IR.customerInteractionSK as customerInteractionFK","WN.customerServiceWorknoteSK as customerServiceRequestWorknoteFK","IR.customerInteractionId as customerInteractionId", "WN.customerServiceWorkNoteId as customerServiceWorkNoteId", "'Interaction -Summary Work Note' as relationshipType", "_change_type")    
+          .selectExpr("IR.customerInteractionSK as customerInteractionFK","WN.customerServiceWorknoteSK as customerServiceWorknoteFK","IR.customerInteractionId as customerInteractionId", "WN.customerServiceWorkNoteId as customerInteractionWorkNoteId", "'Interaction -Summary Work Note' as relationshipType", "_change_type")    
     )  
     
     df = interaction_wn_df
     # ------------- TRANSFORMS ------------- #
-      
+
     _.Transforms = [
-         f"customerInteractionFK||'|'||customerServiceWorkNoteId {BK}"
+         f"customerInteractionFK||'|'||customerServiceWorknoteFK {BK}"
         ,"customerInteractionFK"
-        ,"customerServiceWorkNoteId"
-        ,"customerInteractionId customerInteractionId"
-        ,"customerServiceWorkNoteId customerInteractionWorkNoteId"
+        ,"customerServiceWorknoteFK"
+        ,"customerInteractionId"
+        ,"customerInteractionWorkNoteId"
         ,"relationshipType customerInteractionRelationshipTypeName"
         ,"_change_type"
     ]
@@ -56,8 +60,11 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-    #CleanSelf()
     SaveWithCDF(df, 'APPEND')
 #     DisplaySelf()
 pass
 Transform()
+
+# COMMAND ----------
+
+

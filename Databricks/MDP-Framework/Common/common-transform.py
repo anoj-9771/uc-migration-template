@@ -311,6 +311,7 @@ def SaveAndContinue(sourceDataFrame,append=False):
 
 # COMMAND ----------
 
+# Used for dimSurvey only : UC3. Recommended to use Save function for all the usages.
 def SaveDefaultSource(sourceDataFrame):
     targetTableFqn = f"{_.Destination}"
     print(f"Saving {targetTableFqn}...")
@@ -323,7 +324,9 @@ def SaveDefaultSource(sourceDataFrame):
         if all(colName in sourceDataFrame.columns for colName in ["sourceValidFromTimestamp", "sourceValidToTimestamp"]):
             sourceDataFrame = sourceDataFrame.withColumn("sourceValidFromTimestamp", when(col("sourceValidFromTimestamp").isNull(), col("_recordStart")).otherwise(col("sourceValidFromTimestamp"))) \
             .withColumn("sourceValidToTimestamp", when(col("sourceValidToTimestamp").isNull(), col("_recordEnd")).otherwise(col("sourceValidToTimestamp"))) \
-            .withColumn("sourceRecordCurrent", when(col("sourceRecordCurrent").isNull(), col("_recordCurrent")).otherwise(col("sourceRecordCurrent")))
+            .withColumn("sourceRecordCurrent", when(col("sourceRecordCurrent").isNull(), col("_recordCurrent")).otherwise(col("sourceRecordCurrent"))) 
+        if all(colName in sourceDataFrame.columns for colName in ["surveyCreatedTimestamp"]):
+            sourceDataFrame = sourceDataFrame.withColumn("surveyCreatedTimestamp", when(col("surveyCreatedTimestamp").isNull(), col("_recordStart")).otherwise(col("surveyCreatedTimestamp")))
 
         CreateDeltaTable(sourceDataFrame, targetTableFqn)  
         EndNotebook(sourceDataFrame)
@@ -332,7 +335,9 @@ def SaveDefaultSource(sourceDataFrame):
     if all(colName in sourceDataFrame.columns for colName in ["sourceValidFromTimestamp", "sourceValidToTimestamp"]):
             sourceDataFrame = sourceDataFrame.withColumn("sourceValidFromTimestamp", when(col("sourceValidFromTimestamp").isNull(), col("_recordStart")).otherwise(col("sourceValidFromTimestamp"))) \
             .withColumn("sourceValidToTimestamp", when(col("sourceValidToTimestamp").isNull(), col("_recordEnd")).otherwise(col("sourceValidToTimestamp"))) \
-            .withColumn("sourceRecordCurrent", when(col("sourceRecordCurrent").isNull(), col("_recordCurrent")).otherwise(col("sourceRecordCurrent")))
+            .withColumn("sourceRecordCurrent", when(col("sourceRecordCurrent").isNull(), col("_recordCurrent")).otherwise(col("sourceRecordCurrent"))) 
+    if all(colName in sourceDataFrame.columns for colName in ["surveyCreatedTimestamp"]):
+            sourceDataFrame = sourceDataFrame.withColumn("surveyCreatedTimestamp", when(col("surveyCreatedTimestamp").isNull(), col("_recordStart")).otherwise(col("surveyCreatedTimestamp")))
 
     MergeSCDTable(sourceDataFrame, targetTableFqn,_.BK,_.SK)
     EndNotebook(sourceDataFrame)

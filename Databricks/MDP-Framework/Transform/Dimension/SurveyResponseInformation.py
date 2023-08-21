@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+# CleanSelf()
+
+# COMMAND ----------
+
 from pyspark.sql.functions import lit
 
 def add_missing_columns(df, required_columns):
@@ -75,7 +79,7 @@ def Transform():
     df_final = finaldf
 
     # ------------- TRANSFORMS ------------- # 
-    _.Transforms = [f"sourceSystemCode||'|'||surveyId||'|'||surveyResponseId {BK}" ,'*']
+    _.Transforms = [f"sourceSystemCode||'|'||surveyResponseId {BK}" ,'*']
     
     df_final = df_final.selectExpr(
         _.Transforms
@@ -83,7 +87,11 @@ def Transform():
 
     # ------------- SAVE ------------------- #
     #df_final.display()
-    #CleanSelf()
     Save(df_final)
     #DisplaySelf()
 Transform()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select count(1) from ppd_curated.dim.surveyResponseInformation group by all having count(1)>1

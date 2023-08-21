@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+# CleanSelf()
+
+# COMMAND ----------
+
 from pyspark.sql.functions import lit, col, when, row_number
 from pyspark.sql.window import Window
 
@@ -48,8 +52,8 @@ finaldf = (finaldf.withColumn("row_num", row_number().over(windowSpec))
                  .withColumn("lagValidDate", lag("recordedDate").over(windowSpec)- expr("Interval 1 milliseconds")) 
                  .withColumn("sourceRecordCurrent", when(col("row_num") == 1, 1).otherwise(0)))
 
-if not(TableExists(_.Destination)):
-    finaldf = finaldf.unionByName(spark.createDataFrame([dummyRecord(finaldf.schema)], finaldf.schema))  
+# if not(TableExists(_.Destination)):
+#     finaldf = finaldf.unionByName(spark.createDataFrame([dummyRecord(finaldf.schema)], finaldf.schema))  
 
 # COMMAND ----------
 
@@ -85,3 +89,12 @@ def Transform():
     Save(df_final)     
     #DisplaySelf()
 Transform()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select surveyParticipantSK, count(1) from ppd_curated.dim.surveyParticipant group by all having count(1)>1
+
+# COMMAND ----------
+
+

@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+# CleanSelf()
+
+# COMMAND ----------
+
 surveyQualtrics = spark.sql(f"""
        SELECT aa.id  as surveyId, 
        aa.name as surveyName,
@@ -21,7 +25,7 @@ surveyQualtrics = spark.sql(f"""
             WHEN DestinationTableName LIKE '%WSCS73ExperienceSurveyQuestions%' THEN 'Survey to measure how Sydney Water can improve the quality of services for wscs73 Developer Applications'
             ELSE NULL END as surveyDescription,
             'Qualtrics' as sourceSystemCode,
-            current_timestamp() as createdDate,
+            CAST(NULL as TIMESTAMP) as createdDate,
             NULL as createdBy,
             NULL as surveyVersion,
             CAST(NULL AS TIMESTAMP) as surveyStartDate,
@@ -48,7 +52,7 @@ surveyCRM = spark.sql(f"""
                                   ))
                        SELECT surveyId
                              ,surveyName
-                             ,'CRM'||'|'||surveyId||'|'||sourceValidFromDateTime as businessKey
+                             ,'CRM'||'|'||surveyId||'|'||surveyVersion as businessKey
                              ,'CRM'||'|'||surveyId||'|'||surveyVersion as sourceBusinessKey
                              ,NULL as surveyDescription
                              ,'CRM' as sourceSystemCode
@@ -73,8 +77,22 @@ createdByDF = (createdByDF.withColumn("row_num", row_number().over(windowSpec))
 ##################################################
 surveyCRM = surveyCRM.join(createdByDF, surveyCRM["createdByUserId"] == createdByDF["userid"], how='left').drop("userid", "createdByUserId")
 
+
+
+# COMMAND ----------
+
+try:
+    existing_data = spark.sql(f"""select * from {get_table_namespace(f'{DEFAULT_TARGET}', f'{TableName}')} where sourceSystemCode = 'Qualtrics'""").filter("_recordCurrent == 1").filter("sourceRecordCurrent == 1")
+    
+    surveyQualtrics_new = surveyQualtrics.join(existing_data.select("surveyId","surveyName"),["surveyId","surveyName"],"left_anti")
+except Exception as e:
+    print(e)
+    surveyQualtrics_new = surveyQualtrics
+
+# COMMAND ----------
+
 #surveyCRM.display()
-survey = surveyQualtrics.unionByName(surveyCRM)
+survey = surveyQualtrics_new.unionByName(surveyCRM)
 
 if not(TableExists(_.Destination)):
     survey = survey.unionByName(spark.createDataFrame([dummyRecord(survey.schema)], survey.schema))  
@@ -109,7 +127,6 @@ def Transform():
 
     # ------------- SAVE ------------------- #
     #df.display()
-    #CleanSelf()
     SaveDefaultSource(df)
     #DisplaySelf()
 Transform()
@@ -117,8 +134,4 @@ Transform()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select SurveySK, count(1) from ppd_curated.dim.survey group by surveySK having count(1)>1
-
-# COMMAND ----------
-
-
+# MAGIC select surveySK,count(1) from ppd_curated.dim.survey group by all having count(1)> 1

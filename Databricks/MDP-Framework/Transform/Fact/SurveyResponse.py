@@ -41,7 +41,7 @@ def transpose_df(df, quesdf, duplicate_columns):
     for df in filter_nulls_df[1:]:
         union_df = union_df.union(df)
 
-    distinctKeys_df = union_df.select("surveyId","surveyQuestionSK","recordId").distinct()
+    distinctKeys_df = union_df.select("surveyId","surveyQuestionSK","recordId","recordedDate").distinct()
 
     distinctKeys_df.createOrReplaceTempView("mainTab")                    
     rc_df.createOrReplaceTempView("respCode")  
@@ -50,8 +50,8 @@ def transpose_df(df, quesdf, duplicate_columns):
     respQry = """ WITH mainQ as (SELECT AA.surveyID surveyId, 
                          coalesce(BB.surveyName, CC.surveyName ) surveyName,
                          AA.recordId recordId,
+                         AA.recordedDate snapshotDate,
                          AA.surveyQuestionSK surveyQuestionSK,
-                         coalesce(BB.surveyFK, CC.surveyFK ) surveyFK,
                          coalesce(BB.questionID, CC.questionID ) questionID,
                          coalesce(BB.questionPartID, CC.questionPartID ) questionPartID,
                          coalesce(BB.QuestionText, CC.QuestionText ) QuestionText,                       
@@ -90,10 +90,7 @@ def transpose_feedback_df(df, quesdf, duplicate_columns):
         *duplicate_columns
     )     
 
-    initial_select =  [ respdf[cols] for cols in respdf.columns] + [quesdf[cols] for cols in quesdf.columns if cols not in['questionRelation','responseCodeColumn', 'responseTextColumn',
-                                                                                                                            'sentimentDscColumn','sentimentPolarityNumberColumn', 'sentimentScoreColumn',
-                                                                                                                            'topicsTextColumn','topicSentimentScoreColumn','topicsSentimentsLabelColumn',
-                                                                                                                            'parTopicsTextColumn']]
+    initial_select =  [ respdf[cols] for cols in respdf.columns] + [quesdf[cols] for cols in quesdf.columns if cols not in['questionRelation','responseCodeColumn', 'responseTextColumn','sentimentDscColumn','sentimentPolarityNumberColumn', 'sentimentScoreColumn','topicsTextColumn','topicSentimentScoreColumn','topicsSentimentsLabelColumn','parTopicsTextColumn']]
     rc_df = respdf.join(quesdf, (respdf["questionRelation"] == quesdf["responseCodeColumn"]) &(respdf["surveyId"] == quesdf["surveyId"]), how = 'inner') \
                            .select(*initial_select).withColumnRenamed("answerValue", "responseCode") \
                            .drop(quesdf["surveyId"]) \
@@ -144,7 +141,7 @@ def transpose_feedback_df(df, quesdf, duplicate_columns):
     for df in filter_nulls_df[1:]:
         union_df = union_df.union(df)
 
-    distinctKeys_df = union_df.select("surveyId","surveyQuestionSK","recordId").distinct().alias("mainK") 
+    distinctKeys_df = union_df.select("surveyId","surveyQuestionSK","recordId","recordedDate").distinct().alias("mainK") 
 
     distinctKeys_df.createOrReplaceTempView("mainTab")                    
     rc_df.createOrReplaceTempView("respCode")  
@@ -160,8 +157,8 @@ def transpose_feedback_df(df, quesdf, duplicate_columns):
     respQry = """ WITH mainQ as (SELECT AA.surveyId surveyId, 
                          coalesce(BB.surveyName, CC.surveyName, DD.surveyName, EE.surveyName, FF.surveyName, GG.surveyName, HH.surveyName, II.surveyName, JJ.surveyName) surveyName,
                          AA.recordId recordId,
+                         AA.recordedDate as snapshotDate,
                          AA.surveyQuestionSK surveyQuestionSK,
-                         coalesce(BB.surveyFK, CC.surveyFK, DD.surveyFK, EE.surveyFK, FF.surveyFK, GG.surveyFK, HH.surveyFK, II.surveyFK, JJ.surveyFK) surveyFK,
                          coalesce(BB.questionID, CC.questionID, DD.questionID, EE.questionID, FF.questionID, GG.questionID, HH.questionID, II.questionID, JJ.questionID) questionID,
                          coalesce(BB.questionPartID, CC.questionPartID, DD.questionPartID, EE.questionPartID, FF.questionPartID, GG.questionPartID, HH.questionPartID, II.questionPartID, JJ.questionPartID) questionPartID,
                          coalesce(BB.QuestionText, CC.QuestionText, DD.QuestionText, EE.QuestionText, FF.QuestionText, GG.QuestionText, HH.QuestionText, II.QuestionText, JJ.QuestionText) QuestionText,                       
@@ -198,7 +195,7 @@ def transpose_feedback_df(df, quesdf, duplicate_columns):
 
 # COMMAND ----------
 
-duplicate_columns = ["surveyID", "surveyName", "recordId", "recipientEmail", "recipientFirstName", "recipientLastName", "propertyNumber", "assignedTo"]
+duplicate_columns = ["surveyID", "surveyName", "recordId", "recordedDate", "recipientEmail", "recipientFirstName", "recipientLastName", "propertyNumber", "assignedTo"]
 
 def add_missing_columns(df, required_columns):
     for col_name in required_columns:
@@ -213,7 +210,6 @@ def add_missing_columns(df, required_columns):
 
 
 dimQuesQuery = f"""select surveyQuestionSK,
-                            surveyFK,
                             surveyID surveyId,
                             CAST(ltrim('QID', surveyQuestionId) AS INTEGER) questionId,
                             surveyQuestionPartId questionPartId, 
@@ -233,9 +229,10 @@ dimQuesQuery = f"""select surveyQuestionSK,
 
 df_dimQues = spark.sql(dimQuesQuery)
 
-dsv = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimsurveyparticipant')}").filter("sourceRecordCurrent == 1")
+dsv = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimsurveyparticipant')}")
 dsv = dsv.na.fill(' ', subset = ['surveyParticipantEmailRecipientFirstName','surveyParticipantEmailRecipientSurname'])
 dsr = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimsurveyresponseinformation')}")
+ds = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimsurvey')}")
 dp  = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimProperty')}") 
 dbp = GetTable(f"{get_table_namespace(f'{TARGET}', 'dimbusinesspartner')}")
 #dpSKUC1 = str(spark.sql("Select propertySK from dimproperty where _businessKey = '-1'").collect()[0][0])
@@ -280,48 +277,53 @@ df_wscs73exp =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_wscs73ex
 df_wscs73exp = add_missing_columns(df_wscs73exp, duplicate_columns)
 
 billpaid_df  = transpose_df(df_billpaid, df_dimQues, duplicate_columns)
-billpaid_df = (billpaid_df.join(dsv, (billpaid_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) & (billpaid_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
-                                      & (billpaid_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') 
+billpaid_df = (billpaid_df.join(dsv.filter(dsv._recordCurrent == 1), (billpaid_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) & (billpaid_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
+                                      & (billpaid_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"])
+                                      & (billpaid_df["snapshotDate"].between(dsv["sourceValidFromTimestamp"],dsv["sourceValidToTimestamp"])), how = 'left')
+                        .join(ds, (billpaid_df["surveyId"] == ds["surveyId"]) & (billpaid_df["snapshotDate"].between(ds["sourceValidFromTimestamp"],ds["sourceValidToTimestamp"])), how = 'left')  
                          .join(dsr.filter(dsr._recordCurrent == 1), (billpaid_df["surveyId"] == dsr["surveyId"]) & (billpaid_df["recordId"] == dsr["surveyResponseId"]), how = 'left') 
                          .join(dp.filter(dp._RecordCurrent == 1), (billpaid_df["propertyNumber"] == dp["propertyNumber"]), how = 'left') 
-                         .select(billpaid_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"], dp["propertySK"]) 
+                         .select(billpaid_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"], dp["propertySK"],ds["surveySK"]) 
                          .withColumn("businessPartnerSK", lit(uc1DefaultSK)) 
-                         .withColumn("sourceSystem", lit('Qualtrics'))).drop_duplicates()
+                         .withColumn("sourceSystem", lit('Qualtrics')))
 
 businessXconn_df = transpose_df(df_businessXconn, df_dimQues, duplicate_columns)
 businessXconn_df = (businessXconn_df.join(dbp.filter(dbp._RecordCurrent == 1), (businessXconn_df["assignedTo"] == dbp["businessPartnerNumber"]), how = 'left') 
                                    .join(dsr.filter(dsr._recordCurrent == 1), (businessXconn_df["surveyId"] == dsr["surveyId"]) & (businessXconn_df["recordId"] == dsr["surveyResponseId"]), how = 'left')
-                                   .join(dsv, (businessXconn_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) & (businessXconn_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
-                                      & (businessXconn_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') 
-                                   .select(businessXconn_df["*"], dsv["surveyParticipantSK"], dbp["businessPartnerSK"], dsr["surveyResponseInformationSK"]) 
+                                   .join(dsv.filter(dsv._recordCurrent == 1), (businessXconn_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) & (businessXconn_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
+                                      & (businessXconn_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]) & (businessXconn_df["snapshotDate"].between(dsv["sourceValidFromTimestamp"],dsv["sourceValidToTimestamp"])), how = 'left')
+                                    .join(ds, (businessXconn_df["surveyId"] == ds["surveyId"]) & (businessXconn_df["snapshotDate"].between(ds["sourceValidFromTimestamp"],ds["sourceValidToTimestamp"])), how = 'left')
+                                   .select(businessXconn_df["*"], dsv["surveyParticipantSK"], dbp["businessPartnerSK"], dsr["surveyResponseInformationSK"],ds["surveySK"]) 
                                    .withColumn("propertySK", lit(uc1DefaultSK)) 
-                                   .withColumn("sourceSystem", lit('Qualtrics'))).drop_duplicates()
+                                   .withColumn("sourceSystem", lit('Qualtrics')))
 
 complaintsClosed_df = transpose_df(df_complaintsClosed, df_dimQues, duplicate_columns)
-complaintsClosed_df = (complaintsClosed_df.join(dsv, (complaintsClosed_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
+complaintsClosed_df = (complaintsClosed_df.join(dsv.filter(dsv._recordCurrent == 1), (complaintsClosed_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
                                       & (complaintsClosed_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
-                                      & (complaintsClosed_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') 
+                                      & (complaintsClosed_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"])& (complaintsClosed_df["snapshotDate"].between(dsv["sourceValidFromTimestamp"],dsv["sourceValidToTimestamp"])), how = 'left')
+                                    .join(ds, (complaintsClosed_df["surveyId"] == ds["surveyId"]) & (complaintsClosed_df["snapshotDate"].between(ds["sourceValidFromTimestamp"],ds["sourceValidToTimestamp"])), how = 'left')
                          .join(dsr.filter(dsr._recordCurrent == 1), (complaintsClosed_df["surveyId"] == dsr["surveyId"]) & (complaintsClosed_df["recordId"] == dsr["surveyResponseId"]), how = 'left') 
                          .join(dp.filter(dp._RecordCurrent == 1), (complaintsClosed_df["propertyNumber"] == dp["propertyNumber"]), how = 'left') 
-                         .select(complaintsClosed_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"], dp["propertySK"]) 
+                         .select(complaintsClosed_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"], dp["propertySK"],ds["surveySK"]) 
                          .withColumn("businessPartnerSK", lit(uc1DefaultSK)) 
-                         .withColumn("sourceSystem", lit('Qualtrics'))).drop_duplicates()
+                         .withColumn("sourceSystem", lit('Qualtrics')))
 
 
 contactCentreInteract_df = transpose_df(df_contactCentreInteract, df_dimQues, duplicate_columns)
 contactCentreInteract_df = (contactCentreInteract_df.join(dsr.filter(dsr._recordCurrent == 1), (contactCentreInteract_df["surveyId"] == dsr["surveyId"]) & 
                                                           (contactCentreInteract_df["recordId"] == dsr["surveyResponseId"]), how = 'left')
-                                                    .join(dsv, (contactCentreInteract_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
+                                                    .join(dsv.filter(dsv._recordCurrent == 1), (contactCentreInteract_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
                                                          & (contactCentreInteract_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
-                                                         & (contactCentreInteract_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') 
-                                                    .select(contactCentreInteract_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"]) 
+                                                         & (contactCentreInteract_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"])& (contactCentreInteract_df["snapshotDate"].between(dsv["sourceValidFromTimestamp"],dsv["sourceValidToTimestamp"])), how = 'left')
+                                    .join(ds, (contactCentreInteract_df["surveyId"] == ds["surveyId"]) & (contactCentreInteract_df["snapshotDate"].between(ds["sourceValidFromTimestamp"],ds["sourceValidToTimestamp"])), how = 'left') 
+                                                    .select(contactCentreInteract_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"],ds["surveySK"]) 
                                                     .withColumn("businessPartnerSK", lit(uc1DefaultSK))
                                                     .withColumn("propertySK", lit(uc1DefaultSK)) 
-                                                    .withColumn("sourceSystem", lit('Qualtrics'))).drop_duplicates()
+                                                    .withColumn("sourceSystem", lit('Qualtrics')))
 
 
 # Customercareresponses_df = transpose_df(df_Customercareresponses, df_dimQues, duplicate_columns)
-# Customercareresponses_df = Customercareresponses_df.join(dsv, (Customercareresponses_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) \
+# Customercareresponses_df = Customercareresponses_df.join(dsv.filter(dsv._recordCurrent == 1), (Customercareresponses_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) \
 #                                                          & (Customercareresponses_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) \
 #                                                          & (Customercareresponses_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') \
 #                                                     .select(Customercareresponses_df["*"], dsv["surveyParticipantSK"]) \
@@ -332,85 +334,91 @@ contactCentreInteract_df = (contactCentreInteract_df.join(dsr.filter(dsr._record
 
 waterfixpost_df = transpose_df(df_waterfixpost, df_dimQues, duplicate_columns)
 waterfixpost_df = (waterfixpost_df.join(dsr.filter(dsr._recordCurrent == 1), (waterfixpost_df["surveyId"] == dsr["surveyId"]) & (waterfixpost_df["recordId"] == dsr["surveyResponseId"]), how = 'left')
-                                  .join(dsv, (waterfixpost_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
+                                  .join(dsv.filter(dsv._recordCurrent == 1), (waterfixpost_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
                                                          & (waterfixpost_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
-                                                         & (waterfixpost_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') 
-                                                    .select(waterfixpost_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"]) 
+                                                         & (waterfixpost_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"])& (waterfixpost_df["snapshotDate"].between(dsv["sourceValidFromTimestamp"],dsv["sourceValidToTimestamp"])), how = 'left')
+                                    .join(ds, (waterfixpost_df["surveyId"] == ds["surveyId"]) & (waterfixpost_df["snapshotDate"].between(ds["sourceValidFromTimestamp"],ds["sourceValidToTimestamp"])), how = 'left')
+                                                    .select(waterfixpost_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"],ds["surveySK"]) 
                                                     .withColumn("businessPartnerSK", lit(uc1DefaultSK))                                                    
                                                     .withColumn("propertySK", lit(uc1DefaultSK)) 
-                                                    .withColumn("sourceSystem", lit('Qualtrics'))).drop_duplicates()
+                                                    .withColumn("sourceSystem", lit('Qualtrics')))
 
 devApplicationreceived_df = transpose_df(df_devApplicationreceived, df_dimQues, duplicate_columns)
 devApplicationreceived_df = (devApplicationreceived_df.join(dsr.filter(dsr._recordCurrent == 1), (devApplicationreceived_df["surveyId"] == dsr["surveyId"]) 
                                                             & (devApplicationreceived_df["recordId"] == dsr["surveyResponseId"]), how = 'left')
-                                                      .join(dsv, (devApplicationreceived_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
+                                                      .join(dsv.filter(dsv._recordCurrent == 1), (devApplicationreceived_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
                                                          & (devApplicationreceived_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
-                                                         & (devApplicationreceived_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') 
-                                                    .select(devApplicationreceived_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"]) 
+                                                         & (devApplicationreceived_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"])& (devApplicationreceived_df["snapshotDate"].between(dsv["sourceValidFromTimestamp"],dsv["sourceValidToTimestamp"])), how = 'left')
+                                    .join(ds, (devApplicationreceived_df["surveyId"] == ds["surveyId"]) & (devApplicationreceived_df["snapshotDate"].between(ds["sourceValidFromTimestamp"],ds["sourceValidToTimestamp"])), how = 'left') 
+                                                    .select(devApplicationreceived_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"],ds["surveySK"]) 
                                                      .withColumn("businessPartnerSK", lit(uc1DefaultSK))                                                      
                                                      .withColumn("propertySK", lit(uc1DefaultSK)) 
-                                                     .withColumn("sourceSystem", lit('Qualtrics'))).drop_duplicates()
+                                                     .withColumn("sourceSystem", lit('Qualtrics')))
 
 
 
 p4sonlinefeedback_df = transpose_df(df_p4sonlinefeedback, df_dimQues, duplicate_columns)
 p4sonlinefeedback_df = (p4sonlinefeedback_df.join(dsr.filter(dsr._recordCurrent == 1), (p4sonlinefeedback_df["surveyId"] == dsr["surveyId"]) & (p4sonlinefeedback_df["recordId"] == dsr["surveyResponseId"]), how = 'left')
-                                            .join(dsv, (p4sonlinefeedback_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
+                                            .join(dsv.filter(dsv._recordCurrent == 1), (p4sonlinefeedback_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
                                                          & (p4sonlinefeedback_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
-                                                         & (p4sonlinefeedback_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') 
-                                                    .select(p4sonlinefeedback_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"])
+                                                         & (p4sonlinefeedback_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"])& (p4sonlinefeedback_df["snapshotDate"].between(dsv["sourceValidFromTimestamp"],dsv["sourceValidToTimestamp"])), how = 'left')
+                                    .join(ds, (p4sonlinefeedback_df["surveyId"] == ds["surveyId"]) & (p4sonlinefeedback_df["snapshotDate"].between(ds["sourceValidFromTimestamp"],ds["sourceValidToTimestamp"])), how = 'left') 
+                                                    .select(p4sonlinefeedback_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"],ds["surveySK"])
                                                      .withColumn("businessPartnerSK", lit(uc1DefaultSK))
                                                      .withColumn("propertySK", lit(uc1DefaultSK)) 
-                                                     .withColumn("sourceSystem", lit('Qualtrics'))).drop_duplicates()
+                                                     .withColumn("sourceSystem", lit('Qualtrics')))
 
 s73surveyresponse_df = transpose_df(df_s73surveyresponse, df_dimQues, duplicate_columns)
 s73surveyresponse_df = (s73surveyresponse_df.join(dsr.filter(dsr._recordCurrent == 1), (s73surveyresponse_df["surveyId"] == dsr["surveyId"]) & (s73surveyresponse_df["recordId"] == dsr["surveyResponseId"]), how = 'left')
-                                            .join(dsv, (s73surveyresponse_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
+                                            .join(dsv.filter(dsv._recordCurrent == 1), (s73surveyresponse_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
                                                          & (s73surveyresponse_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
-                                                         & (s73surveyresponse_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') 
-                                                    .select(s73surveyresponse_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"])
+                                                         & (s73surveyresponse_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"])& (s73surveyresponse_df["snapshotDate"].between(dsv["sourceValidFromTimestamp"],dsv["sourceValidToTimestamp"])), how = 'left')
+                                    .join(ds, (s73surveyresponse_df["surveyId"] == ds["surveyId"]) & (s73surveyresponse_df["snapshotDate"].between(ds["sourceValidFromTimestamp"],ds["sourceValidToTimestamp"])), how = 'left') 
+                                                    .select(s73surveyresponse_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"],ds["surveySK"])
                                                      .withColumn("businessPartnerSK", lit(uc1DefaultSK)) 
                                                      .withColumn("propertySK", lit(uc1DefaultSK)) 
-                                                     .withColumn("sourceSystem", lit('Qualtrics'))).drop_duplicates()
+                                                     .withColumn("sourceSystem", lit('Qualtrics')))
 
 
 websitegolive_df = transpose_df(df_websitegolive, df_dimQues, duplicate_columns)
 websitegolive_df = (websitegolive_df.join(dsr.filter(dsr._recordCurrent == 1), (websitegolive_df["surveyId"] == dsr["surveyId"]) & (websitegolive_df["recordId"] == dsr["surveyResponseId"]), how = 'left')
-                                    .join(dsv, (websitegolive_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
+                                    .join(dsv.filter(dsv._recordCurrent == 1), (websitegolive_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
                                                          & (websitegolive_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
-                                                         & (websitegolive_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') 
-                                                    .select(websitegolive_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"])
+                                                         & (websitegolive_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"])& (websitegolive_df["snapshotDate"].between(dsv["sourceValidFromTimestamp"],dsv["sourceValidToTimestamp"])), how = 'left')
+                                    .join(ds, (websitegolive_df["surveyId"] == ds["surveyId"]) & (websitegolive_df["snapshotDate"].between(ds["sourceValidFromTimestamp"],ds["sourceValidToTimestamp"])), how = 'left') 
+                                                    .select(websitegolive_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"],ds["surveySK"])
                                                      .withColumn("businessPartnerSK", lit(uc1DefaultSK)) 
                                                      .withColumn("propertySK", lit(uc1DefaultSK)) 
-                                                     .withColumn("sourceSystem", lit('Qualtrics'))).drop_duplicates()
+                                                     .withColumn("sourceSystem", lit('Qualtrics')))
 
 
 wscs73exp_df = transpose_df(df_wscs73exp, df_dimQues, duplicate_columns)
 wscs73exp_df = (wscs73exp_df.join(dsr.filter(dsr._recordCurrent == 1), (wscs73exp_df["surveyId"] == dsr["surveyId"]) & (wscs73exp_df["recordId"] == dsr["surveyResponseId"]), how = 'left')
-                            .join(dsv, (wscs73exp_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
+                            .join(dsv.filter(dsv._recordCurrent == 1), (wscs73exp_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
                                                          & (wscs73exp_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
-                                                         & (wscs73exp_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') 
-                                                    .select(wscs73exp_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"])
+                                                         & (wscs73exp_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"])& (wscs73exp_df["snapshotDate"].between(dsv["sourceValidFromTimestamp"],dsv["sourceValidToTimestamp"])), how = 'left')
+                                    .join(ds, (wscs73exp_df["surveyId"] == ds["surveyId"]) & (wscs73exp_df["snapshotDate"].between(ds["sourceValidFromTimestamp"],ds["sourceValidToTimestamp"])), how = 'left') 
+                                                    .select(wscs73exp_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"],ds["surveySK"])
                                                      .withColumn("businessPartnerSK", lit(uc1DefaultSK)) 
                                                      .withColumn("propertySK", lit(uc1DefaultSK)) 
-                                                     .withColumn("sourceSystem", lit('Qualtrics'))).drop_duplicates() 
+                                                     .withColumn("sourceSystem", lit('Qualtrics'))) 
                                                      
 
 
 feedbacktabgolive_df = transpose_feedback_df(df_feedbacktabgolive, df_dimQues, duplicate_columns)
 feedbacktabgolive_df = (feedbacktabgolive_df.join(dsr.filter(dsr._recordCurrent == 1), (feedbacktabgolive_df["surveyId"] == dsr["surveyId"]) & (feedbacktabgolive_df["recordId"] == dsr["surveyResponseId"]), how = 'left')
-                                            .join(dsv, (feedbacktabgolive_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
+                                            .join(dsv.filter(dsv._recordCurrent == 1), (feedbacktabgolive_df["recipientEmail"] == dsv["surveyParticipantEmailRecipientId"]) 
                                                          & (feedbacktabgolive_df["recipientFirstName"] == dsv["surveyParticipantEmailRecipientFirstName"]) 
-                                                         & (feedbacktabgolive_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"]), how = 'left') 
-                                                    .select(feedbacktabgolive_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"])
+                                                         & (feedbacktabgolive_df["recipientLastName"] == dsv["surveyParticipantEmailRecipientSurname"])& (feedbacktabgolive_df["snapshotDate"].between(dsv["sourceValidFromTimestamp"],dsv["sourceValidToTimestamp"])), how = 'left')
+                                    .join(ds, (feedbacktabgolive_df["surveyId"] == ds["surveyId"]) & (feedbacktabgolive_df["snapshotDate"].between(ds["sourceValidFromTimestamp"],ds["sourceValidToTimestamp"])), how = 'left') 
+                                                    .select(feedbacktabgolive_df["*"], dsv["surveyParticipantSK"], dsr["surveyResponseInformationSK"],ds["surveySK"])
                                                      .withColumn("businessPartnerSK", lit(uc1DefaultSK)) 
                                                      .withColumn("propertySK", lit(uc1DefaultSK)) 
-                                                     .withColumn("sourceSystem", lit('Qualtrics'))).drop_duplicates()
+                                                     .withColumn("sourceSystem", lit('Qualtrics')))
                                                      
 
-#.union(Customercareresponses_df) 
-finaldf = (billpaid_df
-           .unionByName(businessXconn_df) 
+# .union(Customercareresponses_df) 
+finaldf = (billpaid_df.unionByName(businessXconn_df) 
                      .unionByName(complaintsClosed_df) 
                      .unionByName(contactCentreInteract_df)                      
                      .unionByName(waterfixpost_df) 
@@ -419,9 +427,8 @@ finaldf = (billpaid_df
                      .unionByName(s73surveyresponse_df) 
                      .unionByName(websitegolive_df) 
                      .unionByName(wscs73exp_df) 
-                     .unionByName(feedbacktabgolive_df)
-                    )
-                    
+                     .unionByName(feedbacktabgolive_df))
+
 
 #finaldf.count()
 
@@ -429,8 +436,8 @@ finaldf = (billpaid_df
 
 #########Added CRM Survey #############################Ignore surveyId 'Z_BILLASSIST_SURVEY' for now as in contains Sensitive info
 dimBuss = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimSurvey')}")
-split_col = split(col("sourceBusinessKey"), r"\|")
-dimBuss = dimBuss.withColumn("surveyId", split_col.getItem(1)).withColumn("SourceSystem", split_col.getItem(0)).filter(col("SourceSystem") == 'CRM').select(col("surveyId")).distinct().collect()
+# split_col = split(col("sourceBusinessKey"), r"\|")
+# dimBuss = dimBuss.withColumn("surveyId", split_col.getItem(1)).withColumn("SourceSystem", split_col.getItem(0)).filter(col("SourceSystem") == 'CRM').select(col("surveyId")).distinct().collect()
 #print(dimBuss)
 
 crm_0crm_srv_req_inci_h_df = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_srv_req_inci_h')}")
@@ -445,17 +452,12 @@ dimQuestion_df = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimSurvey
 
 
 max_svv = crm_crm_svy_db_sv_df.groupBy("surveyValuesGUID").agg(max(col("surveyValuesVersion")).alias("max_surveyValuesVersion"))
-# sv1 = (crm_crm_svy_db_sv_df.alias("sv1")
-#                            .join(max_svv.alias("sv2"), col("sv1.surveyValuesGUID") == col("sv2.surveyValuesGUID"))
-#                            .filter(col("sv1.surveyValuesVersion") == col("sv2.max_surveyValuesVersion"))
-#                            .select(col("sv1.*"), split(col("sv1.surveyValueKeyAttribute"), "/") [0].alias("questionId")) )
-windowSpec  = Window.partitionBy("surveyValuesGUID","questionId")
 sv1 = (crm_crm_svy_db_sv_df.alias("sv1")
                            .join(max_svv.alias("sv2"), col("sv1.surveyValuesGUID") == col("sv2.surveyValuesGUID"))
                            .filter(col("sv1.surveyValuesVersion") == col("sv2.max_surveyValuesVersion"))
-                           .select(col("sv1.*"), split(col("sv1.surveyValueKeyAttribute"), "/") [0].alias("questionId")) )\
-        .withColumn("row_number",row_number().over(windowSpec.orderBy(col("delta_ts").desc()))).filter("row_number == 1").drop("row_number")
-    # Rank should ideally be used here. Since there are duplicates, using row. If issues appear on wrong responseText, this row_number filter should be validated.
+                           .select(col("sv1.*"), split(col("sv1.surveyValueKeyAttribute"), "/") [0].alias("questionId"))
+                           .withColumn("snapshotDate",expr("to_timestamp(CAST(delta_ts as String) ,'yyyyMMddHHmmss')")) )
+
 #sv1.count()
 
 
@@ -471,8 +473,9 @@ joined_df = (crm_0crm_srv_req_inci_h_df.alias("I")
     .join(dimQuestion_df.alias("DQ"), (col("R.surveyId") == col("DQ.surveyId")) & (col("R.questionId") == col("DQ.surveyQuestionId")) 
                                                                                 & (col("R.surveyVersion") == col("DQ.surveyVersionNumber")) 
                                                                                 & (col("DQ.sourceSystemCode") == lit("CRM")), how = 'left')
-    .join(dsr.alias("d"), (col("R.surveyId") == col("d.surveyId")) & (col("SV.surveyValuesGUID") == col("d.surveyResponseId")) ,how = 'left')
-    .filter(col("d._recordCurrent") ==1)
+    .join(dsr.alias("d"), (col("R.surveyId") == col("d.surveyId")) & (col("SV.surveyValuesGUID") == col("d.surveyResponseId")) ,how = 'left').filter(col("d._recordCurrent") ==1)
+    .join(dimBuss.filter("sourceSystemCode == 'CRM'").alias('crms'),(col("crms.surveyId") == col("DQ.surveyId")) & (col("SV.snapshotDate").between(col("crms.sourceValidFromTimestamp"),col("crms.sourceValidToTimestamp"))),how='left')
+    
 )
 
 
@@ -485,11 +488,12 @@ joined_df = (crm_0crm_srv_req_inci_h_df.alias("I")
                                 #                               
 joined_df = (joined_df.select (col("R.surveyId").alias("surveyId"),
                                col("Q.questionnaireLong").alias("surveyName"),
-                               col("SV.surveyValuesGUID").alias("recordId"),                                 
+                               col("SV.surveyValuesGUID").alias("recordId"),  
+                               col('snapshotDate'),                               
                                col("QT.surveyQuestionId").alias("questionId"),
                                col("SV.surveyValueAttribute").alias("responseText"),
                                col("DQ.surveyQuestionSK").alias("surveyQuestionSK"),
-                               col("DQ.surveyFK").alias("surveyFK"), 
+                               col("crms.surveySK").alias("surveySK"), 
                                col("d.surveyResponseInformationSK").alias("surveyResponseInformationSK")                                
                               ).withColumn("questionPartId", lit(None).cast("string"))
                                 .withColumn("questionText", lit(None).cast("string"))
@@ -511,7 +515,7 @@ joined_df = (joined_df.select (col("R.surveyId").alias("surveyId"),
                                 .withColumn("propertySK", lit(uc1DefaultSK)) 
                                 .withColumn("sourceSystem", lit('CRM')) 
                                 .withColumn("surveyParticipantSK", lit('-1'))
-            ).drop_duplicates()
+            )
 
 #joined_df.count()
 finaldf = finaldf.unionByName(joined_df)
@@ -543,32 +547,33 @@ def Transform():
 
     # ------------- TRANSFORMS ------------- # 
     _.Transforms = [
-        f"sourceSystem||'|'||surveyId||'|'||questionId||'|'||surveyQuestionSK||'|'||recordId  {BK}"
+        f"concat_ws('|',sourceSystem,surveyId,questionId,surveyQuestionSK,recordId,responseText,snapshotDate)  {BK}"
         ,"propertySK propertyNumberFK" 
         ,"businessPartnerSK businessPartnerNumberFK"
-        ,"surveyFK surveyFK"
+        ,"surveySK surveyFK"
         ,"surveyQuestionSK surveyQuestionFK"
         ,"surveyResponseInformationSK surveyResponseInformationFK" 
         ,"surveyParticipantSK surveyParticipantFK"
-        ,"surveyId surveyId"
+        ,"surveyId"
         ,"questionId surveyquestionId" 
-        ,"questionPartId questionPartId" 
+        ,"questionPartId" 
         ,"recordId responseId" 
-        ,"responseCode responseCode" 
-        ,"responseText responseText"
+        ,"responseCode" 
+        ,"responseText"
         ,"sentimentDsc sentimentDescription" 
         ,"sentimentPolarityNumber sentimentPolarityNumber" 
-        ,"sentimentScore sentimentScore"         
-        ,"topicSentimentScore topicSentimentScore" 
+        ,"sentimentScore"         
+        ,"topicSentimentScore" 
         ,"topicsSentimentsLabel topicSentimentLabel" 
-        ,"topicsText topicsText" 
-        ,"parTopicsText parTopicsText"               
+        ,"topicsText" 
+        ,"parTopicsText"               
         ,"sourceSystem sourceSystemCode"
+        ,"snapshotDate snapshotTimestamp"
     ]
     
     df_final = df_final.selectExpr(
         _.Transforms
-    )
+    ).drop_duplicates()
 
     # ------------- SAVE ------------------- #
     #df_final.display()
@@ -578,15 +583,156 @@ Transform()
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select surveyResponseSK,count(1) from ppd_curated.fact.SurveyResponse group by all having count(1) > 1
+3598801
+1732925
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from ppd_curated.fact.SurveyResponse where responseId = 'R_3lYyfINzUDFsX8M'
+# MAGIC select * from ppd_curated.dim.surveyresponseinformation_test where surveyResponseId = 'R_es9IqQxcTuUzFyV'
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC describe history 
+# MAGIC select * from ppd_curated.fact.surveyresponse_test where responseId  = 'R_1Nfs20vsRyc86SE' and questionPartId = '3' --Duplicated defect
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from ppd_curated.fact.surveyresponse_test where responseId  = 'R_es9IqQxcTuUzFyV' -- data quality defect
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select surveyResponseSK, count(1) from ppd_curated.fact.surveyresponse group by all having count(1)>1
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from ppd_curated.fact.surveyresponse where surveyResponseSK = '1bd49fdd99c95770bd058503b65edba6'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from ppd_curated.dim.surveyresponseinformation_test where surveyId = 'SV_89cmPdrG4sKNBvU' and surveyResponseId = 'R_2P50QI6CAXZSvoD'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from ppd_curated.dim.surveyresponseinformation where surveyId = 'SV_89cmPdrG4sKNBvU' and surveyResponseId = 'R_2P50QI6CAXZSvoD'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from ppd_curated.fact.surveyresponse_test where sourceSystemCode = 'Qualtrics' 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC alter table ppd_curated.fact.surveyresponse rename to ppd_curated.fact.surveyresponse_backup
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select *  from 
+# MAGIC ((select * from ppd_cleansed.qualtrics.billpaidsuccessfullyresponses)
+# MAGIC union (select * from ppd_cleansed.qualtrics.businessConnectServiceRequestCloseResponses)
+# MAGIC union (select * from ppd_cleansed.qualtrics.complaintsComplaintClosedResponses)
+# MAGIC union (select * from ppd_cleansed.qualtrics.contactcentreinteractionmeasurementsurveyResponses)
+# MAGIC union (select * from ppd_cleansed.qualtrics.customercareResponses)
+# MAGIC union (select * from ppd_cleansed.qualtrics.developerapplicationreceivedResponses)
+# MAGIC union (select * from ppd_cleansed.qualtrics.p4sonlinefeedbackResponses)
+# MAGIC union (select * from ppd_cleansed.qualtrics.s73surveyResponses)
+# MAGIC union (select * from ppd_cleansed.qualtrics.waterfixpostinteractionfeedbackResponses)
+# MAGIC union (select * from ppd_cleansed.qualtrics.websitegoliveResponses)
+# MAGIC union (select * from ppd_cleansed.qualtrics.wscs73experiencesurveyResponses)
+# MAGIC union (select * from ppd_cleansed.qualtrics.feedbacktabgoliveResponses)) where recordId = 'R_es9IqQxcTuUzFyV'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select recordId,surveyName  
+# MAGIC
+# MAGIC from
+# MAGIC
+# MAGIC (
+# MAGIC
+# MAGIC select recordId, 'billpaidsuccessfullyresponses' as surveyName
+# MAGIC
+# MAGIC from ppd_cleansed.qualtrics.billpaidsuccessfullyresponses ql
+# MAGIC
+# MAGIC union
+# MAGIC
+# MAGIC select recordId, 'businessconnectservicerequestcloseresponses' as surveyName
+# MAGIC
+# MAGIC from ppd_cleansed.qualtrics.businessconnectservicerequestcloseresponses ql
+# MAGIC
+# MAGIC union
+# MAGIC
+# MAGIC select recordId ,'complaintscomplaintclosedresponses' as surveyName
+# MAGIC
+# MAGIC from ppd_cleansed.qualtrics.complaintscomplaintclosedresponses ql
+# MAGIC
+# MAGIC union
+# MAGIC
+# MAGIC select recordId, 'contactcentreinteractionmeasurementsurveyresponses' as surveyName
+# MAGIC
+# MAGIC from ppd_cleansed.qualtrics.contactcentreinteractionmeasurementsurveyresponses ql
+# MAGIC
+# MAGIC union
+# MAGIC
+# MAGIC select recordId, 'customercareresponses' as surveyName
+# MAGIC
+# MAGIC from ppd_cleansed.qualtrics.customercareresponses ql
+# MAGIC
+# MAGIC union
+# MAGIC
+# MAGIC select recordId, 'daftestsurveyresponses' as surveyName
+# MAGIC
+# MAGIC from ppd_cleansed.qualtrics.daftestsurveyresponses ql
+# MAGIC
+# MAGIC union
+# MAGIC
+# MAGIC select recordId, 'developerapplicationreceivedresponses'
+# MAGIC
+# MAGIC from ppd_cleansed.qualtrics.developerapplicationreceivedresponses ql
+# MAGIC
+# MAGIC union
+# MAGIC
+# MAGIC select recordId, 'feedbacktabgoliveresponses' as surveyName
+# MAGIC
+# MAGIC from ppd_cleansed.qualtrics.feedbacktabgoliveresponses ql
+# MAGIC
+# MAGIC union
+# MAGIC
+# MAGIC select recordId, 'p4sonlinefeedbackresponses' as surveyName
+# MAGIC
+# MAGIC from ppd_cleansed.qualtrics.p4sonlinefeedbackresponses ql
+# MAGIC
+# MAGIC union
+# MAGIC
+# MAGIC select recordId, 's73surveyresponses' as surveyName
+# MAGIC
+# MAGIC from ppd_cleansed.qualtrics.s73surveyresponses ql
+# MAGIC
+# MAGIC )dt
+# MAGIC
+# MAGIC where recordId = 'R_es9IqQxcTuUzFyV'
+# MAGIC
+# MAGIC ;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select *
+# MAGIC
+# MAGIC from ppd_cleansed.qualtrics.contactcentreinteractionmeasurementsurveyresponses where  recordId = 'R_es9IqQxcTuUzFyV'
+# MAGIC
+
+# COMMAND ----------
+
+

@@ -7,7 +7,7 @@
 
 # COMMAND ----------
 
-DimSurvey  = (GetTable(f"{getEnv()}curated.dim.Survey").filter("sourceRecordCurrent ==1").select("surveySK", "surveyName"))
+DimSurvey  = (GetTable(f"{getEnv()}curated.dim.Survey").select("surveyName")).drop_duplicates()
 
 Survey1  = (GetTable(f"{getEnv()}cleansed.qualtrics.billpaidsuccessfullyquestions")
                 .withColumn("sourceSystem", lit("Qualtrics")) 
@@ -141,7 +141,7 @@ for df in Surveys:
     
     joinDF = stringconvertedDF.join(DimSurvey, stringconvertedDF["surveyName"] == DimSurvey["surveyName"], "inner").drop("surveyName")                               
     flattened_df = (joinDF.select("*", explode_outer("split").alias("kv")) 
-                        .select("surveySK", "surveyId", "questionid", "questionText", "questionDescription", "QuestionType", "kv.questionPartId", "kv.questionPartText", "answers", "choices", "sourceSystem") )
+                        .select("surveyId", "questionid", "questionText", "questionDescription", "QuestionType", "kv.questionPartId", "kv.questionPartText", "answers", "choices", "sourceSystem") )
                         
                        
     flattened_df = flattened_df.withColumn("questionPartText", regexp_replace(col("questionPartText"), '<strong>|</strong>', ''))
@@ -153,14 +153,14 @@ for df in Surveys:
 union_df = union_df.withColumn("surveyVersion", lit(None).cast("string"))
 #########Added CRM Survey #############################
 
-dimBuss = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimSurvey')}").filter("sourceRecordCurrent ==1")
+dimBuss = GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimSurvey')}").select("surveyID","surveyVersionNumber")
 crmQues = GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crm_svy_re_quest')}")
 
 split_col = split(col("sourceBusinessKey"), r"\|")
-dimBuss = dimBuss.withColumn("surveyID", split_col.getItem(1))
+# dimBuss = dimBuss.withColumn("surveyID", split_col.getItem(1))
 #dimBuss.display()
-crmQuestion = (dimBuss.join(crmQues, (dimBuss["surveyID"] == crmQues["surveyID"]) & (dimBuss["surveyVersionNumber"] == crmQues["surveyVersion"])) 
-                     .select(dimBuss["surveySK"], crmQues["surveyID"], crmQues["questionId"], crmQues["surveyVersion"].alias("surveyVersion"), 
+# crmQuestion = (dimBuss.join(crmQues, (dimBuss["surveyID"] == crmQues["surveyID"]) & (dimBuss["surveyVersionNumber"] == crmQues["surveyVersion"])) 
+crmQuestion = (crmQues.select(crmQues["surveyID"], crmQues["questionId"], crmQues["surveyVersion"].alias("surveyVersion"), 
                              crmQues["longDescription"].alias("questionText"), crmQues["longDescription"].alias("questionDescription"))) 
 
 
@@ -171,13 +171,24 @@ crmQuestion =   (crmQuestion.withColumn("questionType", lit(None).cast("string")
                            .withColumn("choices", lit(None).cast("string")) 
                            .withColumn("surveyVersion", col("surveyVersion")) 
                            .withColumn("sourceSystem", lit('CRM').cast("string")) 
-                           .select("surveySK", "surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "questionPartId", "questionPartText", "answers", "choices", "surveyVersion", "sourceSystem"))
+                           .select("surveyID", "questionid", "questionText", "questionDescription", "QuestionType", "questionPartId", "questionPartText", "answers", "choices", "surveyVersion", "sourceSystem"))
 
 
 union_df = union_df.unionByName(crmQuestion)
 
 if not(TableExists(_.Destination)):
     union_df = union_df.unionByName(spark.createDataFrame([dummyRecord(union_df.schema)], union_df.schema)) 
+
+# COMMAND ----------
+
+union_df = union_df.withColumn("questionText", regexp_replace(col("questionText"), "\$\{[eq]\:\/\/", "["))
+union_df = union_df.withColumn("questionText", regexp_replace(col("questionText"), "\/", "-"))
+union_df = union_df.withColumn("questionText", regexp_replace(col("questionText"), "\}", "]"))
+union_df = union_df.withColumn("questionText", regexp_replace(col("questionText"), "\%20", " "))
+union_df = union_df.withColumn("questionDescription", regexp_replace(col("questionDescription"), "\$\{[eq]\:\/\/", "["))
+union_df = union_df.withColumn("questionDescription", regexp_replace(col("questionDescription"), "\/", "-"))
+union_df = union_df.withColumn("questionDescription", regexp_replace(col("questionDescription"), "\}", "]"))
+union_df = union_df.withColumn("questionDescription", regexp_replace(col("questionDescription"), "\%20", " "))
 
 # COMMAND ----------
 
@@ -188,7 +199,6 @@ def Transform():
     # ------------- TRANSFORMS ------------- # 
     _.Transforms = [
         f"sourceSystem||'|'||surveyID||'|'||CASE WHEN sourceSystem = 'CRM' THEN surveyVersion ELSE '' END||'|'||questionId||'|'||CASE WHEN questionPartId IS NULL THEN '' ELSE questionPartId END  {BK}"
-        ,"surveySK surveyFK"
         ,"surveyID surveyID"
         ,"surveyVersion surveyVersionNumber"
         ,"questionId surveyQuestionId"
@@ -215,16 +225,13 @@ Transform()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from ppd_curated.dim.surveyquestion where surveyQuestionId = 'QID14'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC Select surveyQuestionText, surveyQuestionDescription  from ppd_curated.dim.surveyquestion
-# MAGIC where surveyQuestionText like '%${e://%'
-# MAGIC
-
-# COMMAND ----------
-
-# MAGIC %sql
 # MAGIC select surveyQuestionSK,count(1) from ppd_curated.dim.surveyquestion group by all having count(1) > 1
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC Select distinct question14ResponseCode, question14QuestionText,
+# MAGIC CASE WHEN question14ResponseText IN('Male', 'Female', 'Prefer not to say') THEN question14ResponseText
+# MAGIC ELSE concat( question14ResponseText ,   ' : ', CASE WHEN question14Part3ResponseText is null THEN '' ELSE question14Part3ResponseText END ) END as question14ResponseText
+# MAGIC from ppd_cleansed.qualtrics.complaintscomplaintclosedresponses
+# MAGIC  
