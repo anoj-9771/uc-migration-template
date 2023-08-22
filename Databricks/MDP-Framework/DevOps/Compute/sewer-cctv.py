@@ -3,7 +3,7 @@
 
 # COMMAND ----------
 
-clusterTemplate = {
+template = {
     "num_workers": 6,
     "cluster_name": "sewer-cctv",
     "spark_version": "10.4.x-cpu-ml-scala2.12",
@@ -34,5 +34,5 @@ libraries = [
         ,{ "pypi": { "package": "opencv-python==4.6.0.66" } }
     ]
 
-print(CreateOrEditCluster(clusterTemplate, librariesList=libraries))
-print(UpdateClusterPermissionByName(clusterTemplate["cluster_name"], [{ "group_name": "AI/ML-Team", "permission_level": "CAN_RESTART" }]))
+print(CreateOrEditCluster(template, librariesList=libraries))
+print(UpdateClusterPermissionByName(template["cluster_name"], [{ "group_name": "AI/ML-Team", "permission_level": "CAN_RESTART" }]))

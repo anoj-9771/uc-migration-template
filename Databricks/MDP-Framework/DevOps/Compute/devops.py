@@ -3,7 +3,7 @@
 
 # COMMAND ----------
 
-clusterTemplate = {
+template = {
     "num_workers": 1,
     "cluster_name": "devops",
     "spark_version": "13.0.x-scala2.12",
@@ -34,4 +34,4 @@ clusterTemplate = {
 libraries = [
 ]
 
-print(CreateOrEditCluster(clusterTemplate, librariesList=libraries)) if CurrentNotebookName().lower() != spark.conf.get("spark.databricks.clusterUsageTags.clusterName") else print("Cant edit yourself!")
+print(CreateOrEditCluster(template, librariesList=libraries)) 

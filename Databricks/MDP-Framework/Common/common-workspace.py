@@ -67,11 +67,6 @@ def ListClusters():
 
 # COMMAND ----------
 
-def GetClusterByName(name):
-    return [i for i in ListClusters()["clusters"] if i["cluster_name"] == name][0]
-
-# COMMAND ----------
-
 def ChangeClusterOwner(clusterId, newOwner):
     json={
         "cluster_id": f"{clusterId}", "owner_username": f"{newOwner}"
@@ -87,6 +82,15 @@ def ChangeClusterOwner(clusterId, newOwner):
 def GetClusterByName(name):
     v = [a for a in ListClusters()['clusters'] if a["cluster_name"]==name]
     return "" if len(v) == 0 else v[0]
+
+# COMMAND ----------
+
+def GetClusterState(name):
+    cluster = GetClusterByName(name)
+    if cluster == '':
+        return None
+    
+    return cluster.get("state")
 
 # COMMAND ----------
 
@@ -300,6 +304,10 @@ def EditCluster(clusterTemplate):
 # COMMAND ----------
 
 def CreateOrEditCluster(cluster, pin=True, createNew=False, librariesList=None, terminate=True):
+    if GetClusterState(cluster["cluster_name"]) == "RUNNING":
+        print("Cluster is running!")
+        return
+
     jsonResponse = EditCluster(cluster) if createNew or not(any([i for i in ListClusters()["clusters"] if i["cluster_name"] == cluster["cluster_name"]])) == False else CreateCluster(cluster)
     clusterId = jsonResponse["cluster_id"]
     PinCluster(clusterId) if pin else ()

@@ -3,7 +3,7 @@
 
 # COMMAND ----------
 
-clusterTemplate = {
+template = {
     "num_workers": 2,
     "cluster_name": "riverwatch",
     "spark_version": "12.2.x-cpu-ml-scala2.12",
@@ -37,4 +37,4 @@ libraries = [
         ,{ "pypi": { "package": "pybbn==3.2.1" } }
     ]
 
-print(CreateOrEditCluster(clusterTemplate, librariesList=libraries))
+print(CreateOrEditCluster(template, librariesList=libraries))
