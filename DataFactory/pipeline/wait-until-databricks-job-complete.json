@@ -9,7 +9,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@or(equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'TERMINATED'), or(equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'SKIPPED'),or(equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'INTERNAL_ERROR'),equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'BLOCKED'))))",
+						"value": "@or(equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'TERMINATED'), or(equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'SKIPPED'),equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'INTERNAL_ERROR')))",
 						"type": "Expression"
 					},
 					"activities": [
