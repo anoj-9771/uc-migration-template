@@ -103,6 +103,7 @@ WITH [_Log] AS (
 	,CAST(ISNULL([SystemEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))-[SystemStartDTS] AS TIME) [SystemDuration]
 	,DATEDIFF(DAY, [SystemStartDTS], ISNULL([SystemEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))) [SystemDurationDays]
 	,CASE 
+		WHEN [SystemInProgressTasks] > 0 AND DATEDIFF(DAY, [SystemStartDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time')) = 0 THEN 'In Progress'
 		WHEN DATEDIFF(DAY, [SystemStartDTS], ISNULL([SystemEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))) > 0 THEN 'Timed Out'
 		WHEN [SystemEndDTS] IS NOT NULL AND SystemTotalTasks = SystemCompletedTasks THEN 'Completed'
 		ELSE 'Failed'
