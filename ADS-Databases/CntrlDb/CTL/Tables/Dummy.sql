@@ -1,4 +1,0 @@
-CREATE TABLE [dbo].[Dummy]
-(
-  [Id] INT NOT NULL PRIMARY KEY
-)

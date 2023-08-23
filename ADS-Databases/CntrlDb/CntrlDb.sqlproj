@@ -157,7 +157,6 @@
     <Build Include="CTL\Stored Procedures\GetBusinessRecCurated.sql" />
     <Build Include="CTL\Stored Procedures\UpdateBusinessRecCurated.sql" />
     <Build Include="CTL\Tables\BusinessRecStage.sql" />
-    <Build Include="CTL\Tables\Dummy.sql" />
     <Build Include="CTL\Tables\TechRecCleansedConfig.sql" />
     <Build Include="CTL\Views\vw_SrcToRawDetailRpt.sql" />
     <Build Include="CTL\Views\vw_SrcToRawSummaryRpt.sql" />
@@ -182,9 +181,6 @@
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment1.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <RefactorLog Include="CntrlDb.refactorlog" />
   </ItemGroup>
   <Import Condition="'$(NetCoreBuild)' == 'true'" Project="$(NETCoreTargetsPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
