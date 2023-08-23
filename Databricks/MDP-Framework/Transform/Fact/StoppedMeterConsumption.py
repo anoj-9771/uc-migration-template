@@ -65,7 +65,7 @@ def Transform():
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
-        f"propertyNumber||'|'||firstDayOfMeterActiveMonth||'|'||calculationDate||'|'||deviceNumber {BK}"
+        f"propertyNumber||'|'||firstDayOfMeterActiveMonth||'|'||calculationDate||'|'||deviceNumber||'|'||meterActiveMonthStartDate {BK}"
         ,"propertySK propertySK"
         ,"propertyNumber propertyNumber"
         ,"deviceNumber deviceNumber"        
