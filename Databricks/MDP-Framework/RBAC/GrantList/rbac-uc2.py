@@ -25,12 +25,16 @@ RBAC_UC2 = [
     {
         "Name" : "UC2-UAT"
         ,"TableFilter" : [
-            "curated.fact.dailysupplyapportionedaccruedconsumption"
+            "curated.water_balance.demandassetconfig"
+            ,"curated.water_balance.demandcalculateconfig"
+            ,"curated.water_balance.demandcalculatepriorityconfig"
+            ,"curated.fact.dailysupplyapportionedaccruedconsumption"
             ,"curated.fact.dailysupplyapportionedconsumption"
             ,"curated.fact.monthlysupplyapportionedaggregate"
             ,"curated.fact.monthlysupplyapportionedaccruedconsumption"
             ,"curated.fact.monthlysupplyapportionedconsumption"
             ,"curated.fact.monthlyleakageaggregate"
+            ,"curated.water_balance.monthlyLeakageAggregate"
             ,"curated.water_balance.recondailysupplyapportionedconsumption"
             ,"curated.water_balance.recondailysupplyapportionedaccruedconsumption"
             ,"curated.water_balance.monthlySupplyApportionedAggregate"

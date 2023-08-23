@@ -40,6 +40,37 @@ spark.sql(f"""
 
 # COMMAND ----------
 
+def CreateView(view: str, sql_: str):
+    if len(view.split('.')) == 3:
+        layer,schema_name,object_name = view.split('.')
+        table_namespace = get_table_name(layer,schema_name,object_name)
+        catalog_name = table_namespace.split('.')[0]
+        spark.sql(f"USE CATALOG {catalog_name}")
+    
+        if spark.sql(f"SHOW VIEWS FROM {schema_name} LIKE '{object_name}'").count() == 1:
+            sqlLines = f"ALTER VIEW {table_namespace} AS"
+        else:
+            sqlLines = f"CREATE VIEW {table_namespace} AS"       
+
+        sqlLines += sql_
+        print(sqlLines)
+        spark.sql(sqlLines)
+    else:
+        raise Exception(f'View {view} needs to be in 3 dot notation.')   
+
+# COMMAND ----------
+
+view = f"curated.water_balance.monthlyLeakageAggregate"
+sql_ = f"""
+  SELECT *
+  FROM {TARGET_TABLE}
+  qualify Row_Number () over ( partition BY SWCAggregated,deliverySystem,supplyZone,pressureZone,monthNumber,yearNumber ORDER BY calculationDate desc ) = 1
+"""
+
+CreateView(view, sql_)
+
+# COMMAND ----------
+
 spark.sql(f"""
         DELETE FROM {TARGET_TABLE}
         WHERE calculationDate = current_date(); 
