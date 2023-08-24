@@ -278,7 +278,7 @@ if maskColumns:
 
 SurveyMap = spark.sql(f"""
                         SELECT aa.id  as ID, aa.name as NAME
-                          FROM (SELECT r.* FROM ( SELECT explode(result.elements) r FROM raw.qualtrics_surveys )) aa
+                          FROM (SELECT r.* FROM ( SELECT explode(result.elements) r FROM {get_env()}raw.qualtrics.surveys )) aa
                                ,controldb.dbo_extractLoadManifest bb 
                          WHERE SystemCode in ('Qualtricsref','Qualtricsdata') 
                            AND  aa.id = concat('SV_', regexp_extract(bb.SourceQuery, "/SV_(.*?)/", 1)) 
