@@ -21,7 +21,7 @@
 							"value": "DECLARE @SystemCodes VARCHAR(MAX) = (\nSELECT \n[Value]\nFROM [dbo].[Config]\nWHERE [KeyGroup] = 'TriggerInterval'\n--AND [Key] = '15Min'\nAND [Key] = '@{pipeline().parameters.triggerInterval}'\n);\n\nWITH [_SystemCodes] AS (\n    SELECT DISTINCT TRIM(value) [SystemCode] FROM STRING_SPLIT(IIF(LEN(TRIM(@SystemCodes))=0, NULL, @SystemCodes), ',')\n)\n,[_SystemStatus] as(\n    SELECT \n        bsl.SystemCode\n        ,bsl.SystemStartDTS\n        ,bsl.SystemStatus\n        ,RANK() OVER (PARTITION BY bsl.SystemCode ORDER BY bsl.SystemStartDTS DESC) Rank\n    FROM [dbo].[BatchStatusLog] bsl\n    GROUP BY\n        bsl.systemCode\n        ,bsl.SystemStartDTS\n        ,bsl.SystemStatus\n)\nSELECT \nSTRING_AGG(IIF(SS.SystemStatus!='In Progress' OR SS.SystemStatus IS NULL, SC.SystemCode, NULL), ',') [Run]\n,STRING_AGG(IIF(SS.SystemStatus='In Progress', SC.SystemCode, NULL), ',') [Skip]\nFROM [_SystemCodes] SC\nLEFT JOIN (\n    SELECT SystemCode, SystemStatus\n    FROM _SystemStatus\n    WHERE Rank = 1\n) SS ON SS.SystemCode = SC.SystemCode\n",
 							"type": "Expression"
 						},
-						"queryTimeout": "02:00:00",
+						"queryTimeout": "00:02:00",
 						"partitionOption": "None"
 					},
 					"dataset": {

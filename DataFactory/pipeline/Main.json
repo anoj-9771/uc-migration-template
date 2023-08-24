@@ -6,14 +6,7 @@
 				"name": "get-extract-load",
 				"description": " ",
 				"type": "Lookup",
-				"dependsOn": [
-					{
-						"activity": "set-parent-batch",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -26,9 +19,10 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "DECLARE @SystemCodes VARCHAR(50) = '@{pipeline().parameters.SystemCodes}';\nWITH [_SystemCodes] AS (\n\tSELECT DISTINCT TRIM(value) [SystemCode] FROM STRING_SPLIT(IIF(LEN(TRIM(@SystemCodes))=0, NULL, @SystemCodes), ',')\n)\nSELECT \nDISTINCT\nLEFT([SourceID], 2) [Order], M.[SystemCode]\nFROM [dbo].[ExtractLoadManifest] M\nJOIN [_SystemCodes] C ON C.[SystemCode] = M.[SystemCode] \nWHERE [Enabled] = 1 \nUNION \nSELECT \nDISTINCT\nLEFT([SourceID], 2) [Order], M.[SystemCode]\nFROM [dbo].[ExtractLoadManifest] M\nWHERE [Enabled] = 1 AND (SELECT COUNT(*) FROM [_SystemCodes]) = 0\nORDER BY 1",
+							"value": "DECLARE @SystemCodes VARCHAR(50) = '@{pipeline().parameters.SystemCodes}'\n,@parallelRun CHAR(1) = '@{pipeline().parameters.RunParallel}'\n,@c CHAR(1) = N',';\nWITH [_SystemCodes] AS (\n\tSELECT DISTINCT TRIM(value) [SystemCode], CHARINDEX(@c + value + @c, @c + @SystemCodes + @c) [ID]  FROM STRING_SPLIT(IIF(LEN(TRIM(@SystemCodes))=0, NULL, @SystemCodes), ',')\n)\nSELECT \nDISTINCT\nIIF(@parallelRun='N', (DENSE_RANK() OVER (PARTITION BY NULL ORDER BY [ID]) * 1000), '') +  LEFT([SourceID], 2) [Order]\n,M.[SystemCode]\nFROM [dbo].[ExtractLoadManifest] M\nJOIN [_SystemCodes] C ON C.[SystemCode] = M.[SystemCode] \nWHERE [Enabled] = 1 \nUNION \nSELECT \nDISTINCT\nLEFT([SourceID], 2) [Order]\n,M.[SystemCode]\nFROM [dbo].[ExtractLoadManifest] M\nWHERE [Enabled] = 1 AND (SELECT COUNT(*) FROM [_SystemCodes]) = 0\nORDER BY 1",
 							"type": "Expression"
 						},
+						"queryTimeout": "00:02:00",
 						"partitionOption": "None"
 					},
 					"dataset": {
@@ -42,6 +36,10 @@
 				"name": "set-parent-batch",
 				"type": "SetVariable",
 				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "ParentBatchID",
@@ -52,106 +50,17 @@
 				}
 			},
 			{
-				"name": "if-transform",
-				"type": "IfCondition",
-				"dependsOn": [
-					{
-						"activity": "set-transform",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "If-RunParallel",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"expression": {
-						"value": "@variables('Transform')",
-						"type": "Expression"
-					},
-					"ifTrueActivities": [
-						{
-							"name": "execute-transform",
-							"type": "ExecutePipeline",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "Transform",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": true,
-								"parameters": {
-									"ParentBatchID": {
-										"value": "@variables('ParentBatchID')",
-										"type": "Expression"
-									}
-								}
-							}
-						}
-					]
-				}
-			},
-			{
-				"name": "get-transform-default",
-				"description": " ",
-				"type": "Lookup",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "AzureSqlSource",
-						"sqlReaderQuery": {
-							"value": "SELECT COALESCE((SELECT [Value] FROM [dbo].[Config] WHERE [KeyGroup] = 'LoadDefault' AND [Key] = 'Transform'), 0) [TransformDefault]",
-							"type": "Expression"
-						},
-						"partitionOption": "None"
-					},
-					"dataset": {
-						"referenceName": "SQL_ControlDB",
-						"type": "DatasetReference"
-					},
-					"firstRowOnly": false
-				}
-			},
-			{
-				"name": "set-transform",
-				"type": "SetVariable",
-				"dependsOn": [
-					{
-						"activity": "get-transform-default",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "Transform",
-					"value": {
-						"value": "@bool(activity('get-transform-default').output.value[0].TransformDefault)",
-						"type": "Expression"
-					}
-				}
-			},
-			{
 				"name": "If-RunParallel",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
 						"activity": "get-extract-load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-parent-batch",
 						"dependencyConditions": [
 							"Succeeded"
 						]
