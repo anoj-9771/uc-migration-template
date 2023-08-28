@@ -245,7 +245,6 @@ def create_managed_table_parallel(layer:str):
         tables = spark.sql(f'SHOW TABLES IN hive_metastore.{layer}').select('tableName').collect()
         table_list = [table.asDict()['tableName'] for table in tables ]
         layer_list = [f'{layer}' for x in table_list]
-      #how does it work for prod
         env_list = [f'{env}' for x in table_list]
         parallel_run(create_managed_table, env_list, layer_list, table_list)
       except Exception as e:
