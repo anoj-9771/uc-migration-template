@@ -90,7 +90,7 @@ BEGIN
     ,[ExtendedProperties]
 	,COALESCE(C2.Value, C1.Value) AS [QueryFilter]
 	,@ExtraConfig AS [ExtraConfig]
-    ,COALESCE(C3.[Value], C4.[Value]) [WorkspaceSwitch]
+    ,COALESCE(C3.[Value], C4.[Value], 0) [WorkspaceSwitch]
 	FROM [dbo].[ExtractLoadStatus] S
 	JOIN [dbo].[ExtractLoadManifest] R ON R.[SourceID] = S.[SourceID]
 	LEFT JOIN [dbo].[Config] C1 ON C1.[KeyGroup] = R.[SystemCode] AND C1.[Key] = 'DefaultDataFilter'

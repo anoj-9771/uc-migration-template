@@ -1,5 +1,5 @@
 {
-	"name": "run-databricks-notebook",
+	"name": "run-databricks-notebook-base",
 	"properties": {
 		"activities": [
 			{
@@ -136,23 +136,6 @@
 					"variableName": "InstancePoolId",
 					"value": {
 						"value": "@activity('filter-instance-pool').output.value[0].instance_pool_id",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "set-instance-pool-name",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"policy": {
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "InstancePoolName",
-					"value": {
-						"value": "@if(contains(pipeline().parameters.task, 'ExtraConfig'),\nif(\n\tcontains(\n\t\tcoalesce(\n\t\t\tpipeline().parameters.task.ExtendedProperties, ''), \n\t\t\t'OverridePoolName'\n\t), \n\tjson(\n\t\tcoalesce(\n\t\t\tpipeline().parameters.task.ExtendedProperties, \n\t\t\t'{}'\n\t\t)\n\t).OverridePoolName,\n\tjson(pipeline().parameters.task.ExtraConfig)[0].DefaultPoolName\n), '')",
 						"type": "Expression"
 					}
 				}
@@ -319,7 +302,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"notebookPath": {
-									"value": "@pipeline().parameters.config.notebookPath",
+									"value": "@pipeline().parameters.notebookPath",
 									"type": "Expression"
 								},
 								"baseParameters": {
@@ -375,11 +358,15 @@
 										"type": "Expression"
 									},
 									"ActivityType": {
-										"value": "@pipeline().parameters.config.activityType",
+										"value": "@pipeline().parameters.logActivityType",
 										"type": "Expression"
 									},
 									"Message": {
 										"value": "@{activity('pool-run-databricks')}",
+										"type": "Expression"
+									},
+									"IsTransform": {
+										"value": "@pipeline().parameters.isTransform",
 										"type": "Expression"
 									}
 								}
@@ -445,7 +432,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"notebookPath": {
-									"value": "@pipeline().parameters.config.notebookPath",
+									"value": "@pipeline().parameters.notebookPath",
 									"type": "Expression"
 								},
 								"baseParameters": {
@@ -498,11 +485,15 @@
 										"type": "Expression"
 									},
 									"ActivityType": {
-										"value": "@pipeline().parameters.config.activityType",
+										"value": "@pipeline().parameters.logActivityType",
 										"type": "Expression"
 									},
 									"Message": {
 										"value": "@{activity('cluster-run-databricks')}",
+										"type": "Expression"
+									},
+									"IsTransform": {
+										"value": "@pipeline().parameters.isTransform",
 										"type": "Expression"
 									}
 								}
@@ -549,102 +540,6 @@
 								"value": {
 									"value": "@string(bool(contains(activity('cluster-run-databricks').output,'runOutput')))",
 									"type": "Expression"
-								}
-							}
-						}
-					]
-				}
-			},
-			{
-				"name": "if-sink-flag-cluster",
-				"type": "IfCondition",
-				"dependsOn": [
-					{
-						"activity": "if-cluster",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"expression": {
-						"value": "@and(\n    equals(variables('SinkFlag'),'True'),\n    if(equals(variables('ClusterId'),''),bool(false),bool(true))\n)",
-						"type": "Expression"
-					},
-					"ifTrueActivities": [
-						{
-							"name": "task-sink-count-cluster",
-							"type": "ExecutePipeline",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "log-status-update",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": false,
-								"parameters": {
-									"ID": {
-										"value": "@pipeline().parameters.task.ID",
-										"type": "Expression"
-									},
-									"Property": {
-										"value": "@pipeline().parameters.config.sinkCountProperty",
-										"type": "Expression"
-									},
-									"Value": {
-										"value": "@string(if(\n    equals(pipeline().parameters.config.activityType, 'raw-databricks'),\n    activity('cluster-run-databricks').output.runOutput.SinkRowCount,\n    activity('cluster-run-databricks').output.runOutput.CleansedSinkCount\n    )\n)",
-										"type": "Expression"
-									}
-								}
-							}
-						}
-					]
-				}
-			},
-			{
-				"name": "if-sink-flag-instance-pool",
-				"type": "IfCondition",
-				"dependsOn": [
-					{
-						"activity": "if-cluster",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"expression": {
-						"value": "@and(\n    equals(variables('SinkFlag'),'True'),\n    if(equals(variables('ClusterId'),''),bool(true),bool(false))\n)",
-						"type": "Expression"
-					},
-					"ifTrueActivities": [
-						{
-							"name": "task-sink-count-instance-pool",
-							"type": "ExecutePipeline",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "log-status-update",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": false,
-								"parameters": {
-									"ID": {
-										"value": "@pipeline().parameters.task.ID",
-										"type": "Expression"
-									},
-									"Property": {
-										"value": "@pipeline().parameters.config.sinkCountProperty",
-										"type": "Expression"
-									},
-									"Value": {
-										"value": "@string(if(\n    equals(pipeline().parameters.config.activityType, 'raw-databricks'),\n    activity('pool-run-databricks').output.runOutput.SinkRowCount,\n    activity('pool-run-databricks').output.runOutput.CleansedSinkCount\n    )\n)",
-										"type": "Expression"
-									}
 								}
 							}
 						}
@@ -831,14 +726,69 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "get-default-pool-name",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:03:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "https://@{pipeline().globalParameters.keyVaultName}.vault.azure.net/secrets/daf-databricks-default-pool-name?api-version=7.0",
+						"type": "Expression"
+					},
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "set-instance-pool-name",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get-default-pool-name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "InstancePoolName",
+					"value": {
+						"value": "@coalesce(if(contains(pipeline().parameters.task, 'ExtraConfig'),\nif(\n\tcontains(\n\t\tcoalesce(\n\t\t\tpipeline().parameters.task.ExtendedProperties, ''), \n\t\t\t'OverridePoolName'\n\t), \n\tjson(\n\t\tcoalesce(\n\t\t\tpipeline().parameters.task.ExtendedProperties, \n\t\t\t'{}'\n\t\t)\n\t).OverridePoolName,\n\tjson(pipeline().parameters.task.ExtraConfig)[0].DefaultPoolName\n), null)\n,activity('get-default-pool-name').output.value)",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
 			"task": {
 				"type": "object"
 			},
-			"config": {
-				"type": "object"
+			"notebookPath": {
+				"type": "string"
+			},
+			"logActivityType": {
+				"type": "string"
+			},
+			"isTransform": {
+				"type": "bool",
+				"defaultValue": false
 			}
 		},
 		"variables": {

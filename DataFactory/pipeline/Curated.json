@@ -24,129 +24,27 @@
 							"value": "databricks-notebook",
 							"activities": [
 								{
-									"name": "curated-databricks",
-									"type": "DatabricksNotebook",
-									"dependsOn": [
-										{
-											"activity": "get-default-pool-id",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": {
-											"value": "@{pipeline().parameters.task.Command}",
-											"type": "Expression"
-										},
-										"baseParameters": {
-											"task": {
-												"value": "@{pipeline().parameters.task}",
-												"type": "Expression"
-											}
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "LS_AzureDatabricks_InstancePool",
-										"type": "LinkedServiceReference",
-										"parameters": {
-											"kvSecretNameToken": "databricks-token",
-											"PoolId": {
-												"value": "@activity('get-default-pool-id').output.value",
-												"type": "Expression"
-											},
-											"DatabricksVersion": "12.2.x-scala2.12",
-											"newClusterNumOfWorker": "1:4",
-											"ProductTag": "Framework ETL 2.0",
-											"kvSecretNameUrl": "databricks-domain"
-										}
-									}
-								},
-								{
-									"name": "log-databricks",
+									"name": "execute-curated-databricks",
 									"type": "ExecutePipeline",
-									"dependsOn": [
-										{
-											"activity": "curated-databricks",
-											"dependencyConditions": [
-												"Completed"
-											]
-										}
-									],
+									"dependsOn": [],
 									"userProperties": [],
 									"typeProperties": {
 										"pipeline": {
-											"referenceName": "log-message",
+											"referenceName": "run-databricks-notebook-base",
 											"type": "PipelineReference"
 										},
-										"waitOnCompletion": false,
+										"waitOnCompletion": true,
 										"parameters": {
-											"ID": {
-												"value": "@pipeline().parameters.task.ID",
+											"task": {
+												"value": "@pipeline().parameters.task",
 												"type": "Expression"
 											},
-											"ActivityType": "curated-databricks",
-											"Message": {
-												"value": "@{activity('curated-databricks')}",
+											"notebookPath": {
+												"value": "@pipeline().parameters.task.Command",
 												"type": "Expression"
 											},
-											"IsTransform": true
-										}
-									}
-								},
-								{
-									"name": "set-properties",
-									"type": "SetVariable",
-									"dependsOn": [
-										{
-											"activity": "curated-databricks",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"policy": {
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"variableName": "RunOutputProperties",
-										"value": {
-											"value": "@string(activity('curated-databricks').output.runOutput.Counts)",
-											"type": "Expression"
-										}
-									}
-								},
-								{
-									"name": "get-default-pool-id",
-									"type": "WebActivity",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.00:03:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": true,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"url": {
-											"value": "https://@{pipeline().globalParameters.keyVaultName}.vault.azure.net/secrets/daf-databricks-default-pool-id?api-version=7.0",
-											"type": "Expression"
-										},
-										"method": "GET",
-										"authentication": {
-											"type": "MSI",
-											"resource": "https://vault.azure.net"
+											"logActivityType": "curated-databricks",
+											"isTransform": true
 										}
 									}
 								}
@@ -277,7 +175,7 @@
 					{
 						"activity": "switch-processor",
 						"dependencyConditions": [
-							"Succeeded"
+							"Skipped"
 						]
 					}
 				],

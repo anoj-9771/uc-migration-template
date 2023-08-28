@@ -29,8 +29,10 @@ BEGIN
 	,S.ID
 	,M.*
 	,(SELECT STRING_AGG([ParallelGroup], ',') [List] FROM (SELECT DISTINCT TOP 100 PERCENT [ParallelGroup] FROM [dbo].[TransformManifest] ORDER BY [ParallelGroup]) T) [List]
+	,COALESCE(C4.[Value], 0) [WorkspaceSwitch]
 	FROM [dbo].[TransformStatus] S
 	JOIN [dbo].[TransformManifest] M ON M.[TransformID] = S.[TransformID]
+	LEFT JOIN [dbo].[Config] C4 ON C4.[KeyGroup] = 'WorkspaceSwitch' AND C4.[Key] = '_DefaultValue_'
 	WHERE 
 	S.BatchID = @BatchID
 	AND M.[Enabled] = 1

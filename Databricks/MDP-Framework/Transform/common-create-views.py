@@ -11,7 +11,9 @@
 
 # COMMAND ----------
 
-systemCode = dbutils.widgets.get("system_code").lower()
+task = dbutils.widgets.get("task")
+j = json.loads(task)
+systemCode = j.get("SystemCode").lower()
 systemCodeCleaned = systemCode
 
 if systemCodeCleaned[-3:] == 'ref': 

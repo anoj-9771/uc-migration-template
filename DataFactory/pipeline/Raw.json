@@ -403,7 +403,7 @@
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "switch-source-handler",
+						"activity": "task-status",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -412,49 +412,14 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@not(empty(pipeline().parameters.task.RawHandler))",
+						"value": "@and(not(empty(pipeline().parameters.task.RawHandler))\n,not(equals(activity('task-status').output.firstRow.SinkRowCount, 0)))",
 						"type": "Expression"
 					},
 					"ifTrueActivities": [
 						{
-							"name": "task-status",
-							"type": "Lookup",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"source": {
-									"type": "AzureSqlSource",
-									"sqlReaderQuery": {
-										"value": "SELECT * FROM [dbo].[ExtractLoadStatus] WHERE [BatchID] = '@{pipeline().parameters.task.BatchID}' AND [SourceID] = '@{pipeline().parameters.task.SourceID}'",
-										"type": "Expression"
-									},
-									"queryTimeout": "02:00:00",
-									"partitionOption": "None"
-								},
-								"dataset": {
-									"referenceName": "SQL_ControlDB",
-									"type": "DatasetReference"
-								}
-							}
-						},
-						{
 							"name": "execute-raw-databricks",
 							"type": "ExecutePipeline",
-							"dependsOn": [
-								{
-									"activity": "task-status",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
+							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
@@ -682,6 +647,41 @@
 							"type": "Expression"
 						},
 						"TableName": "ExtractLoadStatus"
+					}
+				}
+			},
+			{
+				"name": "task-status",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "switch-source-handler",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT * FROM [dbo].[ExtractLoadStatus] WHERE [BatchID] = '@{pipeline().parameters.task.BatchID}' AND [SourceID] = '@{pipeline().parameters.task.SourceID}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "00:05:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQL_ControlDB",
+						"type": "DatasetReference"
 					}
 				}
 			}

@@ -50,7 +50,7 @@
 				}
 			},
 			{
-				"name": "If-RunParallel",
+				"name": "if-run-parallel",
 				"type": "IfCondition",
 				"dependsOn": [
 					{

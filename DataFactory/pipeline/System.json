@@ -188,6 +188,10 @@
 				"name": "set-parent-batch",
 				"type": "SetVariable",
 				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "ParentBatchID",
@@ -310,6 +314,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "DatabricksSecret",
@@ -330,6 +338,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "ExtraConfig",
@@ -424,36 +436,24 @@
 					},
 					"ifTrueActivities": [
 						{
-							"name": "run-common-create-views",
-							"type": "DatabricksNotebook",
+							"name": "execute-databricks-view-create",
+							"type": "ExecutePipeline",
 							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
 							"userProperties": [],
 							"typeProperties": {
-								"notebookPath": "/MDP-Framework/Transform/common-create-views",
-								"baseParameters": {
-									"system_code": {
-										"value": "@pipeline().parameters.SystemCode",
-										"type": "Expression"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS_AzureDatabricks_InstancePool",
-								"type": "LinkedServiceReference",
+								"pipeline": {
+									"referenceName": "run-databricks-notebook-base",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
 								"parameters": {
-									"kvSecret": "databricks-token",
-									"PoolId": {
-										"value": "@variables('PoolId')",
+									"task": {
+										"value": "@activity('get-tasks').output[0]",
 										"type": "Expression"
 									},
-									"newClusterNumOfWorker": "1:4"
+									"notebookPath": "/MDP-Framework/Transform/common-create-views",
+									"logActivityType": "create-cleansed-view-databricks",
+									"isTransform": false
 								}
 							}
 						}
@@ -495,6 +495,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "PoolId",
@@ -587,6 +591,10 @@
 						]
 					}
 				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "SuccessiveCleansed",
