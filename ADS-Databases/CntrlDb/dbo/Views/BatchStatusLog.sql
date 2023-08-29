@@ -49,13 +49,13 @@ WITH [_Log] AS (
 	,CAST(ISNULL([RawEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))-[RawStartDTS] AS TIME) [RawDuration]
 	/* --------------- Cleansed --------------- */
 	,CASE 
-		WHEN  DATEDIFF(DAY, [CleansedStartDTS], ISNULL([CleansedEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))) > 0 THEN 'Timed Out'
+		WHEN (DATEDIFF(HOUR, [CleansedStartDTS], ISNULL([CleansedEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))) / 24) > 0 THEN 'Timed Out'
 		ELSE IIF([CleansedStartDTS] IS NOT NULL AND [CleansedEndDTS] IS NULL, 'In Progress', [CleansedStatus])
 	END [CleansedStatus]
 	,[CleansedStartDTS]
 	,[CleansedEndDTS]
 	,CAST(ISNULL([CleansedEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))-[CleansedStartDTS] AS TIME) [CleansedDuration]
-	,DATEDIFF(DAY, [CleansedStartDTS], ISNULL([CleansedEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))) [CleansedDurationDays]
+	,DATEDIFF(HOUR, [CleansedStartDTS], ISNULL([CleansedEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))) / 24 [CleansedDurationDays]
 	,B.[CreatedDTS]
 	,[EndedDTS]
 	FROM [dbo].[ExtractLoadStatus] (NOLOCK) B
@@ -101,11 +101,10 @@ WITH [_Log] AS (
 ),[_SystemDuration] AS (
 	SELECT *
 	,CAST(ISNULL([SystemEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))-[SystemStartDTS] AS TIME) [SystemDuration]
-	,DATEDIFF(DAY, [SystemStartDTS], ISNULL([SystemEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))) [SystemDurationDays]
+	,DATEDIFF(HOUR, [SystemStartDTS], ISNULL([SystemEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))) / 24 [SystemDurationDays]
 	,CASE 
 		WHEN [SystemInProgressTasks] > 0 AND DATEDIFF(DAY, [SystemStartDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time')) = 0 THEN 'In Progress'
-		WHEN DATEDIFF(DAY, [SystemStartDTS], ISNULL([SystemEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))) > 0 THEN 'Timed Out'
-		WHEN [SystemEndDTS] IS NOT NULL AND SystemTotalTasks = SystemCompletedTasks THEN 'Completed'
+		WHEN (DATEDIFF(HOUR, [SystemStartDTS], ISNULL([SystemEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))) / 24) > 0 THEN 'Timed Out'		WHEN [SystemEndDTS] IS NOT NULL AND SystemTotalTasks = SystemCompletedTasks THEN 'Completed'
 		ELSE 'Failed'
 	END [SystemStatus]
 	FROM [_SystemEnd]
@@ -128,7 +127,7 @@ WITH [_Log] AS (
 ),[_BatchDuration] AS (
 	SELECT *
 	,CAST(ISNULL([BatchEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))-[BatchStartDTS] AS TIME) [BatchDuration]
-	,DATEDIFF(DAY, [BatchStartDTS], ISNULL([BatchEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))) [BatchDurationDays]
+	,DATEDIFF(HOUR, [BatchStartDTS], ISNULL([BatchEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))) / 24 [BatchDurationDays]
 	,DATEDIFF(DAY, [BatchStartDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time')) [BatchLastRunDays]
 	,CASE 
 		WHEN [BatchSuccessTasks]=[BatchTotalTasks] AND [BatchEndDTS] IS NOT NULL THEN 'Completed'
