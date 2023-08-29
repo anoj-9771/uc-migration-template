@@ -248,6 +248,7 @@ df_businessXconn = add_missing_columns(df_businessXconn, duplicate_columns)
 
 df_complaintsClosed  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_complaintscomplaintclosedresponses')}")
 df_complaintsClosed = add_missing_columns(df_complaintsClosed, duplicate_columns)
+df_complaintsClosed = df_complaintsClosed.withColumn("question14ResponseText",expr("CASE WHEN question14Part3ResponseText is null THEN question14ResponseText ELSE concat( question14ResponseText ,   ' : ', question14Part3ResponseText) END"))
 
 df_contactCentreInteract  =  GetTable(f"{get_table_namespace(f'{SOURCE}', 'qualtrics_contactcentreinteractionmeasurementsurveyresponses')}")
 df_contactCentreInteract = add_missing_columns(df_contactCentreInteract, duplicate_columns)
@@ -583,74 +584,8 @@ Transform()
 
 # COMMAND ----------
 
-3598801
-1732925
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_curated.dim.surveyresponseinformation_test where surveyResponseId = 'R_es9IqQxcTuUzFyV'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_curated.fact.surveyresponse_test where responseId  = 'R_1Nfs20vsRyc86SE' and questionPartId = '3' --Duplicated defect
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_curated.fact.surveyresponse_test where responseId  = 'R_es9IqQxcTuUzFyV' -- data quality defect
-
-# COMMAND ----------
-
 # MAGIC %sql
 # MAGIC select surveyResponseSK, count(1) from ppd_curated.fact.surveyresponse group by all having count(1)>1
-
-# COMMAND ----------
-
-
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_curated.fact.surveyresponse where surveyResponseSK = '1bd49fdd99c95770bd058503b65edba6'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_curated.dim.surveyresponseinformation_test where surveyId = 'SV_89cmPdrG4sKNBvU' and surveyResponseId = 'R_2P50QI6CAXZSvoD'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_curated.dim.surveyresponseinformation where surveyId = 'SV_89cmPdrG4sKNBvU' and surveyResponseId = 'R_2P50QI6CAXZSvoD'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ppd_curated.fact.surveyresponse_test where sourceSystemCode = 'Qualtrics' 
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC alter table ppd_curated.fact.surveyresponse rename to ppd_curated.fact.surveyresponse_backup
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select *  from 
-# MAGIC ((select * from ppd_cleansed.qualtrics.billpaidsuccessfullyresponses)
-# MAGIC union (select * from ppd_cleansed.qualtrics.businessConnectServiceRequestCloseResponses)
-# MAGIC union (select * from ppd_cleansed.qualtrics.complaintsComplaintClosedResponses)
-# MAGIC union (select * from ppd_cleansed.qualtrics.contactcentreinteractionmeasurementsurveyResponses)
-# MAGIC union (select * from ppd_cleansed.qualtrics.customercareResponses)
-# MAGIC union (select * from ppd_cleansed.qualtrics.developerapplicationreceivedResponses)
-# MAGIC union (select * from ppd_cleansed.qualtrics.p4sonlinefeedbackResponses)
-# MAGIC union (select * from ppd_cleansed.qualtrics.s73surveyResponses)
-# MAGIC union (select * from ppd_cleansed.qualtrics.waterfixpostinteractionfeedbackResponses)
-# MAGIC union (select * from ppd_cleansed.qualtrics.websitegoliveResponses)
-# MAGIC union (select * from ppd_cleansed.qualtrics.wscs73experiencesurveyResponses)
-# MAGIC union (select * from ppd_cleansed.qualtrics.feedbacktabgoliveResponses)) where recordId = 'R_es9IqQxcTuUzFyV'
 
 # COMMAND ----------
 
@@ -721,7 +656,7 @@ Transform()
 # MAGIC
 # MAGIC )dt
 # MAGIC
-# MAGIC where recordId = 'R_es9IqQxcTuUzFyV'
+# MAGIC where recordId = 'R_21nQZOMijKTqGDq'
 # MAGIC
 # MAGIC ;
 
@@ -730,9 +665,14 @@ Transform()
 # MAGIC %sql
 # MAGIC select *
 # MAGIC
-# MAGIC from ppd_cleansed.qualtrics.contactcentreinteractionmeasurementsurveyresponses where  recordId = 'R_es9IqQxcTuUzFyV'
+# MAGIC from ppd_cleansed.qualtrics.developerapplicationreceivedresponses where  recordId = 'R_23W4jiURij6V9gw'
 # MAGIC
 
 # COMMAND ----------
 
+spark.conf.set("spark.sql.caseSensitive", "true")
 
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from  ppd_raw.qualtrics.developerapplicationreceivedresponses 
