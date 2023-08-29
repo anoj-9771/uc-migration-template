@@ -379,14 +379,7 @@
 				"name": "get-view-creation-flag",
 				"description": "",
 				"type": "Lookup",
-				"dependsOn": [
-					{
-						"activity": "for-each-cleansed",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -426,6 +419,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "for-each-cleansed",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"userProperties": [],
@@ -448,7 +447,7 @@
 								"waitOnCompletion": true,
 								"parameters": {
 									"task": {
-										"value": "@activity('get-tasks').output[0]",
+										"value": "@activity('get-tasks').output.value[0]",
 										"type": "Expression"
 									},
 									"notebookPath": "/MDP-Framework/Transform/common-create-views",
