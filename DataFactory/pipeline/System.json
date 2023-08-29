@@ -19,7 +19,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "SELECT COUNT(*) [SuccessiveCleansed]\nFROM [dbo].[Config]\nWHERE [KeyGroup] = 'SuccessiveCleansed'\nAND [Key] = 'SystemCode'\nAND [Value] = '@{pipeline().parameters.SystemCode}'",
+							"value": "SELECT COALESCE(SUM(COALESCE(VALUE, 0)), 0) [SuccessiveCleansed]\nFROM [dbo].[Config]\nWHERE [KeyGroup] = 'SuccessiveCleansed'\nAND [Key] = '@{pipeline().parameters.SystemCode}'",
 							"type": "Expression"
 						},
 						"partitionOption": "None"
