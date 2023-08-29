@@ -30,7 +30,7 @@ template = {
     "spark_env_vars": {
         "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
     },
-    "autotermination_minutes": 60,
+    "autotermination_minutes": 20,
     "enable_elastic_disk": "true",
     "init_scripts": [],
     "enable_local_disk_encryption": "false",
