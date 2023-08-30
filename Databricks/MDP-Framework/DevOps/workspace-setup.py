@@ -48,7 +48,15 @@ RunAllInPath("Workflows")
 
 # COMMAND ----------
 
-for blob in [ "sewercctvimages", "sewercctvmodel", "sewercctvvideos", "urbanplunge", "iotsewertelemetrydata", "iotswtelemetryalarmdata"]:
+for blob in [ 
+                "sewercctvimages"
+                ,"sewercctvmodel"
+                ,"sewercctvvideos"
+                ,"urbanplunge"
+                ,"kaltura"
+                ,"iotsewertelemetrydata"
+                ,"iotswtelemetryalarmdata"
+            ]:
     try:
         MountBlobContainer(blob)
     except Exception as e:
