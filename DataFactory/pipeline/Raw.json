@@ -41,6 +41,38 @@
 											}
 										}
 									}
+								},
+								{
+									"name": "log-sql-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-sql-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-sql-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
+										}
+									}
 								}
 							]
 						},
@@ -63,6 +95,38 @@
 												"value": "@pipeline().parameters.task",
 												"type": "Expression"
 											}
+										}
+									}
+								},
+								{
+									"name": "log-csv-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-csv-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-csv-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
 										}
 									}
 								}
@@ -89,6 +153,38 @@
 											}
 										}
 									}
+								},
+								{
+									"name": "log-file-binary-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-file-binary-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-file-binary-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
+										}
+									}
 								}
 							]
 						},
@@ -111,6 +207,38 @@
 												"value": "@pipeline().parameters.task",
 												"type": "Expression"
 											}
+										}
+									}
+								},
+								{
+									"name": "log-blob-folder-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-blob-folder-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-blob-folder-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
 										}
 									}
 								}
@@ -137,6 +265,38 @@
 											}
 										}
 									}
+								},
+								{
+									"name": "log-qualtrics-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-qualtrics-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-qualtrics-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
+										}
+									}
 								}
 							]
 						},
@@ -159,6 +319,38 @@
 												"value": "@pipeline().parameters.task",
 												"type": "Expression"
 											}
+										}
+									}
+								},
+								{
+									"name": "log-qualtrics-responses-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-qualtrics-responses-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-qualtrics-responses-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
 										}
 									}
 								}
@@ -185,6 +377,38 @@
 											}
 										}
 									}
+								},
+								{
+									"name": "log-http-binary-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-http-binary-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-http-binary-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
+										}
+									}
 								}
 							]
 						},
@@ -207,6 +431,38 @@
 												"value": "@pipeline().parameters.task",
 												"type": "Expression"
 											}
+										}
+									}
+								},
+								{
+									"name": "log-oracle-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-oracle-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-oracle-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
 										}
 									}
 								}
@@ -233,6 +489,38 @@
 											}
 										}
 									}
+								},
+								{
+									"name": "log-ftp-binary-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-ftp-binary-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-ftp-binary-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
+										}
+									}
 								}
 							]
 						},
@@ -255,6 +543,38 @@
 												"value": "@pipeline().parameters.task",
 												"type": "Expression"
 											}
+										}
+									}
+								},
+								{
+									"name": "log-bods-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-bods-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-bods-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
 										}
 									}
 								}
@@ -329,6 +649,38 @@
 											}
 										}
 									}
+								},
+								{
+									"name": "log-nas-binary-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-nas-binary-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-nas-binary-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
+										}
+									}
 								}
 							]
 						},
@@ -353,6 +705,38 @@
 											}
 										}
 									}
+								},
+								{
+									"name": "log-sharepointonlinelist-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-sharepointonlinelist-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-sharepointonlinelist-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
+										}
+									}
 								}
 							]
 						},
@@ -375,6 +759,38 @@
 												"value": "@pipeline().parameters.task",
 												"type": "Expression"
 											}
+										}
+									}
+								},
+								{
+									"name": "log-dataverse-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "execute-dataverse-load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-message",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"ActivityType": "source-load",
+											"Message": {
+												"value": "@{activity('execute-dataverse-load')}",
+												"type": "Expression"
+											},
+											"IsTransform": false
 										}
 									}
 								}
