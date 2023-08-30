@@ -9,7 +9,7 @@ template = {
         "max_workers": 4
     },
     "cluster_name": "interactive-sp",
-    "spark_version": "12.2.x-scala2.12",
+    "spark_version": "13.3.x-scala2.12",
     "spark_conf": {
         "spark.sql.session.timeZone": "Australia/Sydney",
         "spark.databricks.libraries.enableMavenResolution": "false",
@@ -36,7 +36,7 @@ template = {
     "single_user_name": GetServicePrincipalId(),
     "enable_local_disk_encryption": False,
     "data_security_mode": "SINGLE_USER",
-    "runtime_engine": "STANDARD"
+    "runtime_engine": "PHOTON"
 }
 libraries = [
     { "maven" : { "coordinates": "com.databricks:spark-xml_2.12:0.15.0" } }
