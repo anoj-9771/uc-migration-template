@@ -46,6 +46,7 @@ RBAC_UC2 = [
             ,"curated.water_balance.unmeteredconsumptionpropertytype"
             ,"curated.water_balance.unmeteredconsumptionsystemlevel"
             ,"curated.water_balance.unmeteredconsumptionwaternetwork"
+            ,"curated.water_balance.manualdemandhistorical"
         ]
         ,"Users" : []
         ,"AADGroups" : []

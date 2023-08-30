@@ -101,12 +101,3 @@ if systemCode == 'iicats|15min':
     select * from edwcdr_iicatstsv_filtered
     )
     """)
-
-# COMMAND ----------
-
-if systemCode == 'iicats|15min':
-    spark.sql(f"""
-    create or replace view {get_env()}curated.water_balance.manualdemandhistorical as ( 
-    select * from {get_env()}cleansed.iicats.manualdemandhistorical
-    )
-    """)

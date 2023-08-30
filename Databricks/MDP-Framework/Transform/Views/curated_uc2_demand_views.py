@@ -351,3 +351,12 @@ FROM v;
 """
 
 CreateView(db, view, sql_)
+
+# COMMAND ----------
+
+# DBTITLE 1,manualDemandHistorical
+spark.sql(f"""
+    create or replace view {get_env()}curated.water_balance.manualdemandhistorical as ( 
+    select * from {get_env()}cleansed.iicats.manualdemandhistorical
+    )
+    """)
