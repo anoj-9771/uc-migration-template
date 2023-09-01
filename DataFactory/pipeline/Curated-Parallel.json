@@ -13,7 +13,7 @@
 						"type": "Expression"
 					},
 					"isSequential": false,
-					"batchCount": 4,
+					"batchCount": 8,
 					"activities": [
 						{
 							"name": "execute-curated",

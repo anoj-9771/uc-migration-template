@@ -184,7 +184,7 @@
 						"referenceName": "log-message",
 						"type": "PipelineReference"
 					},
-					"waitOnCompletion": true,
+					"waitOnCompletion": false,
 					"parameters": {
 						"ActivityType": {
 							"value": "trigger-main-@{pipeline().parameters.triggerInterval}",
