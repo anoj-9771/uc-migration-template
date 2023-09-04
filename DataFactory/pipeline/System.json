@@ -37,12 +37,6 @@
 				"type": "Lookup",
 				"dependsOn": [
 					{
-						"activity": "set-parent-batch",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
 						"activity": "set-extra-config",
 						"dependencyConditions": [
 							"Succeeded"
@@ -336,6 +330,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "set-parent-batch",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"policy": {
@@ -602,12 +602,65 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "set-message",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "set-extra-config",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "message",
+					"value": {
+						"value": "{ \n    \"PipelineRunId\" : \"@{pipeline().RunId}\",\n    \"BatchId\" : \"@{variables('ParentBatchID')}\",\n    \"SystemCode\" : \"@{pipeline().parameters.SystemCode}\"\n}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "log-message-system",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "set-message",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-message",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ActivityType": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"Message": {
+							"value": "@variables('message')",
+							"type": "Expression"
+						}
+					}
+				}
 			}
 		],
 		"parameters": {
 			"SystemCode": {
-				"type": "string",
-				"defaultValue": "System"
+				"type": "string"
 			},
 			"ParentBatchID": {
 				"type": "string"
@@ -628,6 +681,9 @@
 			},
 			"SuccessiveCleansed": {
 				"type": "Boolean"
+			},
+			"message": {
+				"type": "String"
 			}
 		},
 		"folder": {
