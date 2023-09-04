@@ -98,7 +98,7 @@ coreDF =(( derivedDF1 #GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_sr
            .withColumn("responsibleEmployeeNoBK", when(col("responsibleEmployeeNumber").isNull(), lit('-1')).otherwise(regexp_replace(col("responsibleEmployeeNumber"), "^0*", "")))
            .withColumn("propertyNoBK", when(col("propertyNumber").isNull(), lit('-1')).otherwise(col("propertyNumber")))
            .withColumn("contractBK", when(col("contractID").isNull(), lit('-1')).otherwise(col("contractID")))
-           .withColumn("channelCodeBK", concat(trim(col("activityCategoryCode")),lit("|"),lit("CRM")))
+        #    .withColumn("channelCodeBK", concat(trim(col("activityCategoryCode")),lit("|"),lit("CRM")))
            .withColumn("ID", monotonically_increasing_id())
            .withColumn("customerServiceRequestTotalDurationSecondQuantity", (dataDiffTimeStamp(col("requestStartDate"), col("requestEndDate"), lit("1").cast("int")))) 
            .withColumn('customerServiceRequestWorkDurationSecondQuantity', (workingDaysNSWVectorizedUDF(col("requestStartDate"), col("requestEndDate")))))
@@ -147,7 +147,9 @@ coreDF =(( derivedDF1 #GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_0crm_sr
                   ,col("responsibleEmployeeNoBK")
                   ,col("propertyNoBK")
                   ,col("contractBK")
-                  ,col("channelCodeBK")
+                #   ,col("channelCodeBK")
+                  ,col('activityCategoryCode').alias("customerServiceRequestChannelCode")
+                  ,col('activityCategory').alias("customerServiceRequestChannelDescription")
                   ,col("di_Sequence_Number").alias("seqNo")
                   ,col("ID")
                   ,col("_change_type")
@@ -224,13 +226,13 @@ statusDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimcustomerse
             )
     
     
-channelDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimCommunicationChannel')}")
-                     .filter(col("_recordCurrent") == lit("1"))
-                     .select( col("communicationChannelSK").alias("communicationChannelFK")
-                              ,col("_BusinessKey")
-                      ) 
+# channelDF = ( GetTable(f"{get_table_namespace(f'{DEFAULT_TARGET}', 'dimCommunicationChannel')}")
+#                      .filter(col("_recordCurrent") == lit("1"))
+#                      .select( col("communicationChannelSK").alias("communicationChannelFK")
+#                               ,col("_BusinessKey")
+#                       ) 
                  
-           )
+#            )
 
 crmLinkDF = ( GetTable(f"{get_table_namespace(f'{SOURCE}', 'crm_crmd_link')}")
                            .select( col("hiGUID")
@@ -359,7 +361,7 @@ CRMDF = (((busDF.alias("core")
  .withColumn("endDate", coalesce(col("css.VALIDTO"), col("core.requestEndDate"))))
  .join(contractDF.alias("sv"), (col("core.contractBK") == col("sv._BusinessKey")), "left").drop(col("core.contractBK"), col("sv._BusinessKey"))
  .join(procTypeDF.alias("pc"), (col("core.processTypeBK") == col("pc._BusinessKey")), "left").drop(col("core.processTypeBK"),col("pc._BusinessKey"))
- .join(channelDF.alias("ch"), (col("core.channelCodeBK") == col("ch._BusinessKey")), "left").drop(col("core.channelCodeBK"), col("ch._BusinessKey"))
+#  .join(channelDF.alias("ch"), (col("core.channelCodeBK") == col("ch._BusinessKey")), "left").drop(col("core.channelCodeBK"), col("ch._BusinessKey"))
  .join(dateDF.alias("dt1"), (to_date(col("core.requestStartDate")) == col("dt1.calendarDate")), "left").drop(col("dt1.calendarDate"), col("dt1.serviceRequestEndDateFK"), col("dt1.snapshotDateFK"))
  .join(dateDF.alias("dt2"), (to_date(col("core.requestEndDate")) == col("dt2.calendarDate")), "left").drop(col("dt2.calendarDate"), col("dt2.serviceRequestStartDateFK"), col("dt2.snapshotDateFK")) 
  .join(dateDF.alias("dt3"), (to_date(col("core.lastChangedDateTime")) == col("dt3.calendarDate")), "left").drop(col("dt3.calendarDate"), col("dt3.serviceRequestStartDateFK"),col("dt3.serviceRequestEndDateFK")) 
@@ -431,7 +433,7 @@ if derivedDF1.count() > 0:
                     ,col("serviceRequestGUID").alias("customerServiceRequestGUID")
                     ,when(col("receivedCategoryFK").isNull(), lit('-1')).otherwise(col("receivedCategoryFK")).alias("customerServiceRequestReceivedCategoryFK")
                     ,when(col("resolutionCategoryFK").isNull(), lit('-1')).otherwise(col("resolutionCategoryFK")).alias("customerServiceRequestResolutionCategoryFK")
-                    ,when(col("communicationChannelFK").isNull(), lit('-1')).otherwise(col("communicationChannelFK")).alias("communicationChannelFK") 
+                    # ,when(col("communicationChannelFK").isNull(), lit('-1')).otherwise(col("communicationChannelFK")).alias("communicationChannelFK") 
                     ,when(col("contactPersonFK").isNull(), lit(f"{dummyDimPartnerSK}")).otherwise(col("contactPersonFK")).alias("contactPersonFK")
                     ,col("reportByPersonFK")
                     ,col("serviceTeamFK")
@@ -471,6 +473,8 @@ if derivedDF1.count() > 0:
                     ,col("serviceLifeCycle").alias("customerServiceRequestServiceLifeCycleUnitHourQuantity")
                     ,col("serviceLifeCycleUnit").alias("customerServiceRequestServiceLifeCycleUnitName")
                     ,col("activityPriorityCode").alias("customerServiceRequestActivityPriorityCode")
+                    ,col("customerServiceRequestChannelCode")
+                    ,col("customerServiceRequestChannelDescription")
                     ,col("respondByDateTime").alias("customerServiceRequestRespondByTimestamp")
                     ,col("respondedDateTime").alias("customerServiceRequestRespondedTimestamp")
                     ,col("serviceRequestClosedDateTime").alias("customerServiceRequestClosedTimestamp")
@@ -654,7 +658,7 @@ finalMAXDF = ((df2.alias("core")
                  ,col("serviceRequestGUID").alias("customerServiceRequestGUID")
                  ,when(col("receivedCategoryFK").isNull(), lit('-1')).otherwise(col("receivedCategoryFK")).alias("customerServiceRequestReceivedCategoryFK")
                  ,when(col("resolutionCategoryFK").isNull(), lit('-1')).otherwise(col("resolutionCategoryFK")).alias("customerServiceRequestResolutionCategoryFK")
-                 ,lit("-1").alias("communicationChannelFK")  
+                #  ,lit("-1").alias("communicationChannelFK")  
                  ,lit(f"{dummyDimPartnerSK}").alias("contactPersonFK")
                  ,lit(f"{dummyDimPartnerSK}").alias("reportByPersonFK")
                  ,lit(f"{dummyDimPartnerSK}").alias("serviceTeamFK")
@@ -694,6 +698,8 @@ finalMAXDF = ((df2.alias("core")
                  ,lit(None).alias("customerServiceRequestServiceLifeCycleUnitHourQuantity")
                  ,lit(None).alias("customerServiceRequestServiceLifeCycleUnitName")
                  ,lit(None).alias("customerServiceRequestActivityPriorityCode")
+                 ,lit(None).alias("customerServiceRequestChannelCode")
+                 ,lit(None).alias("customerServiceRequestChannelDescription")
                  ,lit(None).alias("customerServiceRequestRespondByTimestamp")
                  ,lit(None).alias("customerServiceRequestRespondedTimestamp")
                  ,lit(None).alias("customerServiceRequestClosedTimestamp")
@@ -726,3 +732,12 @@ def Transform():
     #CleanSelf()    
     Save(df)
 Transform()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from ppd_curated.fact.CustomerServiceRequest_v2 limit 10
+
+# COMMAND ----------
+
+
