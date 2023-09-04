@@ -172,7 +172,7 @@ def getBusinessPartnerGroupRelationship():
                 businessPartnerNumber, 
                 validFromDate,
                 validToDate 
-            from {ADS_DATABASE_CURATED_V2}.dimBusinessPartner 
+            from {ADS_DATABASE_CURATED}.dimBusinessPartner 
             where 
                 _RecordCurrent = 1 
             """
@@ -187,7 +187,7 @@ def getBusinessPartnerGroupRelationship():
                 businessPartnerGroupNumber,
                 validFromDate,
                 validToDate 
-            from {ADS_DATABASE_CURATED_V2}.dimBusinessPartnerGroup
+            from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup
             where 
                 _RecordCurrent = 1 
             """
@@ -228,13 +228,13 @@ def getBusinessPartnerGroupRelationship():
             select 
                 businessPartnerSK         as dummyDimSK, 
                 'dimBusinessPartner'      as dimension 
-            from {ADS_DATABASE_CURATED_V2}.dimBusinessPartner 
+            from {ADS_DATABASE_CURATED}.dimBusinessPartner 
             where businessPartnerNumber = '-1' 
             union 
             select 
                 businessPartnerGroupSK    as dummyDimSK, 
                 'dimBusinessPartnerGroup' as dimension 
-            from {ADS_DATABASE_CURATED_V2}.dimBusinessPartnerGroup 
+            from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup 
             where businessPartnerGroupNumber = '-1'
         """
         )
