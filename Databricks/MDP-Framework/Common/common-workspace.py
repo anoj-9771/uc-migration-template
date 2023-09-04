@@ -10,6 +10,12 @@ SECRET_SCOPE = "ADS"
 
 # COMMAND ----------
 
+def GetEnvironmentTag():
+    j = json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags"))
+    return [x['value'] for x in j if x['key'] == 'Environment'][0]
+
+# COMMAND ----------
+
 def GetWorkspaceId():
     return spark.conf.get("spark.databricks.clusterUsageTags.clusterOwnerOrgId")
 

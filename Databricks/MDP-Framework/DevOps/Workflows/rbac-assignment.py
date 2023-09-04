@@ -3,8 +3,7 @@
 
 # COMMAND ----------
 
-poolId = GetPoolIdByName("pool-small")
-rbac_assignment = {
+template = {
     "run_as": {
         "service_principal_name": ""
     },
@@ -15,9 +14,9 @@ rbac_assignment = {
     "webhook_notifications": {},
     "timeout_seconds": 3600,
     "schedule": {
-        "quartz_cron_expression": "0 00 8-17 ? * MON-FRI *",
+        "quartz_cron_expression": "0 00 8 ? * MON-FRI *",
         "timezone_id": "Australia/Sydney",
-        "pause_status": "UNPAUSED"
+        "pause_status": "PAUSED"
     },
     "max_concurrent_runs": 1,
     "tasks": [
@@ -36,10 +35,16 @@ rbac_assignment = {
         {
             "job_cluster_key": "job-cluster",
             "new_cluster": {
-                "spark_version": "13.1.x-scala2.12",
+                "spark_version": "13.3.x-scala2.12",
                 "azure_attributes": {},
-                "instance_pool_id": poolId,
-                "driver_instance_pool_id": poolId,
+                "autoscale": {
+                    "min_workers": 2,
+                    "max_workers": 8
+                },
+                "node_type_id": "Standard_DS3_v2",
+                "custom_tags": {
+                    "product": "EDP Maintenance"
+                },
                 "data_security_mode": "USER_ISOLATION",
                 "runtime_engine": "STANDARD",
                 "num_workers": 1
@@ -48,4 +53,8 @@ rbac_assignment = {
     ],
     "format": "MULTI_TASK"
 }
-print(CreateOrEditJob(rbac_assignment))
+#print(CreateOrEditJob(template))
+
+# COMMAND ----------
+
+
