@@ -54,6 +54,12 @@
 
 # COMMAND ----------
 
+#----- Populating the global variable with new values
+ADS_DATABASE_CLEANSED = "cleansed"
+ADS_DATABASE_CURATED  = "curated"
+
+# COMMAND ----------
+
 def getProperty():
 
     #1.Load current Cleansed layer table data into dataframe
@@ -411,7 +417,7 @@ TemplateEtlSCD(df_, entity="dim.property", businessKey="propertyNumber", schema=
 
 spark.sql(f"""with t1 as (select cp.propertyNumber, waterNetworkSK_drinkingWater, waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK 
              from   {ADS_DATABASE_CURATED}.dim.property p,
-                    curated.ACCESSCancelledActiveProps cp
+                    {ADS_DATABASE_CURATED}.water_consumption.ACCESSCancelledActiveProps cp
              where  p.propertyNumber = cp.activeProperty and p._RecordCurrent = 1)
          merge into {ADS_DATABASE_CURATED}.dim.property p
          using      t1
