@@ -317,6 +317,8 @@
 		"folder": {
 			"name": "MDP-Framework"
 		},
-		"annotations": []
+		"annotations": [
+			"MDP 2.0"
+		]
 	}
 }

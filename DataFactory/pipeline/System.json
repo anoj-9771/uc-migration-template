@@ -690,7 +690,8 @@
 			"name": "MDP-Framework"
 		},
 		"annotations": [
-			"@pipeline().parameters.SystemCode"
+			"@pipeline().parameters.SystemCode",
+			"MDP 2.0"
 		],
 		"lastPublishTime": "2021-07-08T02:50:54Z"
 	},
