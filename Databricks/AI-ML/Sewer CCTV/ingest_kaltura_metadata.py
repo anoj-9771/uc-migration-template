@@ -5,6 +5,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run MDP-Framework/Common/common-helpers
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 0. Create Kaltura Tables in the cleansed layer if they don't exist
 
@@ -59,6 +63,8 @@
 # MAGIC   ParentWorkOrderNumber STRING,
 # MAGIC   ChildWorkOrderNumbers STRING,
 # MAGIC   WorkOrderDescription STRING,
+# MAGIC   PriorityJustification STRING,
+# MAGIC   OperationalArea STRING,
 # MAGIC   AssetNumbers STRING,
 # MAGIC   TaskCode STRING,
 # MAGIC   Suburb STRING,
@@ -170,7 +176,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC 
+# MAGIC
 # MAGIC ## Utility Functions
 
 # COMMAND ----------
@@ -430,7 +436,9 @@ schema = StructType([
                                     StructField("TaskCode",StringType(),True),
                                     StructField("TimeOfCompletedInspection",StringType(),True),
                                     StructField("UpstreamMH",StringType(),True),
-                                    StructField("WorkOrderDescription",StringType(),True)
+                                    StructField("WorkOrderDescription",StringType(),True),
+                                    StructField("PriorityJustification",StringType(),True),
+                                    StructField("OperationalArea",StringType(),True)
                                 ]), True),
                     StructField("metadataObjectType",StringType(),True),
                     StructField("metadataProfileId",LongType(),True),
@@ -769,11 +777,11 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC 
+# MAGIC
 # MAGIC MERGE INTO cleansed.cctv_kaltura_flavors as tgt
 # MAGIC USING tmp_datalake_kaltura_flavors as src
 # MAGIC ON (tgt.id = src.id)
-# MAGIC 
+# MAGIC
 # MAGIC WHEN MATCHED THEN
 # MAGIC     UPDATE SET id = src.id,
 # MAGIC         entryId = src.entryId,
@@ -856,7 +864,7 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC 
+# MAGIC
 # MAGIC MERGE INTO cleansed.cctv_kaltura_metadata as tgt
 # MAGIC USING tmp_datalake_kaltura_metadata as src
 # MAGIC ON (tgt.id = src.id)
@@ -874,6 +882,8 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC         ParentWorkOrderNumber = src.ParentWorkOrderNumber,
 # MAGIC         ChildWorkOrderNumbers = src.ChildWorkOrderNumbers,
 # MAGIC         WorkOrderDescription = src.WorkOrderDescription,
+# MAGIC         PriorityJustification = src.PriorityJustification,
+# MAGIC         OperationalArea = src.OperationalArea,
 # MAGIC         AssetNumbers = src.AssetNumbers,
 # MAGIC         TaskCode = src.TaskCode,
 # MAGIC         Suburb = src.Suburb,
@@ -910,6 +920,8 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC     ParentWorkOrderNumber,
 # MAGIC     ChildWorkOrderNumbers,
 # MAGIC     WorkOrderDescription,
+# MAGIC     PriorityJustification,
+# MAGIC     OperationalArea,
 # MAGIC     AssetNumbers,
 # MAGIC     TaskCode,
 # MAGIC     Suburb,
@@ -946,6 +958,339 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC     src.ParentWorkOrderNumber,
 # MAGIC     src.ChildWorkOrderNumbers,
 # MAGIC     src.WorkOrderDescription,
+# MAGIC     src.PriorityJustification,
+# MAGIC     src.OperationalArea,
+# MAGIC     src.AssetNumbers,
+# MAGIC     src.TaskCode,
+# MAGIC     src.Suburb,
+# MAGIC     src.AddressStreet,
+# MAGIC     src.Product,
+# MAGIC     src.Contractor,
+# MAGIC     src.UpstreamMH,
+# MAGIC     src.DownstreamMH,
+# MAGIC     src.DirectionOfSurvey,
+# MAGIC     src.DateOfCompletedInspectionString,
+# MAGIC     src.TimeOfCompletedInspectionString,
+# MAGIC     src.PackageName,
+# MAGIC     src.Cleaned,
+# MAGIC     src.SurveyedLength,
+# MAGIC     src.DiscardDate,
+# MAGIC     src.Condition,
+# MAGIC     src.Serviceability,
+# MAGIC     src.Infiltration,
+# MAGIC     src.createdAt,
+# MAGIC     src.updatedAt,
+# MAGIC     src.processed_timestamp
+# MAGIC   )
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 1.2 Get data from Maximo
+
+# COMMAND ----------
+
+df_kaltura_metadata = spark.sql(f"""
+        SELECT *
+        FROM cleansed.cctv_kaltura_metadata
+        """
+    )
+
+df_kaltura_metadata = (
+            df_kaltura_metadata
+            .selectExpr(
+                "id",
+                "partnerId",
+                "metadataProfileId",
+                "metadataProfileVersion",
+                "metadataObjectType",
+                "objectId",
+                "version",
+                "status",
+                "AssessedByName",
+                "AssessedByDate",
+                "ParentWorkOrderNumber",
+                "Case when ParentWorkOrderNumber = 'n/a' then ' ' \
+                when ParentWorkOrderNumber is null then ' '\
+                when ParentWorkOrderNumber = ChildWorkOrderNumbers then ' '\
+                else ParentWorkOrderNumber\
+                end as joinParentWorkOrderNumber",
+                "ChildWorkOrderNumbers",
+                "WorkOrderDescription",
+                "AssetNumbers",
+                "TaskCode",
+                "Suburb",
+                "AddressStreet",
+                "Product",
+                "Contractor",
+                "UpstreamMH",
+                "DownstreamMH",
+                "DirectionOfSurvey",
+                "DateOfCompletedInspectionString",
+                "TimeOfCompletedInspectionString",
+                "PackageName",
+                "Cleaned",
+                "SurveyedLength",
+                "DiscardDate",
+                "Condition",
+                "Serviceability",
+                "Infiltration",
+                "createdAt",
+                "updatedAt",
+                "processed_timestamp")
+    )
+
+df_maximo = spark.sql(f"""
+        SELECT  
+                workOrder, parentWo, asset, priorityJustification, description, description ||'|'|| workOrder || '|' || asset as WorkOrderDescription,   taskCode, 
+                addressSuburb, addressStreetNumber, street, location
+        FROM {get_env()}cleansed.maximo.workorder
+        """
+    )
+
+df_maximo = (
+    df_maximo
+    .selectExpr(
+        "workOrder as max_workOrder", 
+        "parentWo as max_parentWo", 
+        "asset as max_asset", 
+        "priorityJustification as max_priorityJustification", 
+        "description as max_description",
+        "WorkOrderDescription as max_WorkOrderDescription",   
+        "TaskCode as max_taskCode", 
+        "addressSuburb as max_addressSuburb", 
+        "addressStreetNumber as max_addressStreetNumber", 
+        "street as max_street", 
+        "location as max_location",
+        "coalesce(parentWo, ' ') as joinParentWO"
+    )
+)
+    
+df_locoper = spark.sql(f"""
+        SELECT  
+                location, operationalArea
+        FROM {get_env()}cleansed.maximo.locoper
+        """
+    )
+
+df_maximo = (
+    df_maximo
+    .join(
+        df_locoper,
+        (
+            df_maximo.max_location == df_locoper.location
+        ),
+        how="left"
+    )
+    .select(df_maximo['*'], df_locoper['operationalArea'])
+)
+
+df_enahanced_kaltura_metadata = (
+    df_kaltura_metadata
+    .join(
+        df_maximo,
+        (
+            (df_kaltura_metadata.joinParentWorkOrderNumber == df_maximo.joinParentWO)
+            & (df_kaltura_metadata.ChildWorkOrderNumbers == df_maximo.max_workOrder)
+        ),
+        how="left"
+    )
+    .select(df_kaltura_metadata['*'], df_maximo['*'])
+    .drop("joinParentWorkOrderNumber")
+)
+
+df_enahanced_kaltura_metadata = (
+    df_enahanced_kaltura_metadata
+    .selectExpr(
+        "id",
+        "partnerId",
+        "metadataProfileId",
+        "metadataProfileVersion",
+        "metadataObjectType",
+        "objectId",
+        "version",
+        "status",
+        "AssessedByName",
+        "AssessedByDate",
+        "ParentWorkOrderNumber",
+        "ChildWorkOrderNumbers",
+        "coalesce(max_WorkOrderDescription,WorkOrderDescription) as WorkOrderDescription",
+        "(Case when CHARINDEX('CASE',upper(trim(max_description))) > 0 or CHARINDEX('CASE',upper(trim(WorkOrderDescription))) > 0 then 'CASE' \
+            when upper(trim(max_TaskCode)) = 'SO2F' then 'REPT'\
+            when upper(trim(max_TaskCode)) = 'SO2M' then 'CRIT'\
+            when upper(trim(max_TaskCode)) = 'SO2B' then 'TRAV'\
+            when upper(trim(max_TaskCode)) = 'SO2W' then 'WATW'\
+            when upper(trim(max_TaskCode)) in ('SO2D','SP2K') then (Case \
+                        when substring(upper(trim(max_priorityJustification)),1,4) in ('CRIT','CRCM','MHIP',\
+                        'WATW','WACC','WAEP','WAER','INTS','ODOR','ODCC','MULT','MULC','OPER','OPCC','OPSC',\
+                        'OPOH','REPT','RECC','SALT','SEEP','SECC','SUBX','SUCC','SUSC','SUBS','WETW','WECC') then substring(upper(trim(max_priorityJustification)),1,4)\
+                        when substring(upper(trim(max_description)),1,4) in ('CRIT','CRCM','MHIP',\
+                        'WATW','WACC','WAEP','WAER','INTS','ODOR','ODCC','MULT','MULC','OPER','OPCC','OPSC',\
+                        'OPOH','REPT','RECC','SALT','SEEP','SECC','SUBX','SUCC','SUSC','SUBS','WETW','WECC') then substring(upper(trim(max_description)),1,4) else ' '\
+                        end)\
+            else ' '\
+            end) as priorityJustification",
+        "operationalArea",
+        "(Case \
+            when  charindex('SEWER RELINING',upper(max_description)) > 0 or charindex('POST LINING',upper(workOrderDescription)) > 0 then 'SO9D' \
+            else  taskCode end)  as TaskCode",
+        "coalesce(max_addressSuburb,Suburb) as Suburb",
+        "coalesce(concat(trim(max_addressStreetNumber), ' ', trim(max_street) ),AddressStreet) as AddressStreet",
+        "(coalesce(Case \
+            when  Substring(upper(max_taskCode),1,1) = 'S' then 'WASTEWATER' \
+            when  Substring(upper(max_taskCode),1,1) = 'W' then 'WATER' else  Product \
+            end,Product)) as Product",
+        "AssetNumbers",
+        "Contractor",
+        "UpstreamMH",
+        "DownstreamMH",
+        "DirectionOfSurvey",
+        "DateOfCompletedInspectionString",
+        "TimeOfCompletedInspectionString",
+        "PackageName",
+        "Cleaned",
+        "SurveyedLength",
+        "DiscardDate",
+        "Condition",
+        "Serviceability",
+        "Infiltration",
+        "createdAt",
+        "updatedAt",
+        "processed_timestamp"
+    )
+    )
+
+df_enahanced_kaltura_metadata.createOrReplaceTempView("tmp_datalake_kaltura_metadata")
+
+# COMMAND ----------
+
+
+#Run this the first time after promoting the code
+# spark.sql(f"""
+#     ALTER TABLE {get_env()}cleansed.cctv.kaltura_metadata ADD COLUMN (PriorityJustification STRING AFTER WorkOrderDescription)
+#     """)
+
+
+# COMMAND ----------
+
+#Run this the first time after promoting the code
+# spark.sql(f"""
+#     ALTER TABLE cleansed.cctv_kaltura_metadata ADD COLUMN (PriorityJustification STRING AFTER WorkOrderDescription)
+#     """)
+
+# COMMAND ----------
+
+#Run this the first time after promoting the code
+# spark.sql(f"""
+# ALTER TABLE {get_env()}cleansed.cctv.kaltura_metadata ADD COLUMN (OperationalArea STRING AFTER PriorityJustification)
+# """)
+
+# COMMAND ----------
+
+#Run this the first time after promoting the code
+# spark.sql(f"""
+# ALTER TABLE cleansed.cctv_kaltura_metadata ADD COLUMN (OperationalArea STRING AFTER PriorityJustification)
+# """)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC
+# MAGIC MERGE INTO cleansed.cctv_kaltura_metadata as tgt
+# MAGIC USING tmp_datalake_kaltura_metadata as src
+# MAGIC ON (tgt.id = src.id)
+# MAGIC WHEN MATCHED THEN
+# MAGIC     UPDATE SET id = src.id,
+# MAGIC         partnerId = src.partnerId,
+# MAGIC         metadataProfileId = src.metadataProfileId,
+# MAGIC         metadataProfileVersion = src.metadataProfileVersion,
+# MAGIC         metadataObjectType = src.metadataObjectType,
+# MAGIC         objectId = src.objectId,
+# MAGIC         version = src.version,
+# MAGIC         status = src.status,
+# MAGIC         AssessedByName = src.AssessedByName,
+# MAGIC         AssessedByDate = src.AssessedByDate,
+# MAGIC         ParentWorkOrderNumber = src.ParentWorkOrderNumber,
+# MAGIC         ChildWorkOrderNumbers = src.ChildWorkOrderNumbers,
+# MAGIC         WorkOrderDescription = src.WorkOrderDescription,
+# MAGIC         PriorityJustification = src.PriorityJustification,
+# MAGIC         OperationalArea = src.OperationalArea,
+# MAGIC         AssetNumbers = src.AssetNumbers,
+# MAGIC         TaskCode = src.TaskCode,
+# MAGIC         Suburb = src.Suburb,
+# MAGIC         AddressStreet = src.AddressStreet,
+# MAGIC         Product = src.Product,
+# MAGIC         Contractor = src.Contractor,
+# MAGIC         UpstreamMH = src.UpstreamMH,
+# MAGIC         DownstreamMH = src.DownstreamMH,
+# MAGIC         DirectionOfSurvey = src.DirectionOfSurvey,
+# MAGIC         DateOfCompletedInspectionString = src.DateOfCompletedInspectionString,
+# MAGIC         TimeOfCompletedInspectionString = src.TimeOfCompletedInspectionString,
+# MAGIC         PackageName = src.PackageName,
+# MAGIC         Cleaned = src.Cleaned,
+# MAGIC         SurveyedLength = src.SurveyedLength,
+# MAGIC         DiscardDate = src.DiscardDate,
+# MAGIC         Condition = src.Condition,
+# MAGIC         Serviceability = src.Serviceability,
+# MAGIC         Infiltration = src.Infiltration,
+# MAGIC         createdAt = src.createdAt,
+# MAGIC         updatedAt = src.updatedAt,
+# MAGIC         processed_timestamp = src.processed_timestamp
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC     INSERT (
+# MAGIC     id,
+# MAGIC     partnerId,
+# MAGIC     metadataProfileId,
+# MAGIC     metadataProfileVersion,
+# MAGIC     metadataObjectType,
+# MAGIC     objectId,
+# MAGIC     version,
+# MAGIC     status,
+# MAGIC     AssessedByName,
+# MAGIC     AssessedByDate,
+# MAGIC     ParentWorkOrderNumber,
+# MAGIC     ChildWorkOrderNumbers,
+# MAGIC     WorkOrderDescription,
+# MAGIC     PriorityJustification,
+# MAGIC     OperationalArea,
+# MAGIC     AssetNumbers,
+# MAGIC     TaskCode,
+# MAGIC     Suburb,
+# MAGIC     AddressStreet,
+# MAGIC     Product,
+# MAGIC     Contractor,
+# MAGIC     UpstreamMH,
+# MAGIC     DownstreamMH,
+# MAGIC     DirectionOfSurvey,
+# MAGIC     DateOfCompletedInspectionString,
+# MAGIC     TimeOfCompletedInspectionString,
+# MAGIC     PackageName,
+# MAGIC     Cleaned,
+# MAGIC     SurveyedLength,
+# MAGIC     DiscardDate,
+# MAGIC     Condition,
+# MAGIC     Serviceability,
+# MAGIC     Infiltration,
+# MAGIC     createdAt,
+# MAGIC     updatedAt,
+# MAGIC     processed_timestamp
+# MAGIC   )
+# MAGIC   VALUES (
+# MAGIC     src.id,
+# MAGIC     src.partnerId,
+# MAGIC     src.metadataProfileId,
+# MAGIC     src.metadataProfileVersion,
+# MAGIC     src.metadataObjectType,
+# MAGIC     src.objectId,
+# MAGIC     src.version,
+# MAGIC     src.status,
+# MAGIC     src.AssessedByName,
+# MAGIC     src.AssessedByDate,
+# MAGIC     src.ParentWorkOrderNumber,
+# MAGIC     src.ChildWorkOrderNumbers,
+# MAGIC     src.WorkOrderDescription,
+# MAGIC     src.PriorityJustification,
+# MAGIC     src.OperationalArea,
 # MAGIC     src.AssetNumbers,
 # MAGIC     src.TaskCode,
 # MAGIC     src.Suburb,
@@ -972,7 +1317,7 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC 
+# MAGIC
 # MAGIC MERGE INTO cleansed.cctv_kaltura_attachments as tgt
 # MAGIC USING tmp_datalake_kaltura_attachments as src
 # MAGIC ON (tgt.id = src.id)
