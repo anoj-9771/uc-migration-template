@@ -689,7 +689,9 @@
 		"folder": {
 			"name": "MDP-Framework"
 		},
-		"annotations": [],
+		"annotations": [
+			"@pipeline().parameters.SystemCode"
+		],
 		"lastPublishTime": "2021-07-08T02:50:54Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
