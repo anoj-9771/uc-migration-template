@@ -299,7 +299,12 @@ def CreateCluster(cluster):
 
 # COMMAND ----------
 
-def EditCluster(clusterTemplate):
+def EditCluster(clusterTemplate, forceEdit=True):
+    state = GetClusterState(clusterTemplate["cluster_name"])
+    if GetClusterState(clusterTemplate["cluster_name"]) != "TERMINATED" and forceEdit == False:
+        print(f"Can't edit, cluster is {state} state!")
+        return GetClusterByName(clusterTemplate["cluster_name"])
+
     cluster = [i for i in ListClusters()["clusters"] if i["cluster_name"] == clusterTemplate["cluster_name"] ][0]
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/clusters/edit'
@@ -309,16 +314,19 @@ def EditCluster(clusterTemplate):
 
 # COMMAND ----------
 
-def CreateOrEditCluster(cluster, pin=True, createNew=False, librariesList=None, terminate=True):
-    if GetClusterState(cluster["cluster_name"]) == "RUNNING":
-        print("Cluster is running!")
-        return
+def ClusterExists(name):
+    return any([i for i in ListClusters()["clusters"] if i["cluster_name"].lower() == name.lower()])
 
-    jsonResponse = EditCluster(cluster) if createNew or not(any([i for i in ListClusters()["clusters"] if i["cluster_name"] == cluster["cluster_name"]])) == False else CreateCluster(cluster)
+# COMMAND ----------
+
+def CreateOrEditCluster(cluster, pin=True, createNew=False, librariesList=None, terminate=True):
+    exists = ClusterExists(cluster["cluster_name"])
+
+    jsonResponse = EditCluster(cluster, forceEdit=False) if exists else CreateCluster(cluster)
     clusterId = jsonResponse["cluster_id"]
-    PinCluster(clusterId) if pin else ()
+    PinCluster(clusterId) if pin and not(exists) else ()
     InstallLibraries(clusterId, librariesList) if librariesList is not None else ()
-    TerminateCluster(clusterId) if terminate else ()
+    TerminateCluster(clusterId) if terminate and not(exists) else ()
     return jsonResponse
 
 # COMMAND ----------
