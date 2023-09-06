@@ -48,6 +48,13 @@ where systemCode in ('primavera')
 
 # COMMAND ----------
 
+ExecuteStatement("""
+    UPDATE controldb.dbo.extractloadmanifest
+    SET ExtendedProperties = '{"RawTableNameMatchSource":"True","CleansedQuery":"SELECT * FROM (SELECT *,ROW_NUMBER() OVER (PARTITION BY Projectid,IPAMLT,Finish ORDER BY  _DLRawZoneTimeStamp DESC) rn FROM {tableFqn} WHERE _DLRawZoneTimeStamp > ''{lastLoadTimeStamp}'') WHERE rn=1"}'
+    WHERE (SystemCode in ('primavera') )""")   
+
+# COMMAND ----------
+
 ExecuteStatement(f"update dbo.extractLoadManifest set enabled = 1 where systemCode = '{SYSTEM_CODE}'")
 
 # COMMAND ----------

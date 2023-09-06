@@ -60,10 +60,32 @@ where systemCode in ('aurion')
 
 # COMMAND ----------
 
+ExecuteStatement("""
+    UPDATE controldb.dbo.extractloadmanifest
+    SET ExtendedProperties = '{"RawTableNameMatchSource":"True","CleansedQuery":"SELECT * FROM (SELECT *,ROW_NUMBER() OVER (PARTITION BY organisationUnitNumber ORDER BY  _DLRawZoneTimeStamp DESC) rn FROM {tableFqn} WHERE _DLRawZoneTimeStamp > ''{lastLoadTimeStamp}'') WHERE rn=1"}'
+    WHERE (SystemCode in ('aurion') and SourceTableName = 'organisation')""")    
+    
+ExecuteStatement("""
+    UPDATE controldb.dbo.extractloadmanifest
+    SET ExtendedProperties = '{"RawTableNameMatchSource":"True","CleansedQuery":"SELECT * FROM (SELECT *,ROW_NUMBER() OVER (PARTITION BY PositionNumber ORDER BY  _DLRawZoneTimeStamp DESC) rn FROM {tableFqn} WHERE _DLRawZoneTimeStamp > ''{lastLoadTimeStamp}'') WHERE rn=1"}'
+    WHERE (SystemCode in ('aurion') and SourceTableName = 'position')""")        
+
+ExecuteStatement("""
+    UPDATE controldb.dbo.extractloadmanifest
+    SET ExtendedProperties = '{"RawTableNameMatchSource":"True","CleansedQuery":"SELECT * FROM (SELECT *,ROW_NUMBER() OVER (PARTITION BY EmployeeNumber,PersonNumber,DateEffective,PositionNumber ORDER BY  _DLRawZoneTimeStamp DESC) rn FROM {tableFqn} WHERE _DLRawZoneTimeStamp > ''{lastLoadTimeStamp}'') WHERE rn=1"}'
+    WHERE (SystemCode in ('aurion') and SourceTableName = 'active_employees')""")        
+
+ExecuteStatement("""
+    UPDATE controldb.dbo.extractloadmanifest
+    SET ExtendedProperties = '{"RawTableNameMatchSource":"True","CleansedQuery":"SELECT * FROM (SELECT *,ROW_NUMBER() OVER (PARTITION BY EmployeeNumber,PersonNumber,DateEffective,PositionNumber ORDER BY  _DLRawZoneTimeStamp DESC) rn FROM {tableFqn} WHERE _DLRawZoneTimeStamp > ''{lastLoadTimeStamp}'') WHERE rn=1"}'
+    WHERE
+
+# COMMAND ----------
+
 ExecuteStatement(f"update dbo.extractLoadManifest set enabled = 1 where systemCode = '{SYSTEM_CODE}' and sourceTableName <> 'employee_history' ")
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC 
+# MAGIC
 # MAGIC select * from controldb.dbo_extractloadmanifest where systemCode = 'aurion'
