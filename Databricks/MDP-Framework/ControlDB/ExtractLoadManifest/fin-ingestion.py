@@ -58,7 +58,7 @@ ORDER BY SourceSchema, SourceTableName
 #Delta Tables with delete image. These tables would have di_operation_type column. 
 tables = ['0profit_ctr_attr','0gl_account_attr','0profit_ctr_text','0costcenter_text']
 tablesWithNullableKeys = ['coss','cosp','cobrb']
-tablesUsingKingCluster = ['coss','cosp']
+tablesUsingKingCluster = ['coss','cosp','cobrb']
 #Non-Prod "DeleteSourceFiles" : "False" while testing
 # deleteSourceFiles = "False"
 #Production
@@ -121,11 +121,6 @@ where systemCode in ('finref','findata')
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select length( 'debitCreditIndicator,fiscalYear,coKeySubNumber,costElement,ledgerForControllingObjects,objectnumber,tradingPartnerBusinessArea,periodBlock,transactionCurrency,tradingPartnerID,version,cobusinessTransaction,valueType')
-
-# COMMAND ----------
-
 #Delete all cells below once this goes to Production
 
 # COMMAND ----------
@@ -136,16 +131,3 @@ where systemCode in ('finref','findata')
 
 df_c = spark.table("controldb.dbo_extractloadmanifest")
 display(df_c.where("SystemCode in ('finref','findata')"))
-
-# COMMAND ----------
-
-# for z in ["raw", "cleansed"]:
-for z in ["cleansed"]:
-    for t in df_c.where("SystemCode in ('finref','findata')").collect():
-        tableFqn = f"{z}.{t.DestinationSchema}_{t.SourceTableName}"
-        print(tableFqn)
-#         CleanTable(tableFqn)
-
-# COMMAND ----------
-
-# CleanTable('cleaned.fin_0RPM_DECISION_GUID_ID_TEXT')
