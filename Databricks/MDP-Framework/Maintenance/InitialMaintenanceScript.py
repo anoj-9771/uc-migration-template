@@ -114,7 +114,7 @@ def processTable(TableName):
         ,'curated.fact.monthlysupplyapportionedaccruedconsumption'
     ]
     try:
-        if not any(TableName for t in vacuum_blacklist if TableName.endswith(t)):
+        if not any(TableName for t in vacuum_blacklist if TableName.lower() == t.lower()):
             spark.sql(f"VACUUM {TableName}")       
         spark.sql(f"ANALYZE TABLE {TableName} COMPUTE STATISTICS FOR ALL COLUMNS")
         spark.sql(f"OPTIMIZE {TableName}")

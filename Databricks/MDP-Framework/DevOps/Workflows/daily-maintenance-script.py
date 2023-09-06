@@ -43,10 +43,10 @@ template = {
                     "spot_bid_max_price": -1
                 },
                 "autoscale": {
-                    "min_workers": 2,
-                    "max_workers": 8
-                },
-                "node_type_id": "Standard_DS3_v2",
+                        "min_workers": 4,
+                        "max_workers": 8
+                    }
+                "node_type_id": "Standard_E4ds_v4",
                 "custom_tags": {
                     "product": "EDP Maintenance"
                 },
