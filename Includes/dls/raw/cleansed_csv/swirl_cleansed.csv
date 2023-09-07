@@ -4804,3 +4804,8 @@ BMS_9999999_157,UNIQUEID,,,,STRING,,raw.swirl_bms_9999999_157,cleansed.swirl_wor
 BMS_9999999_157,BMS_VERSIONNO,,,,INTEGER,,raw.swirl_bms_9999999_157,cleansed.swirl_workers_compensation_cost,BMS_VERSIONNO,versionNumber,,,
 BMS_9999999_157,BMS_WFTEMPID,,,,STRING,,raw.swirl_bms_9999999_157,cleansed.swirl_workers_compensation_cost,BMS_WFTEMPID,wFTempId,,,
 BMS_9999999_157,BMS_FK_9999999_198_ID,,,Y,STRING,,raw.swirl_bms_9999999_157,cleansed.swirl_workers_compensation_cost,BMS_FK_9999999_198_ID,workersCompensation_FK,,,
+BMS_MEMOS,BMS_MEMO,,,,STRING,,raw.swirl_bms_memos,Cleansed.swirl_memos,BMS_MEMO,memo,,,
+BMS_MEMOS,BMS_MEMOID,,,,STRING,,raw.swirl_bms_memos,Cleansed.swirl_memos,BMS_MEMOID,memoId,,,
+BMS_MEMOS,UNIQUEUD,,,,STRING,,raw.swirl_bms_memos,Cleansed.swirl_memos,UNIQUEID,uniqueId,,,
+BMS_MEMOS,BMS_LOCKED,,,,STRING,,raw.swirl_bms_memos,Cleansed.swirl_memos,BMS_LOCKED,locked,,,
+BMS_MEMOS,BMS_VERSIONNO,,,,INTEGER,,raw.swirl_bms_memos,Cleansed.swirl_memos,BMS_VERSIONNO,versionNumber,,,

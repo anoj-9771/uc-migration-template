@@ -233,7 +233,8 @@ swirldata_tables =['BMS_0002185_849',
 'BMS_9999999_190_T9999999_108',
 'BMS_9999999_750_T9999999_101',
 'BMS_9999999_750_T9999999_102',
-'BMS_9999999_750_T9999999_103']
+'BMS_9999999_750_T9999999_103',
+'BMS_MEMOS']
 
 swirlref_tables = ['BMS_LOOKUP_ITEMS',
                    'BMS_MULTILOOKUPITEMS',
@@ -488,3 +489,10 @@ ExecuteStatement("""
     UPDATE controldb.dbo.extractloadmanifest
     SET ExtendedProperties = '{"RawTableNameMatchSource":"True","CleansedQuery":"SELECT * FROM (SELECT *,ROW_NUMBER() OVER (PARTITION BY bms_id ORDER BY  _DLRawZoneTimeStamp DESC) rn FROM {tableFqn} WHERE _DLRawZoneTimeStamp > ''{lastLoadTimeStamp}'') WHERE rn=1"}'
     WHERE (SystemCode in ('swirldata'))""")
+
+# COMMAND ----------
+
+ExecuteStatement("""
+    UPDATE controldb.dbo.extractloadmanifest
+    SET ExtendedProperties = '{"RawTableNameMatchSource":"True","CleansedQuery":"SELECT * FROM (SELECT *,ROW_NUMBER() OVER (PARTITION BY BMS_MEMOID ORDER BY  _DLRawZoneTimeStamp DESC) rn FROM {tableFqn} WHERE _DLRawZoneTimeStamp > ''{lastLoadTimeStamp}'') WHERE rn=1"}',BusinessKeyColumn = 'BMS_MEMOID'
+    WHERE (SystemCode = 'swirldata' and SourceTableName = 'BMS_MEMOS')""")
