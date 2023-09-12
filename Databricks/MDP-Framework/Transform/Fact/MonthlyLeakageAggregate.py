@@ -78,6 +78,428 @@ spark.sql(f"""
 
 # COMMAND ----------
 
+# DBTITLE 1,Create unmetered_connected temp view
+spark.sql(f"""
+create or replace temp view unmetered_connected as (
+  with unmeteredbase as (
+    select
+      'Sydney Water' as SWCAggregated,
+      case
+        when netowrk.deliverySystem in ('DEL_CASCADE', 'DEL_ORCHARD_HILLS') then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
+        when netowrk.deliverySystem in ('DEL_POTTS_HILL', 'DEL_PROSPECT_EAST', null) then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST'
+        else netowrk.deliverySystem
+      end deliverySystem,
+      case
+        when deliverySystem in (
+          'DEL_CASCADE',
+          'DEL_ORCHARD_HILLS',
+          'DEL_POTTS_HILL',
+          'DEL_PROSPECT_EAST'
+        ) then 'Delivery System Combined'
+        else 'Delivery System'
+      end networkTypeCode,
+      netowrk.supplyZone,
+      netowrk.pressureArea,
+      agg.consumptionQuantity / 1000 as consumptionQuantity,
+      agg.unmeteredConnectedFlag,
+      agg.unmeteredConstructionFlag,
+      month(agg.reportDate) as monthNumber,
+      year(agg.reportDate) as yearNumber,
+      agg.propertyCount
+    from
+      {get_env()}curated.fact.consumptionaggregate agg
+      join {get_env()}curated.dim.waternetwork netowrk
+    where
+      reportDate = (
+        select
+          max(reportDate)
+        from
+          {get_env()}curated.fact.consumptionaggregate
+      )
+      and agg.waterNetworkSK = netowrk.waterNetworkSK
+      and agg.unmeteredConnectedFlag = 'Y'
+  ),
+  unallocated as (
+    select
+      network.supplyZone,
+      network.pressureArea,
+      unkn.consumptionQuantity / 1000 as consumptionQuantity,
+      month(unkn.reportDate) as monthNumber,
+      year(unkn.reportDate) as yearNumber,
+      unkn.propertyCount
+    from
+      {get_env()}curated.fact.consumptionaggregate unkn
+      join {get_env()}curated.dim.waternetwork network
+    where
+      reportDate = (
+        select
+          max(reportDate)
+        from
+          {get_env()}curated.fact.consumptionaggregate
+      )
+      and unkn.waterNetworkSK = network.waterNetworkSK
+      and unkn.unmeteredConnectedFlag = 'Y'
+      and deliverysystem = 'Unknown'
+  )
+  select
+    SWCAggregated,
+    deliverySystem,
+    supplyZone,
+    pressureArea,
+    sum(consumptionQuantity) as consumptionQuantity,
+    monthNumber,
+    yearNumber,
+    'Pressure Area' networkTypeCode,
+    sum(propertyCount) as propertyCount
+  from
+    unmeteredbase
+  where
+    deliverysystem <> 'Unknown'
+  group by
+    all
+  union
+  select
+    SWCAggregated,
+    deliverySystem,
+    supplyZone,
+    NULL as pressureArea,
+    sum(consumptionQuantity) as consumptionQuantity,
+    monthNumber,
+    yearNumber,
+    'Supply Zone' networkTypeCode,
+    sum(propertyCount) as propertyCount
+  from
+    unmeteredbase
+  where
+    deliverysystem <> 'Unknown'
+  group by
+    all
+  union
+    (
+      with deliverysystemallocated as (
+        select
+          SWCAggregated,
+          deliverySystem,
+          NULL as supplyZone,
+          NULL as pressureArea,
+          sum(consumptionQuantity) as consumptionQuantity,
+          monthNumber,
+          yearNumber,
+          networkTypeCode,
+          sum(propertyCount) as propertyCount
+        from
+          unmeteredbase
+        group by
+          all
+      )
+      select
+        x.SWCAggregated,
+        x.deliverySystem,
+        x.supplyZone,
+        x.pressureArea,case
+          when x.deliverySystem like '%POTTS_HILL%'
+          and x.networktypecode = 'Delivery System Combined' then (x.consumptionQuantity + y.consumptionQuantity)
+          else x.consumptionQuantity
+        end as consumptionQuantity,
+        x.monthNumber,
+        x.yearNumber,
+        x.networkTypeCode,
+        case 
+          when x.deliverySystem like '%POTTS_HILL%'
+          and x.networktypecode = 'Delivery System Combined' then (x.propertyCount + y.propertyCount)
+          else x.propertyCount
+        end as propertyCount
+      from
+        deliverysystemallocated x
+        left outer join unallocated y on x.monthNumber = y.monthNumber
+        and x.yearNumber = y.yearNumber
+      where
+        x.deliverysystem <> 'Unknown'
+    )
+  union
+  select
+    SWCAggregated,
+    NULL deliverySystem,
+    NULL as supplyZone,
+    NULL as pressureArea,
+    sum(consumptionQuantity) as consumptionQuantity,
+    monthNumber,
+    yearNumber,
+    'SWC' as networkTypeCode,
+    sum(propertyCount) as propertyCount
+  from
+    unmeteredbase
+  group by
+    all
+)
+""")
+
+# COMMAND ----------
+
+# DBTITLE 1,Create unmetered_construction temp view
+spark.sql(f"""
+create or replace temp view unmetered_construction as (
+  with unmeteredbase as (
+    select
+      'Sydney Water' as SWCAggregated,
+      case
+        when netowrk.deliverySystem in ('DEL_CASCADE', 'DEL_ORCHARD_HILLS') then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
+        when netowrk.deliverySystem in ('DEL_POTTS_HILL', 'DEL_PROSPECT_EAST') then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST'
+        else netowrk.deliverySystem
+      end deliverySystem,
+      case
+        when deliverySystem in (
+          'DEL_CASCADE',
+          'DEL_ORCHARD_HILLS',
+          'DEL_POTTS_HILL',
+          'DEL_PROSPECT_EAST'
+        ) then 'Delivery System Combined'
+        else 'Delivery System'
+      end networkTypeCode,
+      netowrk.supplyZone,
+      netowrk.pressureArea,
+      agg.consumptionQuantity / 1000 as consumptionQuantity,
+      agg.unmeteredConnectedFlag,
+      agg.unmeteredConstructionFlag,
+      month(agg.reportDate) as monthNumber,
+      year(agg.reportDate) as yearNumber,
+      agg.propertyCount
+    from
+      {get_env()}curated.fact.consumptionaggregate agg
+      join {get_env()}curated.dim.waternetwork netowrk
+    where
+      reportDate = (
+        select
+          max(reportDate)
+        from
+          {get_env()}curated.fact.consumptionaggregate
+      )
+      and agg.waterNetworkSK = netowrk.waterNetworkSK
+      and agg.unmeteredConstructionFlag = 'Y'
+  ),
+  unallocated as (
+    select
+      network.supplyZone,
+      network.pressureArea,
+      unkn.consumptionQuantity / 1000 as consumptionQuantity,
+      month(unkn.reportDate) as monthNumber,
+      year(unkn.reportDate) as yearNumber,
+      unkn.propertyCount
+    from
+      {get_env()}curated.fact.consumptionaggregate unkn
+      join {get_env()}curated.dim.waternetwork network
+    where
+      reportDate = (
+        select
+          max(reportDate)
+        from
+          {get_env()}curated.fact.consumptionaggregate
+      )
+      and unkn.waterNetworkSK = network.waterNetworkSK
+      and unkn.unmeteredConstructionFlag = 'Y'
+      and deliverysystem = 'Unknown'
+  )
+  select
+    SWCAggregated,
+    deliverySystem,
+    supplyZone,
+    pressureArea,
+    sum(consumptionQuantity) as consumptionQuantity,
+    monthNumber,
+    yearNumber,
+    'Pressure Area' networkTypeCode,
+    sum(propertyCount) as propertyCount
+  from
+    unmeteredbase
+  where
+    deliverysystem <> 'Unknown'
+  group by
+    all
+  union
+  select
+    SWCAggregated,
+    deliverySystem,
+    supplyZone,
+    NULL as pressureArea,
+    sum(consumptionQuantity) as consumptionQuantity,
+    monthNumber,
+    yearNumber,
+    'Supply Zone' networkTypeCode,
+    sum(propertyCount) as propertyCount
+  from
+    unmeteredbase
+  where
+    deliverysystem <> 'Unknown'
+  group by
+    all
+  union
+    (
+      with deliverysystemallocated as (
+        select
+          SWCAggregated,
+          deliverySystem,
+          NULL as supplyZone,
+          NULL as pressureArea,
+          sum(consumptionQuantity) as consumptionQuantity,
+          monthNumber,
+          yearNumber,
+          networkTypeCode,
+          sum(propertyCount) as propertyCount
+        from
+          unmeteredbase
+        group by
+          all
+      )
+      select
+        x.SWCAggregated,
+        x.deliverySystem,
+        x.supplyZone,
+        x.pressureArea,
+        case
+          when x.deliverySystem like '%POTTS_HILL%'
+          and x.networktypecode = 'Delivery System Combined' then (x.consumptionQuantity + y.consumptionQuantity)
+          else x.consumptionQuantity
+        end as consumptionQuantity,
+        x.monthNumber,
+        x.yearNumber,
+        x.networkTypeCode,
+        case 
+          when x.deliverySystem like '%POTTS_HILL%'
+          and x.networktypecode = 'Delivery System Combined' then (x.propertyCount + y.propertyCount)
+          else x.propertyCount
+        end as propertyCount
+      from
+        deliverysystemallocated x
+        left outer join unallocated y on x.monthNumber = y.monthNumber
+        and x.yearNumber = y.yearNumber
+      where
+        x.deliverysystem <> 'Unknown'
+    )
+  union
+  select
+    SWCAggregated,
+    NULL deliverySystem,
+    NULL as supplyZone,
+    NULL as pressureArea,
+    sum(consumptionQuantity) as consumptionQuantity,
+    monthNumber,
+    yearNumber,
+    'SWC' as networkTypeCode,
+    sum(propertyCount) as propertyCount
+  from
+    unmeteredbase
+  group by
+    all
+)
+        """)
+
+# COMMAND ----------
+
+# DBTITLE 1,Create demand_aggregated temp view
+spark.sql(f"""
+          create or replace temp view demand_aggregated as (
+            with aggregatedbase as (
+  select
+    'Sydney Water' as SWCAggregated,
+    deliverySystem,
+    supplyZone,
+    pressureArea,
+    sum(metricValueNumber) as consumptionQuantity,
+    monthNumber,
+    yearNumber,
+    networkTypeCode
+  from
+    {get_env()}curated.fact.demandaggregatedcomponents
+  where
+    calculationDate = (
+      select
+        max(calculationDate)
+      from
+        {get_env()}curated.fact.demandaggregatedcomponents
+    )
+  group by
+    all
+),
+unallocated as (
+  select
+    'Sydney Water' as SWCAggregated,
+    deliverySystem,
+    sum(metricValueNumber) as consumptionQuantity,
+    monthNumber,
+    yearNumber
+  from
+    {get_env()}curated.fact.demandaggregatedcomponents
+  where
+    calculationDate = (
+      select
+        max(calculationDate)
+      from
+        {get_env()}curated.fact.demandaggregatedcomponents
+    )
+    and deliverySystem = 'Unknown'
+    and networkTypeCode in ('Delivery System', 'Delivery System Combined')
+  group by
+    all
+)
+select
+  SWCAggregated,
+  deliverySystem,
+  supplyZone,
+  pressureArea,
+  consumptionQuantity,
+  monthNumber,
+  yearNumber,
+  networkTypeCode
+from
+  aggregatedbase
+where
+  networkTypeCode in ('Pressure Area', 'Supply Zone')
+  and deliverySystem <> 'Unknown'
+union
+  (
+    select
+      x.SWCAggregated,
+      x.deliverySystem,
+      x.supplyZone,
+      x.pressureArea,case
+        when x.deliverySystem like '%POTTS_HILL%'
+        and x.networktypecode = 'Delivery System Combined' then (
+          x.consumptionQuantity + coalesce(y.consumptionQuantity, 0)
+        )
+        else x.consumptionQuantity
+      end as consumptionQuantity,
+      x.monthNumber,
+      x.yearNumber,
+      x.networkTypeCode
+    from
+      aggregatedbase x
+      left outer join unallocated y on x.monthNumber = y.monthNumber
+      and x.yearNumber = y.yearNumber
+    where
+      x.networkTypeCode in ('Delivery System', 'Delivery System Combined')
+      and x.deliverySystem <> 'Unknown'
+  )
+union
+select
+  SWCAggregated,
+  NULL as deliverySystem,
+  NULL as supplyZone,
+  NULL as pressureArea,
+  sum(consumptionQuantity) as consumptionQuantity,
+  monthNumber,
+  yearNumber,
+  'SWC' as networkTypeCode
+from
+  aggregatedbase
+where
+  networkTypeCode in ('Delivery System', 'Delivery System Combined')
+group by
+  all
+          )
+          """)
+
+# COMMAND ----------
+
 df = spark.sql(f"""
 WITH REQUIRED_DATES as
 (
@@ -154,6 +576,7 @@ supply_apportioned_consumption as
               networkTypeCode
          end networkTypeCode          
         ,coalesce(sum(totalMLQuantity),0) supplyApportionedConsumptionMLQuantity  
+,coalesce(sum(totalPropertyCount), 0) totalPropertyCount  
   FROM {get_env()}curated.water_balance.monthlySupplyApportionedAggregate
   WHERE make_date(consumptionYear, consumptionMonth,1) >= (select minDate from required_dates)
   GROUP BY ALL
@@ -167,90 +590,17 @@ supply_apportioned_consumption as
         ,null pressureZone
         ,'SWC' networkTypeCode          
         ,coalesce(sum(totalMLQuantity),0) supplyApportionedConsumptionMLQuantity  
+,coalesce(sum(totalPropertyCount), 0) totalPropertyCount  
   FROM {get_env()}curated.water_balance.monthlySupplyApportionedAggregate  
   WHERE make_date(consumptionYear, consumptionMonth,1) >= (select minDate from required_dates)
   AND networkTypeCode = 'Delivery System'
   GROUP BY ALL
 ),
 unmeteredconnected as (
-    with unmeteredbase as (
-    select 'Sydney Water' as SWCAggregated,
-        case 
-            when netowrk.deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') 
-              then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
-            when netowrk.deliverySystem in ('DEL_POTTS_HILL','DEL_PROSPECT_EAST') 
-              then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST'
-            else              
-              netowrk.deliverySystem
-         end deliverySystem, 
-       case 
-            when deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS',
-                                    'DEL_POTTS_HILL','DEL_PROSPECT_EAST')
-            then 'Delivery System Combined'
-            else 'Delivery System' 
-         end networkTypeCode, netowrk.supplyZone, netowrk.pressureArea, agg.consumptionQuantity/1000 as consumptionQuantity, agg.unmeteredConnectedFlag, agg.unmeteredConstructionFlag, month(agg.reportDate) as monthNumber, year(agg.reportDate) as yearNumber
-        from {get_env()}curated.fact.consumptionaggregate agg join {get_env()}curated.dim.waternetwork netowrk
-        where reportDate = (select max(reportDate) from {get_env()}curated.fact.consumptionaggregate) and agg.waterNetworkSK = netowrk.waterNetworkSK and agg.unmeteredConnectedFlag = 'Y'
-    ),
-    unallocated as (
-        select network.supplyZone, network.pressureArea, unkn.consumptionQuantity/1000 as consumptionQuantity, month(unkn.reportDate) as monthNumber, year(unkn.reportDate) as yearNumber from {get_env()}curated.fact.consumptionaggregate unkn join {get_env()}curated.dim.waternetwork network
-        where reportDate = (select max(reportDate) from {get_env()}curated.fact.consumptionaggregate) and unkn.waterNetworkSK = network.waterNetworkSK and unkn.unmeteredConnectedFlag = 'Y' and deliverysystem = 'Unknown'
-    ) 
-        select SWCAggregated,deliverySystem,supplyZone,pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'Pressure Area' networkTypeCode 
-        from unmeteredbase where deliverysystem <> 'Unknown' group by all
-        union
-        select SWCAggregated,deliverySystem,supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'Supply Zone' networkTypeCode
-        from unmeteredbase where deliverysystem <> 'Unknown' group by all
-        union
-        ( with deliverysystemallocated as (select SWCAggregated,deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,
-            yearNumber,networkTypeCode
-            from unmeteredbase group by all) 
-            select x.SWCAggregated,x.deliverySystem,x.supplyZone,x.pressureArea,case when x.deliverySystem like '%POTTS_HILL%' and x.networktypecode = 'Delivery System Combined' then ( x.consumptionQuantity+ y.consumptionQuantity) else x.consumptionQuantity end as consumptionQuantity,x.monthNumber,x.yearNumber,x.networkTypeCode
-            from deliverysystemallocated x left outer join unallocated y on x.monthNumber = y.monthNumber and x.yearNumber = y.yearNumber where x.deliverysystem <> 'Unknown' 
-        )   
-        union
-        select SWCAggregated,NULL deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'SWC' as networkTypeCode
-        from unmeteredbase group by all
+    select * from unmetered_connected
 ),
 unmeteredconstruction as (
-    with unmeteredbase as (
-    select 'Sydney Water' as SWCAggregated,
-        case 
-            when netowrk.deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS') 
-              then 'DEL_CASCADE + DEL_ORCHARD_HILLS'
-            when netowrk.deliverySystem in ('DEL_POTTS_HILL','DEL_PROSPECT_EAST') 
-              then 'DEL_POTTS_HILL + DEL_PROSPECT_EAST'
-            else              
-              netowrk.deliverySystem
-         end deliverySystem, 
-       case 
-            when deliverySystem in ('DEL_CASCADE','DEL_ORCHARD_HILLS',
-                                    'DEL_POTTS_HILL','DEL_PROSPECT_EAST')
-            then 'Delivery System Combined'
-            else 'Delivery System' 
-         end networkTypeCode, netowrk.supplyZone, netowrk.pressureArea, agg.consumptionQuantity/1000 as consumptionQuantity, agg.unmeteredConnectedFlag, agg.unmeteredConstructionFlag, month(agg.reportDate) as monthNumber, year(agg.reportDate) as yearNumber
-        from {get_env()}curated.fact.consumptionaggregate agg join {get_env()}curated.dim.waternetwork netowrk
-        where reportDate = (select max(reportDate) from {get_env()}curated.fact.consumptionaggregate) and agg.waterNetworkSK = netowrk.waterNetworkSK and agg.unmeteredConstructionFlag = 'Y'
-    ),    
-    unallocated as (
-        select network.supplyZone, network.pressureArea, unkn.consumptionQuantity/1000 as consumptionQuantity, month(unkn.reportDate) as monthNumber, year(unkn.reportDate) as yearNumber from {get_env()}curated.fact.consumptionaggregate unkn join {get_env()}curated.dim.waternetwork network
-        where reportDate = (select max(reportDate) from {get_env()}curated.fact.consumptionaggregate) and unkn.waterNetworkSK = network.waterNetworkSK and unkn.unmeteredConstructionFlag = 'Y' and deliverysystem = 'Unknown'
-    ) 
-        select SWCAggregated,deliverySystem,supplyZone,pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'Pressure Area' networkTypeCode
-        from unmeteredbase where deliverysystem <> 'Unknown' group by all
-        union
-        select SWCAggregated,deliverySystem,supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'Supply Zone' networkTypeCode
-        from unmeteredbase where deliverysystem <> 'Unknown' group by all
-        union
-        ( with deliverysystemallocated as (select SWCAggregated,deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,
-            yearNumber,networkTypeCode
-            from unmeteredbase group by all) 
-            select x.SWCAggregated,x.deliverySystem,x.supplyZone,x.pressureArea,case when x.deliverySystem like '%POTTS_HILL%' and x.networktypecode = 'Delivery System Combined' then ( x.consumptionQuantity+ y.consumptionQuantity) else x.consumptionQuantity end as consumptionQuantity,x.monthNumber,x.yearNumber,x.networkTypeCode
-            from deliverysystemallocated x left outer join unallocated y on x.monthNumber = y.monthNumber and x.yearNumber = y.yearNumber where x.deliverysystem <> 'Unknown' 
-        )
-        union
-        select SWCAggregated,NULL deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'SWC' as networkTypeCode
-        from unmeteredbase group by all
+    select * from unmetered_construction
 ),
 stoppedmeterconsumption as (
     with stoppedmeterbase as (select 'Sydney Water' as SWCAggregated,
@@ -268,40 +618,42 @@ stoppedmeterconsumption as (
             then 'Delivery System Combined'
             else 'Delivery System' 
          end networkTypeCode, netowrk.supplyZone, netowrk.pressureArea, sum(agg.consumptionQuantity)/1000 as consumptionQuantity, month(agg.consumptionDate) as monthNumber, year(agg.consumptionDate) as yearNumber
+         ,agg.propertyCount
         from {get_env()}curated.fact.stoppedmeteraggregate agg join {get_env()}curated.dim.waternetwork netowrk
         where calculationDate = (select max(calculationDate) from {get_env()}curated.fact.stoppedmeteraggregate) and agg.waterNetworkSK = netowrk.waterNetworkSK
         group by all
         ),
       unallocated as (
-        select network.deliverysystem,network.supplyZone, network.pressureArea, sum(unkn.consumptionQuantity)/1000 as consumptionQuantity, month(unkn.consumptionDate) as monthNumber, year(unkn.consumptionDate) as yearNumber from {get_env()}curated.fact.stoppedmeteraggregate unkn join {get_env()}curated.dim.waternetwork network
+        select network.deliverysystem,network.supplyZone, network.pressureArea, sum(unkn.consumptionQuantity)/1000 as consumptionQuantity, month(unkn.consumptionDate) as monthNumber, year(unkn.consumptionDate) as yearNumber
+        ,unkn.propertyCount
+        from {get_env()}curated.fact.stoppedmeteraggregate unkn join {get_env()}curated.dim.waternetwork network
         where unkn.calculationDate = (select max(calculationDate) from {get_env()}curated.fact.stoppedmeteraggregate) and unkn.waterNetworkSK = network.waterNetworkSK and deliverysystem = 'Unknown' group by all
         ) 
-        select SWCAggregated,deliverySystem,supplyZone,pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'Pressure Area' networkTypeCode from stoppedmeterbase where deliverysystem <> 'Unknown' group by all
+        select SWCAggregated,deliverySystem,supplyZone,pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'Pressure Area' networkTypeCode
+        ,sum(propertyCount) as propertyCount 
+        from stoppedmeterbase where deliverysystem <> 'Unknown' group by all
         union
-        select SWCAggregated,deliverySystem,supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'Supply Zone' networkTypeCode from stoppedmeterbase where deliverysystem <> 'Unknown' group by all
+        select SWCAggregated,deliverySystem,supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'Supply Zone' networkTypeCode
+        ,sum(propertyCount) as propertyCount
+         from stoppedmeterbase where deliverysystem <> 'Unknown' group by all
         union
         (
           with deliverysystemallocated as (select SWCAggregated,deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,
             yearNumber,networkTypeCode
+            ,sum(propertyCount) as propertyCount
             from stoppedmeterbase group by all) 
             select x.SWCAggregated,x.deliverySystem,x.supplyZone,x.pressureArea,case when x.deliverySystem like '%POTTS_HILL%' and x.networktypecode = 'Delivery System Combined' then ( x.consumptionQuantity+ y.consumptionQuantity) else x.consumptionQuantity end as consumptionQuantity,x.monthNumber,x.yearNumber,x.networkTypeCode
+            ,x.propertyCount
             from deliverysystemallocated x left outer join unallocated y on x.monthNumber = y.monthNumber and x.yearNumber = y.yearNumber where x.deliverysystem <> 'Unknown' 
         )
         union
-        select SWCAggregated,NULL deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'SWC' as networkTypeCode from stoppedmeterbase group by all
+        select SWCAggregated,NULL deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'SWC' as networkTypeCode
+        ,sum(propertyCount) as propertyCount 
+        from stoppedmeterbase group by all
         order by networkTypeCode
 ),
 demandaggregated as (
-        with aggregatedbase as (select 'Sydney Water' as SWCAggregated,deliverySystem,supplyZone,pressureArea,sum(metricValueNumber) as consumptionQuantity,monthNumber,yearNumber,networkTypeCode from {get_env()}curated.fact.demandaggregatedcomponents 
-        where calculationDate = (select max(calculationDate) from {get_env()}curated.fact.demandaggregatedcomponents) group by all
-        ),
-        unallocated as (select 'Sydney Water' as SWCAggregated,deliverySystem,sum(metricValueNumber) as consumptionQuantity,monthNumber,yearNumber from {get_env()}curated.fact.demandaggregatedcomponents 
-        where calculationDate = (select max(calculationDate) from {get_env()}curated.fact.demandaggregatedcomponents) and deliverySystem = 'Unknown' and networkTypeCode in ('Delivery System','Delivery System Combined') group by all)
-        select SWCAggregated,deliverySystem,supplyZone,pressureArea,consumptionQuantity,monthNumber,yearNumber,networkTypeCode from aggregatedbase where networkTypeCode in ('Pressure Area','Supply Zone') and deliverySystem <> 'Unknown'
-        union (
-          select x.SWCAggregated,x.deliverySystem,x.supplyZone,x.pressureArea,case when x.deliverySystem like '%POTTS_HILL%' and x.networktypecode = 'Delivery System Combined' then ( x.consumptionQuantity+ coalesce(y.consumptionQuantity,0)) else x.consumptionQuantity end as consumptionQuantity,x.monthNumber,x.yearNumber,x.networkTypeCode from aggregatedbase x left outer join unallocated y on x.monthNumber = y.monthNumber and x.yearNumber = y.yearNumber where x.networkTypeCode in ('Delivery System','Delivery System Combined') and x.deliverySystem <> 'Unknown'
-        ) union
-        select SWCAggregated,NULL as deliverySystem,NULL as supplyZone,NULL as pressureArea,sum(consumptionQuantity) as consumptionQuantity,monthNumber,yearNumber,'SWC' as networkTypeCode from aggregatedbase where networkTypeCode in ('Delivery System','Delivery System Combined') group by all
+        select * from demand_aggregated
 )
 SELECT d.SWCAggregated SWCAggregated
       ,nvl(d.deliverySystem,'') deliverySystem
@@ -314,9 +666,13 @@ SELECT d.SWCAggregated SWCAggregated
       ,(d.demandMLQuantity - (sac.supplyApportionedConsumptionMLQuantity + coalesce(connected.consumptionQuantity,0) + coalesce(construction.consumptionQuantity,0) + coalesce(stopped.consumptionQuantity,0) + coalesce(aggregated.consumptionQuantity,0)))::DECIMAL(18,10) leakageMLQuantity
       ,d.demandMLQuantity::DECIMAL(18,10) demandMLQuantity
       ,sac.supplyApportionedConsumptionMLQuantity::DECIMAL(18,10) supplyApportionedConsumptionMLQuantity
+      ,sac.totalPropertyCount supplyApportionedPropertyCount
       ,coalesce(connected.consumptionQuantity,0)::DECIMAL(18,10) unmeteredConnectedConsumptionMLQuantity
+      ,coalesce(connected.propertyCount, 0) unmeteredConnectedPropertyCount
       ,coalesce(construction.consumptionQuantity,0)::DECIMAL(18,10) unmeteredConstructionConsumptionMLQuantity
+      ,coalesce(construction.propertyCount, 0) unmeteredConstructionPropertyCount
       ,coalesce(stopped.consumptionQuantity,0)::DECIMAL(18,10) stoppedMeterConsumptionMLQuantity
+      ,coalesce(stopped.propertyCount, 0) stoppedMeterPropertyCount
       ,coalesce(aggregated.consumptionQuantity,0)::DECIMAL(18,10) aggregatedConsumptionMLQuantity
 FROM demand d
 JOIN supply_apportioned_consumption sac
