@@ -629,7 +629,8 @@ meterUnderRegistration as (
       supplyZone,
       pressureArea,
       'Pressure Area' networkTypeCode,
-      'meterUnderRegistration' as metricTypeName,(sum(supply_totalKLQuantity) / 1000) as totalMLQuantity,
+      'meterUnderRegistration' as metricTypeName,
+      (sum(supply_totalKLQuantity) / 1000) as totalMLQuantity,
       supply.yearnumber,
       supply.monthnumber
     from
