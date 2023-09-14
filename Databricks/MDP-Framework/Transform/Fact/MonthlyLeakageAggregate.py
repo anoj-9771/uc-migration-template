@@ -530,7 +530,7 @@ from (
 
 # DBTITLE 1,Creating water_demand df
 spark.sql(f"""
-          create or replace table water_demand
+          create or replace temp view water_demand
            SELECT
         year(reportDate) yearNumber
         ,month(reportDate) monthNumber  
@@ -709,12 +709,12 @@ JOIN supply_apportioned_consumption sac
   ON  ( d.networkTypeCode = sac.networkTypeCode
     and d.yearNumber = sac.yearNumber
     and d.monthNumber = sac.monthNumber
---     and (d.SWCAggregated = sac.SWCAggregated 
---     and d.networkTypeCode = 'SWC'
---       or (d.deliverySystem = sac.deliverySystem and d.networkTypeCode in ('Delivery System','Delivery System Combined'))
---       or (d.supplyZone = sac.supplyZone and d.networkTypeCode = 'Supply Zone')
---       or (d.pressureZone = sac.pressureZone and d.networkTypeCode = 'Pressure Area')
--- )
+    and (d.SWCAggregated = sac.SWCAggregated 
+    and d.networkTypeCode = 'SWC'
+      or (d.deliverySystem = sac.deliverySystem and d.networkTypeCode in ('Delivery System','Delivery System Combined'))
+      or (d.supplyZone = sac.supplyZone and d.networkTypeCode = 'Supply Zone')
+      or (d.pressureZone = sac.pressureZone and d.networkTypeCode = 'Pressure Area')
+)
   ) 
 LEFT OUTER JOIN unmeteredconnected connected
    ON  ( d.networkTypeCode = connected.networkTypeCode
