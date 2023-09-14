@@ -398,7 +398,25 @@ create or replace temp view unmetered_construction as (
 # DBTITLE 1,Create demand_aggregated temp view
 spark.sql(f"""
           create or replace temp view demand_aggregated as (
-            with aggregatedbase as (
+with demand_aggregated_latest as (
+  select
+  *
+  from
+  {get_env()}curated.fact.demandaggregatedcomponents qualify 
+    row_number () over (
+    partition by deliverySystem,
+    supplyZone,
+    pressureArea,
+    monthNumber,
+    yearNumber,
+    networkTypeCode,
+    metricTypeName,
+    distributionSystem
+    order by
+      calculationDate desc
+  ) = 1
+),
+aggregatedbase as (
   select
     'Sydney Water' as SWCAggregated,
     deliverySystem,
@@ -409,14 +427,8 @@ spark.sql(f"""
     yearNumber,
     networkTypeCode
   from
-    {get_env()}curated.fact.demandaggregatedcomponents
-  where
-    calculationDate = (
-      select
-        max(calculationDate)
-      from
-        {get_env()}curated.fact.demandaggregatedcomponents
-    )
+    demand_aggregated_latest
+    -- )
   group by
     all
 ),
@@ -428,15 +440,8 @@ unallocated as (
     monthNumber,
     yearNumber
   from
-    {get_env()}curated.fact.demandaggregatedcomponents
-  where
-    calculationDate = (
-      select
-        max(calculationDate)
-      from
-        {get_env()}curated.fact.demandaggregatedcomponents
-    )
-    and deliverySystem = 'Unknown'
+    demand_aggregated_latest
+    where deliverySystem = 'Unknown'
     and networkTypeCode in ('Delivery System', 'Delivery System Combined')
   group by
     all
@@ -500,29 +505,33 @@ group by
 
 # COMMAND ----------
 
-df = spark.sql(f"""
-WITH REQUIRED_DATES as
+# DBTITLE 1,Creating min_date df
+spark.sql(f"""
+        create or replace temp view min_date as
+        SELECT max(minDate) minDate 
+FROM
 (
-  SELECT max(minDate) minDate 
-  FROM
-  (
-    select
-      trunc(if((select count(*) from {get_env()}curated.fact.monthlyLeakageAggregate) = 0
-          ,min(reportDate),nvl2(min(reportDate),greatest(min(reportDate),dateadd(MONTH, -24, current_date())::DATE),null)),'mm') minDate
-    from {get_env()}curated.water_balance.factwaternetworkdemand
-    union all
-    select
-      trunc(if((select count(*) from {get_env()}curated.fact.monthlyLeakageAggregate) = 0
-          ,minConsumptionDate,nvl2(minConsumptionDate,greatest(minConsumptionDate,dateadd(MONTH, -24, current_date())::DATE),null)),'mm') minDate
-    from (
-      select min(make_date(consumptionYear, consumptionMonth,1)) minConsumptionDate
-      from {get_env()}curated.water_balance.monthlySupplyApportionedAggregate
-    )
-  )
-),
-DEMAND AS
-( 
-  SELECT
+select
+    trunc(if((select count(*) from {get_env()}curated.fact.monthlyLeakageAggregate) = 0
+        ,min(reportDate),nvl2(min(reportDate),greatest(min(reportDate),dateadd(MONTH, -24, current_date())::DATE),null)),'mm') minDate
+from {get_env()}curated.water_balance.factwaternetworkdemand
+union all
+select
+    trunc(if((select count(*) from {get_env()}curated.fact.monthlyLeakageAggregate) = 0
+        ,minConsumptionDate,nvl2(minConsumptionDate,greatest(minConsumptionDate,dateadd(MONTH, -24, current_date())::DATE),null)),'mm') minDate
+from (
+    select min(make_date(consumptionYear, consumptionMonth,1)) minConsumptionDate
+    from {get_env()}curated.water_balance.monthlySupplyApportionedAggregate
+)
+)
+""")
+
+# COMMAND ----------
+
+# DBTITLE 1,Creating water_demand df
+spark.sql(f"""
+          create or replace table water_demand
+           SELECT
         year(reportDate) yearNumber
         ,month(reportDate) monthNumber  
         ,'Sydney Water' SWCAggregated
@@ -532,7 +541,7 @@ DEMAND AS
         ,networkTypeCode
         ,coalesce(sum(demandQuantity),0) demandMLQuantity
   FROM {get_env()}curated.water_balance.factwaternetworkdemand
-  WHERE reportDate >= (select minDate from required_dates)
+  WHERE reportDate >= (select minDate from min_date)
   AND (networkTypeCode IN ('Supply Zone', 'Pressure Area')
     OR (networkTypeCode IN ('Delivery System', 'Delivery System Combined')
         AND deliverySystem NOT IN ('DEL_CASCADE','DEL_ORCHARD_HILLS')))
@@ -548,12 +557,16 @@ DEMAND AS
         ,'SWC' networkTypeCode
         ,sum(demandQuantity) demandMLQuantity
   FROM {get_env()}curated.water_balance.swcdemand
-  WHERE reportDate >= (select minDate from required_dates)
+  WHERE reportDate >= (select minDate from min_date)
   GROUP BY ALL   
-),
-supply_apportioned_consumption as 
-(
-  SELECT
+          """)
+
+# COMMAND ----------
+
+# DBTITLE 1,Creating supply_app_consumption df
+spark.sql(f"""
+          create or replace temp view supply_app_consumption as
+          SELECT
         consumptionYear yearNumber
         ,consumptionMonth monthNumber  
         ,'Sydney Water' SWCAggregated
@@ -578,7 +591,7 @@ supply_apportioned_consumption as
         ,coalesce(sum(totalMLQuantity),0) supplyApportionedConsumptionMLQuantity  
 ,coalesce(sum(totalPropertyCount), 0) totalPropertyCount  
   FROM {get_env()}curated.water_balance.monthlySupplyApportionedAggregate
-  WHERE make_date(consumptionYear, consumptionMonth,1) >= (select minDate from required_dates)
+  WHERE make_date(consumptionYear, consumptionMonth,1) >= (select minDate from min_date)
   GROUP BY ALL
   UNION ALL
   SELECT
@@ -592,9 +605,26 @@ supply_apportioned_consumption as
         ,coalesce(sum(totalMLQuantity),0) supplyApportionedConsumptionMLQuantity  
 ,coalesce(sum(totalPropertyCount), 0) totalPropertyCount  
   FROM {get_env()}curated.water_balance.monthlySupplyApportionedAggregate  
-  WHERE make_date(consumptionYear, consumptionMonth,1) >= (select minDate from required_dates)
+  WHERE make_date(consumptionYear, consumptionMonth,1) >= (select minDate from min_date)
   AND networkTypeCode = 'Delivery System'
   GROUP BY ALL
+  """)
+
+# COMMAND ----------
+
+# DBTITLE 1,Combining data from all sources 
+df = spark.sql(f"""
+WITH REQUIRED_DATES as
+(
+  select * from min_date
+),
+DEMAND AS
+( 
+ select * from water_demand
+),
+supply_apportioned_consumption as 
+(
+  select * from supply_app_consumption
 ),
 unmeteredconnected as (
     select * from unmetered_connected
@@ -679,10 +709,12 @@ JOIN supply_apportioned_consumption sac
   ON  ( d.networkTypeCode = sac.networkTypeCode
     and d.yearNumber = sac.yearNumber
     and d.monthNumber = sac.monthNumber
-    and (d.SWCAggregated = sac.SWCAggregated and d.networkTypeCode = 'SWC'
-      or (d.deliverySystem = sac.deliverySystem and d.networkTypeCode in ('Delivery System','Delivery System Combined'))
-      or (d.supplyZone = sac.supplyZone and d.networkTypeCode = 'Supply Zone')
-      or (d.pressureZone = sac.pressureZone and d.networkTypeCode = 'Pressure Area'))
+--     and (d.SWCAggregated = sac.SWCAggregated 
+--     and d.networkTypeCode = 'SWC'
+--       or (d.deliverySystem = sac.deliverySystem and d.networkTypeCode in ('Delivery System','Delivery System Combined'))
+--       or (d.supplyZone = sac.supplyZone and d.networkTypeCode = 'Supply Zone')
+--       or (d.pressureZone = sac.pressureZone and d.networkTypeCode = 'Pressure Area')
+-- )
   ) 
 LEFT OUTER JOIN unmeteredconnected connected
    ON  ( d.networkTypeCode = connected.networkTypeCode
