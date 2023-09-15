@@ -1,7 +1,0 @@
-{
-	"name": "IntegrationRuntime-SelfHosted-onPrem",
-	"properties": {
-		"type": "SelfHosted",
-		"description": "on premise SHIR"
-	}
-}

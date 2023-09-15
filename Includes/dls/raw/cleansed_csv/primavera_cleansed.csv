@@ -1,8 +1,0 @@
-RawTable,CleansedTable,RawColumnName,CleansedColumnName,DataType,TransformTag,CustomTransform,Lookup
-raw.primavera_activeprojects,cleansed.primavera_activeprojects,Projectid,projectId,string,,,
-raw.primavera_activeprojects,cleansed.primavera_activeprojects,IPAMLT,milestoneName,string,,,
-raw.primavera_activeprojects,cleansed.primavera_activeprojects,Finish,projectFinishdate,date,,"nvl(to_date(right(concat('0',Finish),11),'dd-MMM-yyyy') ,to_date('31-dec-9999','dd-MMM-yyyy'))",
-raw.primavera_activeprojects,cleansed.primavera_activeprojects,BLProjectFinish,baseProjectFinishDate,date,str-dd-MMM-yy-to-date,,
-raw.primavera_activeprojects,cleansed.primavera_activeprojects,ActivityStatus,projectStatus,string,,,
-raw.primavera_activeprojects,cleansed.primavera_activeprojects,ActivityStatus,loadPeriod,string,," cast(date_format(current_date(),'MMy') AS STRING)",
-raw.primavera_activeprojects,cleansed.primavera_activeprojects,DeliveryPartner,deliveryPartner,string,,,
