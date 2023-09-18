@@ -11,6 +11,13 @@ DEFAULT_TARGET = 'curated'
 
 # COMMAND ----------
 
+spark.sql(f"""
+        DELETE FROM {TARGET_TABLE}
+        WHERE calculationDate = current_date(); 
+        """).display()
+
+# COMMAND ----------
+
 def Transform():
     global df
     # ------------- TABLES ----------------- #
