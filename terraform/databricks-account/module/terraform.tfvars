@@ -1,0 +1,10 @@
+databricks_host = "https://adb-2536357900957616.16.azuredatabricks.net/"
+env = "trial_"
+container_name = "trial"
+catalog_storage_account = "sadafpreprod02"
+storage_account = "sadafpreprod01"
+admin_group = "A-Azure-rg-swcprod01-preprod-daf-01-DataAdmin"
+#SR to be created to add the new SP to dataadmin AD groups
+metastore_id = "4af25536-9b46-43ee-bae7-7be48318808c"
+managed_identity_name = "id-dbw-swcprod01-daf-data-preprod-01"
+access_connector_id = "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Databricks/accessConnectors/id-dbw-swcprod01-daf-data-preprod-01"
