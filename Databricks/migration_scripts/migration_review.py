@@ -9,10 +9,6 @@ pip install openpyxl
 # COMMAND ----------
 
 import time, math, json, random
-from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
-import pyspark.sql.functions as F
-import pandas as pd
 
 # COMMAND ----------
 
@@ -25,7 +21,7 @@ import pandas as pd
 # COMMAND ----------
 
 # DBTITLE 1,Change the env for each of the environment during runtime. 
-env = '' if dbutils.secrets.get('ADS', 'databricks-env') == '~~' else dbutils.secrets.get('ADS', 'databricks-env')
+env = get_env()
 dbs_to_migrate = ['raw', 'cleansed', 'curated', 'datalab']
 
 # COMMAND ----------
@@ -56,11 +52,6 @@ assert_row_counts_random_tables('cleansed')
 # COMMAND ----------
 
 assert_row_counts_random_tables('curated')
-
-
-# COMMAND ----------
-
-spark.sql(f"select * from uc_migration.data_migration.{env}logs").display()
 
 # COMMAND ----------
 
@@ -94,7 +85,7 @@ real_errors_df.display()
 # DBTITLE 1,Retry the migration for failed tables
 problem_tables = real_errors_df.select('source_table_name').collect()
 problem_tables = [table.asDict()['source_table_name'] for table in problem_tables]
-# for table in problem_tables:
-#     layer = table.split(".")[0]
-#     table = table.split(".")[1]
-#     create_managed_table(env, layer, table)
+for table in problem_tables:
+    layer = table.split(".")[0]
+    table = table.split(".")[1]
+    create_managed_table(env, layer, table)
