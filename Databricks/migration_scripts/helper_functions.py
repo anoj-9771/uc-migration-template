@@ -15,7 +15,7 @@ import pyspark.sql.functions as F
 # COMMAND ----------
 
 def get_env() -> str:
-    """centralised function to get prefix for the environment's catalogs"""
+    """Centralised function to get prefix for the environment's catalogs"""
     rg_id = dbutils.secrets.get('ADS', 'databricks-workspace-resource-id')
 
     if 'dev' in rg_id:
@@ -43,6 +43,7 @@ def read_run_sheet(excel_path, sheet_name):
 # COMMAND ----------
 
 def log_to_json(source_table_name:str, target_table_name:str, start_time:str, end_time:str, clone_stats:str=None, error:str=None) -> None:
+    """Logs stats of migration into JSON files so they can be read asynchronously later."""
     log = {
         "source_table_name": "",
         "target_table_name": "",
@@ -70,7 +71,7 @@ def log_to_json(source_table_name:str, target_table_name:str, start_time:str, en
 
 
 def lookup_curated_namespace(env:str, current_database_name: str, current_table_name: str, csv_path:str= "/mnt/datalake-raw/cleansed_csv/curated_mapping.csv") -> str:
-    """looks up the target table namespace based on the current_table_name provided. note that this function assumes that there are no duplicate 'current_table_name' entries in the excel sheet."""
+    """Looks up the target table namespace based on the current_table_name provided. note that this function assumes that there are no duplicate 'current_table_name' entries in the excel sheet."""
     future_namespace = {}
     #convert the given database_name and table_name to lower so they can be compared with the migration spreadsheet
     current_database_name = current_database_name.lower()
@@ -97,7 +98,7 @@ def lookup_curated_namespace(env:str, current_database_name: str, current_table_
 # COMMAND ----------
 
 def get_target_namespace(env:str, layer:str, table_name:str, excel_path:str="/dbfs/FileStore/uc/uc_scope.xlsx") -> str:
-    """generates target namespace based on the table attributes provided."""
+    """Generates target namespace based on the table attributes provided."""
     catalog_name = f'{env}{layer}'
     new_namespace_obj = {}
     if layer in ['raw', 'cleansed', 'stage', 'rejected']:
@@ -161,14 +162,6 @@ def create_managed_table(env:str, layer:str, table_name:str) -> None:
 # create_managed_table(env, 'datalab', 'storage_test_927')
 # create_managed_table('ppd_', 'raw', 'iicats_groups')
 
-# COMMAND ----------
-
-def getXMLExtendedProperties(table_name:str) -> dict:
-    import json
-    sql = "select concat(lower(DestinationSchema),'_',lower(DestinationTableName)) as TableName,ExtendedProperties from hive_metastore.controldb.dbo_extractloadmanifest where RawHandler='raw-load' and RawPath like '%.xml'"
-    df = spark.sql(sql)
-    return json.loads(df.filter(f"TableName = '{table_name}'").select("ExtendedProperties").collect()[0]['ExtendedProperties'])
-
 
 # COMMAND ----------
 
@@ -189,11 +182,9 @@ def create_external_table(env:str, layer:str, table_name:str, target_location:st
     elif 'ppd' in env:
         env = 'preprod'
     target_path = target_location.replace(f'dbfs:/mnt/datalake-{layer}',f'abfss://{layer}@sadaf{env}01.dfs.core.windows.net')
-    if(fileFormat =="XML"):
-        extendedProperties = getXMLExtendedProperties(table_name)
-        rowTag = extendedProperties["rowTag"]
-        fileOptions = f", ignoreNamespace \"true\", rowTag \"{rowTag}\""
-    elif (fileFormat =="CSV"):
+    
+    
+    if (fileFormat =="CSV"):
         fileOptions = ", header \"true\", inferSchema \"true\", multiline \"true\""
     elif (fileFormat == "JSON"):
         spark.conf.set("spark.sql.caseSensitive", "true")
@@ -202,17 +193,16 @@ def create_external_table(env:str, layer:str, table_name:str, target_location:st
         fileFormat = "PARQUET"     
     spark.sql(f"CREATE DATABASE IF NOT EXISTS {new_namespace_obj['catalog_name']}.{new_namespace_obj['database_name']}")
     start_time = str(datetime.now())
+
     try:
         print (f'converting table {hive_metastore_namespace} to {new_namespace}')
         spark.table(hive_metastore_namespace).count()
         sql = f"DROP TABLE IF EXISTS {new_namespace};"
         spark.sql(sql)
-        if fileFormat =='XML':
-            df = spark.read.format('xml').option('rowTag',f'{rowTag}').option('ignoreNamespace','True').load(f'{rawFolderPath}')
-            df.write.saveAsTable(f'{tableFqn}')            
-        else:
-            sql = f"CREATE TABLE {new_namespace} USING {fileFormat} OPTIONS (path \"{target_path}\" {fileOptions});"
-            df = spark.sql(sql)
+
+        sql = f"CREATE TABLE {new_namespace} USING {fileFormat} OPTIONS (path \"{target_path}\" {fileOptions});"
+        df = spark.sql(sql)
+        # we use the df variable here to capture stats
         try:
             clone_stats = df.collect()[0].asDict()
         except:
@@ -288,6 +278,7 @@ def clean_up_catalog(catalog):
 # COMMAND ----------
 
 def get_diff_tables(env, layer):
+    """Example of function that can be used to identify non migrated tables."""
     hive_table_list = spark.sql(f"show tables in {layer}").select('tableName').collect()
     hive_table_list = [table.asDict()['tableName'] for table in hive_table_list]
     uc_table_list = (
