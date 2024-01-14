@@ -5,7 +5,7 @@ resource "databricks_cluster" "uc-migration-anoj" {
   spark_version           = "12.2.x-scala2.12"
   autotermination_minutes = 20
   data_security_mode      = "SINGLE_USER"
-  single_user_name        = "o9ji@sydneywater.com.au"
+  single_user_name        = "name@companyx.com.au"
   autoscale {
     min_workers = 2
     max_workers = 10

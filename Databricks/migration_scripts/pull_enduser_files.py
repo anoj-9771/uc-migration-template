@@ -1,11 +1,9 @@
 import requests, os, json, re, zipfile
 
-hackathon_url = "https://adb-2536357900957616.16.azuredatabricks.net/"
-preprod_url = "https://adb-2717485385283200.0.azuredatabricks.net/"
-prod_url = "https://adb-5148661409353183.3.azuredatabricks.net/"
-dev_url = "https://adb-7004525605760210.10.azuredatabricks.net/"
-test_url = "https://adb-1108007146617792.12.azuredatabricks.net/"
-hackathon_pat_token = os.getenv("hackathon_pat_token")
+preprod_url = "https://adb-XXXXXXXXX.azuredatabricks.net/"
+prod_url = "https://adb-XXXXXXXXX.azuredatabricks.net/"
+dev_url = "https://adb-XXXXXXXXX.azuredatabricks.net/"
+test_url = "https://adb-XXXXXXXXX.azuredatabricks.net/"
 dev_pat_token = os.getenv("dev_pat_token")
 test_pat_token = os.getenv("test_pat_token")
 preprod_pat_token = os.getenv("preprod_pat_token")
@@ -44,7 +42,6 @@ def get_valid_workspace_paths(url:str, pat_token:str, path:str):
               new_list.append(object)
         else:
               pass
-  print (new_list)
   return new_list
 
 
@@ -80,16 +77,8 @@ def get_workspace_folders(url, pat_token, download_path):
 
 
 if __name__ == '__main__':
-      # print (list_all_workspace_folders(dev_url, dev_pat_token, path))
-      # print (get_valid_workspace_paths(dev_url, dev_pat_token, path))
-      # download_workspace_folder(url, headers, "/Users/o9ji@sydneywater.com.au")
-  # for user_path in get_valid_workspace_paths(hackathon_url, hackathon_pat_token, path):
-  #   download_workspace_folder(hackathon_url, hackathon_pat_token, user_path, download_path="hackathon")
-  # get_workspace_folders(hackathon_url, hackathon_pat_token, "/hackathon")
   get_workspace_folders(dev_url, dev_pat_token, "/dev")
   # get_workspace_folders(prod_url, prod_pat_token, "/prod")
-
-
 
 
 #if directing the API call to a single file, you can print out the response (and also save the file as a .py file)

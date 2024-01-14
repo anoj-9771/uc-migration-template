@@ -14,6 +14,16 @@ import pyspark.sql.functions as F
 
 # COMMAND ----------
 
+def is_uc():
+    """Check if the current databricks workspace is Unity Catalog enabled"""
+    try:
+        dbutils.secrets.get('ADS', 'uc_migration_flag')
+        return True
+    except Exception as e:
+        return False
+    
+# COMMAND ----------
+
 def get_env() -> str:
     """Centralised function to get prefix for the environment's catalogs"""
     rg_id = dbutils.secrets.get('ADS', 'databricks-workspace-resource-id')
@@ -97,33 +107,31 @@ def lookup_curated_namespace(env:str, current_database_name: str, current_table_
 
 # COMMAND ----------
 
-def get_target_namespace(env:str, layer:str, table_name:str, excel_path:str="/dbfs/FileStore/uc/uc_scope.xlsx") -> str:
+def get_target_namespace(env:str, layer:str, table_name:str) -> str:
     """Generates target namespace based on the table attributes provided."""
     catalog_name = f'{env}{layer}'
     new_namespace_obj = {}
-    if layer in ['raw', 'cleansed', 'stage', 'rejected']:
-        #use pattern to convert raw.source_tablename to raw.source.table_name
-        new_namespace_obj['catalog_name'] = catalog_name
-        new_namespace_obj['database_name'] = table_name.split('_')[0]
-        new_namespace_obj['table_name'] = '_'.join(table_name.split('_')[1:])
-    elif 'curated' in layer or 'semantic' in layer:
-        #use lookup_curated_namespace to find the target database and table based on mapping sheet
-        new_namespace_obj['catalog_name'] = f'{env}{layer}'
-        new_namespace_obj['database_name'] = lookup_curated_namespace(env, layer, table_name)['database_name']
-        new_namespace_obj['table_name'] = lookup_curated_namespace(env, layer, table_name)['table_name']
-    elif layer == 'datalab':
-        #datalab tables are simply moved to datalab.datalab_env database
-        trimmed_env = env.replace('_', '')
-        new_namespace_obj['catalog_name'] = layer
-        new_namespace_obj['database_name'] = 'swc' if trimmed_env == '' else 'preprod' if trimmed_env == 'ppd' else f'{trimmed_env}' 
-        new_namespace_obj['table_name'] = table_name
+    if is_uc:
+        if layer in ['raw', 'cleansed', 'stage', 'rejected']:
+            #use pattern to convert raw.source_tablename to raw.source.table_name
+            new_namespace_obj['catalog_name'] = catalog_name
+            new_namespace_obj['database_name'] = table_name.split('_')[0]
+            new_namespace_obj['table_name'] = '_'.join(table_name.split('_')[1:])
+        elif 'curated' in layer or 'semantic' in layer:
+            #use lookup_curated_namespace to find the target database and table based on mapping sheet
+            new_namespace_obj['catalog_name'] = f'{env}{layer}'
+            new_namespace_obj['database_name'] = lookup_curated_namespace(env, layer, table_name)['database_name']
+            new_namespace_obj['table_name'] = lookup_curated_namespace(env, layer, table_name)['table_name']
+        else:
+            trimmed_env = env.replace('_', '')
+            new_namespace_obj['catalog_name'] = layer
+            new_namespace_obj['database_name'] = trimmed_env 
+            new_namespace_obj['table_name'] = table_name
+        new_namespace_obj['new_namespace'] = f"{new_namespace_obj['catalog_name']}.{new_namespace_obj['database_name']}.{new_namespace_obj['table_name']}"
+        return new_namespace_obj
     else:
-        trimmed_env = env.replace('_', '')
-        new_namespace_obj['catalog_name'] = layer
-        new_namespace_obj['database_name'] = trimmed_env 
-        new_namespace_obj['table_name'] = table_name
-    new_namespace_obj['new_namespace'] = f"{new_namespace_obj['catalog_name']}.{new_namespace_obj['database_name']}.{new_namespace_obj['table_name']}"
-    return new_namespace_obj
+        return f"{layer}.{table_name}"
+
 
 # get_target_namespace('ppd_', 'semantic', 'vw_maximo_workorder')
 
@@ -159,8 +167,9 @@ def create_managed_table(env:str, layer:str, table_name:str) -> None:
             print (f'Error: {e}')
             log_to_json(f'{layer}.{table_name}', new_namespace, start_time, end_time='9999-12-31 23:59', clone_stats=None, error=f'{e}')
 
-# create_managed_table(env, 'datalab', 'storage_test_927')
-# create_managed_table('ppd_', 'raw', 'iicats_groups')
+            
+# example of usage:
+# create_managed_table('ppd_', 'raw', 'source_table')
 
 
 # COMMAND ----------
@@ -255,6 +264,25 @@ def create_managed_table_parallel(layer:str):
 # create_managed_table('trial_', 'cleansed', 'maximo_a_asset')
 # # simulate a failure because of a table that doesn't exist
 # create_managed_table('trial_', 'cleansed', 'maximo_a_asset_stuff')
+
+# COMMAND ----------
+
+def find_replace(directory, filename_filter, find, replace, filePattern="*") -> None:
+    """traverses through the given directory and using given conditions and pattern, does a find + replace"""
+    for path, dirs, files in os.walk(os.path.abspath(directory)):
+        for filename in fnmatch.filter(files, filePattern):
+            if filename_filter in filename:
+                filepath = os.path.join(path, filename)
+                try:
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        s = f.read()
+                    if find in s:
+                        print (f'{path}/{filename}')
+                    s = s.replace(find, replace)
+                    with open(filepath, "w") as f:
+                        f.write(s)
+                except Exception as e:
+                    print (f'An issue occurred; likely when reading the file. File : {path}/{filename}')
 
 # COMMAND ----------
 
