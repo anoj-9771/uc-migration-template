@@ -17,35 +17,35 @@ resource "databricks_grants" "datalab" {
     }
   }  
   grant {
-    principal  = "A-Azure-rg-swcprod01-prod-daf-01-DataAnalystAdvUsr"
+    principal  = "A-Azure-rg-companyxprod01-prod-daf-01-DataAnalystAdvUsr"
     privileges = ["USE_CATALOG"]
   }
   grant {
-    principal  = "A-Azure-rg-swcprod01-prod-daf-01-BiDev"
+    principal  = "A-Azure-rg-companyxprod01-prod-daf-01-BiDev"
     privileges = ["USE_CATALOG"]
   }  
   grant {
-    principal  = "A-Azure-rg-swcprod01-prod-daf-01-BiAdvUsr"
+    principal  = "A-Azure-rg-companyxprod01-prod-daf-01-BiAdvUsr"
     privileges = ["USE_CATALOG"]
   }  
   grant {
-    principal  = "A-Azure-rg-swcprod01-preprod-daf-01-DataAnalystAdvUsr"
+    principal  = "A-Azure-rg-companyxprod01-preprod-daf-01-DataAnalystAdvUsr"
     privileges = ["USE_CATALOG"]
   } 
   grant {
-    principal  = "A-Azure-rg-swcnonprod01-test-daf-01-DataAnalystAdvUsr"
+    principal  = "A-Azure-rg-companyxnonprod01-test-daf-01-DataAnalystAdvUsr"
     privileges = ["USE_CATALOG"]
   }  
   grant {
-    principal  = "A-Azure-rg-swcnonprod01-dev-daf-01-DataAnalystAdvUsr"
+    principal  = "A-Azure-rg-companyxnonprod01-dev-daf-01-DataAnalystAdvUsr"
     privileges = ["USE_CATALOG"]
   }   
   grant {
-    principal  = "A-Azure-rg-swcnonprod01-dev-daf-01-BiDeveloper"
+    principal  = "A-Azure-rg-companyxnonprod01-dev-daf-01-BiDeveloper"
     privileges = ["USE_CATALOG"]
   }   
   grant {
-    principal  = "A-Azure-rg-swcnonprod01-dev-daf-01-BiAdvUsr"
+    principal  = "A-Azure-rg-companyxnonprod01-dev-daf-01-BiAdvUsr"
     privileges = ["USE_CATALOG"]
   }           
 }

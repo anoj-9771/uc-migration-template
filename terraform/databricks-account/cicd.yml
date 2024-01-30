@@ -22,7 +22,7 @@ variables:
 
 
 pool:
-  name: "SWC Self Hosted Windows 01"
+  name: "companyx Self Hosted Windows 01"
 
 stages:
   - stage: "Deploy_Databricks_Resources"
@@ -47,8 +47,8 @@ stages:
                     command: "init"
                     # commandOptions: '-reconfigure'
                     workingDirectory: '$(System.DefaultWorkingDirectory)\${{ parameters.environment }}'
-                    backendServiceArm: "azure-swcnonprod-serviceconnection"
-                    backendAzureRmResourceGroupName: "rg-swcnonprod01-daf-dev-01"
+                    backendServiceArm: "azure-companyxnonprod-serviceconnection"
+                    backendAzureRmResourceGroupName: "rg-companyxnonprod01-daf-dev-01"
                     backendAzureRmStorageAccountName: "sadafdev01" #"$(storageName)"
                     backendAzureRmContainerName: "tfstate"
                     backendAzureRmKey: "${{ parameters.environment }}-terraform.tfstate"

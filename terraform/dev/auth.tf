@@ -10,7 +10,7 @@ terraform {
     }
   }
   backend "azurerm" {
-    resource_group_name  = "rg-swcnonprod01-daf-dev-01"
+    resource_group_name  = "rg-companyxnonprod01-daf-dev-01"
     storage_account_name = "sadafdev01"
     container_name       = "tfstate"
     key                  = "dev-terraform.tfstate"
